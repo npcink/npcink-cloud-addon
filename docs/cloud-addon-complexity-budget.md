@@ -77,12 +77,33 @@ Tests are split by purpose:
 - WordPress AI connector behavior tests prove the alt-text path requires an
   authorized local attachment, validates its short-TTL Artifact, and never
   falls back to URLs, Data URLs, base64, or WordPress writes.
+- `tests/playground/` and `scripts/smoke-playground.sh` prove that the current
+  checkout activates in a fresh SQLite/WASM WordPress instance and preserves
+  the default fail-closed connector state. They do not use Cloud credentials or
+  prove MySQL, media, Portal, browser, or production behavior.
 - `tests/helpers.php` contains shared assertions, file readers, WordPress stubs,
   HTTP stubs, settings seed helpers, and media derivative fixtures.
 - `tests/run.php` is only the aggregate entry point used by Composer.
 
 Keep new tests in the narrowest matching file. Do not add product workflow
 simulation to the helper layer.
+
+## Verification Tiers
+
+Keep evidence levels separate:
+
+- `composer run test:all` is the deterministic PHP/static contract baseline.
+- `composer run smoke:playground` is the disposable activation and default
+  connector-boundary compatibility gate. Run it for bootstrap, activation,
+  public connector API, default credential/connector state, and WordPress/PHP
+  baseline changes.
+- Local MySQL/Cloud and browser smokes prove their own real integration paths;
+  release and production checks remain separate evidence.
+
+Playground is intentionally optional from the default Composer/CI path because
+it downloads a pinned runtime. A PR in the triggering scope must include its
+result or an explicit not-applicable reason; do not silently treat a passing
+Playground run as a substitute for a higher tier.
 
 ## Deterministic Performance And Safety Baseline
 

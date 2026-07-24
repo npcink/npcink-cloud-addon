@@ -47,6 +47,43 @@ Media derivative contract checks:
   attachment file;
 - proposal payloads declare `final_write_owner=local_wordpress_host`.
 
+## Disposable Playground Smoke
+
+Run this fast compatibility gate when a change affects plugin bootstrap,
+activation, the public connector API, the default credential/connector state,
+or the supported WordPress/PHP baseline:
+
+```bash
+composer run smoke:playground
+```
+
+The command starts one temporary local WordPress Playground instance, mounting
+the current checkout as `npcink-cloud-addon`. It pins the Playground CLI,
+WordPress, and PHP versions in `scripts/smoke-playground.sh`, activates the
+plugin through `tests/playground/blueprint.json`, calls an ephemeral local
+assertion route, then terminates the instance and removes its temporary files.
+
+Prerequisites are Node.js 20.18 or later, `npx`, `curl`, and a free local TCP
+port (default `9417`). Set `NPCINK_PLAYGROUND_PORT` only when that port is in
+use. Do not mount a checkout containing credentials or point this smoke at
+production data.
+
+Expected evidence:
+
+- the Addon activates in a fresh SQLite/WASM WordPress instance;
+- its public connector API is available;
+- default state is fail-closed: no credentials, runtime client, verified runtime
+  client, or synthetic WordPress AI connector marker;
+- the smoke itself makes no Cloud request and exposes no secret value.
+
+This is not evidence for MySQL behavior, native PHP extensions, media import,
+Cloud authorization or signed transport, Portal/Access behavior, browser review,
+or production networking. Keep the Local MySQL/Cloud, browser, and release
+gates in their existing tiers. The command is intentionally outside
+`composer run test:all` and GitHub CI because it downloads the pinned Playground
+and WordPress runtime; record it in the PR whenever the triggering scope above
+applies, or state why it is not applicable.
+
 ## WordPress Smoke Test
 
 Site:

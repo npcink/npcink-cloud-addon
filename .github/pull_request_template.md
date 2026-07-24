@@ -21,6 +21,7 @@ The PR body contract requires them before merge.
 
 - [ ] `composer validate --no-check-publish`
 - [ ] `composer test:all`
+- [ ] `composer run smoke:playground` when the change affects plugin bootstrap, activation, public connector API, default credential/connector state, or the WordPress/PHP baseline; otherwise record why it is not applicable.
 - [ ] `composer check:wporg`
 - [ ] Boundary search for `/v1/runtime/workflows/runs|wp_insert_post|wp_update_post` if PHP runtime or bridge files changed.
 
