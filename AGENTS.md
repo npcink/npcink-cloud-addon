@@ -90,4 +90,11 @@ git diff --check
 rg '/v1/runtime/workflows/runs|\b(?:wp_insert_post|wp_update_post|wp_insert_attachment|wp_update_attachment_metadata|update_post_meta|wp_set_post_terms|set_post_thumbnail|media_handle_sideload)\s*\(' --glob '*.php' --glob '!build/**' .
 ```
 
+Also run `composer run smoke:playground` when a change affects plugin bootstrap,
+activation, the public connector API, the default credential/connector state,
+or the supported WordPress/PHP compatibility baseline. It is a disposable
+SQLite/WASM compatibility gate, not a replacement for Local MySQL, Cloud,
+browser, or production evidence. For an unrelated change, state why this gate
+is not applicable in the handoff or PR verification record.
+
 Documentation may mention forbidden concepts only to describe what this addon must not own.

@@ -49,6 +49,19 @@ observability and Site Knowledge buffers are only bounded delivery buffers for
 Cloud transport; they are not audit, execution, billing, indexing, or workflow
 truth.
 
+## Disposable Playground Smoke
+
+Run `composer run smoke:playground` to boot a clean, SQLite-backed WordPress
+Playground instance with this checkout mounted as the addon. The smoke pins the
+Playground CLI, WordPress, and PHP versions and verifies plugin activation,
+the public connector API, and the default fail-closed state (no credentials,
+no runtime client, and no synthetic WordPress AI connector marker).
+
+It uses no Cloud credentials, production data, or external Cloud request. It
+is a fast addon compatibility gate only; it does not replace the Local
+MySQL/Cloud media E2E, Portal authorization, browser acceptance, or production
+network verification.
+
 The entitlement summary preserves Cloud `pro_cloud_runtime` detail such as
 Nightly Site Inspection run limits, used and remaining runs, batch limits,
 retention, payload modes, and quota-exhausted state. These fields are read-only
