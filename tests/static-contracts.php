@@ -496,9 +496,9 @@ maca_assert(
 	&& false !== strpos( $runtime_client, "'sha256:' . hash( 'sha256', \$contents )" )
 	&& false !== strpos( $runtime_client, "'artifact_id'    => \$artifact['artifact_id']" )
 	&& false !== strpos( $runtime_client, "array( 'source_artifact_id', 'prompt', 'filename', 'title', 'existing_alt', 'existing_caption', 'locale', 'max_tokens' )" )
-	&& false !== strpos( $runtime_client, "'data_classification' => \$is_alt_text ? 'internal' : 'public_site_content'" )
+	&& false !== strpos( $runtime_client, "'data_classification' => 'internal'" )
 	&& false === strpos( $runtime_client, 'WP_AI_CONNECTOR_ALT_TEXT_MAX_REQUEST_BYTES' ),
-	'Runtime client keeps WordPress AI alt-text upload and execution on the dedicated Artifact-id-only contract.'
+	'Runtime client keeps WordPress AI editor input internal and alt-text upload and execution on the dedicated Artifact-id-only contract.'
 );
 
 maca_assert(
