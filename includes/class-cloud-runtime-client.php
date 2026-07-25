@@ -2271,7 +2271,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 						'request'          => $scene_request,
 					),
 				),
-				'data_classification' => $is_alt_text ? 'internal' : 'public_site_content',
+				'data_classification' => 'internal',
 				'storage_mode'        => 'result_only',
 				'retention_ttl'       => min( self::WP_AI_CONNECTOR_MAX_RETENTION_TTL, max( 0, $retention_ttl ) ),
 				'timeout_seconds'     => min( self::WP_AI_CONNECTOR_MAX_TIMEOUT_SECONDS, max( 1, $timeout_seconds ) ),

@@ -113,6 +113,7 @@ maca_assert(
 	&& 'editor' === (string) ( $request_body['channel'] ?? '' )
 	&& 'text' === (string) ( $request_body['execution_kind'] ?? '' )
 	&& 'inline' === (string) ( $request_body['execution_pattern'] ?? '' )
+	&& 'internal' === (string) ( $request_body['data_classification'] ?? '' )
 	&& 'result_only' === (string) ( $request_body['storage_mode'] ?? '' )
 	&& 60 === (int) ( $request_body['timeout_seconds'] ?? 0 )
 	&& 86400 === (int) ( $request_body['retention_ttl'] ?? 0 )
