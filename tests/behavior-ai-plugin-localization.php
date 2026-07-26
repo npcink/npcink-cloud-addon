@@ -166,7 +166,7 @@ maca_assert(
 );
 
 maca_assert(
-	'生成摘要' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+	'生成摘要区块' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Generate Summary',
 		'Generate Summary',
 		'ai'
@@ -404,17 +404,41 @@ maca_assert(
 );
 
 maca_assert(
+	'文章摘要生成' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Excerpt Generation',
+		'Excerpt Generation',
+		'ai'
+	)
+	&& '生成文章摘要' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Generate excerpt',
+		'Generate excerpt',
+		'ai'
+	)
+	&& '重新生成文章摘要' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Regenerate excerpt',
+		'Regenerate excerpt',
+		'ai'
+	)
+	&& '生成文章摘要失败。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Failed to generate excerpt.',
+		'Failed to generate excerpt.',
+		'ai'
+	),
+	'AI plugin localization distinguishes post excerpts from summary blocks.'
+);
+
+maca_assert(
 	'内容总结' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Content Summary',
 		'Content Summary',
 		'ai'
 	)
-	&& '重新生成摘要' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+	&& '重新生成摘要区块' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Regenerate Summary',
 		'Regenerate Summary',
 		'ai'
 	)
-	&& '生成摘要失败。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+	&& '生成摘要区块失败。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Failed to generate summary.',
 		'Failed to generate summary.',
 		'ai'
@@ -820,7 +844,8 @@ maca_assert(
 	&& '画笔大小' === ( $locale_data['Brush size'][0] ?? '' )
 	&& '能力浏览器' === ( $locale_data['Abilities Explorer'][0] ?? '' )
 	&& '配置 AI 提供方' === ( $locale_data['Configure an AI provider'][0] ?? '' )
-	&& '生成摘要' === ( $locale_data['Generate Summary'][0] ?? '' )
+	&& '生成文章摘要' === ( $locale_data['Generate excerpt'][0] ?? '' )
+	&& '生成摘要区块' === ( $locale_data['Generate Summary'][0] ?? '' )
 	&& '分析情绪和毒性' === ( $locale_data['Analyze Sentiment and Toxicity'][0] ?? '' )
 	&& 'SEO 描述' === ( $locale_data['Meta Description'][0] ?? '' )
 	&& '建议%s' === ( $locale_data['Suggest %s'][0] ?? '' )
