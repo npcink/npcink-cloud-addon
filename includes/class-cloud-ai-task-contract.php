@@ -83,6 +83,12 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 				'context_requirements' => array( 'current_content' ),
 				'constraints'          => array( 'source_grounded', 'json_object' ),
 			),
+			'ai/suggest-reply' => array(
+				'task'                 => 'comment_reply_suggest',
+				'task_family'          => 'generation',
+				'context_requirements' => array( 'current_content' ),
+				'constraints'          => array( 'single_value', 'source_grounded', 'no_new_numbers' ),
+			),
 		);
 
 		/**

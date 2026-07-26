@@ -56,6 +56,21 @@ maca_assert(
 	'Behavior: ai-wp-admin title generation receives a bounded compatibility task projection.'
 );
 
+$GLOBALS['maca_abilities']['ai/suggest-reply'] = new Maca_AI_Task_Test_Ability(
+	'ai/suggest-reply',
+	array(),
+	array( 'type' => 'string' )
+);
+$suggest_reply_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( 'ai/suggest-reply' );
+maca_assert(
+	is_array( $suggest_reply_contract )
+	&& 'comment_reply_suggest' === (string) ( $suggest_reply_contract['task'] ?? '' )
+	&& 'generation' === (string) ( $suggest_reply_contract['task_family'] ?? '' )
+	&& array( 'current_content' ) === ( $suggest_reply_contract['context_requirements'] ?? null )
+	&& 'suggestion_only' === (string) ( $suggest_reply_contract['write_posture'] ?? '' ),
+	'Behavior: ai-wp-admin suggest reply receives a bounded suggestion-only comment reply task projection.'
+);
+
 $GLOBALS['maca_abilities']['example/seo-headline'] = new Maca_AI_Task_Test_Ability(
 	'example/seo-headline',
 	array(
