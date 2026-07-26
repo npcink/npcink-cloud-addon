@@ -136,6 +136,44 @@ maca_assert(
 	'Behavior: WordPress AI connector runtime projects a scene-bound no-chat no-write Cloud payload and leaves provider fallback policy to Cloud.'
 );
 
+$personal_data_examples = array(
+	'Contact the editor at writer@example.com before publishing.',
+	'Call the editor at +1 415-555-2671 before publishing.',
+	'The example identity number is 11010519491231002X.',
+);
+foreach ( $personal_data_examples as $index => $personal_data_example ) {
+	$GLOBALS['maca_http_response_queue'][] = array(
+		'response' => array( 'code' => 200 ),
+		'body'     => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data'   => array(
+					'run_id' => 'run_wp_ai_connector_pii_' . $index,
+					'status' => 'succeeded',
+				),
+			)
+		),
+	);
+	$personal_data_result = $client->execute_wordpress_ai_connector_runtime(
+		maca_wordpress_operation_request(
+			'content_classification',
+			array( 'prompt' => $personal_data_example )
+		),
+		'trace-wp-ai-pii-' . $index,
+		'wp-ai-pii-' . $index
+	);
+	$personal_data_request = end( $GLOBALS['maca_http_requests'] );
+	$personal_data_body    = json_decode( (string) ( $personal_data_request['args']['body'] ?? '' ), true );
+
+	maca_assert(
+		is_array( $personal_data_result )
+		&& 'pii' === (string) ( $personal_data_body['data_classification'] ?? '' )
+		&& 'no_store' === (string) ( $personal_data_body['storage_mode'] ?? '' )
+		&& 0 === (int) ( $personal_data_body['retention_ttl'] ?? -1 ),
+		'Behavior: WordPress AI connector runtime selects pii plus no_store for obvious personal data example ' . $index . '.'
+	);
+}
+
 $legacy_contract = $client->execute_wordpress_ai_connector_runtime(
 	array(
 		'contract_version' => 'wp_ai_connector_' . 'runtime.v1',
