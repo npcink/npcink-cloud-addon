@@ -16,6 +16,7 @@ delete_option( 'npcink_cloud_addon_observability_buffer' );
 delete_option( 'npcink_cloud_addon_observability_status' );
 delete_option( 'npcink_cloud_addon_observability_summary' );
 delete_option( 'npcink_cloud_addon_agent_feedback_summary' );
+delete_option( 'npcink_cloud_addon_editor_assist_pending' );
 delete_option( 'npcink_cloud_addon_site_knowledge_change_buffer' );
 delete_option( 'npcink_cloud_addon_site_knowledge_change_status' );
 delete_option( 'npcink_cloud_addon_site_knowledge_maintenance_cursor' );
