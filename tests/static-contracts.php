@@ -263,6 +263,14 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $composer, '"smoke:wp-ai-text-browser":' )
+	&& false !== strpos( $composer, '"smoke:wp-ai-text-browser:preflight": "node scripts/smoke-wordpress-ai-text-browser.mjs --preflight-only"' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "['-h', '--help'].includes(args[0])" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "args[0] === '--preflight-only'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "contract: 'wordpress_ai_text_browser_preflight.v1'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'fixture_created: false' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'browser_started: false' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'provider_execution_attempted: false' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'wordpress_write_attempted: false' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "readiness.ai_version === '1.2.0'" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "['shorten', 'expand', 'rephrase']" )
 	&& false === strpos( $wp_ai_text_browser_smoke, "'lengthen'" )
@@ -279,6 +287,8 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, "'serialized_hash' => hash('sha256', serialize_block(\$block))" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'normalizeEvidenceText(finalSnapshot.summary_meta)' )
 	&& false !== strpos( $local_test_guide, 'official WordPress AI 1.2.0 plugin' )
+	&& false !== strpos( $local_test_guide, 'composer run smoke:wp-ai-text-browser:preflight' )
+	&& false !== strpos( $local_test_guide, 'It does not create a draft, start a' )
 	&& false !== strpos( $local_test_guide, '`cloud_run_id` only inside metadata-only request context for correlation' )
 	&& false !== strpos( $local_test_guide, 'proves zero post writes before the explicit Save/Update click' ),
 	'Opt-in browser acceptance uses the official AI 1.2.0 UI, preserves suggestion-only review, records bounded correlation evidence, and cleans up its local fixture.'
