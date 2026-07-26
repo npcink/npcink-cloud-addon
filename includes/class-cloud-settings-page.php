@@ -1293,7 +1293,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 			?>
 			<h3><?php esc_html_e( 'Cloud connection actions', 'npcink-cloud-addon' ); ?></h3>
-			<p class="description"><?php esc_html_e( 'Use Cloud for account-level connection changes. Local disconnect only clears this WordPress site.', 'npcink-cloud-addon' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Use Cloud for account-level connection changes. Local disconnect only clears this WordPress site; it does not release the site in Cloud or start the cross-account cooldown.', 'npcink-cloud-addon' ); ?></p>
 			<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
 				<?php if ( Npcink_Cloud_Addon_Settings::is_verified() ) : ?>
 					<?php self::render_reverify_form( $settings ); ?>
@@ -1358,7 +1358,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<button
 					type="submit"
 					class="button button-secondary npcink-cloud-button-danger"
-					onclick="return confirm('<?php echo esc_js( __( 'Disconnect this site locally? Stored Cloud credentials and addon-owned buffers will be cleared from this WordPress site only. Manage the site connection in the Cloud portal.', 'npcink-cloud-addon' ) ); ?>');"
+					onclick="return confirm('<?php echo esc_js( __( 'Disconnect this site locally? Stored Cloud credentials and addon-owned buffers will be cleared from this WordPress site only. This does not release the site in Cloud or start the cross-account cooldown. Use the Cloud portal to remove the site or change its account.', 'npcink-cloud-addon' ) ); ?>');"
 				>
 					<?php esc_html_e( 'Disconnect locally', 'npcink-cloud-addon' ); ?>
 				</button>
@@ -1562,6 +1562,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php endif; ?>
 				</tbody>
 				</table>
+				<p class="description"><?php esc_html_e( 'Credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those credits.', 'npcink-cloud-addon' ); ?></p>
 			</section>
 			<?php self::render_local_permissions( $settings, $is_verified ); ?>
 			<?php
@@ -1983,6 +1984,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php esc_html_e( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ); ?>
 				</a>
 				<p class="description"><?php esc_html_e( 'Cloud will create or activate this site connection and return here with a one-time authorization code.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Free service and credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud.', 'npcink-cloud-addon' ); ?></p>
 			</div>
 			<details class="npcink-cloud-endpoint-advanced">
 				<summary>

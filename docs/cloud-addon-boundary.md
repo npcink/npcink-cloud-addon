@@ -19,6 +19,9 @@ index, freshness, and collection lifecycle owner.
 
 - Cloud Base URL.
 - Cloud-side site authorization entry for the current WordPress site.
+- Static, action-adjacent explanation that Free entitlement is account-owned
+  and local disconnect neither releases the Cloud site nor starts its
+  cross-account cooldown. Cloud remains the policy and timestamp authority.
 - Connection Management manual fallback Cloud API Key wrapper entry.
 - `mak1_{base64url(json)}` key parsing.
 - Authenticated encrypted storage of the internal `site_id`, `key_id`, and

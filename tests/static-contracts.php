@@ -1865,13 +1865,17 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'function render_connection_actions( array $settings, bool $is_verified )' )
 	&& false !== strpos( $settings_page, 'if ( $is_verified )' )
 	&& false !== strpos( $settings_page, 'Disconnect locally' )
+	&& false !== strpos( $settings_page, 'Free service and credits belong to the Cloud account selected during authorization' )
+	&& false !== strpos( $settings_page, 'Credits shown here belong to the connected Cloud account' )
+	&& false !== strpos( $settings_page, 'Local disconnect only clears this WordPress site' )
+	&& false !== strpos( $settings_page, 'This does not release the site in Cloud or start the cross-account cooldown' )
 	&& false === strpos( $settings_page, 'Site ID' )
 	&& false === strpos( $settings_page, 'Key ID' )
 	&& false !== strpos( $settings_page, 'Recovery Cloud API Key' )
 	&& false !== strpos( $settings_page, 'Cloud-issued mak1_ wrapper' )
 	&& false === strpos( $settings_page, 'JSON key' )
 	&& false === strpos( $settings_page, 'revoke' ),
-	'Settings page exposes Cloud-side change links and local disconnect actions without showing split credential identifiers or key-management controls.'
+	'Settings page exposes account-owned Free and local-disconnect boundaries beside Cloud-side change actions without showing split credential identifiers or key-management controls.'
 );
 
 maca_assert(
