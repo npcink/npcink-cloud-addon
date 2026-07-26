@@ -169,6 +169,15 @@ echo wp_json_encode(array(
 	);
 }
 
+function assertReadiness(baseUrl, readiness) {
+	assert(['local', 'development'].includes(readiness.environment), `WordPress environment is non-production (${readiness.environment}).`);
+	assert(new URL(readiness.home_url).origin === baseUrl, 'WP_BASE_URL matches the Local WordPress home origin.');
+	assert(readiness.ai_active && readiness.ai_version === '1.2.0', 'Official WordPress AI 1.2.0 is active.');
+	assert(readiness.addon_loaded && readiness.addon_verified && readiness.connector_enabled, 'Verified Cloud Addon connector is enabled for WordPress AI.');
+	assert(Object.values(readiness.features).every(Boolean), 'Global, title, summary, and content resizing WordPress AI features are enabled.');
+	assert(readiness.has_administrator, 'A local administrator is available for the isolated fixture.');
+}
+
 function createFixture(token, fixtureText) {
 	return parseJson(
 		wpCli([
@@ -600,6 +609,70 @@ async function captureDiagnostics(page, screenshotPath, abilityResponses, preSav
 	console.error(`FAIL: ${error?.message || String(error)}`);
 }
 
+function usage() {
+	return `Usage: node scripts/smoke-wordpress-ai-text-browser.mjs [option]
+
+Options:
+  --preflight-only  Verify the local WordPress, AI plugin, Addon connector, and feature prerequisites.
+                    Does not create a draft, start a browser, or invoke an AI provider.
+  -h, --help        Show this help without connecting to WordPress.
+
+With no option, the script runs the complete opt-in browser acceptance.`;
+}
+
+function parseCliMode(args) {
+	if (args.length === 0) {
+		return 'full';
+	}
+	if (args.length === 1 && ['-h', '--help'].includes(args[0])) {
+		return 'help';
+	}
+	if (args.length === 1 && args[0] === '--preflight-only') {
+		return 'preflight';
+	}
+	console.error(`FAIL: unsupported argument ${args.join(' ')}`);
+	console.error(usage());
+	process.exit(2);
+}
+
+function runPreflightOnly() {
+	try {
+		const preflightBaseUrl = localBaseUrl(env('WP_BASE_URL', 'https://magick-ai.local'));
+		const readiness = preflight();
+		assertReadiness(preflightBaseUrl, readiness);
+		const summary = {
+			contract: 'wordpress_ai_text_browser_preflight.v1',
+			mode: 'preflight_only',
+			site_origin: preflightBaseUrl,
+			environment: readiness.environment,
+			versions: {
+				wordpress: readiness.wordpress_version,
+				wordpress_ai: readiness.ai_version,
+				cloud_addon: readiness.addon_version,
+			},
+			fixture_created: false,
+			browser_started: false,
+			provider_execution_attempted: false,
+			wordpress_write_attempted: false,
+		};
+		console.log(`WP_AI_TEXT_BROWSER_PREFLIGHT=${JSON.stringify(summary)}`);
+		pass(`WordPress AI text browser preflight completed at ${preflightBaseUrl}.`);
+		process.exit(0);
+	} catch (error) {
+		console.error(`FAIL: WordPress AI text browser preflight: ${error.message || error}`);
+		process.exit(1);
+	}
+}
+
+const cliMode = parseCliMode(process.argv.slice(2));
+if (cliMode === 'help') {
+	console.log(usage());
+	process.exit(0);
+}
+if (cliMode === 'preflight') {
+	runPreflightOnly();
+}
+
 const artifactDir = resolve(env('WP_AI_TEXT_ARTIFACT_DIR', '/tmp/npcink-cloud-addon-p5-b3'));
 const reviewScreenshotPath = resolve(env('WP_AI_TEXT_REVIEW_SCREENSHOT', `${artifactDir}/wordpress-ai-text-review.png`));
 const savedScreenshotPath = resolve(env('WP_AI_TEXT_SAVED_SCREENSHOT', `${artifactDir}/wordpress-ai-text-saved.png`));
@@ -632,12 +705,7 @@ const saveWrites = [];
 try {
 	baseUrl = localBaseUrl(env('WP_BASE_URL', 'https://magick-ai.local'));
 	const readiness = preflight();
-	assert(['local', 'development'].includes(readiness.environment), `WordPress environment is non-production (${readiness.environment}).`);
-	assert(new URL(readiness.home_url).origin === baseUrl, 'WP_BASE_URL matches the Local WordPress home origin.');
-	assert(readiness.ai_active && readiness.ai_version === '1.2.0', 'Official WordPress AI 1.2.0 is active.');
-	assert(readiness.addon_loaded && readiness.addon_verified && readiness.connector_enabled, 'Verified Cloud Addon connector is enabled for WordPress AI.');
-	assert(Object.values(readiness.features).every(Boolean), 'Global, title, summary, and content resizing WordPress AI features are enabled.');
-	assert(readiness.has_administrator, 'A local administrator is available for the isolated fixture.');
+	assertReadiness(baseUrl, readiness);
 
 	const fixture = createFixture(token, fixtureText);
 	postId = Number(fixture.post_id || 0);

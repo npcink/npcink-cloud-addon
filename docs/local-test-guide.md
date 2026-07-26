@@ -151,6 +151,21 @@ editor data-path regression gate described above.
 
 ## WordPress AI Text Browser Acceptance
 
+Before spending a provider call or creating a disposable draft, run the
+read-only prerequisite check:
+
+```bash
+WP_BASE_URL="https://magick-ai.local" \
+composer run smoke:wp-ai-text-browser:preflight
+```
+
+The preflight verifies the Local/development environment, site origin,
+official WordPress AI 1.2.0 plugin, verified Addon connector, required feature
+flags, and an editable administrator. It does not create a draft, start a
+browser, invoke an AI provider, or write WordPress data. Use
+`composer run smoke:wp-ai-text-browser -- --help` to inspect the two modes
+without connecting to WordPress.
+
 Run this opt-in browser gate against a disposable local/development WordPress
 site with the official WordPress AI 1.2.0 plugin, a verified Cloud Addon
 connection, and only title generation, summarization, and content resizing
