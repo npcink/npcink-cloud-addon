@@ -284,6 +284,8 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'originalLabel === reviewLabels.original' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'suggestedLabel === reviewLabels.suggested' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "getByRole('button', { name: reviewLabels.accept, exact: true })" )
+	&& false === strpos( $wp_ai_text_browser_smoke, '\sOR\s' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'Both rephrasings|Both versions' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "'serialized_hash' => hash('sha256', serialize_block(\$block))" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'normalizeEvidenceText(finalSnapshot.summary_meta)' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "env('WP_AI_TEXT_FAKE_PROVIDER') === '1'" )

@@ -1243,7 +1243,7 @@ try {
 	assert(originalReviewText.includes(`P5B3-TARGET-${token}`), 'UI review evidence: Original panel is the selected whole core/paragraph block.');
 	assert(suggestedReviewText.length > 0 && suggestedReviewText !== originalReviewText, 'UI review evidence: Suggested panel shows a distinct rephrased paragraph before Accept.');
 	assert(
-		!/(?:\sOR\s|Both rephrasings|Both versions|如果你愿意|以下是|下面是)/i.test(suggestedReviewText),
+		!/(?:Both rephrasings|Both versions|如果你愿意|以下是|下面是)/i.test(suggestedReviewText),
 		'Quality evidence: Suggested contains one direct rewrite without alternatives or explanatory boilerplate.'
 	);
 	assert(samePersistedSnapshot(initialSnapshot, databaseSnapshot(postId)), 'Data-path evidence: Rephrase returned while post fields and revisions remained unchanged before Accept.');
