@@ -703,6 +703,30 @@ maca_assert(
 );
 
 maca_assert(
+	'插件或主题使用本站配置的 AI 连接器前，需要管理员明确审批。启用此功能后，在有获批连接器可用前，所有 AI 交互（包括 AI 插件发起的交互）都会被阻止。此功能仍是实验性概念验证，可能会遇到问题，欢迎反馈以帮助完善。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Require explicit administrator approval before plugins or themes can use AI connectors configured on this site. Enabling this feature will block all AI interactions, including those from the AI plugin, until an approved connector is available. Note this is an experimental, proof-of-concept feature and as such, issues may be encountered. Feedback welcome and desired to help shape the feature.',
+		'Require explicit administrator approval before plugins or themes can use AI connectors configured on this site. Enabling this feature will block all AI interactions, including those from the AI plugin, until an approved connector is available. Note this is an experimental, proof-of-concept feature and as such, issues may be encountered. Feedback welcome and desired to help shape the feature.',
+		'ai'
+	)
+	&& '建议回复' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Suggest Reply',
+		'Suggest Reply',
+		'ai'
+	)
+	&& '在“评论”界面和“活动”小工具中添加“建议回复”操作，让审核人员可以快速生成评论回复建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Adds a "Suggest Reply" action to the Comments screen and Activity widget, enabling moderators to quickly generate comment reply suggestions.',
+		'Adds a "Suggest Reply" action to the Comments screen and Activity widget, enabling moderators to quickly generate comment reply suggestions.',
+		'ai'
+	)
+	&& '正在生成 AI 回复…' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Generating AI reply…',
+		'Generating AI reply…',
+		'ai'
+	),
+	'AI plugin localization translates the current connector approval and suggest reply UI.'
+);
+
+maca_assert(
 	'AI 插件初始化失败：%s' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'AI Plugin initialization failed: %s',
 		'AI Plugin initialization failed: %s',
@@ -858,6 +882,7 @@ $locale_data = isset( $localized_script['data']['localeData'] ) && is_array( $lo
 maca_assert(
 	'npcink-cloud-addon-ai-plugin-localization' === ( $enqueued_script['handle'] ?? '' )
 	&& in_array( 'wp-i18n', $enqueued_script['deps'] ?? array(), true )
+	&& false === ( $enqueued_script['in_footer'] ?? true )
 	&& 'NpcinkCloudAiPluginLocalization' === ( $localized_script['object_name'] ?? '' )
 	&& '生成图片' === ( $locale_data['Generate Image'][0] ?? '' )
 	&& '生成特色图片' === ( $locale_data['Generate featured image'][0] ?? '' )
@@ -887,6 +912,9 @@ maca_assert(
 	&& '待处理请求' === ( $locale_data['Pending requests'][0] ?? '' )
 	&& '所有提供方' === ( $locale_data['All Providers'][0] ?? '' )
 	&& '调用能力' === ( $locale_data['Invoke Ability'][0] ?? '' )
-	&& '无效的 JSON 输入' === ( $locale_data['Invalid JSON input'][0] ?? '' ),
+	&& '无效的 JSON 输入' === ( $locale_data['Invalid JSON input'][0] ?? '' )
+	&& '建议回复' === ( $locale_data['Suggest Reply'][0] ?? '' )
+	&& '更改回复语气' === ( $locale_data['Change reply tone'][0] ?? '' )
+	&& '正在生成 AI 回复…' === ( $locale_data['Generating AI reply…'][0] ?? '' ),
 	'AI plugin localization enqueues an asset-backed wp.i18n locale data shim for JS admin screens.'
 );
