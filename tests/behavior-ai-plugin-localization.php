@@ -180,8 +180,23 @@ maca_assert(
 		'Generate Meta Description',
 		'Generate Meta Description',
 		'ai'
+	)
+	&& '文章内容至少达到 %d 个字符后可生成编辑建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Editorial Notes will be available when the post content has at least %d characters.',
+		'Editorial Notes will be available when the post content has at least %d characters.',
+		'ai'
+	)
+	&& '文章内容至少达到 %d 个字符后可生成 SEO 描述。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Meta Description generation will be available when the post content has at least %d characters.',
+		'Meta Description generation will be available when the post content has at least %d characters.',
+		'ai'
+	)
+	&& '文章内容至少达到 %d 个字符后可使用内容分类建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Content Classification will be available when the post content has at least %d characters.',
+		'Content Classification will be available when the post content has at least %d characters.',
+		'ai'
 	),
-	'AI plugin localization translates editor action labels.'
+	'AI plugin localization translates editor action labels and eligibility guidance.'
 );
 
 maca_assert(
@@ -846,6 +861,9 @@ maca_assert(
 	&& '配置 AI 提供方' === ( $locale_data['Configure an AI provider'][0] ?? '' )
 	&& '生成文章摘要' === ( $locale_data['Generate excerpt'][0] ?? '' )
 	&& '生成摘要区块' === ( $locale_data['Generate Summary'][0] ?? '' )
+	&& '文章内容至少达到 %d 个字符后可生成编辑建议。' === ( $locale_data['Editorial Notes will be available when the post content has at least %d characters.'][0] ?? '' )
+	&& '文章内容至少达到 %d 个字符后可生成 SEO 描述。' === ( $locale_data['Meta Description generation will be available when the post content has at least %d characters.'][0] ?? '' )
+	&& '文章内容至少达到 %d 个字符后可使用内容分类建议。' === ( $locale_data['Content Classification will be available when the post content has at least %d characters.'][0] ?? '' )
 	&& '分析情绪和毒性' === ( $locale_data['Analyze Sentiment and Toxicity'][0] ?? '' )
 	&& 'SEO 描述' === ( $locale_data['Meta Description'][0] ?? '' )
 	&& '建议%s' === ( $locale_data['Suggest %s'][0] ?? '' )
