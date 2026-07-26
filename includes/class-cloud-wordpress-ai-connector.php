@@ -1107,6 +1107,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'WordPress\\AI\\Abilities\\Editorial_Notes\\Editorial_Notes'                => 'ai/editorial-notes',
 				'WordPress\\AI\\Abilities\\Excerpt_Generation\\Excerpt_Generation'          => 'ai/excerpt-generation',
 				'WordPress\\AI\\Abilities\\Meta_Description\\Meta_Description'              => 'ai/meta-description',
+				'WordPress\\AI\\Abilities\\Suggest_Reply\\Suggest_Reply'                    => 'ai/suggest-reply',
 				'WordPress\\AI\\Abilities\\Title_Generation\\Title_Generation'              => 'ai/title-generation',
 				'WordPress\\AI\\Abilities\\Summarization\\Summarization'                    => 'ai/summarization',
 			);

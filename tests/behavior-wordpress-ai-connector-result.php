@@ -28,6 +28,18 @@ namespace WordPress\AiClient\Providers\Models\ImageGeneration\Contracts {
 	interface ImageGenerationModelInterface {}
 }
 
+namespace WordPress\AI\Abilities\Suggest_Reply {
+	final class Suggest_Reply {
+		public function detected_scene_ability_name(): string {
+			$model  = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
+			$method = new \ReflectionMethod( $model, 'detect_scene_ability_name' );
+			$method->setAccessible( true );
+
+			return (string) $method->invoke( $model );
+		}
+	}
+}
+
 namespace {
 	require_once __DIR__ . '/helpers.php';
 
@@ -100,5 +112,10 @@ namespace {
 	maca_assert(
 		$parser_rejections,
 		'Behavior: text and vision connector parsers reject task, suggestion posture, connector, and operation contract mismatches.'
+	);
+
+	maca_assert(
+		'ai/suggest-reply' === ( new \WordPress\AI\Abilities\Suggest_Reply\Suggest_Reply() )->detected_scene_ability_name(),
+		'Behavior: the text connector recognizes the WordPress AI suggest reply ability as a bounded scene.'
 	);
 }
