@@ -216,8 +216,9 @@ $rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $rendered, 'Npcink Cloud Addon' )
 	&& false !== strpos( $rendered, 'Add this site in Npcink Cloud' )
+	&& false !== strpos( $rendered, 'Free service and credits belong to the Cloud account selected during authorization' )
 	&& $http_before_render === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: the representative unconfigured admin render performs zero outbound HTTP requests.'
+	'Behavior: the representative unconfigured admin render explains account-owned Free service and performs zero outbound HTTP requests.'
 );
 
 maca_reset_test_state();
@@ -244,8 +245,29 @@ $overview_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $overview_rendered, 'Available knowledge documents' )
 	&& false !== strpos( $overview_rendered, 'data-npcink-site-knowledge-usage' )
+	&& false !== strpos( $overview_rendered, 'Credits shown here belong to the connected Cloud account' )
 	&& $http_before_overview === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: the verified Overview owns the knowledge-document quota summary and renders it without Cloud HTTP.'
+	'Behavior: the verified Overview keeps account ownership beside usage without Cloud HTTP.'
+);
+
+$connection_management_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_connection_management' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$connection_management_renderer->setAccessible( true );
+}
+
+$http_before_connection_management = count( $GLOBALS['maca_http_requests'] );
+ob_start();
+$connection_management_renderer->invoke(
+	null,
+	Npcink_Cloud_Addon_Settings::get_settings()
+);
+$connection_management_rendered = (string) ob_get_clean();
+
+maca_assert(
+	false !== strpos( $connection_management_rendered, 'Local disconnect only clears this WordPress site' )
+	&& false !== strpos( $connection_management_rendered, 'This does not release the site in Cloud or start the cross-account cooldown' )
+	&& $http_before_connection_management === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: Connection Management states that local disconnect neither releases Cloud ownership nor starts cooldown, without Cloud HTTP.'
 );
 
 $site_knowledge_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_site_knowledge_summary' );

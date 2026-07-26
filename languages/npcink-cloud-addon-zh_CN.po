@@ -419,6 +419,10 @@ msgstr "在 Npcink Cloud 添加当前站点"
 msgid "Cloud will create or activate this site connection and return here with a one-time authorization code."
 msgstr "Cloud 会创建或激活此站点连接，并通过一次性授权码返回这里。"
 
+#: includes/class-cloud-settings-page.php:1987
+msgid "Free service and credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud."
+msgstr "Free 服务和额度属于授权时选择的 Cloud 账户，不属于此站点。同一账户可随时重新连接；更换到其他账户时，须遵守 Cloud 显示的站点移除和冷却要求。"
+
 #: includes/class-cloud-settings-page.php:1331
 msgid "Monitoring"
 msgstr "监控"
@@ -782,9 +786,9 @@ msgstr "Cloud API 密钥封装缺少必需的签名数据。"
 msgid "Cloud connection completed and verified."
 msgstr "Cloud 连接已完成并通过验证。"
 
-#: includes/class-cloud-settings-page.php:1535
-msgid "Disconnect this site locally? Stored Cloud credentials and addon-owned buffers will be cleared from this WordPress site only. Manage the site connection in the Cloud portal."
-msgstr "要在本地断开此站点吗？仅会从此 WordPress 站点清除已保存的 Cloud 凭证和插件自有缓冲。请在 Cloud Portal 中管理站点连接。"
+#: includes/class-cloud-settings-page.php:1361
+msgid "Disconnect this site locally? Stored Cloud credentials and addon-owned buffers will be cleared from this WordPress site only. This does not release the site in Cloud or start the cross-account cooldown. Use the Cloud portal to remove the site or change its account."
+msgstr "要在本地断开此站点吗？只会从当前 WordPress 站点清除已保存的 Cloud 凭据和 Addon 自有缓冲。此操作不会在 Cloud 中释放站点，也不会开始跨账户冷却。如需移除站点或更换账户，请使用 Cloud Portal。"
 
 #: includes/class-cloud-settings-page.php:1579
 msgid "Recovery Cloud API Key"
@@ -806,9 +810,9 @@ msgstr "此恢复入口仅接受 Cloud 签发的 mak1_ 封装密钥，并且不�
 msgid "Connection management"
 msgstr "连接管理"
 
-#: includes/class-cloud-settings-page.php:1470
-msgid "Use Cloud for account-level connection changes. Local disconnect only clears this WordPress site."
-msgstr "账户级连接变更请在 Cloud 中处理。本地断开只会清除此 WordPress 站点。"
+#: includes/class-cloud-settings-page.php:1296
+msgid "Use Cloud for account-level connection changes. Local disconnect only clears this WordPress site; it does not release the site in Cloud or start the cross-account cooldown."
+msgstr "账户级连接变更请在 Cloud 中处理。本地断开只会清理当前 WordPress 站点；不会在 Cloud 中释放站点，也不会开始跨账户冷却。"
 
 #: includes/class-cloud-settings-page.php:2826
 msgid "not refreshed"
@@ -1931,6 +1935,10 @@ msgstr "未就绪"
 #: includes/class-cloud-settings-page.php:1688
 msgid "Available knowledge documents"
 msgstr "可用文章数"
+
+#: includes/class-cloud-settings-page.php:1565
+msgid "Credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those credits."
+msgstr "此处显示的额度属于当前连接的 Cloud 账户。断开、移除或更换此 WordPress 站点不会转移这些额度。"
 
 #: includes/class-cloud-settings-page.php:1702
 msgid "Remaining knowledge document percentage"

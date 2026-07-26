@@ -34,6 +34,9 @@ router, workflows, or runtime policy.
 Cloud authorization entries should open in a new browser tab so the WordPress
 admin page remains available while Cloud creates or activates the site
 connection.
+The connection action must state that Free service and credits belong to the
+selected Cloud account rather than the site, and that cross-account changes are
+subject to the removal and cooldown requirements shown by Cloud.
 
 See `docs/connect-ui-and-zh-cn-localization-closeout-2026-07-09.md` for the
 closeout rationale behind the folded endpoint entry, new-tab authorization
@@ -87,6 +90,9 @@ owners for compatibility.
 Low-frequency details may include:
 
 - manual Cloud Base URL and Cloud API Key wrapper recovery entry;
+- a local disconnect action that explicitly says it clears only WordPress-side
+  credentials and buffers, does not release the Cloud site, and does not start
+  the cross-account cooldown;
 - a last connection failure and sanitized Cloud error classification, when present;
 - compact package and availability fields plus one combined credit usage row;
 - Cloud-owned runtime recent/status/result detail and retry request entry;
@@ -110,6 +116,8 @@ Admin panels should use utility copy and summary/detail separation:
 - avoid repeated section titles when the active tab already names the area;
 - place primary actions beside the relevant state, not scattered above and
   below the same section;
+- place account-owned credit and Cloud-release consequences beside the connect,
+  usage, and disconnect actions they qualify;
 - prefer one table row per fact and avoid narrow label columns that force
   awkward wrapping;
 - use table headers for tabular diagnostics;
