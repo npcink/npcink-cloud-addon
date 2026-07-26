@@ -286,12 +286,23 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, "getByRole('button', { name: reviewLabels.accept, exact: true })" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "'serialized_hash' => hash('sha256', serialize_block(\$block))" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'normalizeEvidenceText(finalSnapshot.summary_meta)' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "env('WP_AI_TEXT_FAKE_PROVIDER') === '1'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "'pre_http_request'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "'data_classification'      =>" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "'storage_mode'             =>" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "'transport_preempted'      => true" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'title_acceptance_evidence' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'content_fields_recorded: false' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'removeFakeProvider(fakeProvider)' )
 	&& false !== strpos( $local_test_guide, 'official WordPress AI 1.2.0 plugin' )
 	&& false !== strpos( $local_test_guide, 'composer run smoke:wp-ai-text-browser:preflight' )
 	&& false !== strpos( $local_test_guide, 'It does not create a draft, start a' )
+	&& false !== strpos( $local_test_guide, 'WP_AI_TEXT_FAKE_PROVIDER=1' )
+	&& false !== strpos( $local_test_guide, 'It stores no prompt, post content, generated title, credentials, or' )
+	&& false !== strpos( $local_test_guide, 'headers, dispatches no real Provider request' )
 	&& false !== strpos( $local_test_guide, '`cloud_run_id` only inside metadata-only request context for correlation' )
 	&& false !== strpos( $local_test_guide, 'proves zero post writes before the explicit Save/Update click' ),
-	'Opt-in browser acceptance uses the official AI 1.2.0 UI, preserves suggestion-only review, records bounded correlation evidence, and cleans up its local fixture.'
+	'Opt-in browser acceptance uses the official AI 1.2.0 UI, supports a local expiring fake Provider, preserves suggestion-only review, records content-free adoption evidence, and cleans up its local fixture.'
 );
 
 maca_assert(
