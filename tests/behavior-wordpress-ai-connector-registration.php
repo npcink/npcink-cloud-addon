@@ -194,6 +194,21 @@ maca_assert(
 	&& '42' === (string) ( $text_context['input']['context'] ?? '' ),
 	'Validated WordPress AI text ability input is available only as one-request local correlation context.'
 );
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context(
+	'ai/site-guidelines',
+	array( 'category' => 'copy' )
+);
+Npcink_Cloud_WordPress_AI_Connector::end_wordpress_ai_ability_context(
+	'ai/site-guidelines',
+	array(),
+	'result'
+);
+$text_context_after_nested_ability = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
+maca_assert(
+	'ai/summarization' === (string) ( $text_context_after_nested_ability['ability_id'] ?? '' )
+	&& '42' === (string) ( $text_context_after_nested_ability['input']['context'] ?? '' ),
+	'Nested guideline abilities do not erase the outer WordPress AI editor correlation context.'
+);
 Npcink_Cloud_WordPress_AI_Connector::end_wordpress_ai_ability_context(
 	'ai/summarization',
 	array(),
