@@ -628,6 +628,7 @@ maca_assert(
 	&& false !== strpos( $ai_plugin_localization, "'Analyze Sentiment and Toxicity' => '分析情绪和毒性'" )
 	&& false !== strpos( $ai_plugin_localization, "'Sentiment' => '情绪'" )
 	&& false !== strpos( $ai_plugin_localization, "'Generate excerpt' => '生成文章摘要'" )
+	&& false !== strpos( $ai_plugin_localization, "'Excerpt generation will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可生成文章摘要。'" )
 	&& false !== strpos( $ai_plugin_localization, "'Generate Summary' => '生成摘要区块'" )
 	&& false !== strpos( $ai_plugin_localization, "'Editorial Notes will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可生成编辑建议。'" )
 	&& false !== strpos( $ai_plugin_localization, "'Meta Description generation will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可生成 SEO 描述。'" )

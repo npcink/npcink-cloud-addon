@@ -367,6 +367,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'Generate excerpt' => '生成文章摘要',
 				'Regenerate excerpt' => '重新生成文章摘要',
 				'Failed to generate excerpt.' => '生成文章摘要失败。',
+				'Excerpt generation will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可生成文章摘要。',
 				'Alt Text Generation' => '替代文本生成',
 				'Generates accessible alternative (alt) text for images using AI vision models, following common web accessibility guidance. Requires an AI connector that includes support for vision-based image analysis models.' => '使用 AI 视觉模型为图片生成符合常见无障碍规范的替代文本。需要支持视觉图片分析模型的 AI 连接器。',
 				'Generate Alt Text' => '生成替代文本',

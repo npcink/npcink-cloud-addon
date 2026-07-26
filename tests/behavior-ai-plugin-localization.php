@@ -438,8 +438,13 @@ maca_assert(
 		'Failed to generate excerpt.',
 		'Failed to generate excerpt.',
 		'ai'
+	)
+	&& '文章内容至少达到 %d 个字符后可生成文章摘要。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Excerpt generation will be available when the post content has at least %d characters.',
+		'Excerpt generation will be available when the post content has at least %d characters.',
+		'ai'
 	),
-	'AI plugin localization distinguishes post excerpts from summary blocks.'
+	'AI plugin localization distinguishes post excerpts from summary blocks and translates excerpt eligibility guidance.'
 );
 
 maca_assert(
@@ -860,6 +865,7 @@ maca_assert(
 	&& '能力浏览器' === ( $locale_data['Abilities Explorer'][0] ?? '' )
 	&& '配置 AI 提供方' === ( $locale_data['Configure an AI provider'][0] ?? '' )
 	&& '生成文章摘要' === ( $locale_data['Generate excerpt'][0] ?? '' )
+	&& '文章内容至少达到 %d 个字符后可生成文章摘要。' === ( $locale_data['Excerpt generation will be available when the post content has at least %d characters.'][0] ?? '' )
 	&& '生成摘要区块' === ( $locale_data['Generate Summary'][0] ?? '' )
 	&& '文章内容至少达到 %d 个字符后可生成编辑建议。' === ( $locale_data['Editorial Notes will be available when the post content has at least %d characters.'][0] ?? '' )
 	&& '文章内容至少达到 %d 个字符后可生成 SEO 描述。' === ( $locale_data['Meta Description generation will be available when the post content has at least %d characters.'][0] ?? '' )
