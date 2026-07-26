@@ -2249,6 +2249,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				);
 			}
 			$is_alt_text = 'alt_text_suggest' === $task;
+			$contains_pii = $this->wordpress_ai_scene_contains_obvious_pii( $scene_request );
 
 			return array(
 				'site_id'             => $site_id,
@@ -2271,12 +2272,52 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 						'request'          => $scene_request,
 					),
 				),
-				'data_classification' => 'internal',
-				'storage_mode'        => 'result_only',
-				'retention_ttl'       => min( self::WP_AI_CONNECTOR_MAX_RETENTION_TTL, max( 0, $retention_ttl ) ),
+				'data_classification' => $contains_pii ? 'pii' : 'internal',
+				'storage_mode'        => $contains_pii ? 'no_store' : 'result_only',
+				'retention_ttl'       => $contains_pii ? 0 : min( self::WP_AI_CONNECTOR_MAX_RETENTION_TTL, max( 0, $retention_ttl ) ),
 				'timeout_seconds'     => min( self::WP_AI_CONNECTOR_MAX_TIMEOUT_SECONDS, max( 1, $timeout_seconds ) ),
 				'retry_max'           => min( 1, $retry_max ),
 			);
+		}
+
+		/**
+		 * Detects obvious personal-data values before dispatching an editor scene.
+		 *
+		 * This intentionally mirrors the Cloud runtime's lightweight PII backstop.
+		 * It is not a general DLP classifier; it only selects the stricter request
+		 * posture for clear email, phone-number, or national-id-like values.
+		 *
+		 * @param mixed $value Normalized scene value.
+		 * @return bool
+		 */
+		private function wordpress_ai_scene_contains_obvious_pii( $value ): bool {
+			if ( is_array( $value ) ) {
+				foreach ( $value as $item ) {
+					if ( $this->wordpress_ai_scene_contains_obvious_pii( $item ) ) {
+						return true;
+					}
+				}
+				return false;
+			}
+			if ( ! is_string( $value ) || '' === $value ) {
+				return false;
+			}
+			if ( 1 === preg_match( '/^art_[0-9a-f]{32}$/', $value ) ) {
+				return false;
+			}
+
+			$patterns = array(
+				'/\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b/',
+				'/(?<!\d)(?:\+?\d{1,3}[\s.\-]?)?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}(?!\d)/',
+				'/\b[1-9]\d{5}(?:18|19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx]\b/',
+			);
+			foreach ( $patterns as $pattern ) {
+				if ( 1 === preg_match( $pattern, $value ) ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		/**

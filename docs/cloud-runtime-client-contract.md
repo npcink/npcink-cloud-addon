@@ -391,9 +391,12 @@ Addon transport contract: no Data URL or base64 crosses the Cloud boundary.
 Only after upload succeeds may `alt_text_suggest` execute. Its scene request
 contains exactly `source_artifact_id`, `prompt`, and the optional bounded
 `filename`, `title`, `existing_alt`, `existing_caption`, `locale`, and
-`max_tokens` fields. Alt-text requests use `data_classification=internal` and
-remain `suggestion_only`; the addon does not become a generic vision provider
-or router, write media metadata, or own final approval.
+`max_tokens` fields. Alt-text requests normally use
+`data_classification=internal`; when their bounded text context contains an
+obvious personal-data value, they use `data_classification=pii` with
+`storage_mode=no_store`. They remain `suggestion_only`; the addon does not
+become a generic vision provider or router, write media metadata, or own final
+approval.
 
 Input must use the platform-neutral
 `contract_version=cloud_connector_runtime.v1` envelope and one of the supported
@@ -416,7 +419,11 @@ The method projects accepted requests into a fixed runtime payload:
 - `channel=editor`
 - `execution_kind=text` for text tasks or `vision` for `alt_text_suggest`
 - `execution_pattern=inline`
-- `storage_mode=result_only`
+- `data_classification=internal` with `storage_mode=result_only` for ordinary
+  editor scenes
+- `data_classification=pii`, `storage_mode=no_store`, and `retention_ttl=0`
+  when the normalized scene contains an obvious email, phone-number, or
+  national-id-like value
 - `input.site_url=untrailingslashit(home_url('/'))`
 - `input.platform_kind=wordpress`
 - `input.connector_id=npcink-cloud-addon`
@@ -426,6 +433,9 @@ The method projects accepted requests into a fixed runtime payload:
 
 Provider fallback posture is owned by the selected Cloud profile/runtime. The
 Addon does not send a local `policy.allow_fallback` override for this connector.
+The personal-data check is a lightweight transport backstop aligned with the
+Cloud runtime guard, not a general DLP classifier or a new local content policy
+surface.
 
 The nested operation contract has exactly `contract_version`, `task`, and
 `request`. Platform identity stays in the connector envelope; WordPress task
