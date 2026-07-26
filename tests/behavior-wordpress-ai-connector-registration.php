@@ -181,6 +181,29 @@ maca_assert(
 	'REST-visible WordPress AI abilities are prioritized for default Abilities API discovery when Cloud connector exposure is enabled.'
 );
 
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context(
+	'ai/summarization',
+	array(
+		'context' => '42',
+		'content' => 'Local source only',
+	)
+);
+$text_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
+maca_assert(
+	'ai/summarization' === (string) ( $text_context['ability_id'] ?? '' )
+	&& '42' === (string) ( $text_context['input']['context'] ?? '' ),
+	'Validated WordPress AI text ability input is available only as one-request local correlation context.'
+);
+Npcink_Cloud_WordPress_AI_Connector::end_wordpress_ai_ability_context(
+	'ai/summarization',
+	array(),
+	'result'
+);
+maca_assert(
+	array() === Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context(),
+	'WordPress AI text ability correlation context is cleared after ability execution.'
+);
+
 $namespace_scoped = Npcink_Cloud_WordPress_AI_Connector::prioritize_wordpress_ai_abilities_for_rest_list(
 	$abilities,
 	array(

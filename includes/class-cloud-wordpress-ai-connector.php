@@ -31,6 +31,13 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		private static $alt_text_ability_context = array();
 
 		/**
+		 * Current validated WordPress AI text ability context.
+		 *
+		 * @var array<string,mixed>
+		 */
+		private static $text_ability_context = array();
+
+		/**
 		 * Registers hooks.
 		 *
 		 * @return void
@@ -66,6 +73,15 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			self::reset_wordpress_ai_ability_context();
 			if ( 'ai/alt-text-generation' === $ability_name && is_array( $input ) ) {
 				self::$alt_text_ability_context = $input;
+			}
+			if (
+				is_array( $input )
+				&& in_array( $ability_name, array( 'ai/title-generation', 'ai/summarization', 'ai/content-resizing' ), true )
+			) {
+				self::$text_ability_context = array(
+					'ability_id' => $ability_name,
+					'input'      => $input,
+				);
 			}
 		}
 
@@ -111,6 +127,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 */
 		public static function reset_wordpress_ai_ability_context(): void {
 			self::$alt_text_ability_context = array();
+			self::$text_ability_context = array();
+		}
+
+		/**
+		 * Returns the current validated text ability context without consuming it.
+		 *
+		 * @return array<string,mixed>
+		 */
+		public static function current_text_ability_context(): array {
+			return self::$text_ability_context;
 		}
 
 		/**
@@ -946,6 +972,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'trace_wp_ai_connector_' . wp_generate_uuid4(),
 				'wp_ai_connector_' . wp_generate_uuid4()
 			);
+			$duration_ms = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started );
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
 				array(
 					'type'                       => 'text',
@@ -954,7 +981,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					'contract_version'           => 'cloud_connector_runtime.v1',
 					'operation_contract_version' => 'wordpress_operation.v1',
 					'response'                   => $response,
-					'duration_ms'                => Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started ),
+					'duration_ms'                => $duration_ms,
 					'fallback_model_id'          => Npcink_Cloud_WordPress_AI_Connector::MODEL_ID,
 				)
 			);
@@ -968,8 +995,25 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector response did not include text output.' );
 			}
 
+			$run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) );
+			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
+			if (
+				class_exists( 'Npcink_Cloud_Editor_Assist_Quality' )
+				&& $ability_name === (string) ( $ability_context['ability_id'] ?? '' )
+				&& is_array( $ability_context['input'] ?? null )
+			) {
+				Npcink_Cloud_Editor_Assist_Quality::record_generation(
+					$ability_name,
+					$task,
+					$ability_context['input'],
+					$run_id,
+					$output_text,
+					$duration_ms
+				);
+			}
+
 			return new \WordPress\AiClient\Results\DTO\GenerativeAiResult(
-				(string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) ),
+				$run_id,
 				array(
 					new \WordPress\AiClient\Results\DTO\Candidate(
 						new \WordPress\AiClient\Messages\DTO\ModelMessage(

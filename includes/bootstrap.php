@@ -20,6 +20,7 @@ require_once __DIR__ . '/class-cloud-runtime-client.php';
 require_once __DIR__ . '/class-cloud-media-derivative-transport.php';
 require_once __DIR__ . '/class-cloud-entitlement-summary.php';
 require_once __DIR__ . '/class-cloud-observability-collector.php';
+require_once __DIR__ . '/class-cloud-editor-assist-quality.php';
 require_once __DIR__ . '/class-cloud-site-knowledge-change-bridge.php';
 require_once __DIR__ . '/class-cloud-site-knowledge-runtime-bridge.php';
 require_once __DIR__ . '/class-cloud-site-knowledge-admin-projection.php';
@@ -605,6 +606,7 @@ if ( ! function_exists( 'npcink_cloud_addon_bootstrap' ) ) {
 	function npcink_cloud_addon_bootstrap(): void {
 		Npcink_Cloud_Addon_Settings::register();
 		Npcink_Cloud_Observability_Collector::register();
+		Npcink_Cloud_Editor_Assist_Quality::register();
 		Npcink_Cloud_Site_Knowledge_Change_Bridge::register();
 		Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
 		Npcink_Cloud_Addon_Localization::register();
