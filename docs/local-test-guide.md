@@ -197,6 +197,28 @@ and never run this gate with real sensitive content. The gate is intentionally
 outside `composer test:all` because it requires a configured local WordPress
 site, browser runtime, and live Cloud provider.
 
+For deterministic pre-user validation without a real Provider call, add:
+
+```bash
+WP_AI_TEXT_FAKE_PROVIDER=1 \
+composer run smoke:wp-ai-text-browser
+```
+
+Fake-provider mode installs one random-name, ten-minute local MU filter for the
+isolated fixture only. It preempts the Addon HTTP request with the canonical
+`cloud_connector_result.v1` shape, makes the first title attempt fail, and then
+exercises retry, Regenerate, manual title editing, Insert, and normal Save. The
+filter records only task name, bounded outcome, data classification, storage
+mode, suggestion-only posture, Site Knowledge-reference presence, and sequence
+number. It stores no prompt, post content, generated title, credentials, or
+headers, dispatches no real Provider request, and removes its option and file
+in the smoke `finally` block. A run must fail if cleanup cannot be confirmed.
+
+The machine-readable summary adds `title_acceptance_evidence` with attempt
+counts, Regenerate count, edited/inserted/saved booleans, outcome, and bounded
+durations. These are test evidence for the disposable fixture, not Cloud
+telemetry, WordPress approval truth, or a product analytics system.
+
 When the optional WordPress AI request log is enabled, the Addon records
 `cloud_run_id` only inside metadata-only request context for correlation. It
 does not store prompt or output previews, and that identifier is not local

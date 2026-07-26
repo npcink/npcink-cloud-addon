@@ -13,7 +13,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -96,6 +96,213 @@ function parseJson(output, label) {
 
 function phpString(value) {
 	return JSON.stringify(String(value));
+}
+
+function fakeProviderOptionName(token) {
+	return `npcink_cloud_addon_browser_fake_${token}`;
+}
+
+function fakeProviderPluginSource(token, optionName, expiresAt) {
+	const quotedToken = phpString(token);
+	const quotedOptionName = phpString(optionName);
+
+	return `<?php
+/**
+ * Disposable fake-provider transport for one local browser-smoke fixture.
+ *
+ * This file is generated and removed by smoke-wordpress-ai-text-browser.mjs.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+add_filter(
+	'pre_http_request',
+	static function ( $preempt, array $parsed_args, string $url ) {
+		$environment = wp_get_environment_type();
+		$host        = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+		$is_local    = in_array( $environment, array( 'local', 'development' ), true )
+			&& (
+				in_array( $host, array( 'localhost', '127.0.0.1', '::1' ), true )
+				|| ( strlen( $host ) > 6 && '.local' === substr( $host, -6 ) )
+			);
+		if ( ! $is_local ) {
+			return $preempt;
+		}
+
+		$option_name = ${quotedOptionName};
+		$state       = get_option( $option_name, array() );
+		if ( ! is_array( $state ) || ${quotedToken} !== (string) ( $state['token'] ?? '' ) ) {
+			return $preempt;
+		}
+		if ( time() > ${Number(expiresAt)} ) {
+			delete_option( $option_name );
+			return $preempt;
+		}
+
+		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		if ( '/v1/runtime/execute' !== $path ) {
+			return $preempt;
+		}
+
+		$payload   = json_decode( (string) ( $parsed_args['body'] ?? '' ), true );
+		$input     = is_array( $payload['input'] ?? null ) ? $payload['input'] : array();
+		$operation = is_array( $input['operation_contract'] ?? null ) ? $input['operation_contract'] : array();
+		$request   = is_array( $operation['request'] ?? null ) ? $operation['request'] : array();
+		$task      = sanitize_key( (string) ( $operation['task'] ?? '' ) );
+		if (
+			'npcink-cloud/connector-runtime' !== (string) ( $payload['ability_name'] ?? '' )
+			|| 'wordpress' !== (string) ( $input['platform_kind'] ?? '' )
+			|| 'npcink-cloud-addon' !== (string) ( $input['connector_id'] ?? '' )
+		) {
+			return $preempt;
+		}
+
+		$source_text = is_string( $request['source_text'] ?? null ) ? (string) $request['source_text'] : '';
+		if ( false === strpos( $source_text, ${quotedToken} ) ) {
+			return new WP_Error(
+				'npcink_browser_fake_fixture_mismatch',
+				'The disposable fake provider rejects non-fixture WordPress AI requests.'
+			);
+		}
+
+		$events = is_array( $state['events'] ?? null ) ? $state['events'] : array();
+		$state['title_calls'] = absint( $state['title_calls'] ?? 0 );
+		if ( 'title_generation' === $task ) {
+			++$state['title_calls'];
+		}
+		$outcome = 'succeeded';
+		if ( 'title_generation' === $task && 1 === $state['title_calls'] ) {
+			$outcome = 'provider_unavailable';
+		}
+		$reference = is_array( $request['site_knowledge_reference'] ?? null )
+			? $request['site_knowledge_reference']
+			: array();
+		$events[] = array(
+			'sequence'                 => count( $events ) + 1,
+			'task'                     => $task,
+			'outcome'                  => $outcome,
+			'data_classification'      => (string) ( $payload['data_classification'] ?? '' ),
+			'storage_mode'             => (string) ( $payload['storage_mode'] ?? '' ),
+			'suggestion_only'          => true === ( $input['suggestion_only'] ?? null ),
+			'site_reference_requested' => true === ( $reference['enabled'] ?? null ),
+			'transport_preempted'      => true,
+		);
+		$state['events'] = array_slice( $events, -12 );
+		update_option( $option_name, $state, false );
+
+		if ( 'provider_unavailable' === $outcome ) {
+			return array(
+				'headers'  => array( 'content-type' => 'application/json' ),
+				'body'     => wp_json_encode(
+					array(
+						'status' => 'error',
+						'error'  => array(
+							'code'    => 'provider_unavailable',
+							'message' => 'Synthetic provider unavailable for the first bounded attempt.',
+						),
+					)
+				),
+				'response' => array( 'code' => 503, 'message' => 'Service Unavailable' ),
+				'cookies'  => array(),
+				'filename' => null,
+			);
+		}
+
+		$outputs = array(
+			'title_generation' => 2 === $state['title_calls']
+				? '受控 Fake Provider 标题建议 A ${token}'
+				: '受控 Fake Provider 标题建议 B ${token}',
+			'content_summary'  => '这是一个经过受控 Fake Provider 验证的编辑工作流摘要。',
+			'content_rewrite'  => 'P5B3-TARGET-${token} 已被清晰改写，同时保留原始的实践含义。',
+		);
+		if ( ! isset( $outputs[ $task ] ) ) {
+			return new WP_Error(
+				'npcink_browser_fake_task_not_supported',
+				'The disposable fake provider accepts only the bounded text-smoke tasks.'
+			);
+		}
+
+		$sequence = count( $events );
+		return array(
+			'headers'  => array( 'content-type' => 'application/json' ),
+			'body'     => wp_json_encode(
+				array(
+					'status' => 'ok',
+					'data'   => array(
+						'run_id' => 'run_browser_fake_${token}_' . $sequence,
+						'status' => 'succeeded',
+						'result' => array(
+							'contract_version'   => 'cloud_connector_result.v1',
+							'suggestion_only'    => true,
+							'connector_id'       => 'npcink-cloud-addon',
+							'operation_contract' => array(
+								'contract_version' => 'wordpress_operation.v1',
+								'task'             => $task,
+							),
+							'output' => array( 'output_text' => $outputs[ $task ] ),
+						),
+					),
+				)
+			),
+			'response' => array( 'code' => 200, 'message' => 'OK' ),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	},
+	1,
+	3
+);
+`;
+}
+
+function installFakeProvider(token) {
+	const optionName = fakeProviderOptionName(token);
+	const expiresAt = Math.floor(Date.now() / 1000) + 600;
+	const muPluginDir = resolve(wpPath(), 'wp-content/mu-plugins');
+	const pluginPath = resolve(muPluginDir, `npcink-cloud-addon-browser-fake-${token}.php`);
+	assert(pluginPath.startsWith(`${muPluginDir}/`), 'Disposable fake-provider plugin stays inside the Local mu-plugins directory.');
+	assert(!existsSync(pluginPath), 'Disposable fake-provider plugin path is unused before setup.');
+	mkdirSync(muPluginDir, { recursive: true });
+	writeFileSync(pluginPath, fakeProviderPluginSource(token, optionName, expiresAt), { encoding: 'utf8', mode: 0o600, flag: 'wx' });
+	wpCli([
+		'eval',
+		`update_option(${phpString(optionName)}, array('token'=>${phpString(token)}, 'title_calls'=>0, 'events'=>array()), false); echo wp_json_encode(array('active'=>${phpString(token)} === (string) (get_option(${phpString(optionName)}, array())['token'] ?? '')));`,
+	]);
+	assert(existsSync(pluginPath), 'Disposable fake-provider plugin is installed for this fixture only.');
+
+	return { optionName, pluginPath, expiresAt };
+}
+
+function readFakeProviderEvidence(fakeProvider) {
+	return parseJson(
+		wpCli([
+			'eval',
+			`echo wp_json_encode(get_option(${phpString(fakeProvider.optionName)}, array()));`,
+		]),
+		'Fake-provider scalar evidence'
+	);
+}
+
+function removeFakeProvider(fakeProvider) {
+	let optionDeleted = false;
+	try {
+		const result = parseJson(
+			wpCli([
+				'eval',
+				`delete_option(${phpString(fakeProvider.optionName)}); echo wp_json_encode(array('deleted'=>false === get_option(${phpString(fakeProvider.optionName)}, false)));`,
+			]),
+			'Fake-provider option cleanup'
+		);
+		optionDeleted = result.deleted === true;
+	} finally {
+		if (existsSync(fakeProvider.pluginPath)) {
+			unlinkSync(fakeProvider.pluginPath);
+		}
+	}
+
+	return { optionDeleted, pluginDeleted: !existsSync(fakeProvider.pluginPath) };
 }
 
 function localBaseUrl(rawValue) {
@@ -678,6 +885,7 @@ const reviewScreenshotPath = resolve(env('WP_AI_TEXT_REVIEW_SCREENSHOT', `${arti
 const savedScreenshotPath = resolve(env('WP_AI_TEXT_SAVED_SCREENSHOT', `${artifactDir}/wordpress-ai-text-saved.png`));
 const failureScreenshotPath = resolve(env('WP_AI_TEXT_FAILURE_SCREENSHOT', `${artifactDir}/wordpress-ai-text-failure.png`));
 const summaryPath = env('WP_AI_TEXT_SUMMARY_PATH', '');
+const fakeProviderMode = env('WP_AI_TEXT_FAKE_PROVIDER') === '1';
 
 const token = randomBytes(6).toString('hex');
 const fixtureText = {
@@ -698,6 +906,15 @@ let authSessionDestroyed = false;
 let failure = null;
 let machineSummary = null;
 let cleanupDeleted = false;
+let fakeProvider = null;
+let fakeProviderEvidence = null;
+let fakeProviderCleanup = { optionDeleted: false, pluginDeleted: false };
+let titleFlowStartedAt = 0;
+let titleFirstSuggestionAt = 0;
+let titleInsertedAt = 0;
+let titleSaveCompletedAt = 0;
+let titleRegenerationCount = 0;
+let titleEditedBeforeInsert = false;
 const abilityResponses = [];
 const preSaveWrites = [];
 const saveWrites = [];
@@ -706,6 +923,10 @@ try {
 	baseUrl = localBaseUrl(env('WP_BASE_URL', 'https://magick-ai.local'));
 	const readiness = preflight();
 	assertReadiness(baseUrl, readiness);
+	if (fakeProviderMode) {
+		fakeProvider = installFakeProvider(token);
+		pass('Fake-provider mode is active without a real Provider dispatch.');
+	}
 
 	const fixture = createFixture(token, fixtureText);
 	postId = Number(fixture.post_id || 0);
@@ -782,7 +1003,25 @@ try {
 		'WordPress AI title-generation control'
 	);
 	assert(!(await titleGenerate.isDisabled()), 'Title-generation control is enabled for the fixture content.');
+	titleFlowStartedAt = Date.now();
 	await titleGenerate.click();
+	if (fakeProviderMode) {
+		await waitForCondition(
+			page,
+			async () => abilityResponses.some((entry) => entry.kind === 'title-generation' && entry.status >= 400),
+			'first synthetic title failure response',
+			15000
+		);
+		const errorNotice = await waitForVisibleLocator(
+			page,
+			[page.locator('.components-notice.is-error'), editorFrame.locator('.components-notice.is-error')],
+			'provider failure notice'
+		);
+		assert((await errorNotice.innerText()).trim().length > 0, 'Failure recovery evidence: the first synthetic Provider failure is visible to the editor.');
+		assert(samePersistedSnapshot(initialSnapshot, databaseSnapshot(postId)), 'Failure recovery evidence: the failed title attempt leaves the stored draft unchanged.');
+		await waitForCondition(page, async () => !(await titleGenerate.isDisabled().catch(() => true)), 'title retry control');
+		await titleGenerate.click();
+	}
 	const titleModal = await waitForVisibleLocator(
 		page,
 		[page.locator('.ai-title-generation-modal'), editorFrame.locator('.ai-title-generation-modal')],
@@ -792,15 +1031,40 @@ try {
 	const titleInsertLabel = await titleModal.evaluate(() => window.wp.i18n.__('Insert', 'ai'));
 	const titleTextarea = titleModal.locator('textarea').first();
 	await waitForCondition(page, async () => (await titleTextarea.inputValue().catch(() => '')).trim().length > 0, 'generated title text', 15000);
-	const generatedTitle = (await titleTextarea.inputValue()).trim();
-	assert(generatedTitle.length > 0, 'UI review evidence: Title suggestion contains generated text before Insert.');
+	titleFirstSuggestionAt = Date.now();
+	const firstGeneratedTitle = (await titleTextarea.inputValue()).trim();
+	assert(firstGeneratedTitle.length > 0, 'UI review evidence: Title suggestion contains generated text before Insert.');
 	assert(samePersistedSnapshot(initialSnapshot, databaseSnapshot(postId)), 'Data-path evidence: title generation returned while post fields and revisions remained unchanged before Insert.');
+	let acceptedTitle = firstGeneratedTitle;
+	if (fakeProviderMode) {
+		const regenerateLabel = await titleModal.evaluate(() => window.wp.i18n.__('Regenerate', 'ai'));
+		const regenerateButton = titleModal.getByRole('button', { name: regenerateLabel, exact: true });
+		assert(await regenerateButton.isVisible() && !(await regenerateButton.isDisabled()), 'Recovery evidence: Regenerate is available after the successful retry.');
+		await regenerateButton.click();
+		await waitForCondition(
+			page,
+			async () => {
+				const candidate = (await titleTextarea.inputValue().catch(() => '')).trim();
+				return candidate.length > 0 && candidate !== firstGeneratedTitle;
+			},
+			'regenerated title text',
+			15000
+		);
+		titleRegenerationCount = 1;
+		const regeneratedTitle = (await titleTextarea.inputValue()).trim();
+		acceptedTitle = `${regeneratedTitle}（人工编辑）`;
+		await titleTextarea.fill(acceptedTitle);
+		titleEditedBeforeInsert = true;
+		assert((await titleTextarea.inputValue()).trim() === acceptedTitle, 'Adoption evidence: the editor changes the regenerated title before Insert.');
+		assert(samePersistedSnapshot(initialSnapshot, databaseSnapshot(postId)), 'Data-path evidence: Regenerate and title editing still cause no WordPress write.');
+	}
 	const titleInsert = titleModal.getByRole('button', { name: titleInsertLabel, exact: true });
 	assert(await titleInsert.isVisible(), 'UI review evidence: the localized Insert control is visible in the title review modal.');
 	await titleInsert.click();
+	titleInsertedAt = Date.now();
 	await titleModal.waitFor({ state: 'hidden', timeout: 15000 });
 	const titleAppliedState = await editorState(page);
-	assert(titleAppliedState.title === generatedTitle && titleAppliedState.dirty, 'UI review evidence: Insert applies the reviewed title only to dirty editor state.');
+	assert(titleAppliedState.title === acceptedTitle && titleAppliedState.dirty, 'UI review evidence: Insert applies the reviewed title only to dirty editor state.');
 	assert(samePersistedSnapshot(initialSnapshot, databaseSnapshot(postId)), 'Data-path evidence: Insert caused no WordPress write before normal save.');
 
 	await openDocumentSidebar(page);
@@ -938,6 +1202,7 @@ try {
 		const saveFailed = typeof editor?.didPostSaveRequestFail === 'function' ? editor.didPostSaveRequestFail() : false;
 		return editor && !editor.isSavingPost() && !editor.isEditedPostDirty() && !saveFailed;
 	}, null, { timeout: 45000 });
+	titleSaveCompletedAt = Date.now();
 	assert(saveWrites.length >= 1, 'API evidence: normal Save/Update issued a WordPress post REST write.');
 	assert(preSaveWrites.length === 0, 'API evidence: no autosave or post write raced ahead of the explicit Save/Update request.');
 	assert(await unlockAutosaving(page), 'Fixture autosave lock is released only after the explicit Save/Update completes.');
@@ -946,7 +1211,7 @@ try {
 	const finalSnapshot = databaseSnapshot(postId);
 	const finalParagraphs = finalSnapshot.top_level.filter((block) => block.name === 'core/paragraph');
 	assert(finalSnapshot.status === 'draft', 'Persistence evidence: the normal local save preserves draft status.');
-	assert(finalSnapshot.title === generatedTitle, 'Persistence evidence: saved title equals the reviewed Title suggestion.');
+	assert(finalSnapshot.title === acceptedTitle, 'Persistence evidence: saved title equals the reviewed Title suggestion.');
 	assert(finalSnapshot.summary_group_count === 1 && finalSnapshot.summary_text.length > 0, 'Persistence evidence: saved content contains one unique non-empty summary block.');
 	assert(
 		normalizeEvidenceText(finalSnapshot.summary_meta) === normalizeEvidenceText(summaryAppliedState.summaryText)
@@ -974,9 +1239,30 @@ try {
 	ensureParent(savedScreenshotPath);
 	await page.screenshot({ path: savedScreenshotPath, fullPage: true });
 	pass(`Saved editor screenshot captured at ${savedScreenshotPath}.`);
+	if (fakeProviderMode) {
+		fakeProviderEvidence = readFakeProviderEvidence(fakeProvider);
+		const fakeEvents = Array.isArray(fakeProviderEvidence.events) ? fakeProviderEvidence.events : [];
+		const titleEvents = fakeEvents.filter((entry) => entry.task === 'title_generation');
+		console.log(`FAKE_PROVIDER_SCALAR_EVENTS=${JSON.stringify(fakeEvents)}`);
+		assert(
+			titleEvents.length === 3
+			&& titleEvents[0].outcome === 'provider_unavailable'
+			&& titleEvents.slice(1).every((entry) => entry.outcome === 'succeeded'),
+			'Fake-provider evidence: title failure, retry, and regenerate consumed exactly three bounded attempts.'
+		);
+		assert(
+			fakeEvents.length === 5
+			&& fakeEvents.every((entry) => entry.transport_preempted === true)
+			&& fakeEvents.every((entry) => entry.data_classification === 'internal')
+			&& fakeEvents.every((entry) => entry.storage_mode === 'result_only')
+			&& fakeEvents.every((entry) => entry.suggestion_only === true),
+			'Fake-provider evidence: all three editor tasks remain internal, result-only, suggestion-only, and network-preempted.'
+		);
+	}
 
 	machineSummary = {
 		contract: 'p5_b3_wordpress_ai_text_browser.v1',
+		execution_mode: fakeProviderMode ? 'local_fake_provider' : 'configured_cloud_provider',
 		site_origin: baseUrl,
 		environment: readiness.environment,
 		versions: {
@@ -986,7 +1272,7 @@ try {
 		},
 		ui_review_evidence: {
 			title_suggestion_inserted: true,
-			title_suggestion_sha256: sha256(generatedTitle),
+			title_suggestion_sha256: sha256(acceptedTitle),
 			summary_visible: true,
 			summary_sha256: sha256(summaryAppliedState.summaryText),
 			selected_block_rephrase_reviewed: true,
@@ -1008,6 +1294,17 @@ try {
 			resized_paragraph_count: finalSnapshot.resized_paragraph_count,
 			non_target_sentinels_unchanged: true,
 		},
+		title_acceptance_evidence: {
+			failed_attempts: abilityResponses.filter((entry) => entry.kind === 'title-generation' && entry.status >= 400).length,
+			successful_attempts: abilityResponses.filter((entry) => entry.kind === 'title-generation' && entry.status >= 200 && entry.status < 300).length,
+			regeneration_count: titleRegenerationCount,
+			edited_before_insert: titleEditedBeforeInsert,
+			inserted: true,
+			saved: true,
+			outcome: titleEditedBeforeInsert ? 'edited_then_saved' : 'inserted_then_saved',
+			time_to_first_suggestion_ms: Math.max(0, titleFirstSuggestionAt - titleFlowStartedAt),
+			insert_to_save_ms: Math.max(0, titleSaveCompletedAt - titleInsertedAt),
+		},
 		fixture: { post_id: postId, deleted: false },
 	};
 } catch (error) {
@@ -1021,6 +1318,18 @@ try {
 	}
 	if (browser) {
 		await browser.close().catch(() => {});
+	}
+	if (fakeProvider) {
+		try {
+			fakeProviderCleanup = removeFakeProvider(fakeProvider);
+			if (!fakeProviderCleanup.optionDeleted || !fakeProviderCleanup.pluginDeleted) {
+				throw new Error('Disposable fake-provider state was not fully removed.');
+			}
+			pass('Disposable fake-provider plugin and scalar option were removed and verified absent.');
+		} catch (cleanupError) {
+			failure = failure || cleanupError;
+			console.error(`FAIL: fake-provider cleanup: ${cleanupError.message || cleanupError}`);
+		}
 	}
 	if (authSession) {
 		try {
@@ -1056,6 +1365,13 @@ if (failure) {
 } else {
 	machineSummary.fixture.deleted = cleanupDeleted;
 	machineSummary.fixture.auth_session_destroyed = authSessionDestroyed;
+	machineSummary.fake_provider_evidence = {
+		enabled: fakeProviderMode,
+		events: fakeProviderMode && Array.isArray(fakeProviderEvidence?.events) ? fakeProviderEvidence.events : [],
+		content_fields_recorded: false,
+		option_deleted: fakeProviderMode ? fakeProviderCleanup.optionDeleted : true,
+		plugin_deleted: fakeProviderMode ? fakeProviderCleanup.pluginDeleted : true,
+	};
 	const encodedSummary = JSON.stringify(machineSummary);
 	if (summaryPath) {
 		const resolvedSummaryPath = resolve(summaryPath);
