@@ -73,7 +73,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				plugins_url( 'assets/ai-plugin-localization.js', NPCINK_CLOUD_ADDON_FILE ),
 				array( 'wp-i18n' ),
 				NPCINK_CLOUD_ADDON_VERSION,
-				true
+				false
 			);
 			wp_localize_script(
 				$handle,
@@ -139,11 +139,23 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'Connector Approval' => '连接器审批',
 				'Connector Approvals' => '连接器审批',
 				'Require explicit administrator approval before plugins or themes can use AI connectors configured on this site. Note this is an experimental, proof-of-concept feature and as such, issues may be encountered. Feedback welcome and desired to help shape the feature.' => '插件或主题使用本站配置的 AI 连接器前，需要管理员明确审批。此功能仍是实验性概念验证，可能会遇到问题，欢迎反馈以帮助完善。',
+				'Require explicit administrator approval before plugins or themes can use AI connectors configured on this site. Enabling this feature will block all AI interactions, including those from the AI plugin, until an approved connector is available. Note this is an experimental, proof-of-concept feature and as such, issues may be encountered. Feedback welcome and desired to help shape the feature.' => '插件或主题使用本站配置的 AI 连接器前，需要管理员明确审批。启用此功能后，在有获批连接器可用前，所有 AI 交互（包括 AI 插件发起的交互）都会被阻止。此功能仍是实验性概念验证，可能会遇到问题，欢迎反馈以帮助完善。',
 				'AI Request Logging' => 'AI 请求日志',
 				'AI Request Logs' => 'AI 请求日志',
 				'Logs AI requests for observability and debugging. View detailed logs under Tools.' => '记录 AI 请求，用于观测和调试。可在“工具”下查看详细日志。',
 				'Key Encryption' => '密钥加密',
 				'Encrypts AI provider API keys at rest using bundled libsodium encryption. Keys are transparently decrypted on read and re-encrypted on write. Disabling the experiment or deactivating the plugin restores plaintext keys.' => '使用内置 libsodium 加密静态存储的 AI 提供方 API 密钥。读取时会透明解密，写入时会重新加密。停用此实验功能或停用插件会恢复明文密钥。',
+				'Suggest Reply' => '建议回复',
+				'Adds a "Suggest Reply" action to the Comments screen and Activity widget, enabling moderators to quickly generate comment reply suggestions.' => '在“评论”界面和“活动”小工具中添加“建议回复”操作，让审核人员可以快速生成评论回复建议。',
+				'Suggest reply' => '建议回复',
+				'Suggest a reply to this comment' => '为这条评论建议回复',
+				'Generating…' => '正在生成…',
+				'Generating AI reply…' => '正在生成 AI 回复…',
+				'Failed to generate a reply suggestion. Please try again.' => '无法生成回复建议。请重试。',
+				'Change reply tone' => '更改回复语气',
+				'Friendly' => '友好',
+				'Professional' => '专业',
+				'Casual' => '轻松',
 				'Detailed logs of every AI request made by the WordPress AI plugin.' => '记录 WordPress AI 插件发起的每一次 AI 请求的详细日志。',
 				'AI Capabilities' => 'AI 能力',
 				'AI Status' => 'AI 状态',

@@ -1,5 +1,10 @@
 # Local Test Guide
 
+Before any Local WordPress browser acceptance, identify the plugin worktree
+actually mounted by the site. Follow
+[the Local WordPress Acceptance Runbook](local-wordpress-acceptance-runbook.md)
+and run `composer run local:runtime -- /absolute/path/to/wordpress`.
+
 ## Static Checks
 
 Run:
