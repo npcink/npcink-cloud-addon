@@ -219,6 +219,21 @@ counts, Regenerate count, edited/inserted/saved booleans, outcome, and bounded
 durations. These are test evidence for the disposable fixture, not Cloud
 telemetry, WordPress approval truth, or a product analytics system.
 
+To validate the opt-in editor-assist quality correlation at the same time,
+enable metadata-only monitoring for the disposable local site and add:
+
+```bash
+WP_AI_TEXT_FAKE_PROVIDER=1 \
+WP_AI_TEXT_VALIDATE_QUALITY=1 \
+composer run smoke:wp-ai-text-browser
+```
+
+This mode fails unless the four successful title, summary, and rewrite
+generations produce complete generated/repeated/save evidence for three local
+sessions. It also proves that the edited title is unmatched, the accepted
+summary and rewrite are exact matches, no pending fixture state remains, and
+Cloud-bound events omit content, post IDs, user IDs, credentials, and headers.
+
 When the optional WordPress AI request log is enabled, the Addon records
 `cloud_run_id` only inside metadata-only request context for correlation. It
 does not store prompt or output previews, and that identifier is not local

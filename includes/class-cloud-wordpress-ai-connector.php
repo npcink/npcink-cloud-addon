@@ -70,7 +70,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 */
 		public static function begin_wordpress_ai_ability_context( string $ability_name, $input, $ability = null ): void {
 			unset( $ability );
-			self::reset_wordpress_ai_ability_context();
+			// Title and summary abilities invoke nested guideline abilities.
+			// Preserve the outer editor context until its own after-execute hook.
 			if ( 'ai/alt-text-generation' === $ability_name && is_array( $input ) ) {
 				self::$alt_text_ability_context = $input;
 			}
@@ -95,8 +96,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return void
 		 */
 		public static function end_wordpress_ai_ability_context( string $ability_name, $input, $result, $ability = null ): void {
-			unset( $ability_name, $input, $result, $ability );
-			self::reset_wordpress_ai_ability_context();
+			unset( $input, $result, $ability );
+			if ( 'ai/alt-text-generation' === $ability_name ) {
+				self::$alt_text_ability_context = array();
+			}
+			if (
+				in_array( $ability_name, array( 'ai/title-generation', 'ai/summarization', 'ai/content-resizing' ), true )
+				&& $ability_name === (string) ( self::$text_ability_context['ability_id'] ?? '' )
+			) {
+				self::$text_ability_context = array();
+			}
 		}
 
 		/**
@@ -115,7 +124,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 */
 		public static function consume_alt_text_ability_context(): array {
 			$context = self::$alt_text_ability_context;
-			self::reset_wordpress_ai_ability_context();
+			self::$alt_text_ability_context = array();
 
 			return $context;
 		}

@@ -285,6 +285,82 @@ function readFakeProviderEvidence(fakeProvider) {
 	);
 }
 
+function readQualityCorrelationEvidence(token) {
+	return parseJson(
+		wpCli([
+			'eval',
+			`
+$token = ${phpString(token)};
+$events = (array) get_option(Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array());
+$pending = (array) get_option(Npcink_Cloud_Editor_Assist_Quality::PENDING_OPTION, array());
+$kind_counts = array();
+$task_counts = array();
+$outcome_counts = array();
+$outcome_by_task = array();
+$session_ids = array();
+$forbidden_fields = array();
+$invalid_content_storage = 0;
+$event_total = 0;
+$pending_count = 0;
+foreach ($events as $event) {
+	if (
+		!is_array($event)
+		|| 'editor_assist_quality.v1' !== (string) ($event['quality_contract'] ?? '')
+		|| false === strpos((string) ($event['correlation_id'] ?? ''), $token)
+	) {
+		continue;
+	}
+	++$event_total;
+	$kind = (string) ($event['event_kind'] ?? '');
+	$task = (string) ($event['task_key'] ?? '');
+	$outcome = (string) ($event['outcome'] ?? '');
+	$kind_counts[$kind] = ($kind_counts[$kind] ?? 0) + 1;
+	$task_counts[$task] = ($task_counts[$task] ?? 0) + 1;
+	if ('' !== $outcome) {
+		$outcome_counts[$outcome] = ($outcome_counts[$outcome] ?? 0) + 1;
+		$outcome_by_task[$task][$outcome] = ($outcome_by_task[$task][$outcome] ?? 0) + 1;
+	}
+	$session_ids[(string) ($event['quality_session_id'] ?? '')] = true;
+	if ('omitted_metadata_only' !== (string) ($event['content_storage'] ?? '')) {
+		++$invalid_content_storage;
+	}
+	foreach (array('prompt', 'content', 'output_text', 'post_id', 'actor_id', 'user_id', 'secret', 'authorization') as $field) {
+		if (array_key_exists($field, $event)) {
+			$forbidden_fields[$field] = true;
+		}
+	}
+}
+foreach ($pending as $record) {
+	if (is_array($record) && false !== strpos((string) ($record['run_id'] ?? ''), $token)) {
+		++$pending_count;
+	}
+}
+ksort($kind_counts);
+ksort($task_counts);
+ksort($outcome_counts);
+ksort($outcome_by_task);
+foreach ($outcome_by_task as &$task_outcomes) {
+	ksort($task_outcomes);
+}
+unset($task_outcomes);
+ksort($forbidden_fields);
+echo wp_json_encode(array(
+	'event_total' => $event_total,
+	'session_total' => count($session_ids),
+	'pending_count' => $pending_count,
+	'kind_counts' => $kind_counts,
+	'task_counts' => $task_counts,
+	'outcome_counts' => $outcome_counts,
+	'outcome_by_task' => $outcome_by_task,
+	'invalid_content_storage' => $invalid_content_storage,
+	'forbidden_fields' => array_keys($forbidden_fields),
+));
+`,
+		]),
+		'Editor-assist quality correlation evidence'
+	);
+}
+
 function removeFakeProvider(fakeProvider) {
 	let optionDeleted = false;
 	try {
@@ -362,6 +438,7 @@ echo wp_json_encode(array(
 	'addon_version' => defined('NPCINK_CLOUD_ADDON_VERSION') ? NPCINK_CLOUD_ADDON_VERSION : '',
 	'addon_verified' => class_exists('Npcink_Cloud_Addon_Settings') && Npcink_Cloud_Addon_Settings::is_verified(),
 	'connector_enabled' => class_exists('Npcink_Cloud_Addon_Settings') && Npcink_Cloud_Addon_Settings::is_wordpress_ai_connector_enabled(),
+	'monitoring_enabled' => class_exists('Npcink_Cloud_Addon_Settings') && Npcink_Cloud_Addon_Settings::is_monitoring_enabled(),
 	'features' => array(
 		'global' => (bool) get_option('wpai_features_enabled', false),
 		'title_generation' => (bool) get_option('wpai_feature_title-generation_enabled', false),
@@ -886,6 +963,7 @@ const savedScreenshotPath = resolve(env('WP_AI_TEXT_SAVED_SCREENSHOT', `${artifa
 const failureScreenshotPath = resolve(env('WP_AI_TEXT_FAILURE_SCREENSHOT', `${artifactDir}/wordpress-ai-text-failure.png`));
 const summaryPath = env('WP_AI_TEXT_SUMMARY_PATH', '');
 const fakeProviderMode = env('WP_AI_TEXT_FAKE_PROVIDER') === '1';
+const qualityValidationMode = env('WP_AI_TEXT_VALIDATE_QUALITY') === '1';
 
 const token = randomBytes(6).toString('hex');
 const fixtureText = {
@@ -909,6 +987,7 @@ let cleanupDeleted = false;
 let fakeProvider = null;
 let fakeProviderEvidence = null;
 let fakeProviderCleanup = { optionDeleted: false, pluginDeleted: false };
+let qualityCorrelationEvidence = null;
 let titleFlowStartedAt = 0;
 let titleFirstSuggestionAt = 0;
 let titleInsertedAt = 0;
@@ -923,6 +1002,10 @@ try {
 	baseUrl = localBaseUrl(env('WP_BASE_URL', 'https://magick-ai.local'));
 	const readiness = preflight();
 	assertReadiness(baseUrl, readiness);
+	if (qualityValidationMode) {
+		assert(fakeProviderMode, 'Quality-correlation validation requires fake-provider mode.');
+		assert(readiness.monitoring_enabled === true, 'Quality-correlation validation requires verified metadata-only monitoring.');
+	}
 	if (fakeProviderMode) {
 		fakeProvider = installFakeProvider(token);
 		pass('Fake-provider mode is active without a real Provider dispatch.');
@@ -1259,6 +1342,36 @@ try {
 			'Fake-provider evidence: all three editor tasks remain internal, result-only, suggestion-only, and network-preempted.'
 		);
 	}
+	if (qualityValidationMode) {
+		qualityCorrelationEvidence = readQualityCorrelationEvidence(token);
+		assert(
+			qualityCorrelationEvidence.event_total === 8
+			&& qualityCorrelationEvidence.session_total === 3
+			&& qualityCorrelationEvidence.pending_count === 0,
+			'Quality evidence: four successful generations resolve into three complete editor sessions.'
+		);
+		assert(
+			qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.completed'] === 4
+			&& qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.repeated'] === 1
+			&& qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.outcome.observed'] === 3,
+			'Quality evidence: completed, Regenerate, and local-save event counts are complete.'
+		);
+		assert(
+			qualityCorrelationEvidence.task_counts?.title_generation === 4
+			&& qualityCorrelationEvidence.task_counts?.content_summary === 2
+			&& qualityCorrelationEvidence.task_counts?.content_rewrite === 2
+			&& qualityCorrelationEvidence.outcome_by_task?.title_generation?.saved_after_generation_unmatched === 1
+			&& qualityCorrelationEvidence.outcome_by_task?.content_summary?.saved_exact_output === 1
+			&& qualityCorrelationEvidence.outcome_by_task?.content_rewrite?.saved_exact_output === 1,
+			'Quality evidence: title editing, summary adoption, and rewrite adoption are classified by task.'
+		);
+		assert(
+			qualityCorrelationEvidence.invalid_content_storage === 0
+			&& Array.isArray(qualityCorrelationEvidence.forbidden_fields)
+			&& qualityCorrelationEvidence.forbidden_fields.length === 0,
+			'Quality evidence: Cloud-bound correlation contains only metadata and omits content and local identities.'
+		);
+	}
 
 	machineSummary = {
 		contract: 'p5_b3_wordpress_ai_text_browser.v1',
@@ -1304,6 +1417,9 @@ try {
 			outcome: titleEditedBeforeInsert ? 'edited_then_saved' : 'inserted_then_saved',
 			time_to_first_suggestion_ms: Math.max(0, titleFirstSuggestionAt - titleFlowStartedAt),
 			insert_to_save_ms: Math.max(0, titleSaveCompletedAt - titleInsertedAt),
+		},
+		quality_correlation_evidence: qualityValidationMode ? qualityCorrelationEvidence : {
+			validated: false,
 		},
 		fixture: { post_id: postId, deleted: false },
 	};
