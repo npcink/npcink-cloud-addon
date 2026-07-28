@@ -1058,11 +1058,17 @@ msgid "Retry"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1666
-msgid "Available credits"
+msgid "Available AI credits"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1675
-msgid "Remaining credits percentage"
+msgid "Remaining AI credits percentage"
+msgstr ""
+
+#. translators: 1: used AI credits, 2: remaining AI credits, 3: AI credit limit.
+#: includes/class-cloud-settings-page.php:2759
+#, php-format
+msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1688
@@ -1070,7 +1076,7 @@ msgid "Available knowledge documents"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1565
-msgid "Credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those credits."
+msgid "AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits."
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1696
@@ -1359,7 +1365,7 @@ msgid "Cloud will create or activate this site connection and return here with a
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1987
-msgid "Free service and credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud."
+msgid "Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud."
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:2163
@@ -1548,7 +1554,7 @@ msgid "Renews"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:2465
-msgid "Credit period"
+msgid "AI credit period"
 msgstr ""
 
 #. translators: 1: credit period start, 2: credit period end.
@@ -1610,7 +1616,7 @@ msgid "Entitlement details"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:2518
-msgid "View credit details in Cloud"
+msgid "View AI credit details in Cloud"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:2566
