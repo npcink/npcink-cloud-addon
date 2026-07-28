@@ -420,8 +420,8 @@ msgid "Cloud will create or activate this site connection and return here with a
 msgstr "Cloud 会创建或激活此站点连接，并通过一次性授权码返回这里。"
 
 #: includes/class-cloud-settings-page.php:1987
-msgid "Free service and credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud."
-msgstr "Free 服务和额度属于授权时选择的 Cloud 账户，不属于此站点。同一账户可随时重新连接；更换到其他账户时，须遵守 Cloud 显示的站点移除和冷却要求。"
+msgid "Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud."
+msgstr "免费服务和 AI 积分属于授权时选择的 Cloud 账户，不属于此站点。同一账户可随时重新连接；更换到其他账户时，须遵守 Cloud 显示的站点移除和冷却要求。"
 
 #: includes/class-cloud-settings-page.php:1331
 msgid "Monitoring"
@@ -620,8 +620,8 @@ msgid "Status"
 msgstr "状态"
 
 #: includes/class-cloud-settings-page.php:2518
-msgid "View credit details in Cloud"
-msgstr "在 Cloud 中查看点数详情"
+msgid "View AI credit details in Cloud"
+msgstr "在 Cloud 中查看 AI 积分详情"
 
 #: includes/class-cloud-runtime-client.php:1570
 msgid "WordPress AI connector requests require the cloud_connector_runtime.v1 contract."
@@ -1718,8 +1718,8 @@ msgid "Available"
 msgstr "可用"
 
 #: includes/class-cloud-settings-page.php:1666
-msgid "Available credits"
-msgstr "可用点数"
+msgid "Available AI credits"
+msgstr "可用 AI 积分"
 
 #: includes/class-cloud-settings-page.php:1722
 msgid "Runtime allowance"
@@ -1734,8 +1734,8 @@ msgid "Renews"
 msgstr "权益续期"
 
 #: includes/class-cloud-settings-page.php:2465
-msgid "Credit period"
-msgstr "点数周期"
+msgid "AI credit period"
+msgstr "AI 积分周期"
 
 #. translators: 1: credit period start, 2: credit period end.
 #: includes/class-cloud-settings-page.php:2468
@@ -1804,8 +1804,14 @@ msgid "%1$d of %2$d runs remaining"
 msgstr "剩余 %1$d / %2$d 次"
 
 #: includes/class-cloud-settings-page.php:1675
-msgid "Remaining credits percentage"
-msgstr "剩余点数占比"
+msgid "Remaining AI credits percentage"
+msgstr "剩余 AI 积分占比"
+
+#. translators: 1: used AI credits, 2: remaining AI credits, 3: AI credit limit.
+#: includes/class-cloud-settings-page.php:2759
+#, php-format
+msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
+msgstr "已用 %1$s AI 积分；剩余 %2$s AI 积分；上限 %3$s AI 积分。"
 
 #: includes/class-cloud-settings-page.php:115
 #: includes/class-cloud-settings-page.php:191
@@ -1937,8 +1943,8 @@ msgid "Available knowledge documents"
 msgstr "可用文章数"
 
 #: includes/class-cloud-settings-page.php:1565
-msgid "Credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those credits."
-msgstr "此处显示的额度属于当前连接的 Cloud 账户。断开、移除或更换此 WordPress 站点不会转移这些额度。"
+msgid "AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits."
+msgstr "此处显示的 AI 积分属于当前连接的 Cloud 账户。断开、移除或更换此 WordPress 站点不会转移这些 AI 积分。"
 
 #: includes/class-cloud-settings-page.php:1702
 msgid "Remaining knowledge document percentage"

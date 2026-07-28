@@ -67,7 +67,7 @@ $entitlement_response = array(
 					'used'      => 12.5,
 					'limit'     => 100,
 					'remaining' => 87.5,
-					'unit'      => 'credit',
+					'unit'      => 'ai_credits',
 					'status'    => 'ok',
 				),
 				'portal_paths' => array(
@@ -87,7 +87,8 @@ maca_assert(
 	&& 'pro' === (string) ( $cached_summary['package_tier'] ?? '' )
 	&& 'active' === (string) ( $cached_summary['entitlement_status'] ?? '' )
 	&& 'cached' === (string) ( $read_summary['state'] ?? '' )
-	&& 'Pro' === (string) ( $read_summary['package_label'] ?? '' ),
+	&& 'Pro' === (string) ( $read_summary['package_label'] ?? '' )
+	&& 'ai_credits' === (string) ( $read_summary['credit_usage_detail']['summary']['unit'] ?? '' ),
 	'Behavior: verification entitlement response can populate the short local summary cache.'
 );
 
@@ -145,7 +146,7 @@ maca_assert(
 	&& '87.5 / 100' === (string) ( $overview_metrics['credits']['value_label'] ?? '' )
 	&& '88% remaining' === (string) ( $overview_metrics['credits']['status_label'] ?? '' )
 	&& '87.5 / 100 · 88% remaining' === (string) ( $overview_metrics['credits']['label'] ?? '' )
-	&& 'Used 12.5 credits; remaining 87.5 credits; limit 100 credits.' === (string) ( $overview_metrics['credits']['tooltip'] ?? '' )
+	&& 'Used 12.5 AI credits; remaining 87.5 AI credits; limit 100 AI credits.' === (string) ( $overview_metrics['credits']['tooltip'] ?? '' )
 	&& ! empty( $site_knowledge_usage['available'] )
 	&& '9,401 / 10,000' === (string) ( $site_knowledge_usage['value_label'] ?? '' )
 	&& '94% remaining' === (string) ( $site_knowledge_usage['status_label'] ?? '' )

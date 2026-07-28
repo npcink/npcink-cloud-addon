@@ -216,7 +216,7 @@ $rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $rendered, 'Npcink Cloud Addon' )
 	&& false !== strpos( $rendered, 'Add this site in Npcink Cloud' )
-	&& false !== strpos( $rendered, 'Free service and credits belong to the Cloud account selected during authorization' )
+	&& false !== strpos( $rendered, 'Free service and AI credits belong to the Cloud account selected during authorization' )
 	&& $http_before_render === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: the representative unconfigured admin render explains account-owned Free service and performs zero outbound HTTP requests.'
 );
@@ -245,7 +245,7 @@ $overview_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $overview_rendered, 'Available knowledge documents' )
 	&& false !== strpos( $overview_rendered, 'data-npcink-site-knowledge-usage' )
-	&& false !== strpos( $overview_rendered, 'Credits shown here belong to the connected Cloud account' )
+	&& false !== strpos( $overview_rendered, 'AI credits shown here belong to the connected Cloud account' )
 	&& $http_before_overview === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: the verified Overview keeps account ownership beside usage without Cloud HTTP.'
 );

@@ -71,9 +71,14 @@ maca_assert(
 		'Retry',
 		'npcink-cloud-addon'
 	)
-	&& '可用点数' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Available credits',
-		'Available credits',
+	&& '可用 AI 积分' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Available AI credits',
+		'Available AI credits',
+		'npcink-cloud-addon'
+	)
+	&& '此处显示的 AI 积分属于当前连接的 Cloud 账户。断开、移除或更换此 WordPress 站点不会转移这些 AI 积分。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.',
+		'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.',
 		'npcink-cloud-addon'
 	)
 	&& '运行额度' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -86,9 +91,9 @@ maca_assert(
 		'Free plan',
 		'npcink-cloud-addon'
 	)
-	&& '已用 %1$s 点数；剩余 %2$s 点数；上限 %3$s 点数。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Used %1$s credits; remaining %2$s credits; limit %3$s credits.',
-		'Used %1$s credits; remaining %2$s credits; limit %3$s credits.',
+	&& '已用 %1$s AI 积分；剩余 %2$s AI 积分；上限 %3$s AI 积分。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits.',
+		'Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits.',
 		'npcink-cloud-addon'
 	)
 	&& '剩余 %d%%' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -149,9 +154,9 @@ maca_assert(
 		'Manual flush command',
 		'npcink-cloud-addon'
 	)
-	&& '点数' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Credits',
-		'Credits',
+	&& 'AI 积分' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'AI credits',
+		'AI credits',
 		'npcink-cloud-addon'
 	)
 	&& '可用文章数' === Npcink_Cloud_Addon_Localization::filter_gettext(

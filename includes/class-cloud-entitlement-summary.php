@@ -327,7 +327,7 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 					'limit' => (float) ( $summary['limit'] ?? 0 ),
 					'remaining' => $remaining,
 					'status' => sanitize_key( (string) ( $summary['status'] ?? '' ) ),
-					'unit' => sanitize_text_field( (string) ( $summary['unit'] ?? 'credit' ) ),
+					'unit' => sanitize_text_field( (string) ( $summary['unit'] ?? 'ai_credits' ) ),
 					'rate_version' => sanitize_text_field( (string) ( $summary['rate_version'] ?? '' ) ),
 				),
 				'portal_paths' => array(

@@ -1489,7 +1489,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						</td>
 					</tr>
 					<tr data-npcink-entitlement-metric="credits"<?php echo empty( $credit_metric['available'] ) ? ' hidden' : ''; ?>>
-						<th scope="row"><?php esc_html_e( 'Available credits', 'npcink-cloud-addon' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Available AI credits', 'npcink-cloud-addon' ); ?></th>
 						<td>
 							<div class="npcink-cloud-entitlement-metric"<?php echo ! empty( $credit_metric['tooltip'] ) ? ' title="' . esc_attr( (string) $credit_metric['tooltip'] ) . '"' : ''; ?>>
 								<span class="npcink-cloud-metric-value" data-npcink-entitlement-metric-value><?php echo esc_html( (string) ( $credit_metric['value_label'] ?? $credit_metric['label'] ?? '' ) ); ?></span>
@@ -1498,7 +1498,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 									class="npcink-cloud-segmented-progress npcink-cloud-entitlement-progress"
 									data-npcink-entitlement-progress
 									role="progressbar"
-									aria-label="<?php esc_attr_e( 'Remaining credits percentage', 'npcink-cloud-addon' ); ?>"
+									aria-label="<?php esc_attr_e( 'Remaining AI credits percentage', 'npcink-cloud-addon' ); ?>"
 									aria-valuemin="0"
 									aria-valuemax="100"
 									aria-valuenow="<?php echo esc_attr( (string) ( $credit_metric['percent'] ?? 0 ) ); ?>"
@@ -1562,7 +1562,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php endif; ?>
 				</tbody>
 				</table>
-				<p class="description"><?php esc_html_e( 'Credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those credits.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description"><?php esc_html_e( 'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.', 'npcink-cloud-addon' ); ?></p>
 			</section>
 			<?php self::render_local_permissions( $settings, $is_verified ); ?>
 			<?php
@@ -1984,7 +1984,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php esc_html_e( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ); ?>
 				</a>
 				<p class="description"><?php esc_html_e( 'Cloud will create or activate this site connection and return here with a one-time authorization code.', 'npcink-cloud-addon' ); ?></p>
-				<p class="description"><?php esc_html_e( 'Free service and credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud.', 'npcink-cloud-addon' ); ?></p>
 			</div>
 			<details class="npcink-cloud-endpoint-advanced">
 				<summary>
@@ -2287,7 +2287,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$period_end = (string) ( $credit_period['end_at'] ?? '' );
 			if ( '' !== $period_start || '' !== $period_end ) {
 				$rows[] = array(
-					__( 'Credit period', 'npcink-cloud-addon' ),
+					__( 'AI credit period', 'npcink-cloud-addon' ),
 					sprintf(
 						/* translators: 1: credit period start, 2: credit period end. */
 						__( '%1$s to %2$s', 'npcink-cloud-addon' ),
@@ -2340,7 +2340,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<div class="npcink-cloud-section-heading">
 				<h3><?php esc_html_e( 'Entitlement details', 'npcink-cloud-addon' ); ?></h3>
 				<?php if ( '' !== $credit_url ) : ?>
-					<a class="button button-secondary" href="<?php echo esc_url( $credit_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View credit details in Cloud', 'npcink-cloud-addon' ); ?></a>
+					<a class="button button-secondary" href="<?php echo esc_url( $credit_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View AI credit details in Cloud', 'npcink-cloud-addon' ); ?></a>
 				<?php endif; ?>
 			</div>
 			<?php if ( ! empty( $rows ) ) : ?>
@@ -2756,7 +2756,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					$credits['percent'] = $percent;
 					$credits['tooltip'] = sprintf(
 						/* translators: 1: used credits, 2: remaining credits, 3: credit limit. */
-						__( 'Used %1$s credits; remaining %2$s credits; limit %3$s credits.', 'npcink-cloud-addon' ),
+						__( 'Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits.', 'npcink-cloud-addon' ),
 						$used_label,
 						$remaining_label,
 						$limit_label
