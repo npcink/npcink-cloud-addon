@@ -246,13 +246,13 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 		 * @return array<string,mixed>
 		 */
 		private static function normalize_cloud_entitlement( array $data, array $settings ): array {
-			$entitlement = is_array( $data['entitlement'] ?? null ) ? $data['entitlement'] : $data;
+			$entitlement = is_array( $data['entitlement'] ?? null ) ? $data['entitlement'] : array();
 			$period = is_array( $data['period'] ?? null ) ? $data['period'] : array();
 			$quota = is_array( $entitlement['hosted_runtime_quota'] ?? null ) ? $entitlement['hosted_runtime_quota'] : array();
 			$usage_limits = is_array( $entitlement['usage_limits'] ?? null ) ? $entitlement['usage_limits'] : array();
 			$pro_cloud_runtime = is_array( $entitlement['pro_cloud_runtime'] ?? null ) ? $entitlement['pro_cloud_runtime'] : array();
 			$quota_summary = is_array( $data['quota_summary'] ?? null ) ? $data['quota_summary'] : array();
-			$credit_usage_detail = self::normalize_credit_usage_detail( $quota_summary['credit_usage_detail'] ?? array() );
+			$ai_credit_usage_detail = self::normalize_ai_credit_usage_detail( $quota_summary['ai_credit_usage_detail'] ?? array() );
 
 			return array(
 				'state' => 'fresh',
@@ -271,8 +271,8 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 					'execution_tiers' => self::sanitize_string_list( $quota['execution_tiers'] ?? array() ),
 				),
 				'pro_cloud_runtime' => self::normalize_pro_cloud_runtime( $pro_cloud_runtime ),
-				'credit_usage_detail' => $credit_usage_detail,
-				'links' => self::build_portal_links( $settings, is_array( $credit_usage_detail['portal_paths'] ?? null ) ? $credit_usage_detail['portal_paths'] : array() ),
+				'ai_credit_usage_detail' => $ai_credit_usage_detail,
+				'links' => self::build_portal_links( $settings, is_array( $ai_credit_usage_detail['portal_paths'] ?? null ) ? $ai_credit_usage_detail['portal_paths'] : array() ),
 				'synced_at' => gmdate( 'Y-m-d H:i:s' ) . ' UTC',
 				'fresh_until' => gmdate( 'Y-m-d H:i:s', time() + self::FRESHNESS_TTL_SECONDS ) . ' UTC',
 			);
@@ -299,10 +299,10 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 		 * The addon intentionally drops recent_items and ledger detail. The Cloud portal
 		 * remains the owner of usage explanation, credit ledger, and billing history.
 		 *
-		 * @param mixed $detail Raw credit usage detail.
+		 * @param mixed $detail Raw AI credit usage detail.
 		 * @return array<string,mixed>
 		 */
-		private static function normalize_credit_usage_detail( $detail ): array {
+		private static function normalize_ai_credit_usage_detail( $detail ): array {
 			$detail = is_array( $detail ) ? $detail : array();
 			$summary = is_array( $detail['summary'] ?? null ) ? $detail['summary'] : array();
 			$period = is_array( $detail['period'] ?? null ) ? $detail['period'] : array();
@@ -311,12 +311,13 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 			$remaining = array_key_exists( 'remaining', $summary ) && null !== $summary['remaining']
 				? (float) $summary['remaining']
 				: null;
+			$unit = sanitize_key( (string) ( $summary['unit'] ?? '' ) );
 
 			return array(
-				'available' => ! empty( $summary ) || ! empty( $portal_paths ),
-				'surface' => sanitize_key( (string) ( $detail['surface'] ?? 'portal_personal_credit_usage' ) ),
-				'default_visibility' => sanitize_key( (string) ( $detail['default_visibility'] ?? 'cloud_portal_only' ) ),
-				'local_addon_policy' => sanitize_key( (string) ( $detail['local_addon_policy'] ?? 'summary_and_link_only' ) ),
+				'available' => 'ai_credits' === $unit && ( ! empty( $summary ) || ! empty( $portal_paths ) ),
+				'surface' => sanitize_key( (string) ( $detail['surface'] ?? '' ) ),
+				'default_visibility' => sanitize_key( (string) ( $detail['default_visibility'] ?? '' ) ),
+				'local_addon_policy' => sanitize_key( (string) ( $detail['local_addon_policy'] ?? '' ) ),
 				'generated_at' => sanitize_text_field( (string) ( $detail['generated_at'] ?? '' ) ),
 				'period' => array(
 					'start_at' => sanitize_text_field( (string) ( $period['start_at'] ?? '' ) ),
@@ -327,12 +328,12 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 					'limit' => (float) ( $summary['limit'] ?? 0 ),
 					'remaining' => $remaining,
 					'status' => sanitize_key( (string) ( $summary['status'] ?? '' ) ),
-					'unit' => sanitize_text_field( (string) ( $summary['unit'] ?? 'ai_credits' ) ),
+					'unit' => $unit,
 					'rate_version' => sanitize_text_field( (string) ( $summary['rate_version'] ?? '' ) ),
 				),
 				'portal_paths' => array(
-					'credit_usage' => sanitize_text_field( (string) ( $portal_paths['credit_usage'] ?? '/portal/usage' ) ),
-					'credit_ledger' => sanitize_text_field( (string) ( $portal_paths['credit_ledger'] ?? '/portal/usage/credits' ) ),
+					'ai_credit_usage' => sanitize_text_field( (string) ( $portal_paths['ai_credit_usage'] ?? '' ) ),
+					'ai_credit_ledger' => sanitize_text_field( (string) ( $portal_paths['ai_credit_ledger'] ?? '' ) ),
 				),
 			);
 		}
@@ -459,11 +460,19 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 				return array();
 			}
 
-			return array(
-				'usage_url' => self::build_portal_url( $base_url, (string) ( $portal_paths['credit_usage'] ?? '/portal/usage' ) ),
-				'credit_ledger_url' => self::build_portal_url( $base_url, (string) ( $portal_paths['credit_ledger'] ?? '/portal/usage/credits' ) ),
+			$links = array(
 				'billing_url' => esc_url_raw( $base_url . '/portal/billing' ),
 			);
+			$ai_credit_usage_path = sanitize_text_field( (string) ( $portal_paths['ai_credit_usage'] ?? '' ) );
+			$ai_credit_ledger_path = sanitize_text_field( (string) ( $portal_paths['ai_credit_ledger'] ?? '' ) );
+			if ( '' !== $ai_credit_usage_path ) {
+				$links['ai_credit_usage_url'] = self::build_portal_url( $base_url, $ai_credit_usage_path );
+			}
+			if ( '' !== $ai_credit_ledger_path ) {
+				$links['ai_credit_ledger_url'] = self::build_portal_url( $base_url, $ai_credit_ledger_path );
+			}
+
+			return $links;
 		}
 
 		/**
@@ -525,7 +534,7 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 				'usage_limits' => array(),
 				'hosted_runtime_quota' => array(),
 				'pro_cloud_runtime' => self::normalize_pro_cloud_runtime( array() ),
-				'credit_usage_detail' => self::normalize_credit_usage_detail( array() ),
+				'ai_credit_usage_detail' => self::normalize_ai_credit_usage_detail( array() ),
 				'links' => array(),
 				'synced_at' => '',
 				'fresh_until' => '',

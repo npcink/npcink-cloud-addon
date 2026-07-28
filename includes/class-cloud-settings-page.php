@@ -2271,12 +2271,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @return void
 		 */
 		private static function render_status_account_usage( array $entitlement ): void {
-			$credit_detail = is_array( $entitlement['credit_usage_detail'] ?? null ) ? $entitlement['credit_usage_detail'] : array();
-			$credit_period = is_array( $credit_detail['period'] ?? null ) ? $credit_detail['period'] : array();
+			$ai_credit_usage_detail = is_array( $entitlement['ai_credit_usage_detail'] ?? null ) ? $entitlement['ai_credit_usage_detail'] : array();
+			$credit_period = is_array( $ai_credit_usage_detail['period'] ?? null ) ? $ai_credit_usage_detail['period'] : array();
 			$usage_limits = is_array( $entitlement['usage_limits'] ?? null ) ? $entitlement['usage_limits'] : array();
 			$runtime_quota = is_array( $entitlement['hosted_runtime_quota'] ?? null ) ? $entitlement['hosted_runtime_quota'] : array();
 			$links = is_array( $entitlement['links'] ?? null ) ? $entitlement['links'] : array();
-			$credit_url = esc_url( (string) ( $links['credit_ledger_url'] ?? ( $links['usage_url'] ?? '' ) ) );
+			$credit_url = esc_url( (string) ( $links['ai_credit_ledger_url'] ?? ( $links['ai_credit_usage_url'] ?? '' ) ) );
 			$rows = array();
 
 			if ( '' !== (string) ( $entitlement['renews_at'] ?? '' ) ) {
@@ -2728,10 +2728,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'percent' => null,
 				'tooltip' => '',
 			);
-			$credit_detail = is_array( $summary['credit_usage_detail'] ?? null ) ? $summary['credit_usage_detail'] : array();
-			$credit_summary = is_array( $credit_detail['summary'] ?? null ) ? $credit_detail['summary'] : array();
+			$ai_credit_usage_detail = is_array( $summary['ai_credit_usage_detail'] ?? null ) ? $summary['ai_credit_usage_detail'] : array();
+			$credit_summary = is_array( $ai_credit_usage_detail['summary'] ?? null ) ? $ai_credit_usage_detail['summary'] : array();
 			$remaining = $credit_summary['remaining'] ?? null;
-			if ( ! empty( $credit_detail['available'] ) && is_numeric( $remaining ) ) {
+			if ( ! empty( $ai_credit_usage_detail['available'] ) && is_numeric( $remaining ) ) {
 				$remaining_label = self::format_credit_amount( $remaining );
 				$limit = is_numeric( $credit_summary['limit'] ?? null ) ? (float) $credit_summary['limit'] : 0.0;
 				$credits['available'] = true;
