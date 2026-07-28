@@ -1029,10 +1029,12 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $entitlement_summary, 'normalize_credit_usage_detail' )
+	false !== strpos( $entitlement_summary, 'normalize_ai_credit_usage_detail' )
 	&& false !== strpos( $entitlement_summary, "'local_addon_policy' => sanitize_key" )
-	&& false !== strpos( $entitlement_summary, "'summary_and_link_only'" )
-	&& false !== strpos( $entitlement_summary, "'credit_ledger_url'" )
+	&& false !== strpos( $entitlement_summary, "'ai_credit_ledger_url'" )
+	&& false !== strpos( $entitlement_summary, "'available' => 'ai_credits' === \$unit" )
+	&& false === strpos( $entitlement_summary, "?? 'ai_credits'" )
+	&& false === strpos( $entitlement_summary, "['credit_usage_detail']" )
 	&& false !== strpos( $settings_page, 'get_overview_entitlement_metrics' )
 	&& false !== strpos( $settings_page, 'format_overview_package_label' )
 	&& false !== strpos( $settings_page, "'Free plan'" )

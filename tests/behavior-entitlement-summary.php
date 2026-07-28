@@ -62,7 +62,7 @@ $entitlement_response = array(
 			),
 		),
 		'quota_summary'    => array(
-			'credit_usage_detail' => array(
+			'ai_credit_usage_detail' => array(
 				'summary'      => array(
 					'used'      => 12.5,
 					'limit'     => 100,
@@ -71,7 +71,7 @@ $entitlement_response = array(
 					'status'    => 'ok',
 				),
 				'portal_paths' => array(
-					'credit_usage' => '/portal/usage',
+					'ai_credit_usage' => '/portal/usage',
 				),
 			),
 		),
@@ -88,7 +88,7 @@ maca_assert(
 	&& 'active' === (string) ( $cached_summary['entitlement_status'] ?? '' )
 	&& 'cached' === (string) ( $read_summary['state'] ?? '' )
 	&& 'Pro' === (string) ( $read_summary['package_label'] ?? '' )
-	&& 'ai_credits' === (string) ( $read_summary['credit_usage_detail']['summary']['unit'] ?? '' ),
+	&& 'ai_credits' === (string) ( $read_summary['ai_credit_usage_detail']['summary']['unit'] ?? '' ),
 	'Behavior: verification entitlement response can populate the short local summary cache.'
 );
 
@@ -107,6 +107,7 @@ maca_assert(
 $format_overview_entitlement = maca_private_method( Npcink_Cloud_Settings_Page::class, 'format_overview_entitlement' );
 $overview_metrics_method = maca_private_method( Npcink_Cloud_Settings_Page::class, 'get_overview_entitlement_metrics' );
 $site_knowledge_usage_method = maca_private_method( Npcink_Cloud_Settings_Page::class, 'get_site_knowledge_usage_projection' );
+$normalize_cloud_entitlement = maca_private_method( Npcink_Cloud_Entitlement_Summary::class, 'normalize_cloud_entitlement' );
 $overview_metrics = $overview_metrics_method->invoke( null, $read_summary );
 $site_knowledge_input = array(
 	'state' => 'fresh',
@@ -124,7 +125,7 @@ $site_knowledge_usage = $site_knowledge_usage_method->invoke( null, $site_knowle
 $missing_overview_metrics = $overview_metrics_method->invoke(
 	null,
 	array(
-		'credit_usage_detail' => array( 'available' => false ),
+		'ai_credit_usage_detail' => array( 'available' => false ),
 		'pro_cloud_runtime' => array( 'reported' => false ),
 	)
 );
@@ -159,6 +160,19 @@ maca_assert(
 	&& empty( $missing_overview_metrics['credits']['available'] )
 	&& empty( $missing_overview_metrics['runtime']['available'] ),
 	'Behavior: direct Site Knowledge projection matches the settings facade while overview copy avoids duplicate fallbacks.'
+);
+
+$legacy_contract_data = $entitlement_response['data'];
+$legacy_contract_data['quota_summary']['credit_usage_detail'] = $legacy_contract_data['quota_summary']['ai_credit_usage_detail'];
+unset( $legacy_contract_data['quota_summary']['ai_credit_usage_detail'] );
+$wrong_unit_data = $entitlement_response['data'];
+$wrong_unit_data['quota_summary']['ai_credit_usage_detail']['summary']['unit'] = 'credit';
+$legacy_contract_summary = $normalize_cloud_entitlement->invoke( null, $legacy_contract_data, array() );
+$wrong_unit_summary = $normalize_cloud_entitlement->invoke( null, $wrong_unit_data, array() );
+maca_assert(
+	empty( $legacy_contract_summary['ai_credit_usage_detail']['available'] )
+	&& empty( $wrong_unit_summary['ai_credit_usage_detail']['available'] ),
+	'Behavior: entitlement projection rejects the legacy credit key and non-ai_credits unit instead of applying compatibility defaults.'
 );
 
 $site_knowledge_projection_cases = array(
