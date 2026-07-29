@@ -295,7 +295,13 @@ bytes, Data URLs, or Base64.
 The method returns `image_context_evidence.v1` only as suggestion-only evidence
 for local review. It must filter Cloud evidence to the requested attachment ids,
 force `direct_wordpress_write=false`, require human visual confirmation, and
-fail closed when Cloud returns no usable evidence.
+fail closed when Cloud returns no usable evidence. The bounded item projection
+includes `visual_summary`, `subject_tags`, `visible_text`, `alt_text_basis`,
+`caption_basis`, `confidence`, and `uncertainty_flags`; legacy `objects`,
+`text_seen`, and `needs_human_visual_check` aliases remain additive for existing
+consumers. Structured runtime source metadata is reduced to a non-secret
+`evidence_basis` label plus `model_id`; provider and instance identifiers are
+not projected.
 
 This helper is not a local image recognition model, a product workflow, a
 queue, a proposal creator, a media metadata writer, or a second control plane.

@@ -3277,6 +3277,11 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 */
 		private function normalize_image_context_evidence_response( array $response, array $request ) {
 			$payload = $this->extract_image_context_evidence_payload( $response );
+			$payload_source = $payload['source'] ?? 'cloud_or_host_runtime';
+			$source         = $this->normalize_image_context_evidence_source( $payload_source );
+			$model_id       = is_array( $payload_source )
+				? sanitize_text_field( (string) ( $payload_source['model_id'] ?? ( $payload['model_id'] ?? '' ) ) )
+				: sanitize_text_field( (string) ( $payload['model_id'] ?? '' ) );
 			$requested_ids = array();
 			foreach ( (array) ( $request['items'] ?? array() ) as $request_item ) {
 				if ( is_array( $request_item ) ) {
@@ -3293,15 +3298,33 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				if ( 0 >= $attachment_id || empty( $requested_ids[ $attachment_id ] ) ) {
 					continue;
 				}
+				$subject_tags = array_slice(
+					$this->sanitize_string_list( $item['subject_tags'] ?? ( $item['objects'] ?? array() ) ),
+					0,
+					12
+				);
+				$visible_text = array_slice(
+					$this->sanitize_string_list( $item['visible_text'] ?? ( $item['text_seen'] ?? array() ) ),
+					0,
+					8
+				);
 				$items[] = array(
 					'attachment_id'              => $attachment_id,
 					'contract_version'           => 'image_context_evidence.v1',
-					'source'                     => sanitize_key( (string) ( $item['source'] ?? 'cloud_or_host_runtime' ) ),
-					'visual_summary'             => $this->bounded_text( (string) ( $item['visual_summary'] ?? '' ), 240 ),
-					'scene'                      => $this->bounded_text( (string) ( $item['scene'] ?? '' ), 160 ),
-					'objects'                    => array_slice( $this->sanitize_string_list( $item['objects'] ?? array() ), 0, 12 ),
-					'text_seen'                  => array_slice( $this->sanitize_string_list( $item['text_seen'] ?? array() ), 0, 8 ),
-					'confidence'                 => sanitize_text_field( (string) ( $item['confidence'] ?? '' ) ),
+					'source'                     => $this->normalize_image_context_evidence_source( $item['source'] ?? $payload_source ),
+					'visual_summary'             => $this->normalize_image_context_evidence_text( $item['visual_summary'] ?? '', 240 ),
+					'scene'                      => $this->normalize_image_context_evidence_text( $item['scene'] ?? '', 160 ),
+					'subject_tags'               => $subject_tags,
+					'visible_text'               => $visible_text,
+					'alt_text_basis'             => $this->normalize_image_context_evidence_text( $item['alt_text_basis'] ?? '', 240 ),
+					'caption_basis'              => $this->normalize_image_context_evidence_text( $item['caption_basis'] ?? '', 320 ),
+					'uncertainty_flags'          => array_slice( $this->sanitize_string_list( $item['uncertainty_flags'] ?? array() ), 0, 12 ),
+					'requires_human_visual_check' => true,
+					'objects'                    => $subject_tags,
+					'text_seen'                  => $visible_text,
+					'confidence'                 => is_numeric( $item['confidence'] ?? null )
+						? max( 0.0, min( 1.0, (float) $item['confidence'] ) )
+						: sanitize_text_field( (string) ( $item['confidence'] ?? '' ) ),
 					'write_posture'              => 'suggestion_only',
 					'direct_wordpress_write'     => false,
 					'needs_human_visual_check'   => true,
@@ -3323,7 +3346,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'contract_version'         => 'image_context_evidence.v1',
 				'artifact_type'            => 'image_context_evidence',
 				'runtime_owner'            => 'cloud_service',
-				'source'                   => sanitize_key( (string) ( $payload['source'] ?? 'cloud_or_host_runtime' ) ),
+				'source'                   => '' !== $source ? $source : 'cloud_or_host_runtime',
 				'write_posture'            => 'suggestion_only',
 				'direct_wordpress_write'   => false,
 				'proposal_created'         => false,
@@ -3331,7 +3354,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'requested_count'          => (int) ( $request['requested_count'] ?? count( $items ) ),
 				'evidence_count'           => count( $items ),
 				'run_id'                   => sanitize_text_field( (string) ( $response['run_id'] ?? ( $payload['run_id'] ?? '' ) ) ),
-				'model_id'                 => sanitize_text_field( (string) ( $payload['model_id'] ?? '' ) ),
+				'model_id'                 => $model_id,
 				'items'                    => $items,
 				'safety'                   => array(
 					'local_model_used'             => false,
@@ -3340,6 +3363,35 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 					'requires_human_visual_check'  => true,
 				),
 			);
+		}
+
+		/**
+		 * Normalizes a scalar or structured runtime source into a non-secret label.
+		 *
+		 * @param mixed $source Raw source value.
+		 * @return string
+		 */
+		private function normalize_image_context_evidence_source( $source ): string {
+			if ( is_array( $source ) ) {
+				$source = $source['evidence_basis'] ?? 'cloud_or_host_runtime';
+			}
+
+			return is_scalar( $source ) ? sanitize_key( (string) $source ) : 'cloud_or_host_runtime';
+		}
+
+		/**
+		 * Normalizes scalar or list-shaped evidence text without array coercion.
+		 *
+		 * @param mixed $value Raw evidence value.
+		 * @param int   $max_chars Maximum characters.
+		 * @return string
+		 */
+		private function normalize_image_context_evidence_text( $value, int $max_chars ): string {
+			if ( is_array( $value ) ) {
+				$value = implode( '; ', array_slice( $this->sanitize_string_list( $value ), 0, 8 ) );
+			}
+
+			return is_scalar( $value ) ? $this->bounded_text( (string) $value, $max_chars ) : '';
 		}
 
 		/**
@@ -3386,7 +3438,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				array_filter(
 					array_map(
 						function ( $item ): string {
-							return $this->bounded_text( (string) $item, 120 );
+							return is_scalar( $item ) ? $this->bounded_text( (string) $item, 120 ) : '';
 						},
 						$items
 					),

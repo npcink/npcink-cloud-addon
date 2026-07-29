@@ -164,6 +164,10 @@ metadata. It validates the request as suggestion-only, strips it to bounded
 public media URLs or same-site short-TTL Artifact references and metadata,
 sends it through `POST /v1/runtime/execute`, and
 normalizes a Cloud response into `image_context_evidence.v1`.
+The normalized evidence preserves bounded visual summaries, subject tags,
+visible text, ALT/caption basis, confidence, and uncertainty flags while
+reducing structured runtime source metadata to a non-secret evidence label and
+model id.
 
 For the bounded Local WordPress pilot, run
 `wp eval-file scripts/eval-local-image-context-artifact-pilot.php 20

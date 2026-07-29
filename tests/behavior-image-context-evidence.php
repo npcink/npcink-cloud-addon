@@ -61,17 +61,24 @@ $GLOBALS['maca_http_response_queue'][] = array(
 			'data'   => array(
 				'image_context_evidence' => array(
 					'contract_version' => 'image_context_evidence.v1',
-					'source'           => 'cloud_or_host_runtime',
-					'model_id'         => 'vision-model-test',
+					'source'           => array(
+						'provider_id'    => 'provider-secret-must-not-project',
+						'model_id'       => 'vision-model-test',
+						'instance_id'    => 'instance-secret-must-not-project',
+						'evidence_basis' => 'hosted_vision_model',
+					),
 					'items'            => array(
 						array(
 							'attachment_id'    => 101,
-							'source'           => 'cloud_or_host_runtime',
 							'visual_summary'   => 'A person standing beside a blue bicycle near a city storefront.',
 							'scene'            => 'street storefront',
-							'objects'          => array( 'person', 'blue bicycle', 'storefront' ),
-							'text_seen'        => array( 'OPEN' ),
-							'confidence'       => 'medium',
+							'subject_tags'     => array( 'person', 'blue bicycle', 'storefront' ),
+							'visible_text'     => array( 'OPEN' ),
+							'alt_text_basis'   => array( 'Person', 'beside a blue bicycle' ),
+							'caption_basis'    => 'A person and bicycle outside a storefront.',
+							'confidence'       => 0.86,
+							'uncertainty_flags' => array( 'small_visible_text' ),
+							'requires_human_visual_check' => false,
 							'direct_wordpress_write' => true,
 						),
 						array(
@@ -124,8 +131,17 @@ maca_assert(
 	&& false === (bool) ( $evidence_result['direct_wordpress_write'] ?? true )
 	&& false === (bool) ( $evidence_result['items'][0]['direct_wordpress_write'] ?? true )
 	&& true === (bool) ( $evidence_result['items'][0]['needs_human_visual_check'] ?? false )
+	&& true === (bool) ( $evidence_result['items'][0]['requires_human_visual_check'] ?? false )
+	&& 'hosted_vision_model' === (string) ( $evidence_result['source'] ?? '' )
+	&& 'Person; beside a blue bicycle' === (string) ( $evidence_result['items'][0]['alt_text_basis'] ?? '' )
+	&& array( 'person', 'blue bicycle', 'storefront' ) === ( $evidence_result['items'][0]['subject_tags'] ?? array() )
+	&& array( 'OPEN' ) === ( $evidence_result['items'][0]['visible_text'] ?? array() )
+	&& array( 'small_visible_text' ) === ( $evidence_result['items'][0]['uncertainty_flags'] ?? array() )
+	&& 0.86 === ( $evidence_result['items'][0]['confidence'] ?? null )
+	&& false === strpos( wp_json_encode( $evidence_result ), 'provider-secret-must-not-project' )
+	&& false === strpos( wp_json_encode( $evidence_result ), 'instance-secret-must-not-project' )
 	&& 'vision-model-test' === (string) ( $evidence_result['model_id'] ?? '' ),
-	'Behavior: image context evidence normalizes Cloud results as suggestion-only no-write evidence.'
+	'Behavior: image context evidence normalizes current Cloud fields as bounded suggestion-only no-write evidence.'
 );
 
 maca_assert(
