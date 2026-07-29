@@ -94,6 +94,58 @@ function parseJson(output, label) {
 	}
 }
 
+function readAiCreditSummary(label) {
+	let lastError = null;
+	for (let attempt = 1; attempt <= 5; attempt += 1) {
+		try {
+			const output = wpCli([
+				'eval',
+				`$client = npcink_cloud_addon_verified_runtime_client();
+if ( ! $client ) {
+	echo wp_json_encode( array( 'error' => 'verified_runtime_client_unavailable' ) );
+	return;
+}
+$response = $client->get_current_entitlement( 'trace_credit_assertion_' . wp_generate_uuid4() );
+$summary = is_array( $response )
+	? ( $response['data']['quota_summary']['ai_credit_usage_detail']['summary'] ?? array() )
+	: array();
+echo wp_json_encode(
+	array(
+		'used'      => (float) ( $summary['used'] ?? 0 ),
+		'limit'     => (float) ( $summary['limit'] ?? 0 ),
+		'remaining' => (float) ( $summary['remaining'] ?? 0 ),
+		'unit'      => (string) ( $summary['unit'] ?? '' ),
+	)
+);`,
+			]);
+			const summary = parseJson(output, label);
+			if (
+				summary?.unit !== 'ai_credits'
+				|| typeof summary?.used !== 'number'
+				|| !Number.isFinite(summary.used)
+				|| typeof summary?.limit !== 'number'
+				|| !Number.isFinite(summary.limit)
+				|| typeof summary?.remaining !== 'number'
+				|| !Number.isFinite(summary.remaining)
+			) {
+				throw new Error(`${label} did not return the exact AI-credit summary contract.`);
+			}
+			return {
+				used: Number(summary.used),
+				limit: Number(summary.limit),
+				remaining: Number(summary.remaining),
+				unit: 'ai_credits',
+			};
+		} catch (error) {
+			lastError = error;
+			if (attempt < 5) {
+				execFileSync('/bin/sleep', ['1']);
+			}
+		}
+	}
+	throw new Error(`${label} remained unavailable after bounded read-only retries: ${lastError?.message || lastError}`);
+}
+
 function phpString(value) {
 	return JSON.stringify(String(value));
 }
@@ -901,7 +953,9 @@ Options:
                     Does not create a draft, start a browser, or invoke an AI provider.
   -h, --help        Show this help without connecting to WordPress.
 
-With no option, the script runs the complete opt-in browser acceptance.`;
+With no option, the script runs the complete opt-in browser acceptance.
+Set WP_AI_TEXT_EXPECT_CREDIT_DELTA=8 to add the deterministic signed-entitlement
+before/after assertion for the three real Provider calls.`;
 }
 
 function parseCliMode(args) {
@@ -964,13 +1018,26 @@ const failureScreenshotPath = resolve(env('WP_AI_TEXT_FAILURE_SCREENSHOT', `${ar
 const summaryPath = env('WP_AI_TEXT_SUMMARY_PATH', '');
 const fakeProviderMode = env('WP_AI_TEXT_FAKE_PROVIDER') === '1';
 const qualityValidationMode = env('WP_AI_TEXT_VALIDATE_QUALITY') === '1';
+const expectedCreditDeltaRaw = env('WP_AI_TEXT_EXPECT_CREDIT_DELTA');
+const expectedCreditDelta = expectedCreditDeltaRaw === '' ? 0 : Number(expectedCreditDeltaRaw);
+const creditAssertionMode = expectedCreditDeltaRaw !== '';
+if (
+	creditAssertionMode
+	&& expectedCreditDelta !== 8
+) {
+	console.error('FAIL: WP_AI_TEXT_EXPECT_CREDIT_DELTA supports only the reviewed value 8.');
+	process.exit(2);
+}
 
 const token = randomBytes(6).toString('hex');
+const creditMeteringPadding = creditAssertionMode
+	? ` ${'The bounded metering fixture keeps enough editorial context to stabilize the title and summary input token bucket without changing the selected rewrite paragraph. '.repeat(24).trim()}`
+	: '';
 const fixtureText = {
 	sentinelBefore: `P5B3-BEFORE-${token} remains exactly unchanged. This paragraph is a non-target sentinel for the browser proof.`,
 	targetOriginal: `P5B3-TARGET-${token} is the selected whole paragraph block. Rephrase this sentence clearly while preserving its practical meaning.`,
 	sentinelAfter: `P5B3-AFTER-${token} remains exactly unchanged. This paragraph proves that an adjacent block is not rewritten.`,
-	filler: `P5B3-FILLER-${token} remains exactly unchanged. The temporary draft describes a small editorial workflow in enough detail for title and summary generation. An editor reviews a Cloud suggestion inside WordPress, accepts only the selected whole paragraph block, and then performs one normal local save. The browser proof separates suggestion generation from local persistence so that Cloud never appears to own the WordPress write. This additional context intentionally keeps the content above the official WordPress AI minimum character threshold.`,
+	filler: `P5B3-FILLER-${token} remains exactly unchanged. The temporary draft describes a small editorial workflow in enough detail for title and summary generation. An editor reviews a Cloud suggestion inside WordPress, accepts only the selected whole paragraph block, and then performs one normal local save. The browser proof separates suggestion generation from local persistence so that Cloud never appears to own the WordPress write. This additional context intentionally keeps the content above the official WordPress AI minimum character threshold.${creditMeteringPadding}`,
 };
 
 let baseUrl = '';
@@ -994,6 +1061,8 @@ let titleInsertedAt = 0;
 let titleSaveCompletedAt = 0;
 let titleRegenerationCount = 0;
 let titleEditedBeforeInsert = false;
+let creditBefore = null;
+let creditAfter = null;
 const abilityResponses = [];
 const preSaveWrites = [];
 const saveWrites = [];
@@ -1005,6 +1074,11 @@ try {
 	if (qualityValidationMode) {
 		assert(fakeProviderMode, 'Quality-correlation validation requires fake-provider mode.');
 		assert(readiness.monitoring_enabled === true, 'Quality-correlation validation requires verified metadata-only monitoring.');
+	}
+	if (creditAssertionMode) {
+		assert(!fakeProviderMode, 'AI-credit delta validation requires configured Cloud Provider mode.');
+		creditBefore = readAiCreditSummary('AI-credit baseline');
+		pass(`AI-credit baseline is used=${creditBefore.used}, limit=${creditBefore.limit}, remaining=${creditBefore.remaining}.`);
 	}
 	if (fakeProviderMode) {
 		fakeProvider = installFakeProvider(token);
@@ -1372,6 +1446,23 @@ try {
 			'Quality evidence: Cloud-bound correlation contains only metadata and omits content and local identities.'
 		);
 	}
+	if (creditAssertionMode) {
+		creditAfter = readAiCreditSummary('AI-credit result');
+		const usedDelta = creditAfter.used - creditBefore.used;
+		const remainingDelta = creditAfter.remaining - creditBefore.remaining;
+		assert(
+			usedDelta === expectedCreditDelta,
+			`AI-credit evidence: used increases by exactly ${expectedCreditDelta}.`
+		);
+		assert(
+			remainingDelta === -expectedCreditDelta,
+			`AI-credit evidence: remaining decreases by exactly ${expectedCreditDelta}.`
+		);
+		assert(
+			creditAfter.limit === creditBefore.limit,
+			'AI-credit evidence: the finite-period limit stays unchanged during consumption.'
+		);
+	}
 
 	machineSummary = {
 		contract: 'p5_b3_wordpress_ai_text_browser.v1',
@@ -1419,6 +1510,16 @@ try {
 			insert_to_save_ms: Math.max(0, titleSaveCompletedAt - titleInsertedAt),
 		},
 		quality_correlation_evidence: qualityValidationMode ? qualityCorrelationEvidence : {
+			validated: false,
+		},
+		ai_credit_evidence: creditAssertionMode ? {
+			validated: true,
+			expected_delta: expectedCreditDelta,
+			before: creditBefore,
+			after: creditAfter,
+			used_delta: creditAfter.used - creditBefore.used,
+			remaining_delta: creditAfter.remaining - creditBefore.remaining,
+		} : {
 			validated: false,
 		},
 		fixture: { post_id: postId, deleted: false },
