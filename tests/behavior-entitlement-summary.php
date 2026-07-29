@@ -167,12 +167,28 @@ $legacy_contract_data['quota_summary']['credit_usage_detail'] = $legacy_contract
 unset( $legacy_contract_data['quota_summary']['ai_credit_usage_detail'] );
 $wrong_unit_data = $entitlement_response['data'];
 $wrong_unit_data['quota_summary']['ai_credit_usage_detail']['summary']['unit'] = 'credit';
+$combined_credit_data = $entitlement_response['data'];
+$combined_credit_data['quota_summary']['ai_credit_usage_detail']['summary'] = array(
+	'used'         => 740,
+	'limit'        => 10300,
+	'remaining'    => 9560,
+	'unit'         => 'ai_credits',
+	'status'       => 'ok',
+	'rate_version' => 'ai-credit-ledger-v2',
+);
 $legacy_contract_summary = $normalize_cloud_entitlement->invoke( null, $legacy_contract_data, array() );
 $wrong_unit_summary = $normalize_cloud_entitlement->invoke( null, $wrong_unit_data, array() );
+$combined_credit_summary = $normalize_cloud_entitlement->invoke( null, $combined_credit_data, array() );
 maca_assert(
 	empty( $legacy_contract_summary['ai_credit_usage_detail']['available'] )
 	&& empty( $wrong_unit_summary['ai_credit_usage_detail']['available'] ),
 	'Behavior: entitlement projection rejects the legacy credit key and non-ai_credits unit instead of applying compatibility defaults.'
+);
+maca_assert(
+	740.0 === (float) ( $combined_credit_summary['ai_credit_usage_detail']['summary']['used'] ?? 0 )
+	&& 10300.0 === (float) ( $combined_credit_summary['ai_credit_usage_detail']['summary']['limit'] ?? 0 )
+	&& 9560.0 === (float) ( $combined_credit_summary['ai_credit_usage_detail']['summary']['remaining'] ?? 0 ),
+	'Behavior: Addon preserves Cloud used, limit, and remaining after combined grant, adjustment, and consumption ledger events without recalculating billing truth.'
 );
 
 $site_knowledge_projection_cases = array(
