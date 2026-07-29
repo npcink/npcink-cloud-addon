@@ -161,8 +161,16 @@ or signed Cloud read.
 The addon can consume a Toolbox-generated
 `image_context_evidence_request.v1` artifact for weak media ALT/caption
 metadata. It validates the request as suggestion-only, strips it to bounded
-media URLs and metadata, sends it through `POST /v1/runtime/execute`, and
+public media URLs or same-site short-TTL Artifact references and metadata,
+sends it through `POST /v1/runtime/execute`, and
 normalizes a Cloud response into `image_context_evidence.v1`.
+
+For the bounded Local WordPress pilot, run
+`wp eval-file scripts/eval-local-image-context-artifact-pilot.php 20
+--user=<administrator>`. The script selects at most 20 eligible local
+JPEG/PNG/WebP attachments, uploads each through the existing image-only
+Artifact endpoint, and sends only Artifact ids to the evidence runtime. It
+does not expose the Local site, persist a media index, or write WordPress.
 
 Cloud owns the visual recognition runtime, provider routing, model execution,
 and result generation. The addon does not run a local vision model, create a
