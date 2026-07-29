@@ -262,8 +262,11 @@ Image context evidence transport must use the existing
 and normalize `image_context_evidence.v1` as suggestion-only evidence. It must
 not add a local image recognition model, local queue, proposal creation,
 approval, media metadata write path, or generic image upload/download endpoint.
-The dedicated WordPress AI alt-text attachment upload is a separate named
-transport and must not be reused by this evidence seam.
+For the operator-only Local media pilot, the evidence seam may first use the
+existing allowlisted `POST /v1/runtime/media/uploads` resource to create
+same-site short-TTL image artifacts, then send only their ids to runtime
+execute. It must not expose local paths or bytes in the execute payload, create
+an artifact registry, or widen the endpoint allowlist.
 
 Agent feedback transport must use only `POST /v1/agent-feedback/events` for
 `cloud_agent_feedback.v1` local operator feedback and

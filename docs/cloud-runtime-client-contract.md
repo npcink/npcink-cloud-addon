@@ -278,15 +278,19 @@ request logs, billing truth, or workflow/task queue truth.
 - `direct_wordpress_write=false`
 - `no_local_model=true`
 - `no_media_write=true`
-- `source_policy=bounded_media_urls_for_visual_context_only`
+- `source_policy=bounded_media_urls_for_visual_context_only` for URL-only
+  requests, `bounded_source_artifacts_for_visual_context_only` for
+  Artifact-only requests, or the bounded mixed-source value
 
 The method dispatches a bounded `npcink-cloud/image-context-evidence` runtime
 execute payload with `profile_id=vision.ai` and
-`execution_kind=image_context_evidence`. It may send only the request's bounded
-media URL or thumbnail URL, attachment id, MIME type, title/filename context,
-and local candidate-quality flags. It must not send provider credentials,
-Cloud signing data, raw WordPress database fields, local filesystem paths, or
-media bytes.
+`execution_kind=image_context_evidence`. It may send only a bounded media URL
+or same-site short-TTL `source_artifact_id`, attachment id, MIME type,
+title/filename context, and local candidate-quality flags. Artifact requests
+use `data_classification=internal`; URL-only requests retain
+`public_site_media_metadata`. It must not send provider credentials, Cloud
+signing data, raw WordPress database fields, local filesystem paths, media
+bytes, Data URLs, or Base64.
 
 The method returns `image_context_evidence.v1` only as suggestion-only evidence
 for local review. It must filter Cloud evidence to the requested attachment ids,

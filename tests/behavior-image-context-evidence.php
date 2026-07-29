@@ -151,6 +151,60 @@ $GLOBALS['maca_http_response_queue'][] = array(
 			'data'   => array(
 				'image_context_evidence' => array(
 					'contract_version' => 'image_context_evidence.v1',
+					'items'            => array(
+						array(
+							'attachment_id'  => 101,
+							'visual_summary' => 'A local artifact image.',
+						),
+					),
+				),
+			),
+		)
+	),
+);
+$artifact_result = $client->request_image_context_evidence(
+	array(
+		'contract_version'       => 'image_context_evidence_request.v1',
+		'write_posture'          => 'suggestion_only',
+		'direct_wordpress_write' => false,
+		'no_local_model'         => true,
+		'no_media_write'         => true,
+		'items'                  => array(
+			array(
+				'attachment_id'     => 101,
+				'source_artifact_id' => 'art_0123456789abcdef0123456789abcdef',
+				'title'             => 'Local image',
+				'filename'          => 'local.png',
+				'mime_type'         => 'image/png',
+			),
+		),
+	),
+	'trace-image-context-artifact',
+	'image-context-artifact-idempotency'
+);
+$artifact_request      = end( $GLOBALS['maca_http_requests'] );
+$artifact_request_body = json_decode( (string) ( $artifact_request['args']['body'] ?? '' ), true );
+$artifact_item         = $artifact_request_body['input']['image_context_evidence_request']['items'][0] ?? array();
+maca_assert(
+	is_array( $artifact_result )
+	&& 'internal' === (string) ( $artifact_request_body['data_classification'] ?? '' )
+	&& 'bounded_source_artifacts_for_visual_context_only' === (string) ( $artifact_request_body['input']['image_context_evidence_request']['source_policy'] ?? '' )
+	&& 'art_0123456789abcdef0123456789abcdef' === (string) ( $artifact_item['source_artifact_id'] ?? '' )
+	&& ! isset( $artifact_item['url'] )
+	&& ! isset( $artifact_item['thumbnail_url'] ),
+	'Behavior: image context evidence sends local images only as internal short-TTL artifact references.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array(
+				'image_context_evidence' => array(
+					'contract_version' => 'image_context_evidence.v1',
 					'items'            => array(),
 				),
 			),

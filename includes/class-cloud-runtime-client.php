@@ -424,6 +424,13 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			if ( '' === $idempotency_key ) {
 				$idempotency_key = 'image_context_evidence_' . wp_generate_uuid4();
 			}
+			$uses_artifacts = false;
+			foreach ( (array) ( $request['items'] ?? array() ) as $item ) {
+				if ( is_array( $item ) && '' !== (string) ( $item['source_artifact_id'] ?? '' ) ) {
+					$uses_artifacts = true;
+					break;
+				}
+			}
 
 			$runtime_payload = array(
 				'ability_name'        => 'npcink-cloud/image-context-evidence',
@@ -434,7 +441,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'input'               => array(
 					'image_context_evidence_request' => $request,
 				),
-				'data_classification' => 'public_site_media_metadata',
+				'data_classification' => $uses_artifacts ? 'internal' : 'public_site_media_metadata',
 				'storage_mode'        => 'result_only',
 				'retention_ttl'       => 86400,
 				'timeout_seconds'     => 30,
@@ -3174,23 +3181,47 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 					continue;
 				}
 				$attachment_id = absint( $item['attachment_id'] ?? 0 );
+				$source_artifact_id = trim( (string) ( $item['source_artifact_id'] ?? '' ) );
 				$url           = esc_url_raw( (string) ( $item['url'] ?? '' ) );
 				$thumbnail_url = esc_url_raw( (string) ( $item['thumbnail_url'] ?? '' ) );
-				if ( 0 >= $attachment_id || ( '' === $url && '' === $thumbnail_url ) ) {
+				if ( '' !== $source_artifact_id && ( '' !== $url || '' !== $thumbnail_url ) ) {
+					return new WP_Error(
+						'cloud_image_context_evidence_source_conflict',
+						__( 'Image context evidence items must use either a source artifact or media URLs.', 'npcink-cloud-addon' ),
+						array( 'status' => 400 )
+					);
+				}
+				if (
+					0 >= $attachment_id
+					|| (
+						'' === $source_artifact_id
+						&& '' === $url
+						&& '' === $thumbnail_url
+					)
+					|| (
+						'' !== $source_artifact_id
+						&& 1 !== preg_match( self::MEDIA_ARTIFACT_ID_PATTERN, $source_artifact_id )
+					)
+				) {
 					continue;
 				}
-				$normalized_items[] = array(
+				$normalized_item = array(
 					'attachment_id'            => $attachment_id,
 					'title'                    => $this->bounded_text( (string) ( $item['title'] ?? '' ), 160 ),
 					'filename'                 => sanitize_file_name( (string) ( $item['filename'] ?? '' ) ),
-					'thumbnail_url'            => $thumbnail_url,
-					'url'                      => $url,
 					'mime_type'                => sanitize_text_field( (string) ( $item['mime_type'] ?? '' ) ),
 					'current_alt_status'       => sanitize_key( (string) ( $item['current_alt_status'] ?? '' ) ),
 					'current_caption_status'   => sanitize_key( (string) ( $item['current_caption_status'] ?? '' ) ),
 					'candidate_quality_flags'  => array_slice( $this->sanitize_string_list( $item['candidate_quality_flags'] ?? array() ), 0, 12 ),
 					'filtered_candidate_notes' => array_slice( $this->sanitize_string_list( $item['filtered_candidate_notes'] ?? array() ), 0, 12 ),
 				);
+				if ( '' !== $source_artifact_id ) {
+					$normalized_item['source_artifact_id'] = $source_artifact_id;
+				} else {
+					$normalized_item['thumbnail_url'] = $thumbnail_url;
+					$normalized_item['url']           = $url;
+				}
+				$normalized_items[] = $normalized_item;
 				if ( count( $normalized_items ) >= 10 ) {
 					break;
 				}
@@ -3199,9 +3230,23 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			if ( empty( $normalized_items ) ) {
 				return new WP_Error(
 					'cloud_image_context_evidence_request_empty',
-					__( 'Image context evidence requires at least one bounded media URL.', 'npcink-cloud-addon' ),
+					__( 'Image context evidence requires at least one bounded source artifact or media URL.', 'npcink-cloud-addon' ),
 					array( 'status' => 400 )
 				);
+			}
+			$source_policy = 'bounded_media_urls_for_visual_context_only';
+			$artifact_count = count(
+				array_filter(
+					$normalized_items,
+					static function ( array $item ): bool {
+						return '' !== (string) ( $item['source_artifact_id'] ?? '' );
+					}
+				)
+			);
+			if ( count( $normalized_items ) === $artifact_count ) {
+				$source_policy = 'bounded_source_artifacts_for_visual_context_only';
+			} elseif ( 0 < $artifact_count ) {
+				$source_policy = 'bounded_media_sources_for_visual_context_only';
 			}
 
 			return array(
@@ -3214,7 +3259,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'execution_created'          => false,
 				'no_local_model'             => true,
 				'no_media_write'             => true,
-				'source_policy'              => 'bounded_media_urls_for_visual_context_only',
+				'source_policy'              => $source_policy,
 				'expected_response_contract' => 'image_context_evidence.v1',
 				'requested_count'            => count( $normalized_items ),
 				'max_items'                  => count( $normalized_items ),
