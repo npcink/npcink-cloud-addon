@@ -409,6 +409,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			if ( ! empty( $probe['ok'] ) ) {
 				Npcink_Cloud_Addon_Settings::mark_verification_result( true, '' );
 				Npcink_Cloud_Observability_Collector::sync_schedule();
+				Npcink_Cloud_Observability_Collector::project_monitoring_state(
+					! empty( $settings['monitoring_enabled'] )
+				);
 				$summary = is_array( $probe['entitlement_response'] ?? null ) && ! empty( $probe['entitlement_response'] )
 					? Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( $probe['entitlement_response'], $settings )
 					: Npcink_Cloud_Entitlement_Summary::refresh();
@@ -1179,6 +1182,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 
 			if ( 'monitoring_enabled' === $permission ) {
 				Npcink_Cloud_Observability_Collector::sync_schedule();
+				Npcink_Cloud_Observability_Collector::project_monitoring_state(
+					Npcink_Cloud_Addon_Settings::is_monitoring_enabled()
+				);
 			}
 		}
 

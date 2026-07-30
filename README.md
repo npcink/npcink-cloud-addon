@@ -31,6 +31,8 @@ The addon owns:
 - Opt-in plugin observability transport:
   - `POST /v1/observability/plugin-events`
   - `GET /v1/observability/plugin-summary`
+  - `wordpress_monitoring_state.v1` boolean state projection; WordPress
+    remains the setting owner
 - Bounded Agent feedback event transport and read-only quality projection:
   - `POST /v1/agent-feedback/events`
   - `GET /v1/agent-feedback/summary`
@@ -48,6 +50,12 @@ router ownership, preset ownership, or Site Knowledge index lifecycle. Its local
 observability and Site Knowledge buffers are only bounded delivery buffers for
 Cloud transport; they are not audit, execution, billing, indexing, or workflow
 truth.
+
+Monitoring permission remains a WordPress-local setting. The addon projects
+only its boolean state through the existing observability endpoint. Enabled
+sites refresh the projection through the existing hourly observability flush,
+and a local permission change sends the new state immediately. No content,
+prompt, generated text, user identity, or credential value is included.
 
 ## Disposable Playground Smoke
 

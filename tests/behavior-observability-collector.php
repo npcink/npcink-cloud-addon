@@ -65,6 +65,68 @@ maca_assert(
 
 maca_reset_test_state();
 maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data' => array(
+				'accepted_count' => 1,
+				'stored_count' => 1,
+				'duplicate_count' => 0,
+			),
+		)
+	),
+);
+$disabled_projection = Npcink_Cloud_Observability_Collector::project_monitoring_state( false );
+$projection_request = $GLOBALS['maca_http_requests'][0] ?? array();
+$projection_body = json_decode( (string) ( $projection_request['args']['body'] ?? '' ), true );
+$projection_event = is_array( $projection_body['events'][0] ?? null ) ? $projection_body['events'][0] : array();
+maca_assert(
+	! empty( $disabled_projection['last_projection_ok'] )
+	&& empty( $disabled_projection['last_projected_monitoring_enabled'] )
+	&& 'wordpress_monitoring_state.v1' === (string) ( $projection_event['monitoring_state_contract'] ?? '' )
+	&& false === ( $projection_event['monitoring_enabled'] ?? null )
+	&& 'addon.monitoring.state_projected' === (string) ( $projection_event['event_kind'] ?? '' )
+	&& 'omitted_metadata_only' === (string) ( $projection_event['content_storage'] ?? '' )
+	&& ! array_key_exists( 'prompt', $projection_event )
+	&& ! array_key_exists( 'user_id', $projection_event )
+	&& ! array_key_exists( 'secret', $projection_event ),
+	'Behavior: a verified disabled setting projects one versioned metadata-only state without enabling monitoring.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_monitoring_enabled( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data' => array(
+				'accepted_count' => 1,
+				'stored_count' => 1,
+				'duplicate_count' => 0,
+			),
+		)
+	),
+);
+$heartbeat = Npcink_Cloud_Observability_Collector::flush_buffer();
+$heartbeat_request = $GLOBALS['maca_http_requests'][0] ?? array();
+$heartbeat_body = json_decode( (string) ( $heartbeat_request['args']['body'] ?? '' ), true );
+$heartbeat_events = is_array( $heartbeat_body['events'] ?? null ) ? $heartbeat_body['events'] : array();
+maca_assert(
+	1 === count( $heartbeat_events )
+	&& 'addon.monitoring.state_projected' === (string) ( $heartbeat_events[0]['event_kind'] ?? '' )
+	&& true === ( $heartbeat_events[0]['monitoring_enabled'] ?? null )
+	&& ! empty( $heartbeat['last_projection_ok'] )
+	&& 0 === absint( $heartbeat['last_sent_count'] ?? -1 )
+	&& 1 === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: the existing hourly flush refreshes enabled monitoring state without a second scheduler or request.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
 maca_set_monitoring_enabled( true );
 Npcink_Cloud_Observability_Collector::capture_event( maca_observability_event( 3 ) );
 $buffer = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
@@ -202,10 +264,11 @@ $sent_events = is_array( $body['events'] ?? null ) ? $body['events'] : array();
 $buffer = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
 maca_assert(
 	50 === count( $sent_events )
-	&& 25 === count( $buffer )
-	&& 50 === absint( $bounded['total_uploaded'] ?? 0 )
+	&& 26 === count( $buffer )
+	&& 49 === absint( $bounded['total_uploaded'] ?? 0 )
+	&& 'addon.monitoring.state_projected' === (string) ( $sent_events[49]['event_kind'] ?? '' )
 	&& 1 === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: observability flush sends one bounded batch request rather than per-event addon telemetry.'
+	'Behavior: observability flush keeps one bounded 50-item request including the current monitoring heartbeat.'
 );
 
 maca_reset_test_state();
