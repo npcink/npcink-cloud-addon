@@ -20,10 +20,12 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		public const STATUS_OPTION = 'npcink_cloud_addon_observability_status';
 		public const SUMMARY_OPTION = 'npcink_cloud_addon_observability_summary';
 		public const AGENT_SUMMARY_OPTION = 'npcink_cloud_addon_agent_feedback_summary';
-			public const CRON_HOOK = 'npcink_cloud_addon_flush_observability';
-			private const MAX_BUFFER_ITEMS = 200;
-			private const MAX_BATCH_ITEMS = 50;
-			private const MAX_TEXT_FIELD_LENGTH = 200;
+		public const CRON_HOOK = 'npcink_cloud_addon_flush_observability';
+		public const MONITORING_STATE_CONTRACT = 'wordpress_monitoring_state.v1';
+		public const MONITORING_STATE_EVENT_KIND = 'addon.monitoring.state_projected';
+		private const MAX_BUFFER_ITEMS = 200;
+		private const MAX_BATCH_ITEMS = 50;
+		private const MAX_TEXT_FIELD_LENGTH = 200;
 
 		/**
 		 * Registers collection hooks.
@@ -104,11 +106,11 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 
 			$buffer = get_option( self::BUFFER_OPTION, array() );
 			$buffer = is_array( $buffer ) ? array_values( $buffer ) : array();
-			if ( empty( $buffer ) ) {
-				return self::record_flush_result( true, 0, '' );
-			}
-
-			$batch = array_slice( $buffer, 0, self::MAX_BATCH_ITEMS );
+			$event_batch = array_slice( $buffer, 0, self::MAX_BATCH_ITEMS - 1 );
+			$batch = array_merge(
+				$event_batch,
+				array( self::build_monitoring_state_event( true, true ) )
+			);
 			$client = new Npcink_Cloud_Runtime_Client();
 			$result = $client->send_observability_events(
 				$batch,
@@ -117,21 +119,69 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			);
 
 			if ( is_wp_error( $result ) ) {
+				self::record_monitoring_state_projection(
+					false,
+					true,
+					$result->get_error_message()
+				);
 				return self::record_flush_result( false, 0, $result->get_error_message() );
 			}
 
 			$data = is_array( $result['data'] ?? null ) ? $result['data'] : array();
-			$accepted = min( count( $batch ), max( 0, absint( $data['accepted_count'] ?? count( $batch ) ) ) );
+			$accepted_total = min( count( $batch ), max( 0, absint( $data['accepted_count'] ?? count( $batch ) ) ) );
+			$accepted = min( count( $event_batch ), $accepted_total );
 			$stored = min( $accepted, max( 0, absint( $data['stored_count'] ?? $accepted ) ) );
 			$duplicate = min( $accepted, max( 0, absint( $data['duplicate_count'] ?? ( $accepted - $stored ) ) ) );
 			if ( $accepted > 0 ) {
 				$latest_buffer = get_option( self::BUFFER_OPTION, array() );
 				$latest_buffer = is_array( $latest_buffer ) ? array_values( $latest_buffer ) : array();
-				$buffer = self::remove_accepted_events( $latest_buffer, array_slice( $batch, 0, $accepted ) );
+				$buffer = self::remove_accepted_events( $latest_buffer, array_slice( $event_batch, 0, $accepted ) );
 				update_option( self::BUFFER_OPTION, $buffer, false );
+			}
+			if ( $accepted_total > count( $event_batch ) ) {
+				self::record_monitoring_state_projection( true, true, '' );
 			}
 
 			return self::record_flush_result( true, $accepted, '', $stored, $duplicate );
+		}
+
+		/**
+		 * Projects the current WordPress-local monitoring state immediately.
+		 *
+		 * @param bool $enabled Current verified local setting.
+		 * @return array<string,mixed>
+		 */
+		public static function project_monitoring_state( bool $enabled ): array {
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
+				return self::record_monitoring_state_projection(
+					false,
+					$enabled,
+					__( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' )
+				);
+			}
+
+			$event = self::build_monitoring_state_event( $enabled );
+			$client = new Npcink_Cloud_Runtime_Client();
+			$result = $client->send_observability_events(
+				array( $event ),
+				'trace_cloud_monitoring_state_' . wp_generate_uuid4(),
+				self::batch_idempotency_key( array( $event ) )
+			);
+			if ( is_wp_error( $result ) ) {
+				return self::record_monitoring_state_projection(
+					false,
+					$enabled,
+					$result->get_error_message()
+				);
+			}
+
+			$data = is_array( $result['data'] ?? null ) ? $result['data'] : array();
+			$accepted = min( 1, max( 0, absint( $data['accepted_count'] ?? 1 ) ) );
+			return self::record_monitoring_state_projection(
+				1 === $accepted,
+				$enabled,
+				1 === $accepted ? '' : __( 'Cloud did not accept the monitoring state projection.', 'npcink-cloud-addon' )
+			);
 		}
 
 		/**
@@ -163,6 +213,10 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 				'total_sent'       => absint( $status['total_sent'] ?? ( $status['total_uploaded'] ?? 0 ) ),
 				'total_stored'     => absint( $status['total_stored'] ?? 0 ),
 				'total_duplicate'  => absint( $status['total_duplicate'] ?? 0 ),
+				'last_projection_ok' => ! empty( $status['last_projection_ok'] ),
+				'last_projected_monitoring_enabled' => ! empty( $status['last_projected_monitoring_enabled'] ),
+				'last_projection_at' => sanitize_text_field( (string) ( $status['last_projection_at'] ?? '' ) ),
+				'last_projection_error' => sanitize_text_field( (string) ( $status['last_projection_error'] ?? '' ) ),
 				'remote_summary'   => self::get_summary_cache(),
 				'agent_feedback_summary' => self::get_agent_feedback_summary_cache(),
 				'plugins'          => self::plugin_snapshot(),
@@ -271,6 +325,8 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 				'time_to_outcome_bucket',
 				'generation_sequence',
 				'content_storage',
+				'monitoring_state_contract',
+				'monitoring_enabled',
 			);
 			$normalized = array();
 
@@ -288,6 +344,36 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			}
 
 			return $normalized;
+		}
+
+		/**
+		 * Builds one metadata-only local monitoring state event.
+		 *
+		 * @param bool $enabled Current verified local setting.
+		 * @param bool $stable_hourly_identity Whether retries should reuse one hourly identity.
+		 * @return array<string,mixed>
+		 */
+		private static function build_monitoring_state_event( bool $enabled, bool $stable_hourly_identity = false ): array {
+			$event = self::normalize_event(
+				array(
+					'schema_version' => '2026-07-30',
+					'plugin_slug' => 'npcink-cloud-addon',
+					'plugin_version' => defined( 'NPCINK_CLOUD_ADDON_VERSION' ) ? (string) NPCINK_CLOUD_ADDON_VERSION : '',
+					'source' => 'local',
+					'event_kind' => self::MONITORING_STATE_EVENT_KIND,
+					'status' => 'ok',
+					'monitoring_state_contract' => self::MONITORING_STATE_CONTRACT,
+					'monitoring_enabled' => $enabled,
+					'content_storage' => 'omitted_metadata_only',
+				)
+			);
+			if ( $stable_hourly_identity ) {
+				$hour = gmdate( 'YmdH' );
+				$event['event_id'] = 'monitoring_state_' . ( $enabled ? 'enabled_' : 'disabled_' ) . $hour;
+				$event['captured_at'] = gmdate( 'Y-m-d\TH:00:00\Z' );
+			}
+
+			return $event;
 		}
 
 		/**
@@ -415,6 +501,29 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 					'total_stored'         => $total_stored,
 					'total_duplicate'      => $total_duplicate,
 					'buffer_count'         => count( $buffer ),
+				)
+			);
+			update_option( self::STATUS_OPTION, $status, false );
+
+			return $status;
+		}
+
+		/**
+		 * Stores the latest monitoring-state projection outcome.
+		 *
+		 * @param bool   $ok Whether Cloud accepted the projection.
+		 * @param bool   $enabled Projected local state.
+		 * @param string $error Non-secret transport error.
+		 * @return array<string,mixed>
+		 */
+		private static function record_monitoring_state_projection( bool $ok, bool $enabled, string $error ): array {
+			$status = array_merge(
+				self::get_raw_status(),
+				array(
+					'last_projection_ok' => $ok,
+					'last_projected_monitoring_enabled' => $enabled,
+					'last_projection_at' => gmdate( 'c' ),
+					'last_projection_error' => $ok ? '' : sanitize_text_field( $error ),
 				)
 			);
 			update_option( self::STATUS_OPTION, $status, false );

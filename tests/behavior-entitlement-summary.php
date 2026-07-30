@@ -461,13 +461,21 @@ $GLOBALS['maca_http_response_queue'][] = array(
 $method = maca_private_method( Npcink_Cloud_Settings_Page::class, 'persist_and_verify_settings' );
 $method->invoke( null, $settings, 'Verified.' );
 $post_verify_summary = Npcink_Cloud_Entitlement_Summary::get_cached_summary();
+$post_verify_urls = array_map(
+	static function ( array $request ): string {
+		return (string) ( $request['url'] ?? '' );
+	},
+	$GLOBALS['maca_http_requests']
+);
 
 maca_assert(
 	Npcink_Cloud_Addon_Settings::is_verified()
-	&& 2 === count( $GLOBALS['maca_http_requests'] )
+	&& 3 === count( $GLOBALS['maca_http_requests'] )
+	&& 1 === count( array_filter( $post_verify_urls, static fn( string $url ): bool => false !== strpos( $url, '/v1/entitlements/current' ) ) )
+	&& 1 === count( array_filter( $post_verify_urls, static fn( string $url ): bool => false !== strpos( $url, '/v1/observability/plugin-events' ) ) )
 	&& ! empty( $post_verify_summary['available'] )
 	&& 'Pro' === (string) ( $post_verify_summary['package_label'] ?? '' ),
-	'Behavior: re-verify and refresh reuses the verification entitlement response without an extra signed Cloud read.'
+	'Behavior: re-verify reuses the entitlement response and adds only one monitoring-state projection.'
 );
 
 maca_reset_test_state();
