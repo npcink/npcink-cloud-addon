@@ -1693,7 +1693,6 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'task'             => 'image_generation',
 				'prompt'           => $text,
 				'n'                => $this->image_count(),
-				'response_format'  => $this->response_format(),
 				'aspect_ratio'     => $this->aspect_ratio(),
 				'resolution'       => 'medium',
 				'timeout_seconds'  => 90,
@@ -1781,17 +1780,6 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$count = $this->config->getCandidateCount();
 
 			return min( 4, max( 1, null === $count ? 1 : (int) $count ) );
-		}
-
-		/**
-		 * Returns the Cloud image response format.
-		 *
-		 * @return string
-		 */
-		private function response_format(): string {
-			$file_type = $this->config->getOutputFileType();
-
-			return ( null !== $file_type && $file_type->isRemote() ) ? 'url' : 'b64_json';
 		}
 
 		/**

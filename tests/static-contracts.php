@@ -688,6 +688,8 @@ maca_assert(
 	&& false !== strpos( $wordpress_ai_connector, "'task'             => 'alt_text_suggest'" )
 	&& false !== strpos( $wordpress_ai_connector, 'npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime' )
 	&& false !== strpos( $wordpress_ai_connector, 'does not support reference image refinement yet' )
+	&& false === strpos( $wordpress_ai_connector, "'response_format'  => \$this->response_format()" )
+	&& false === strpos( $wordpress_ai_connector, 'private function response_format(): string' )
 	&& false !== strpos( $wordpress_ai_connector, 'detect_scene_ability_name' )
 	&& false !== strpos( $wordpress_ai_connector, 'WordPress\\\\AI\\\\Abilities\\\\Title_Generation\\\\Title_Generation' )
 	&& false !== strpos( $wordpress_ai_connector, 'Npcink Cloud AI connector only accepts known WordPress AI ability scene calls' )
