@@ -1595,6 +1595,27 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 	final class Npcink_Cloud_WordPress_AI_Image_Model implements
 		\WordPress\AiClient\Providers\Models\Contracts\ModelInterface,
 		\WordPress\AiClient\Providers\Models\ImageGeneration\Contracts\ImageGenerationModelInterface {
+		private const ARTIFACT_ID_PATTERN = '/^art_[0-9a-f]{32}$/';
+		private const DELIVERY_ID_PATTERN = '/^mdl_[0-9a-f]{32}$/';
+		private const MAX_IMAGE_BYTES = 26214400;
+		private const MAX_IMAGE_AXIS = 8192;
+		private const MAX_IMAGE_AREA = 16777216;
+		private const MAX_IMAGE_CANDIDATES = 4;
+		private const IMAGE_ARTIFACT_KEYS = array(
+			'artifact_id',
+			'artifact_reference',
+			'status',
+			'media_kind',
+			'operation',
+			'content_type',
+			'format',
+			'width',
+			'height',
+			'filesize_bytes',
+			'checksum',
+			'expires_at',
+		);
+
 		/**
 		 * Model metadata.
 		 *
@@ -1699,10 +1720,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'retention_ttl'    => 86400,
 			);
 
+			$trace_id = 'trace_wp_ai_image_' . wp_generate_uuid4();
 			$started  = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
 			$response = npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime(
 				$request,
-				'trace_wp_ai_image_' . wp_generate_uuid4(),
+				$trace_id,
 				'wp_ai_image_' . wp_generate_uuid4()
 			);
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
@@ -1722,7 +1744,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			$result     = $this->extract_result( is_array( $response ) ? $response : array() );
-			$candidates = $this->extract_image_candidates( $result );
+			$candidates = $this->extract_image_candidates( $result, $trace_id );
 			if ( empty( $candidates ) ) {
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector response did not include image output.' );
 			}
@@ -1830,13 +1852,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * Extracts image candidates from a Cloud image generation response.
 		 *
 		 * @param array<string,mixed> $result Cloud result payload.
+		 * @param string              $trace_id Runtime trace id.
 		 * @return list<\WordPress\AiClient\Results\DTO\Candidate>
 		 */
-		private function extract_image_candidates( array $result ): array {
-			$images = isset( $result['images'] ) && is_array( $result['images'] ) ? $result['images'] : array();
-			if ( empty( $images ) && isset( $result['data'] ) && is_array( $result['data'] ) ) {
-				$images = $result['data'];
-			}
+		private function extract_image_candidates( array $result, string $trace_id = '' ): array {
+			$images = $this->download_artifact_images( $result, $trace_id );
 
 			$candidates = array();
 			foreach ( $images as $image ) {
@@ -1847,12 +1867,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$mime_type = isset( $image['mime_type'] ) && is_string( $image['mime_type'] ) && '' !== $image['mime_type']
 					? $image['mime_type']
 					: 'image/png';
-				$file_data = '';
-				if ( isset( $image['b64_json'] ) && is_string( $image['b64_json'] ) && '' !== $image['b64_json'] ) {
-					$file_data = $image['b64_json'];
-				} elseif ( isset( $image['url'] ) && is_string( $image['url'] ) && '' !== $image['url'] ) {
-					$file_data = $image['url'];
-				}
+				$file_data = isset( $image['b64_json'] ) && is_string( $image['b64_json'] )
+					? $image['b64_json']
+					: '';
 
 				if ( '' === $file_data ) {
 					continue;
@@ -1869,6 +1886,217 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			return $candidates;
+		}
+
+		/**
+		 * Downloads, verifies, and acknowledges Cloud image-generation artifacts.
+		 *
+		 * This is verified transport only. It returns inline preview bytes and does
+		 * not import, persist, approve, or write a WordPress media object.
+		 *
+		 * @param array<string,mixed> $result Cloud image result payload.
+		 * @param string              $trace_id Runtime trace id.
+		 * @return list<array{b64_json:string,mime_type:string}>
+		 */
+		private function download_artifact_images( array $result, string $trace_id ): array {
+			if (
+				'image_generation_result.v1' !== (string) ( $result['contract_version'] ?? '' )
+				|| 'image_generation_artifacts' !== (string) ( $result['artifact_type'] ?? '' )
+				|| 'image.generate.v1' !== (string) ( $result['operation'] ?? '' )
+				|| true !== ( $result['suggestion_only'] ?? null )
+				|| true !== ( $result['requires_local_review'] ?? null )
+				|| ! is_array( $result['artifacts'] ?? null )
+				|| count( $result['artifacts'] ) > self::MAX_IMAGE_CANDIDATES
+			) {
+				return array();
+			}
+
+			$client = Npcink_Cloud_Media_Derivative_Transport::verified_client();
+			if ( is_wp_error( $client ) ) {
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $client->get_error_message() ) );
+			}
+
+			$images = array();
+			foreach ( $result['artifacts'] as $artifact ) {
+				if ( ! is_array( $artifact ) ) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact contract is invalid.' );
+				}
+
+				$artifact_contract = $artifact;
+				if ( array_key_exists( 'purged_at', $artifact_contract ) ) {
+					if ( null !== $artifact_contract['purged_at'] ) {
+						throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact contract is invalid.' );
+					}
+					unset( $artifact_contract['purged_at'] );
+				}
+				$artifact_keys = array_keys( $artifact_contract );
+				$reference     = is_array( $artifact['artifact_reference'] ?? null ) ? $artifact['artifact_reference'] : array();
+				$artifact_id   = (string) ( $artifact['artifact_id'] ?? '' );
+				$mime_type     = $this->normalize_image_mime_type( (string) ( $artifact['content_type'] ?? '' ) );
+				$width         = $artifact['width'] ?? null;
+				$height        = $artifact['height'] ?? null;
+				$byte_size     = $artifact['filesize_bytes'] ?? null;
+				$checksum      = strtolower( (string) ( $artifact['checksum'] ?? '' ) );
+				$expires_at    = (string) ( $artifact['expires_at'] ?? '' );
+				$expires_ts    = $this->strict_image_timestamp( $expires_at );
+
+				if (
+					array() !== array_diff( self::IMAGE_ARTIFACT_KEYS, $artifact_keys )
+					|| array() !== array_diff( $artifact_keys, self::IMAGE_ARTIFACT_KEYS )
+					|| 1 !== preg_match( self::ARTIFACT_ID_PATTERN, $artifact_id )
+					|| array( 'artifact_id' ) !== array_keys( $reference )
+					|| $artifact_id !== (string) ( $reference['artifact_id'] ?? '' )
+					|| 'available' !== (string) ( $artifact['status'] ?? '' )
+					|| 'image' !== (string) ( $artifact['media_kind'] ?? '' )
+					|| 'image.generate.v1' !== (string) ( $artifact['operation'] ?? '' )
+					|| '' === $mime_type
+					|| $this->image_format_for_mime( $mime_type ) !== (string) ( $artifact['format'] ?? '' )
+					|| ! is_int( $width )
+					|| $width < 1
+					|| ! is_int( $height )
+					|| $height < 1
+					|| $width > self::MAX_IMAGE_AXIS
+					|| $height > self::MAX_IMAGE_AXIS
+					|| ( $width * $height ) > self::MAX_IMAGE_AREA
+					|| ! is_int( $byte_size )
+					|| $byte_size < 1
+					|| $byte_size > self::MAX_IMAGE_BYTES
+					|| 1 !== preg_match( '/^sha256:[0-9a-f]{64}$/', $checksum )
+					|| false === $expires_ts
+					|| $expires_ts <= time()
+				) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact contract is invalid.' );
+				}
+
+				$download = $client->pull_media_artifact( $artifact_id, $trace_id );
+				if ( is_wp_error( $download ) ) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $download->get_error_message() ) );
+				}
+
+				$contents      = is_string( $download['body'] ?? null ) ? $download['body'] : '';
+				$response_mime = $this->normalize_image_mime_type( (string) ( $download['content_type'] ?? '' ) );
+				$actual_checksum = 'sha256:' . hash( 'sha256', $contents );
+				$delivery_id     = (string) ( $download['delivery_id'] ?? '' );
+				$ack_deadline_at = (string) ( $download['delivery_ack_deadline'] ?? '' );
+				$ack_deadline    = $this->strict_image_timestamp( $ack_deadline_at );
+				$image_info      = function_exists( 'getimagesizefromstring' ) ? @getimagesizefromstring( $contents ) : false;
+				$decoded_mime    = is_array( $image_info ) ? $this->normalize_image_mime_type( (string) ( $image_info['mime'] ?? '' ) ) : '';
+
+				if (
+					'' === $contents
+					|| $mime_type !== $response_mime
+					|| $mime_type !== $decoded_mime
+					|| $byte_size !== strlen( $contents )
+					|| $byte_size !== absint( $download['content_length'] ?? 0 )
+					|| $checksum !== $actual_checksum
+					|| $artifact_id !== (string) ( $download['artifact_id'] ?? '' )
+					|| $checksum !== strtolower( (string) ( $download['artifact_checksum'] ?? '' ) )
+					|| ! is_array( $image_info )
+					|| $width !== absint( $image_info[0] ?? 0 )
+					|| $height !== absint( $image_info[1] ?? 0 )
+					|| 1 !== preg_match( self::DELIVERY_ID_PATTERN, $delivery_id )
+					|| false === $ack_deadline
+					|| $ack_deadline <= time()
+					|| $ack_deadline > $expires_ts
+				) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact verification failed.' );
+				}
+
+				$ack = $client->acknowledge_media_artifact_delivery(
+					$artifact_id,
+					array(
+						'contract_version'      => 'media_artifact_delivery_ack.v1',
+						'delivery_id'           => $delivery_id,
+						'received_byte_size'    => $byte_size,
+						'received_checksum'     => $checksum,
+					),
+					$trace_id
+				);
+				if ( is_wp_error( $ack ) ) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $ack->get_error_message() ) );
+				}
+				$acknowledged_at = $this->strict_image_timestamp( (string) ( $ack['acknowledged_at'] ?? '' ) );
+				$ack_expires_at  = $this->strict_image_timestamp( (string) ( $ack['artifact_expires_at'] ?? '' ) );
+				if (
+					$artifact_id !== (string) ( $ack['artifact_id'] ?? '' )
+					|| $delivery_id !== (string) ( $ack['delivery_id'] ?? '' )
+					|| $byte_size !== ( $ack['received_byte_size'] ?? null )
+					|| $checksum !== (string) ( $ack['received_checksum'] ?? '' )
+					|| true !== ( $ack['byte_size_verified'] ?? null )
+					|| true !== ( $ack['checksum_verified'] ?? null )
+					|| false === $acknowledged_at
+					|| $acknowledged_at > $ack_deadline
+					|| false === $ack_expires_at
+					|| $ack_expires_at !== $expires_ts
+					|| (string) ( $ack['artifact_expires_at'] ?? '' ) !== $expires_at
+				) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact acknowledgement is invalid.' );
+				}
+
+				$images[] = array(
+					'b64_json' => base64_encode( $contents ),
+					'mime_type' => $mime_type,
+				);
+			}
+
+			return $images;
+		}
+
+		/**
+		 * Normalizes supported generated-image MIME types.
+		 *
+		 * @param string $mime_type Raw MIME type.
+		 * @return string
+		 */
+		private function normalize_image_mime_type( string $mime_type ): string {
+			$mime_type = strtolower( trim( explode( ';', $mime_type, 2 )[0] ) );
+
+			return in_array( $mime_type, array( 'image/jpeg', 'image/png', 'image/webp' ), true ) ? $mime_type : '';
+		}
+
+		/**
+		 * Maps a supported generated-image MIME type to its Cloud format.
+		 *
+		 * @param string $mime_type Normalized MIME type.
+		 * @return string
+		 */
+		private function image_format_for_mime( string $mime_type ): string {
+			return array(
+				'image/jpeg' => 'jpeg',
+				'image/png'  => 'png',
+				'image/webp' => 'webp',
+			)[ $mime_type ] ?? '';
+		}
+
+		/**
+		 * Parses exact canonical UTC RFC3339 image-artifact timestamps.
+		 *
+		 * @param string $value Timestamp value.
+		 * @return int|false
+		 */
+		private function strict_image_timestamp( string $value ) {
+			$utc     = new \DateTimeZone( 'UTC' );
+			$formats = array(
+				'!Y-m-d\TH:i:s\Z'   => 'Y-m-d\TH:i:s\Z',
+				'!Y-m-d\TH:i:s.u\Z' => 'Y-m-d\TH:i:s.u\Z',
+				'!Y-m-d\TH:i:sP'    => 'Y-m-d\TH:i:sP',
+				'!Y-m-d\TH:i:s.uP'  => 'Y-m-d\TH:i:s.uP',
+			);
+
+			foreach ( $formats as $parse_format => $roundtrip_format ) {
+				$timestamp = \DateTimeImmutable::createFromFormat( $parse_format, $value, $utc );
+				$errors    = \DateTimeImmutable::getLastErrors();
+				if (
+					false !== $timestamp
+					&& ( false === $errors || ( 0 === $errors['warning_count'] && 0 === $errors['error_count'] ) )
+					&& $value === $timestamp->format( $roundtrip_format )
+					&& '+00:00' === $timestamp->format( 'P' )
+				) {
+					return $timestamp->getTimestamp();
+				}
+			}
+
+			return false;
 		}
 	}
 }
