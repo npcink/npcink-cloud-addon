@@ -49,13 +49,13 @@ Confirm public Cloud entrypoints:
 
 ```bash
 curl -fsS https://cloud.npc.ink/health/live
-curl -fsSI https://cloud.npc.ink/portal/sites
+curl -fsSI https://cloud.npc.ink/portal
 ```
 
 Expected result:
 
 - `/health/live` returns a minimal healthy production response.
-- `/portal/sites` reaches the Portal authorization path or redirects to login.
+- `/portal` reaches the Portal authorization path or redirects to login.
 
 ## Fresh Public Site Smoke
 
@@ -66,7 +66,7 @@ Use a WordPress site that has no stored `npcink_cloud_addon_settings` option.
 3. Open `Npcink > Cloud Addon`.
 4. Confirm the unresolved Cloud value is `https://cloud.npc.ink/`.
 5. Confirm the primary action opens
-   `https://cloud.npc.ink/portal/sites` with `connect=wordpress-addon`,
+   `https://cloud.npc.ink/portal` with `connect=wordpress-addon`,
    `site_url`, `site_name`, `return_url`, and `state` query parameters.
 6. Complete Cloud Portal login and site authorization.
 7. Confirm Cloud returns to `wp-admin/admin-post.php` with the expected action,

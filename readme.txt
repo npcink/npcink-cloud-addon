@@ -4,7 +4,7 @@ Tags: magick ai, cloud, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.1.3
+Stable tag: 0.1.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -136,6 +136,10 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 4. Advanced troubleshooting with service detail, runtime runs, and connection recovery.
 
 == Changelog ==
+
+= 0.1.4 =
+
+Point the Cloud Portal authorization entry and Open Cloud actions at `/portal` after the Portal workspace merge, and refresh the public onboarding checklist.
 
 = 0.1.3 =
 
