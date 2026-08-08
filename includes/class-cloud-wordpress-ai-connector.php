@@ -1378,7 +1378,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'cloud_wp_ai_alt_text_attachment_mime_invalid' => __( 'The local attachment image type is not supported for Cloud alt text generation.', 'npcink-cloud-addon' ),
 			);
 
-			return new WP_Error( $code, $translated_messages[ $code ] ?? __( $message, 'npcink-cloud-addon' ), array( 'status' => $status ) );
+			return new WP_Error( $code, $translated_messages[ $code ] ?? $message, array( 'status' => $status ) );
 		}
 
 		private static function bounded_text( string $value, int $max_length ): string {
