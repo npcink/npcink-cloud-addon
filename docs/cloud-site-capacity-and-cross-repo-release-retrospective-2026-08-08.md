@@ -134,9 +134,47 @@ Reworked semantics (merged as `npcink-ai-cloud` PR #577, follow-ups #579):
   `docs/cloud-addon-boundary.md`, `docs/wordpress-org-release-gate.md`.
 - Cloud onboarding checklist: `docs/public-cloud-onboarding-checklist.md`.
 
-## 7. Outstanding (Operator Decision)
+## 7. Production Release Outcome (2026-08-08)
 
-Production deployment of the reworked capacity semantics still requires the
-operator-approved promotion of `npcink-ai-cloud` `master` → `production` and
-the `deploy-production.yml` workflow. This addon v0.1.4 is packaged and PCP
-verified; WordPress.org release (SVN) is a separate operator action.
+The reworked capacity semantics were deployed to `cloud.npc.ink` on
+2026-08-08 after an operator-approved promotion (`master` → `production`,
+promote PRs #581 and #584) and `deploy-production.yml`. Deployment verified:
+`/health/live` 200, `/portal` redirects to login for unauthenticated users.
+
+Release path and gates encountered, in order:
+
+1. Promote PR #581 (site capacity rework + workflow standard) — codex
+   review surfaced 3 P2 edge cases (same-account reconnect bypassing the
+   bind ceiling, unsynchronized bind-capacity checks, quota accounting
+   discrepancy — the third was a false positive); fixed in master PR #582.
+2. First deployment attempt — blocked by the frontend-image CVE scan gate:
+   two node 22.23.1 HTTP/2 findings (`CVE-2026-56846`, `CVE-2026-56848`).
+   Assessed unreachable (Next.js standalone behind nginx TLS termination,
+   HTTP/1.1 only), granted operator-authorized temporary exceptions in the
+   allowlist with expiration 2026-08-11; the change required synchronizing
+   the fail-closed supply contract test and the first-install CVE gate
+   governed set (master PR #583, promoted via #584).
+3. Second deployment attempt — failed immediately on the "require
+   successful CI for this production commit" gate because the `production`
+   push-event CI had not completed yet; re-triggered after it went green.
+4. Third deployment attempt — success; production health verified.
+
+This addon v0.1.4 remains packaged and PCP verified; the WordPress.org
+release (SVN) is a separate operator action.
+
+## 8. Release Timing Data and Efficiency Lessons
+
+Elapsed 14:11 → 17:00 (~2h50m) for the production release. Dominant cost
+drivers (from the node-by-node timing log):
+
+| Driver | Time | Optimization |
+| --- | --- | --- |
+| Full CI re-runs (4 rounds; `production` forces full `backend-pytest`) | ~65 min | Batch all fixes before the first promote; change-scoped CI for `master` PRs already applies |
+| Codex review rework (4 reviews, all real: 3 P2 + 1 P1) | ~85 min | Run the same review rules as a local pre-merge check for capacity/concurrency/contract/security changes; surface findings at the `master` PR stage, not at promote |
+| CVE gate governance (allowlist + contract + gate script, 2 layers fail-closed) | ~51 min | Document the allowlist↔contract↔gate-script sync as a checklist; assess reachability before granting |
+| Environment approval + deploy↔CI timing | ~25 min | Approve the `production` environment immediately after triggering; make the deploy workflow wait for the push-event CI instead of failing |
+
+Process rule adopted from this release: treat every automated review
+(codex-connector) as a pre-merge gate on `master`, keep the branch based on
+`origin/master`, and use `scripts/publish-pr.sh` for every PR including
+promotions.
