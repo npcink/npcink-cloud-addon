@@ -1074,7 +1074,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 			$data = is_array( $body ) && is_array( $body['data'] ?? null ) ? $body['data'] : array();
 			$cloud_api_key = (string) ( $data['cloud_api_key'] ?? '' );
-			if ( $status < 200 || $status >= 300 || '' === $cloud_api_key ) {
+			if ( $status < 200 || $status >= 300 ) {
+				return new WP_Error(
+					'cloud_authorization_exchange_failed',
+					self::format_authorization_exchange_error( is_array( $body ) ? $body : array() )
+				);
+			}
+			if ( '' === $cloud_api_key ) {
 				return new WP_Error(
 					'cloud_authorization_exchange_failed',
 					__( 'Cloud authorization exchange did not return a valid connection key.', 'npcink-cloud-addon' )
@@ -1084,6 +1090,55 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			return array(
 				'cloud_api_key' => $cloud_api_key,
 			);
+		}
+
+		/**
+		 * Formats a bounded, actionable Cloud authorization exchange error.
+		 *
+		 * @param array<string,mixed> $body Cloud error envelope.
+		 * @return string
+		 */
+		private static function format_authorization_exchange_error( array $body ): string {
+			$error_code = preg_replace(
+				'/[^a-zA-Z0-9._-]/',
+				'',
+				(string) ( $body['error_code'] ?? '' )
+			);
+			$error_code = is_string( $error_code ) ? substr( $error_code, 0, 191 ) : '';
+
+			switch ( $error_code ) {
+				case 'service.site_limit_exceeded':
+					return sprintf(
+						/* translators: %s: stable Cloud error code. */
+						__( 'The Cloud account has reached its active-site limit. Deactivate another active site in Npcink Cloud or upgrade the account plan, then start the connection again. (%s)', 'npcink-cloud-addon' ),
+						$error_code
+					);
+				case 'service.site_bind_limit_exceeded':
+					return sprintf(
+						/* translators: %s: stable Cloud error code. */
+						__( 'The Cloud account has reached its connected-site limit. Remove an unused site in Npcink Cloud, then start the connection again. (%s)', 'npcink-cloud-addon' ),
+						$error_code
+					);
+				case 'service.wordpress_addon_connection_code_invalid':
+				case 'service.wordpress_addon_connection_code_expired':
+				case 'service.wordpress_addon_connection_state_invalid':
+				case 'service.wordpress_addon_connection_payload_invalid':
+					return sprintf(
+						/* translators: %s: stable Cloud error code. */
+						__( 'The Cloud authorization request expired or is invalid. Start the connection again from WordPress. (%s)', 'npcink-cloud-addon' ),
+						$error_code
+					);
+				default:
+					if ( '' !== $error_code ) {
+						return sprintf(
+							/* translators: %s: stable Cloud error code. */
+							__( 'Cloud authorization exchange failed. Start the connection again or contact support with this error code: %s', 'npcink-cloud-addon' ),
+							$error_code
+						);
+					}
+			}
+
+			return __( 'Cloud authorization exchange did not return a valid connection key.', 'npcink-cloud-addon' );
 		}
 
 		/**

@@ -207,6 +207,61 @@ maca_assert(
 	'Behavior: authorization return URL keeps the matching state and the complete-auth callback action.'
 );
 
+$authorization_exchange = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'exchange_authorization_code' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$authorization_exchange->setAccessible( true );
+}
+
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 409 ),
+	'headers'  => array( 'Content-Type' => 'application/json' ),
+	'body'     => wp_json_encode(
+		array(
+			'status'     => 'error',
+			'error_code' => 'service.site_limit_exceeded',
+			'message'    => 'site limit exceeded',
+			'data'       => array(),
+		)
+	),
+);
+$capacity_error = $authorization_exchange->invoke(
+	null,
+	'https://cloud.example.test',
+	'one-time-code',
+	'local-state'
+);
+maca_assert(
+	is_wp_error( $capacity_error )
+	&& false !== strpos( $capacity_error->get_error_message(), 'Deactivate another active site' )
+	&& false !== strpos( $capacity_error->get_error_message(), 'service.site_limit_exceeded' ),
+	'Behavior: addon authorization surfaces the actionable Cloud active-site limit instead of hiding it as a missing key.'
+);
+
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 403 ),
+	'headers'  => array( 'Content-Type' => 'application/json' ),
+	'body'     => wp_json_encode(
+		array(
+			'status'     => 'error',
+			'error_code' => 'service.wordpress_addon_connection_code_expired',
+			'message'    => 'expired',
+			'data'       => array(),
+		)
+	),
+);
+$expired_error = $authorization_exchange->invoke(
+	null,
+	'https://cloud.example.test',
+	'expired-code',
+	'local-state'
+);
+maca_assert(
+	is_wp_error( $expired_error )
+	&& false !== strpos( $expired_error->get_error_message(), 'Start the connection again from WordPress' )
+	&& false !== strpos( $expired_error->get_error_message(), 'service.wordpress_addon_connection_code_expired' ),
+	'Behavior: addon authorization preserves a non-secret Cloud error code and gives an expired-flow recovery action.'
+);
+
 maca_reset_test_state();
 $http_before_render = count( $GLOBALS['maca_http_requests'] );
 ob_start();
