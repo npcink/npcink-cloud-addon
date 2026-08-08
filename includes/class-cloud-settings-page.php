@@ -979,7 +979,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					'return_url' => rawurlencode( $return_url ),
 					'state'      => $state,
 				),
-				untrailingslashit( $base_url ) . '/portal/sites'
+				untrailingslashit( $base_url ) . '/portal'
 			);
 		}
 
@@ -1279,7 +1279,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<div class="npcink-cloud-summary__actions">
 				<?php if ( $is_verified ) : ?>
-					<a class="button button-secondary" href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal/sites' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud sites', 'npcink-cloud-addon' ); ?></a>
+					<a class="button button-secondary" href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud sites', 'npcink-cloud-addon' ); ?></a>
 				<?php else : ?>
 					<?php self::render_reverify_form( $settings ); ?>
 				<?php endif; ?>
@@ -1650,7 +1650,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<h3><?php esc_html_e( 'Checks', 'npcink-cloud-addon' ); ?></h3>
 				<div class="npcink-cloud-summary__actions">
 					<?php self::render_manual_readiness_test_form(); ?>
-					<a class="button button-secondary" href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal/sites' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud status detail', 'npcink-cloud-addon' ); ?></a>
+					<a class="button button-secondary" href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud status detail', 'npcink-cloud-addon' ); ?></a>
 				</div>
 			</div>
 			<p class="description"><?php esc_html_e( 'Run the bounded connection checks or open Cloud for service detail.', 'npcink-cloud-addon' ); ?></p>
