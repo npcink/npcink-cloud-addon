@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Npcink Cloud Addon 0.1.4\n"
+"Project-Id-Version: Npcink Cloud Addon 0.1.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/npcink-cloud-addon\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1121,6 +1121,30 @@ msgstr ""
 
 #: includes/class-cloud-settings-page.php:1080
 msgid "Cloud authorization exchange did not return a valid connection key."
+msgstr ""
+
+#. translators: %s: stable Cloud error code.
+#: includes/class-cloud-settings-page.php:1113
+#, php-format
+msgid "The Cloud account has reached its active-site limit. Deactivate another active site in Npcink Cloud or upgrade the account plan, then start the connection again. (%s)"
+msgstr ""
+
+#. translators: %s: stable Cloud error code.
+#: includes/class-cloud-settings-page.php:1119
+#, php-format
+msgid "The Cloud account has reached its connected-site limit. Remove an unused site in Npcink Cloud, then start the connection again. (%s)"
+msgstr ""
+
+#. translators: %s: stable Cloud error code.
+#: includes/class-cloud-settings-page.php:1128
+#, php-format
+msgid "The Cloud authorization request expired or is invalid. Start the connection again from WordPress. (%s)"
+msgstr ""
+
+#. translators: %s: stable Cloud error code.
+#: includes/class-cloud-settings-page.php:1135
+#, php-format
+msgid "Cloud authorization exchange failed. Start the connection again or contact support with this error code: %s"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1123

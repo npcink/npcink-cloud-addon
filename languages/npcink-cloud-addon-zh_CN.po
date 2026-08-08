@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Npcink Cloud Addon 0.1.4\n"
+"Project-Id-Version: Npcink Cloud Addon 0.1.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/npcink-cloud-addon\n"
 "Last-Translator: Npcink Project\n"
 "Language-Team: Chinese (China)\n"
@@ -360,6 +360,30 @@ msgstr "Cloud 授权交换失败：%s"
 #: includes/class-cloud-settings-page.php:1080
 msgid "Cloud authorization exchange did not return a valid connection key."
 msgstr "Cloud 授权交换没有返回有效的连接密钥。"
+
+#. translators: %s: stable Cloud error code.
+#: includes/class-cloud-settings-page.php:1113
+#, php-format
+msgid "The Cloud account has reached its active-site limit. Deactivate another active site in Npcink Cloud or upgrade the account plan, then start the connection again. (%s)"
+msgstr "Cloud 账户已达到启用站点上限。请在 Npcink Cloud 中停用另一个启用中的站点，或升级账户套餐，然后重新开始连接。（%s）"
+
+#. translators: %s: stable Cloud error code.
+#: includes/class-cloud-settings-page.php:1119
+#, php-format
+msgid "The Cloud account has reached its connected-site limit. Remove an unused site in Npcink Cloud, then start the connection again. (%s)"
+msgstr "Cloud 账户已达到已连接站点上限。请在 Npcink Cloud 中移除不再使用的站点，然后重新开始连接。（%s）"
+
+#. translators: %s: stable Cloud error code.
+#: includes/class-cloud-settings-page.php:1128
+#, php-format
+msgid "The Cloud authorization request expired or is invalid. Start the connection again from WordPress. (%s)"
+msgstr "Cloud 授权请求已过期或无效。请从 WordPress 重新开始连接。（%s）"
+
+#. translators: %s: stable Cloud error code.
+#: includes/class-cloud-settings-page.php:1135
+#, php-format
+msgid "Cloud authorization exchange failed. Start the connection again or contact support with this error code: %s"
+msgstr "Cloud 授权交换失败。请重新开始连接，或联系支持并提供此错误代码：%s"
 
 #: includes/class-cloud-settings-page.php:1984
 msgid "Current site"
@@ -1949,4 +1973,3 @@ msgstr "WordPress AI 替代文本生成需要经过验证的 Npcink Cloud 设置
 #: includes/class-cloud-wordpress-ai-connector.php:1230
 msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
 msgstr "Npcink Cloud 未返回有效的替代文本生成源工件。"
-
