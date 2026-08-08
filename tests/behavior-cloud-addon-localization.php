@@ -230,3 +230,66 @@ maca_assert(
 	),
 	'Addon localization fallback is limited to the npcink-cloud-addon text domain.'
 );
+
+maca_assert(
+	'WordPress AI 替代文本生成需要本地 WordPress 附件。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'WordPress AI alt text generation requires a local WordPress attachment.',
+		'npcink-cloud-addon'
+	)
+	&& 'WordPress AI 替代文本生成需要一个有边界的附件提示词。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'WordPress AI alt text generation requires one bounded attachment prompt.',
+		'npcink-cloud-addon'
+	)
+	&& '您无权使用此附件进行 Cloud 替代文本生成。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'You are not allowed to use this attachment for Cloud alt text generation.',
+		'npcink-cloud-addon'
+	)
+	&& 'WordPress AI 替代文本生成需要本地媒体附件。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'WordPress AI alt text generation requires a local media attachment.',
+		'npcink-cloud-addon'
+	)
+	&& '本地附件文件无法用于 Cloud 替代文本生成。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'The local attachment file is unavailable for Cloud alt text generation.',
+		'npcink-cloud-addon'
+	)
+	&& '本地附件超出 Cloud 替代文本源大小限制。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'The local attachment exceeds the Cloud alt text source size limit.',
+		'npcink-cloud-addon'
+	)
+	&& '无法读取本地附件以进行 Cloud 替代文本生成。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'The local attachment could not be read for Cloud alt text generation.',
+		'npcink-cloud-addon'
+	)
+	&& '本地附件在读取前已发生变化，无法进行 Cloud 替代文本生成。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'The local attachment changed before it could be read for Cloud alt text generation.',
+		'npcink-cloud-addon'
+	)
+	&& '本地附件图像类型不受 Cloud 替代文本生成支持。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'The local attachment image type is not supported for Cloud alt text generation.',
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback translates WordPress AI alt text source error messages in zh_CN admin.'
+);
+
+maca_assert(
+	'WordPress AI 替代文本生成需要经过验证的 Npcink Cloud 设置。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'WordPress AI alt text generation requires verified Npcink Cloud settings.',
+		'npcink-cloud-addon'
+	)
+	&& 'Npcink Cloud 未返回有效的替代文本生成源工件。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'Npcink Cloud did not return a valid source artifact for alt text generation.',
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback covers verified-settings and artifact validation alt text error messages in zh_CN admin.'
+);

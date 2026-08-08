@@ -1305,8 +1305,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 			$stored_mime = sanitize_mime_type( (string) get_post_mime_type( $attachment_id ) );
 
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Reads one locally authorized, size-bounded attachment.
-			$handle = @fopen( $real_path, 'rb' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- A raced file removal fails closed below.
+			$handle = @fopen( $real_path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.PHP.NoSilencedErrors.Discouraged -- Reads one locally authorized, size-bounded attachment; a raced removal fails closed below.
 			if ( false === $handle ) {
 				return self::source_error( 'cloud_wp_ai_alt_text_attachment_read_failed', 'The local attachment could not be read for Cloud alt text generation.' );
 			}
@@ -1367,7 +1366,19 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 		/** @return WP_Error */
 		private static function source_error( string $code, string $message, int $status = 400 ): WP_Error {
-			return new WP_Error( $code, __( $message, 'npcink-cloud-addon' ), array( 'status' => $status ) );
+			$translated_messages = array(
+				'cloud_wp_ai_alt_text_attachment_required'     => __( 'WordPress AI alt text generation requires a local WordPress attachment.', 'npcink-cloud-addon' ),
+				'cloud_wp_ai_alt_text_input_invalid'           => __( 'WordPress AI alt text generation requires one bounded attachment prompt.', 'npcink-cloud-addon' ),
+				'cloud_wp_ai_alt_text_attachment_forbidden'    => __( 'You are not allowed to use this attachment for Cloud alt text generation.', 'npcink-cloud-addon' ),
+				'cloud_wp_ai_alt_text_attachment_invalid'      => __( 'WordPress AI alt text generation requires a local media attachment.', 'npcink-cloud-addon' ),
+				'cloud_wp_ai_alt_text_attachment_file_invalid' => __( 'The local attachment file is unavailable for Cloud alt text generation.', 'npcink-cloud-addon' ),
+				'cloud_wp_ai_alt_text_attachment_size_invalid' => __( 'The local attachment exceeds the Cloud alt text source size limit.', 'npcink-cloud-addon' ),
+				'cloud_wp_ai_alt_text_attachment_read_failed'  => __( 'The local attachment could not be read for Cloud alt text generation.', 'npcink-cloud-addon' ),
+				'cloud_wp_ai_alt_text_attachment_file_changed' => __( 'The local attachment changed before it could be read for Cloud alt text generation.', 'npcink-cloud-addon' ),
+				'cloud_wp_ai_alt_text_attachment_mime_invalid' => __( 'The local attachment image type is not supported for Cloud alt text generation.', 'npcink-cloud-addon' ),
+			);
+
+			return new WP_Error( $code, $translated_messages[ $code ] ?? __( $message, 'npcink-cloud-addon' ), array( 'status' => $status ) );
 		}
 
 		private static function bounded_text( string $value, int $max_length ): string {

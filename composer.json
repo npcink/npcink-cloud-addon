@@ -9,7 +9,7 @@
   "scripts": {
     "lint:php": "find . -name '*.php' -not -path './.git/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
     "test:contracts": "php tests/run.php",
-    "check:boundary": "sh -c '! rg \"/v1/runtime/workflows/runs|\\b(?:wp_insert_post|wp_update_post|wp_insert_attachment|wp_update_attachment_metadata|update_post_meta|wp_set_post_terms|set_post_thumbnail|media_handle_sideload)\\s*\\(\" --glob \"*.php\" --glob \"!build/**\" .'",
+    "check:boundary": "sh -c 'if command -v rg >/dev/null 2>&1; then ! rg \"/v1/runtime/workflows/runs|\\b(?:wp_insert_post|wp_update_post|wp_insert_attachment|wp_update_attachment_metadata|update_post_meta|wp_set_post_terms|set_post_thumbnail|media_handle_sideload)\\s*\\(\" --glob \"*.php\" --glob \"!build/**\" .; else ! grep -rn -E \"/v1/runtime/workflows/runs|wp_insert_post\\(|wp_update_post\\(|wp_insert_attachment\\(|wp_update_attachment_metadata\\(|update_post_meta\\(|wp_set_post_terms\\(|set_post_thumbnail\\(|media_handle_sideload\\(\" --include=\"*.php\" --exclude-dir=build .; fi'",
     "pr:publish": "bash scripts/publish-pr.sh",
     "eval:lab": "sh scripts/eval-lab.sh",
     "eval:project:quality": "sh scripts/eval-lab.sh task=project_quality_gate \"project=$PWD\" mode=working_diff",
