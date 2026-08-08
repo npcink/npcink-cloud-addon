@@ -1459,6 +1459,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			) {
 				$expected_value = serialize( $expected );
 				if ( null === $replacement ) {
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Exact option-value matching provides the atomic compare-and-swap contract.
 					$result = $wpdb->delete(
 						$wpdb->options,
 						array(
@@ -1468,6 +1469,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 						array( '%s', '%s' )
 					);
 				} else {
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Exact option-value matching provides the atomic compare-and-swap contract.
 					$result = $wpdb->update(
 						$wpdb->options,
 						array( 'option_value' => serialize( $replacement ) ),

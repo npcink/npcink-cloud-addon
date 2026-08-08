@@ -210,6 +210,17 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Last error time' => '上次错误时间',
 				'WP-Cron disabled' => 'WP-Cron 已禁用',
 				'Manual flush command' => '手动刷新命令',
+				'WordPress AI alt text generation requires a local WordPress attachment.' => 'WordPress AI 替代文本生成需要本地 WordPress 附件。',
+				'WordPress AI alt text generation requires one bounded attachment prompt.' => 'WordPress AI 替代文本生成需要一个有边界的附件提示词。',
+				'You are not allowed to use this attachment for Cloud alt text generation.' => '您无权使用此附件进行 Cloud 替代文本生成。',
+				'WordPress AI alt text generation requires a local media attachment.' => 'WordPress AI 替代文本生成需要本地媒体附件。',
+				'The local attachment file is unavailable for Cloud alt text generation.' => '本地附件文件无法用于 Cloud 替代文本生成。',
+				'The local attachment exceeds the Cloud alt text source size limit.' => '本地附件超出 Cloud 替代文本源大小限制。',
+				'The local attachment could not be read for Cloud alt text generation.' => '无法读取本地附件以进行 Cloud 替代文本生成。',
+				'The local attachment changed before it could be read for Cloud alt text generation.' => '本地附件在读取前已发生变化，无法进行 Cloud 替代文本生成。',
+				'The local attachment image type is not supported for Cloud alt text generation.' => '本地附件图像类型不受 Cloud 替代文本生成支持。',
+				'WordPress AI alt text generation requires verified Npcink Cloud settings.' => 'WordPress AI 替代文本生成需要经过验证的 Npcink Cloud 设置。',
+				'Npcink Cloud did not return a valid source artifact for alt text generation.' => 'Npcink Cloud 未返回有效的替代文本生成源工件。',
 			);
 		}
 	}
