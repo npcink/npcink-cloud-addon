@@ -18,3 +18,4 @@ phpcs.xml
 phpcs.xml.dist
 phpstan.neon
 phpstan.neon.dist
+.reasonix
