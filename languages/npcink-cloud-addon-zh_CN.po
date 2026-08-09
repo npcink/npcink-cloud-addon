@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Npcink Cloud Addon 0.1.5\n"
+"Project-Id-Version: Npcink Cloud Addon 0.1.6\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/npcink-cloud-addon\n"
 "Last-Translator: Npcink Project\n"
 "Language-Team: Chinese (China)\n"
@@ -48,6 +48,14 @@ msgstr "Cloud 设置已保存并通过验证。"
 #: includes/class-cloud-credential-store.php:197
 msgid "Cloud credentials could not be stored or read securely. Reconnect this site after checking the WordPress security salts."
 msgstr "无法安全存储或读取 Cloud 凭据。请检查 WordPress 安全盐后重新连接此站点。"
+
+#: includes/class-cloud-addon-settings.php
+msgid "Connected, activation required"
+msgstr "已连接，等待激活"
+
+#: includes/class-cloud-addon-settings.php
+msgid "This site is bound and its connection credential is stored, but Cloud runtime service is inactive. Activate it in Npcink Cloud, then verify the connection here."
+msgstr "此站点已绑定并保存连接凭据，但 Cloud 运行服务尚未激活。请先在 Npcink Cloud 中激活，再回到这里验证连接。"
 
 #: includes/class-cloud-settings-page.php:402
 msgid "Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect."
@@ -360,6 +368,14 @@ msgstr "Cloud 授权交换失败：%s"
 #: includes/class-cloud-settings-page.php:1080
 msgid "Cloud authorization exchange did not return a valid connection key."
 msgstr "Cloud 授权交换没有返回有效的连接密钥。"
+
+#: includes/class-cloud-settings-page.php
+msgid "Cloud authorization exchange returned an invalid activation state."
+msgstr "Cloud 授权交换返回了无效的激活状态。"
+
+#: includes/class-cloud-settings-page.php
+msgid "Cloud connection completed. This site is bound but not active because no active-site slot was available. Activate it in Npcink Cloud, then verify the connection here."
+msgstr "Cloud 连接已完成。由于没有可用的活动站点名额，此站点已绑定但尚未激活。请先在 Npcink Cloud 中激活，再回到这里验证连接。"
 
 #. translators: %s: stable Cloud error code.
 #: includes/class-cloud-settings-page.php:1113

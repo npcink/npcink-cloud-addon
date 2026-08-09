@@ -201,6 +201,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			$verified = $configured && ! empty( $settings['verified'] );
 			$has_any_values = self::has_any_values( $settings );
 			$last_error = sanitize_text_field( (string) $settings['last_verification_error'] );
+			$activation_state = sanitize_key( (string) ( $settings['activation_state'] ?? '' ) );
 
 			if ( ! $configured ) {
 				return array(
@@ -227,6 +228,19 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 					'verified_at' => sanitize_text_field( (string) $settings['verified_at'] ),
 					'last_verification_error' => '',
 					'severity' => 'ok',
+				);
+			}
+
+			if ( 'inactive' === $activation_state ) {
+				return array(
+					'code' => 'activation_required',
+					'label' => __( 'Connected, activation required', 'npcink-cloud-addon' ),
+					'message' => __( 'This site is bound and its connection credential is stored, but Cloud runtime service is inactive. Activate it in Npcink Cloud, then verify the connection here.', 'npcink-cloud-addon' ),
+					'configured' => true,
+					'verified' => false,
+					'verified_at' => '',
+					'last_verification_error' => '',
+					'severity' => 'pending',
 				);
 			}
 
@@ -286,6 +300,17 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 
 			if ( array_key_exists( 'wordpress_ai_connector_enabled', $payload ) ) {
 				$next['wordpress_ai_connector_enabled'] = ! empty( $payload['wordpress_ai_connector_enabled'] );
+			}
+
+			if ( array_key_exists( 'activation_state', $payload ) ) {
+				$activation_state = sanitize_key( (string) $payload['activation_state'] );
+				$next['activation_state'] = in_array( $activation_state, array( 'active', 'inactive' ), true )
+					? $activation_state
+					: '';
+			}
+
+			if ( array_key_exists( 'activation_reason', $payload ) ) {
+				$next['activation_reason'] = sanitize_key( (string) $payload['activation_reason'] );
 			}
 
 			$api_key = array_key_exists( 'api_key', $payload ) ? trim( (string) $payload['api_key'] ) : '';
@@ -393,6 +418,10 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			$settings['verified'] = $verified;
 			$settings['verified_at'] = $verified ? gmdate( 'Y-m-d H:i:s' ) . ' UTC' : '';
 			$settings['last_verification_error'] = $verified ? '' : sanitize_text_field( $message );
+			if ( $verified ) {
+				$settings['activation_state'] = 'active';
+				$settings['activation_reason'] = '';
+			}
 			self::write_settings( $settings );
 
 			return self::get_settings();
@@ -416,6 +445,10 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				'verified' => ! empty( $settings['verified'] ),
 				'verified_at' => sanitize_text_field( (string) ( $settings['verified_at'] ?? '' ) ),
 				'last_verification_error' => sanitize_text_field( (string) ( $settings['last_verification_error'] ?? '' ) ),
+				'activation_state' => in_array( sanitize_key( (string) ( $settings['activation_state'] ?? '' ) ), array( 'active', 'inactive' ), true )
+					? sanitize_key( (string) $settings['activation_state'] )
+					: '',
+				'activation_reason' => sanitize_key( (string) ( $settings['activation_reason'] ?? '' ) ),
 				'monitoring_enabled' => ! empty( $settings['monitoring_enabled'] ),
 				'site_knowledge_delivery_enabled' => array_key_exists( 'site_knowledge_delivery_enabled', $settings )
 					? ! empty( $settings['site_knowledge_delivery_enabled'] )
@@ -451,6 +484,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				'verified' => false,
 				'verified_at' => '',
 				'last_verification_error' => '',
+				'activation_state' => '',
+				'activation_reason' => '',
 				'monitoring_enabled' => false,
 				'site_knowledge_delivery_enabled' => false,
 				'site_knowledge_generation_reference_enabled' => false,

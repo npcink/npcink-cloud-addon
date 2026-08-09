@@ -311,10 +311,27 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					'base_url' => $base_url,
 					'api_key'  => (string) ( $exchange['cloud_api_key'] ?? '' ),
 					'timeout'  => (int) ( Npcink_Cloud_Addon_Settings::get_settings()['timeout'] ?? 8 ),
+					'activation_state' => (string) ( $exchange['activation_state'] ?? '' ),
+					'activation_reason' => (string) ( $exchange['activation_reason'] ?? '' ),
 				)
 			);
 			if ( is_wp_error( $settings ) ) {
 				self::set_admin_notice( 'error', $settings->get_error_message() );
+				self::redirect_to_page( 'status' );
+			}
+
+			if ( 'inactive' === (string) ( $exchange['activation_state'] ?? '' ) ) {
+				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
+					self::set_admin_notice(
+						'error',
+						__( 'Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect.', 'npcink-cloud-addon' )
+					);
+				} else {
+					self::set_admin_notice(
+						'warning',
+						__( 'Cloud connection completed. This site is bound but not active because no active-site slot was available. Activate it in Npcink Cloud, then verify the connection here.', 'npcink-cloud-addon' )
+					);
+				}
 				self::redirect_to_page( 'status' );
 			}
 
@@ -745,7 +762,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private static function should_show_unverified_advanced_tab( array $state ): bool {
 			return ! empty( $state['configured'] )
 				|| '' !== (string) ( $state['last_verification_error'] ?? '' )
-				|| in_array( (string) ( $state['code'] ?? '' ), array( 'configured_unverified', 'verification_failed' ), true );
+				|| in_array( (string) ( $state['code'] ?? '' ), array( 'activation_required', 'configured_unverified', 'verification_failed' ), true );
 		}
 
 		/**
@@ -1087,8 +1104,19 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				);
 			}
 
+			$activation_state = sanitize_key( (string) ( $data['activation_state'] ?? 'active' ) );
+			if ( ! in_array( $activation_state, array( 'active', 'inactive' ), true ) ) {
+				return new WP_Error(
+					'cloud_authorization_exchange_failed',
+					__( 'Cloud authorization exchange returned an invalid activation state.', 'npcink-cloud-addon' )
+				);
+			}
+
 			return array(
 				'cloud_api_key' => $cloud_api_key,
+				'activation_state' => $activation_state,
+				'activation_required' => ! empty( $data['activation_required'] ),
+				'activation_reason' => sanitize_key( (string) ( $data['activation_reason'] ?? '' ) ),
 			);
 		}
 
