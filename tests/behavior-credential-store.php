@@ -113,6 +113,30 @@ maca_assert(
 	'Behavior: non-secret permission updates preserve encrypted signing credentials.'
 );
 
+$inactive_settings = Npcink_Cloud_Addon_Settings::get_settings();
+$inactive_settings['verified'] = false;
+$inactive_settings['verified_at'] = '';
+$inactive_settings['last_verification_error'] = '';
+$inactive_settings['activation_state'] = 'inactive';
+$inactive_settings['activation_reason'] = 'active_site_limit_reached';
+maca_assert(
+	Npcink_Cloud_Addon_Settings::write_settings( $inactive_settings ),
+	'Behavior: inactive Cloud activation state persists beside the encrypted credential envelope.'
+);
+$inactive_state = Npcink_Cloud_Addon_Settings::get_credential_state();
+maca_assert(
+	'activation_required' === (string) ( $inactive_state['code'] ?? '' )
+	&& true === (bool) ( $inactive_state['configured'] ?? false )
+	&& false === (bool) ( $inactive_state['verified'] ?? true )
+	&& 'Connected, activation required' === (string) ( $inactive_state['label'] ?? '' ),
+	'Behavior: a bound inactive site is shown as connected with activation required, not as a missing credential.'
+);
+Npcink_Cloud_Addon_Settings::mark_verification_result( true, '' );
+maca_assert(
+	'active' === (string) Npcink_Cloud_Addon_Settings::get_settings()['activation_state'],
+	'Behavior: a later successful verification clears the inactive projection and marks the site active.'
+);
+
 $valid_stored = get_option( Npcink_Cloud_Addon_Settings::option_name(), array() );
 $tampered = $valid_stored;
 $ciphertext = (string) ( $tampered['credential_envelope']['ciphertext'] ?? '' );

@@ -26,7 +26,12 @@ if ( ! function_exists( 'determine_locale' ) ) {
 }
 
 maca_assert(
-	'高级连接' === Npcink_Cloud_Addon_Localization::filter_gettext(
+	'已连接，等待激活' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Connected, activation required',
+		'Connected, activation required',
+		'npcink-cloud-addon'
+	)
+	&& '高级连接' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Advanced connection',
 		'Advanced connection',
 		'npcink-cloud-addon'

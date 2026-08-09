@@ -238,6 +238,51 @@ maca_assert(
 );
 
 $GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'headers'  => array( 'Content-Type' => 'application/json' ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array(
+				'cloud_api_key'       => 'mak1_' . rtrim(
+					strtr(
+						base64_encode(
+							wp_json_encode(
+								array(
+									'site_id' => 'site_inactive',
+									'key_id'  => 'key_inactive',
+									'secret'  => 'secret_inactive',
+								)
+							)
+						),
+						'+/',
+						'-_'
+					),
+					'='
+				),
+				'activation_state'    => 'inactive',
+				'activation_required' => true,
+				'activation_reason'   => 'active_site_limit_reached',
+			),
+		)
+	),
+);
+$inactive_exchange = $authorization_exchange->invoke(
+	null,
+	'https://cloud.example.test',
+	'inactive-code',
+	'local-state'
+);
+maca_assert(
+	is_array( $inactive_exchange )
+	&& 'inactive' === (string) ( $inactive_exchange['activation_state'] ?? '' )
+	&& true === (bool) ( $inactive_exchange['activation_required'] ?? false )
+	&& 'active_site_limit_reached' === (string) ( $inactive_exchange['activation_reason'] ?? '' )
+	&& '' !== (string) ( $inactive_exchange['cloud_api_key'] ?? '' ),
+	'Behavior: a quota-full Cloud exchange still returns the valid connection key and bounded inactive state.'
+);
+
+$GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 403 ),
 	'headers'  => array( 'Content-Type' => 'application/json' ),
 	'body'     => wp_json_encode(

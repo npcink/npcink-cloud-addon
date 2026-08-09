@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Npcink Cloud Addon
  * Description:       Cloud connector for Npcink hosted runtime access, signing, health checks, and entitlement summaries.
- * Version:           0.1.5
+ * Version:           0.1.6
  * Requires at least: 7.0
  * Requires PHP:      8.0
  * Author:            Npcink
@@ -29,7 +29,7 @@ if ( ! defined( 'NPCINK_CLOUD_ADDON_DIR' ) ) {
 }
 
 if ( ! defined( 'NPCINK_CLOUD_ADDON_VERSION' ) ) {
-	define( 'NPCINK_CLOUD_ADDON_VERSION', '0.1.5' );
+	define( 'NPCINK_CLOUD_ADDON_VERSION', '0.1.6' );
 }
 
 if ( ! defined( 'NPCINK_CLOUD_ADDON_OPTION_NAME' ) ) {
