@@ -93,9 +93,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				return $payload;
 			}
 
-			$client = function_exists( 'npcink_cloud_addon_runtime_client' )
-				? npcink_cloud_addon_runtime_client()
-				: ( Npcink_Cloud_Addon_Settings::is_configured() ? new Npcink_Cloud_Runtime_Client() : null );
+			$client = Npcink_Cloud_Addon_Settings::is_configured()
+				? new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() )
+				: null;
 			if ( ! $client ) {
 				return new WP_Error(
 					'cloud_site_knowledge_runtime_unconfigured',

@@ -112,6 +112,7 @@ $pr_body_workflow = maca_read( $root . '/.github/workflows/pr-body-contract.yml'
 $pr_body_validator = maca_read( $root . '/scripts/validate-pr-body.php' );
 $pr_template = maca_read( $root . '/.github/pull_request_template.md' );
 $pr_publisher = maca_read( $root . '/scripts/publish-pr.sh' );
+$image_context_pilot = maca_read( $root . '/scripts/eval-local-image-context-artifact-pilot.php' );
 $release_builder = maca_read( $root . '/scripts/build-release.php' );
 $release_source_manifest = maca_read( $root . '/release-manifest.txt' );
 $composer_config = json_decode( $composer, true );
@@ -123,6 +124,17 @@ maca_assert(
 	&& false !== strpos( $ci_workflow, 'needs: php-contracts' )
 	&& false !== strpos( $ci_workflow, 'test "$MATRIX_RESULT" = success' ),
 	'CI preserves the protected PHP contracts status while requiring every PHP version in the matrix.'
+);
+
+maca_assert(
+	false !== strpos( $image_context_pilot, 'npcink_cloud_addon_upload_toolbox_site_media_visual_source' )
+	&& false !== strpos( $image_context_pilot, 'npcink_cloud_addon_request_image_context_evidence' )
+	&& false === strpos( $image_context_pilot, 'npcink_cloud_addon_runtime_client' )
+	&& false === strpos( $site_knowledge_runtime_bridge, 'npcink_cloud_addon_runtime_client' )
+	&& false === strpos( $adapter_doc, 'npcink_cloud_addon_runtime_client()' )
+	&& false === strpos( $adapter_doc, 'npcink_cloud_addon_get_settings(): array' )
+	&& false !== strpos( $adapter_doc, 'scenario-specific transport helper' ),
+	'Addon-owned consumers and integration guidance avoid the deprecated concrete runtime-client seam.'
 );
 
 maca_assert(
@@ -536,8 +548,8 @@ maca_assert(
 	&& false !== strpos( $bootstrap, '@deprecated 0.1.7 Prefer the scenario-specific public transport helpers.' )
 	&& false !== strpos( $runtime_client, '@deprecated 0.1.7 Prefer a scenario-specific runtime method or public facade.' )
 	&& false !== strpos( $readme, 'npcink_cloud_addon_get_connection_state()' )
-	&& false !== strpos( $readme, 'Current known compatibility' )
-	&& false !== strpos( $readme, '`npcink-workflow-toolbox` and `npcink-ai-client-adapter`' ),
+	&& false !== strpos( $readme, 'remain callable only as deprecated' )
+	&& false !== strpos( $readme, 'All maintained Npcink consumers' ),
 	'Public API keeps compatibility while documenting a non-secret state facade and migration away from raw settings and generic runtime access.'
 );
 

@@ -27,11 +27,14 @@ if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
 
 $requested_limit = isset( $args[0] ) ? absint( $args[0] ) : 20;
 $limit           = min( 20, max( 1, $requested_limit ) );
-$client          = function_exists( 'npcink_cloud_addon_runtime_client' )
-	? npcink_cloud_addon_runtime_client()
+$upload_visual_source = function_exists( 'npcink_cloud_addon_upload_toolbox_site_media_visual_source' )
+	? 'npcink_cloud_addon_upload_toolbox_site_media_visual_source'
+	: null;
+$request_evidence = function_exists( 'npcink_cloud_addon_request_image_context_evidence' )
+	? 'npcink_cloud_addon_request_image_context_evidence'
 	: null;
 
-if ( ! $client instanceof Npcink_Cloud_Runtime_Client ) {
+if ( null === $upload_visual_source || null === $request_evidence ) {
 	fwrite( STDERR, "Npcink Cloud Addon must be configured and verified.\n" );
 	exit( 1 );
 }
@@ -114,7 +117,7 @@ foreach ( $attachment_ids as $attachment_id ) {
 		0,
 		40
 	);
-	$artifact   = $client->upload_media_artifact(
+	$artifact   = $upload_visual_source(
 		array(
 			'contents'  => $contents,
 			'filename'  => basename( $real_path ),
@@ -170,7 +173,7 @@ foreach ( array_chunk( $items, 10 ) as $batch_index => $batch ) {
 		0,
 		40
 	);
-	$result       = $client->request_image_context_evidence(
+	$result       = $request_evidence(
 		array(
 			'contract_version'       => 'image_context_evidence_request.v1',
 			'write_posture'          => 'suggestion_only',
