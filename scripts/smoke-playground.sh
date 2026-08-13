@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 PLAYGROUND_CLI_VERSION="${NPCINK_PLAYGROUND_CLI_VERSION:-3.1.43}"
-PLAYGROUND_WP_VERSION="${NPCINK_PLAYGROUND_WP_VERSION:-latest}"
+PLAYGROUND_WP_VERSION="${NPCINK_PLAYGROUND_WP_VERSION:-https://wordpress.org/wordpress-7.0.4.zip}"
 PLAYGROUND_PHP_VERSION="${NPCINK_PLAYGROUND_PHP_VERSION:-8.2}"
 PLAYGROUND_PORT="${NPCINK_PLAYGROUND_PORT:-9417}"
 BLUEPRINT="${ROOT_DIR}/tests/playground/blueprint.json"
@@ -41,6 +41,7 @@ fi
 command -v node >/dev/null 2>&1 || fail 'Node.js 20.18 or later is required for WordPress Playground CLI.'
 command -v npx >/dev/null 2>&1 || fail 'npx is required for WordPress Playground CLI.'
 command -v curl >/dev/null 2>&1 || fail 'curl is required for Playground smoke verification.'
+command -v unzip >/dev/null 2>&1 || fail 'unzip is required for Playground cache verification.'
 
 NODE_VERSION="$(node -p 'process.versions.node')"
 if ! node -e '
@@ -61,6 +62,26 @@ fi
 TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/npcink-cloud-addon-playground.XXXXXX")"
 SERVER_LOG="${TEMP_DIR}/server.log"
 RESULT_JSON="${TEMP_DIR}/result.json"
+
+if [[ "${PLAYGROUND_WP_VERSION}" == https://* ]]; then
+	PLAYGROUND_CACHE_ROOT="$(node -p 'require("os").homedir() + "/.wordpress-playground"')"
+	PLAYGROUND_WP_CACHE_KEY="$(node -e 'const crypto = require("crypto"); process.stdout.write("custom-" + crypto.createHash("sha1").update(process.argv[1]).digest("hex").slice(0, 8));' "${PLAYGROUND_WP_VERSION}")"
+	PLAYGROUND_WP_CACHE_FILE="${PLAYGROUND_CACHE_ROOT}/${PLAYGROUND_WP_CACHE_KEY}.zip"
+	mkdir -p "${PLAYGROUND_CACHE_ROOT}"
+	if [ ! -f "${PLAYGROUND_WP_CACHE_FILE}" ] || ! unzip -tqq "${PLAYGROUND_WP_CACHE_FILE}" >/dev/null 2>&1; then
+		echo "[prepare] Downloading pinned WordPress archive into the persistent Playground cache."
+		PLAYGROUND_WP_CACHE_PARTIAL="${PLAYGROUND_WP_CACHE_FILE}.partial"
+		if ! curl --location --fail --silent --show-error --retry 4 --retry-all-errors --connect-timeout 15 --max-time 180 "${PLAYGROUND_WP_VERSION}" --output "${PLAYGROUND_WP_CACHE_PARTIAL}"; then
+			rm -f "${PLAYGROUND_WP_CACHE_PARTIAL}"
+			fail 'Playground environment download failed before plugin boot; verify access to the pinned WordPress archive and retry.'
+		fi
+		if ! unzip -tqq "${PLAYGROUND_WP_CACHE_PARTIAL}" >/dev/null 2>&1; then
+			rm -f "${PLAYGROUND_WP_CACHE_PARTIAL}"
+			fail 'Downloaded WordPress archive failed ZIP verification.'
+		fi
+		mv "${PLAYGROUND_WP_CACHE_PARTIAL}" "${PLAYGROUND_WP_CACHE_FILE}"
+	fi
+fi
 
 echo "== WordPress Playground smoke (CLI ${PLAYGROUND_CLI_VERSION}; WP ${PLAYGROUND_WP_VERSION}; PHP ${PLAYGROUND_PHP_VERSION}) =="
 for attempt in 1 2; do
@@ -106,9 +127,9 @@ const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
 const expected = {
   plugin_active: true,
   public_api_present: true,
+  concrete_client_seam_removed: true,
   connection_state_safe: true,
   configured: false,
-  runtime_client_available: false,
   verified_runtime_client_available: false,
   connector_marker_present: false,
   write_posture: "connector_only_no_direct_wordpress_write",

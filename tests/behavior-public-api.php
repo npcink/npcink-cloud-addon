@@ -35,6 +35,7 @@ maca_assert(
 
 maca_assert(
 	is_array( npcink_cloud_addon_get_settings() )
-	&& npcink_cloud_addon_runtime_client() instanceof Npcink_Cloud_Runtime_Client,
-	'Behavior: deprecated raw settings and concrete client compatibility seams remain callable for existing integrations.'
+	&& ! function_exists( 'npcink_cloud_addon_runtime_client' )
+	&& Npcink_Cloud_Runtime_Client_Factory::configured() instanceof Npcink_Cloud_Runtime_Client,
+	'Behavior: deprecated raw settings remain callable while the concrete runtime client seam is removed from the public API.'
 );

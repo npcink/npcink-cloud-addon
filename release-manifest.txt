@@ -18,6 +18,7 @@ includes/class-cloud-media-derivative-transport.php
 includes/class-cloud-observability-collector.php
 includes/class-cloud-outbound-policy.php
 includes/class-cloud-runtime-client.php
+includes/class-cloud-runtime-client-factory.php
 includes/class-cloud-runtime-endpoint-policy.php
 includes/class-cloud-runtime-runs-presenter.php
 includes/class-cloud-settings-page.php

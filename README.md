@@ -192,11 +192,9 @@ by the local operator before any future governed apply path.
 Use `npcink_cloud_addon_get_connection_state()` for status and local permission
 checks. It intentionally omits credential identifiers and the stored secret.
 
-`npcink_cloud_addon_get_settings()` and
-`npcink_cloud_addon_runtime_client()` remain callable only as deprecated
-compatibility seams. They are intentionally omitted from the recommended
-interface because the former returns server-side signing settings and the
-latter exposes the concrete transport client. All maintained Npcink consumers
+`npcink_cloud_addon_get_settings()` remains callable only as a deprecated
+compatibility seam because it returns server-side signing settings. The former
+concrete runtime-client helper has been removed; all maintained Npcink consumers
 must use the scenario-specific public helpers listed above.
 
 Toolbox consumers should use the scenario-specific facades for content support,
