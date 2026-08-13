@@ -116,3 +116,6 @@ timing data and optimization follow-ups live in
   `npcink-ai-cloud/docs/single-session-ai-workflow-standard-v1.md`.
 - This addon's boundary and release gates:
   `docs/cloud-addon-boundary.md`, `docs/wordpress-org-release-gate.md`.
+- Runtime public-seam removal and Playground gate standard:
+  `docs/runtime-seam-closeout-and-engineering-standard-2026-08-13.md` and
+  `docs/decisions/001-remove-concrete-runtime-client-seam.md`.

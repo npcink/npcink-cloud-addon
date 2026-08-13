@@ -9,6 +9,17 @@ Cross-project platform coordination starts from
 repository remains authoritative only for Cloud Addon connector contracts and
 bounded signed transport.
 
+## Engineering Decisions and Standards
+
+- [Runtime seam closeout and engineering standard](docs/runtime-seam-closeout-and-engineering-standard-2026-08-13.md)
+  records the consumer-migration, public-seam removal, Playground stabilization,
+  verification ladder, publication workflow, and reusable closeout checklist.
+- [ADR-001: Remove the public concrete runtime client seam](docs/decisions/001-remove-concrete-runtime-client-seam.md)
+  records why the helper was removed during the pre-user phase and the required
+  preconditions for future API removals.
+- [Development experience and methodology](docs/development-experience-and-methodology-2026-08-08.md)
+  contains the broader cross-repository diagnosis and release methodology.
+
 ## Scope
 
 The addon owns:
