@@ -201,6 +201,11 @@ stored secret. `npcink_cloud_addon_runtime_client()` and generic
 the scenario-specific public helpers listed above. Current known compatibility
 consumers are `npcink-workflow-toolbox` and `npcink-ai-client-adapter`.
 
+Toolbox consumers should use the scenario-specific facades for content support,
+site helpers, Nightly Inspection submit/read/retry, Site Media visual-source
+uploads, Agent Feedback, and entitlement reads. These functions keep the
+concrete signing client private and fail closed to their fixed contracts.
+
 The public PHP settings shape still contains `site_id`, `key_id`, and `secret`
 for server-side signing, but the WordPress option contains only a versioned
 authenticated credential envelope. Its key is derived from the WordPress

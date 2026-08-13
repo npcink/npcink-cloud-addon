@@ -25,15 +25,19 @@ scenario-specific transport helper. The raw settings and concrete runtime
 client functions remain deprecated compatibility seams for the existing
 Toolbox/Adapter consumers and must not be exposed to browser or logging code.
 
+Toolbox integrations must use the `npcink_cloud_addon_*toolbox*`, Agent
+Feedback, and Site Media visual-source helpers exposed by `includes/bootstrap.php`.
+They must not obtain the concrete runtime client merely to call a known
+scenario contract.
+
 ## Expected Adapter Flow
 
-1. Check `function_exists( 'npcink_cloud_addon_runtime_client' )`.
-2. Call `npcink_cloud_addon_runtime_client()`.
-3. If it returns `null`, fail closed or use the local fallback path.
-4. Shape the channel/Core payload in adapter code.
-5. Call `execute_runtime()`.
-6. Poll with `get_run()` and read final output with `get_run_result()`.
-7. If the Cloud result contains write intent, pass it to Core proposal/preflight.
+1. Check `npcink_cloud_addon_get_connection_state()` for non-secret readiness.
+2. Select the exact scenario-specific public helper.
+3. If the helper is unavailable, fail closed or use the documented local fallback.
+4. Shape the channel/Core payload in the owning consumer.
+5. Call only that bounded helper and validate its result contract.
+6. If the Cloud result contains write intent, pass it to Core proposal/preflight.
 
 ## WordPress AI Connector Flow
 
