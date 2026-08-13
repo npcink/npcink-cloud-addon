@@ -424,7 +424,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$client = new Npcink_Cloud_Runtime_Client( $settings );
 			$probe = $client->probe_connectivity();
 			if ( ! empty( $probe['ok'] ) ) {
-				Npcink_Cloud_Addon_Settings::mark_verification_result( true, '' );
+				$verification = Npcink_Cloud_Addon_Settings::mark_verification_result( true, '' );
+				if ( is_wp_error( $verification ) ) {
+					self::set_admin_notice( 'error', $verification->get_error_message() );
+					return;
+				}
 				Npcink_Cloud_Observability_Collector::sync_schedule();
 				Npcink_Cloud_Observability_Collector::project_monitoring_state(
 					! empty( $settings['monitoring_enabled'] )
@@ -449,7 +453,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			$message = self::format_probe_failure_message( $probe );
-			Npcink_Cloud_Addon_Settings::mark_verification_result( false, $message );
+			$verification = Npcink_Cloud_Addon_Settings::mark_verification_result( false, $message );
+			if ( is_wp_error( $verification ) ) {
+				self::set_admin_notice( 'error', $verification->get_error_message() );
+				return;
+			}
 			Npcink_Cloud_Observability_Collector::sync_schedule();
 			// The connection summary always renders the persisted verification
 			// failure, so a redirect notice would duplicate the same message.
@@ -468,10 +476,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			check_admin_referer( self::ACTION_DISCONNECT );
 
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
-			Npcink_Cloud_Entitlement_Summary::delete_cached_summary( $settings );
-			Npcink_Cloud_Addon_Settings::delete_settings();
-			Npcink_Cloud_Observability_Collector::delete_data();
-			Npcink_Cloud_Site_Knowledge_Change_Bridge::delete_data();
+			Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
 
 			self::set_admin_notice(
 				'success',
@@ -2220,8 +2225,38 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<div class="npcink-cloud-advanced-detail__body">
 							<?php self::render_site_knowledge_bridge_health_detail( $site_knowledge ); ?>
 							<?php self::render_site_knowledge_cloud_quota_detail( $cloud_usage ); ?>
+							<?php self::render_site_knowledge_retrieval_acceptance( $cloud_usage ); ?>
 						</div>
 					</details>
+			<?php
+		}
+
+		/**
+		 * Renders the read-only Cloud automatic retrieval acceptance projection.
+		 *
+		 * @param array<string,mixed> $usage Site Knowledge status summary.
+		 * @return void
+		 */
+		private static function render_site_knowledge_retrieval_acceptance( array $usage ): void {
+			$acceptance = is_array( $usage['retrieval_acceptance'] ?? null ) ? $usage['retrieval_acceptance'] : array();
+			$status = sanitize_key( (string) ( $acceptance['status'] ?? 'pending' ) );
+			$labels = array(
+				'passed' => __( 'Passed automatically', 'npcink-cloud-addon' ),
+				'no_hit' => __( 'Expected document was not matched', 'npcink-cloud-addon' ),
+				'failed' => __( 'Automatic retrieval failed', 'npcink-cloud-addon' ),
+				'not_applicable' => __( 'No public document is available for validation', 'npcink-cloud-addon' ),
+				'pending' => __( 'Waiting for automatic validation', 'npcink-cloud-addon' ),
+			);
+			?>
+			<div class="npcink-cloud-site-knowledge-automatic-acceptance">
+				<h4><?php esc_html_e( 'Platform automatic retrieval validation', 'npcink-cloud-addon' ); ?></h4>
+				<p><strong><?php echo esc_html( (string) ( $labels[ $status ] ?? $labels['pending'] ) ); ?></strong></p>
+				<p class="description"><?php esc_html_e( 'Cloud runs this automatically after an index rebuild or full index publication. No site-admin action is required.', 'npcink-cloud-addon' ); ?></p>
+				<?php if ( '' !== (string) ( $acceptance['verified_at'] ?? '' ) ) : ?>
+					<?php /* translators: %s: last automatic retrieval validation timestamp. */ ?>
+					<p class="description"><?php echo esc_html( sprintf( __( 'Last verified: %s', 'npcink-cloud-addon' ), (string) $acceptance['verified_at'] ) ); ?></p>
+				<?php endif; ?>
+			</div>
 			<?php
 		}
 

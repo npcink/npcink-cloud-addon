@@ -366,6 +366,39 @@ maca_assert(
 	'Behavior: unknown media upload descriptor fields fail closed before Cloud transport.'
 );
 
+foreach (
+	array(
+		'corrupt image bytes' => array(
+			'bytes'     => 'not-an-image',
+			'filename'  => 'corrupt.png',
+			'mime_type' => 'image/png',
+		),
+		'false declared mime' => array(
+			'bytes'     => $png,
+			'filename'  => 'false-jpeg.jpg',
+			'mime_type' => 'image/jpeg',
+		),
+		'unsupported declared mime' => array(
+			'bytes'     => $png,
+			'filename'  => 'source.gif',
+			'mime_type' => 'image/gif',
+		),
+	) as $case => $invalid_descriptor
+) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$invalid_upload = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+		maca_ability_fixture(),
+		$invalid_descriptor,
+		'trace-invalid-upload-' . sanitize_key( $case ),
+		'invalid-upload-' . sanitize_key( $case )
+	);
+	maca_assert(
+		is_wp_error( $invalid_upload ) && 0 === count( $GLOBALS['maca_http_requests'] ),
+		'Behavior: ' . $case . ' fail closed before Cloud media upload.'
+	);
+}
+
 $ambiguous_upload_descriptor_cases = array(
 	'bytes-content' => array(
 		'bytes'     => $png,

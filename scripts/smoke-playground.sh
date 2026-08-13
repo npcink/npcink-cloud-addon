@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 PLAYGROUND_CLI_VERSION="${NPCINK_PLAYGROUND_CLI_VERSION:-3.1.43}"
-PLAYGROUND_WP_VERSION="${NPCINK_PLAYGROUND_WP_VERSION:-7.0.2}"
+PLAYGROUND_WP_VERSION="${NPCINK_PLAYGROUND_WP_VERSION:-latest}"
 PLAYGROUND_PHP_VERSION="${NPCINK_PLAYGROUND_PHP_VERSION:-8.2}"
 PLAYGROUND_PORT="${NPCINK_PLAYGROUND_PORT:-9417}"
 BLUEPRINT="${ROOT_DIR}/tests/playground/blueprint.json"
@@ -63,26 +63,36 @@ SERVER_LOG="${TEMP_DIR}/server.log"
 RESULT_JSON="${TEMP_DIR}/result.json"
 
 echo "== WordPress Playground smoke (CLI ${PLAYGROUND_CLI_VERSION}; WP ${PLAYGROUND_WP_VERSION}; PHP ${PLAYGROUND_PHP_VERSION}) =="
-npx --yes "@wp-playground/cli@${PLAYGROUND_CLI_VERSION}" server \
-	--port="${PLAYGROUND_PORT}" \
-	--site-url="http://127.0.0.1:${PLAYGROUND_PORT}" \
-	--wp="${PLAYGROUND_WP_VERSION}" \
-	--php="${PLAYGROUND_PHP_VERSION}" \
-	--mount-before-install="${ROOT_DIR}:/wordpress/wp-content/plugins/npcink-cloud-addon" \
-	--mount-before-install="${MU_PLUGIN_DIR}:/wordpress/wp-content/mu-plugins" \
-	--blueprint="${BLUEPRINT}" \
-	--verbosity=normal >"${SERVER_LOG}" 2>&1 &
-SERVER_PID=$!
+for attempt in 1 2; do
+	: >"${SERVER_LOG}"
+	: >"${RESULT_JSON}"
+	npx --yes "@wp-playground/cli@${PLAYGROUND_CLI_VERSION}" server \
+		--port="${PLAYGROUND_PORT}" \
+		--site-url="http://127.0.0.1:${PLAYGROUND_PORT}" \
+		--wp="${PLAYGROUND_WP_VERSION}" \
+		--php="${PLAYGROUND_PHP_VERSION}" \
+		--mount-before-install="${ROOT_DIR}:/wordpress/wp-content/plugins/npcink-cloud-addon" \
+		--mount-before-install="${MU_PLUGIN_DIR}:/wordpress/wp-content/mu-plugins" \
+		--blueprint="${BLUEPRINT}" \
+		--verbosity=normal >"${SERVER_LOG}" 2>&1 &
+	SERVER_PID=$!
 
-for _ in $(seq 1 90); do
-	if curl --location --fail --silent --show-error "http://127.0.0.1:${PLAYGROUND_PORT}${RESULT_PATH}" >"${RESULT_JSON}" 2>/dev/null; then
-		break
-	fi
-	if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
-		cat "${SERVER_LOG}" >&2
-		fail 'WordPress Playground stopped before the smoke route became available.'
-	fi
-	sleep 1
+	for _ in $(seq 1 90); do
+		if curl --location --fail --silent --show-error "http://127.0.0.1:${PLAYGROUND_PORT}${RESULT_PATH}" >"${RESULT_JSON}" 2>/dev/null; then
+			break 2
+		fi
+		if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
+			wait "${SERVER_PID}" 2>/dev/null || true
+			SERVER_PID=""
+			if [ "${attempt}" -lt 2 ] && grep -Fq 'Error: fetch failed' "${SERVER_LOG}"; then
+				echo '[retry] Playground dependency fetch failed before WordPress boot; retrying once.' >&2
+				break
+			fi
+			cat "${SERVER_LOG}" >&2
+			fail 'WordPress Playground stopped before the smoke route became available.'
+		fi
+		sleep 1
+	done
 done
 
 if [ ! -s "${RESULT_JSON}" ]; then
@@ -96,6 +106,7 @@ const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
 const expected = {
   plugin_active: true,
   public_api_present: true,
+  connection_state_safe: true,
   configured: false,
   runtime_client_available: false,
   verified_runtime_client_available: false,

@@ -36,14 +36,20 @@ function npcink_cloud_addon_playground_smoke_response() {
 
 	$active = is_plugin_active( 'npcink-cloud-addon/npcink-cloud-addon.php' );
 	$public_api_present = function_exists( 'npcink_cloud_addon_is_configured' )
+		&& function_exists( 'npcink_cloud_addon_get_connection_state' )
 		&& function_exists( 'npcink_cloud_addon_runtime_client' )
 		&& function_exists( 'npcink_cloud_addon_verified_runtime_client' );
+	$connection_state = $public_api_present ? npcink_cloud_addon_get_connection_state() : array();
+	$connection_state_safe = is_array( $connection_state )
+		&& ! array_key_exists( 'secret', $connection_state )
+		&& ! array_key_exists( 'site_id', $connection_state )
+		&& ! array_key_exists( 'key_id', $connection_state );
 	$configured = $public_api_present && npcink_cloud_addon_is_configured();
 	$runtime_client_available = $public_api_present && null !== npcink_cloud_addon_runtime_client();
 	$verified_runtime_client_available = $public_api_present && null !== npcink_cloud_addon_verified_runtime_client();
 	$connector_marker_present = '' !== (string) get_option( 'npcink_cloud_addon_wp_ai_connector_connected', '' );
 
-	if ( ! $active || ! $public_api_present || $configured || $runtime_client_available || $verified_runtime_client_available || $connector_marker_present ) {
+	if ( ! $active || ! $public_api_present || ! $connection_state_safe || $configured || $runtime_client_available || $verified_runtime_client_available || $connector_marker_present ) {
 		return new WP_Error(
 			'npcink_cloud_addon_playground_smoke_failed',
 			'Npcink Cloud Addon did not preserve its expected default fail-closed state.',
@@ -52,6 +58,7 @@ function npcink_cloud_addon_playground_smoke_response() {
 				'data'   => array(
 					'plugin_active'                     => $active,
 					'public_api_present'                => $public_api_present,
+					'connection_state_safe'             => $connection_state_safe,
 					'configured'                        => $configured,
 					'runtime_client_available'          => $runtime_client_available,
 					'verified_runtime_client_available' => $verified_runtime_client_available,
@@ -65,6 +72,7 @@ function npcink_cloud_addon_playground_smoke_response() {
 		array(
 			'plugin_active'                     => true,
 			'public_api_present'                => true,
+			'connection_state_safe'             => true,
 			'configured'                        => false,
 			'runtime_client_available'          => false,
 			'verified_runtime_client_available' => false,

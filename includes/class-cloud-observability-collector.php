@@ -1166,10 +1166,10 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 					'file'     => 'npcink-abilities-toolkit/npcink-abilities-toolkit.php',
 					'constant' => 'NPCINK_ABILITIES_TOOLKIT_VERSION',
 				),
-				'npcink-openclaw-adapter'     => array(
+				'npcink-ai-client-adapter'    => array(
 					'label'    => __( 'Adapter', 'npcink-cloud-addon' ),
-					'file'     => 'npcink-openclaw-adapter/npcink-openclaw-adapter.php',
-					'constant' => 'NPCINK_OPENCLAW_ADAPTER_VERSION',
+					'file'     => 'npcink-ai-client-adapter/npcink-ai-client-adapter.php',
+					'constant' => 'NPCINK_AI_CLIENT_ADAPTER_VERSION',
 				),
 				'npcink-cloud-addon' => array(
 					'label'    => __( 'Cloud Addon', 'npcink-cloud-addon' ),

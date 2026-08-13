@@ -411,9 +411,9 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		 *
 		 * @param bool   $verified Whether verification passed.
 		 * @param string $message Verification error message.
-		 * @return array<string,mixed>
+		 * @return array<string,mixed>|WP_Error
 		 */
-		public static function mark_verification_result( bool $verified, string $message = '' ): array {
+		public static function mark_verification_result( bool $verified, string $message = '' ) {
 			$settings = self::get_settings();
 			$settings['verified'] = $verified;
 			$settings['verified_at'] = $verified ? gmdate( 'Y-m-d H:i:s' ) . ' UTC' : '';
@@ -422,7 +422,13 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				$settings['activation_state'] = 'active';
 				$settings['activation_reason'] = '';
 			}
-			self::write_settings( $settings );
+			if ( ! self::write_settings( $settings ) ) {
+				return new WP_Error(
+					'cloud_verification_state_storage_failed',
+					__( 'Cloud verification completed, but the verified state could not be stored securely.', 'npcink-cloud-addon' ),
+					array( 'status' => 500 )
+				);
+			}
 
 			return self::get_settings();
 		}

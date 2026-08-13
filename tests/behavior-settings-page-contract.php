@@ -51,6 +51,16 @@ if ( ! function_exists( 'esc_attr_e' ) ) {
 	}
 }
 
+if ( ! function_exists( 'disabled' ) ) {
+	function disabled( $disabled, $current = true, bool $display = true ): string {
+		$result = $disabled == $current ? ' disabled="disabled"' : '';
+		if ( $display ) {
+			echo $result;
+		}
+		return $result;
+	}
+}
+
 if ( ! function_exists( 'sanitize_html_class' ) ) {
 	function sanitize_html_class( string $value ): string {
 		return preg_replace( '/[^A-Za-z0-9_-]/', '', $value );

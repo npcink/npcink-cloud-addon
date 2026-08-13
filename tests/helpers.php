@@ -216,6 +216,7 @@ if ( ! function_exists( 'wp_strip_all_tags' ) ) {
 
 $GLOBALS['maca_options'] = array();
 $GLOBALS['maca_option_update_counts'] = array();
+$GLOBALS['maca_option_update_failures'] = array();
 $GLOBALS['maca_transients'] = array();
 $GLOBALS['maca_http_requests'] = array();
 $GLOBALS['maca_http_response_queue'] = array();
@@ -239,6 +240,9 @@ if ( ! function_exists( 'get_option' ) ) {
 if ( ! function_exists( 'update_option' ) ) {
 	function update_option( string $name, $value, bool $autoload = true ): bool {
 		$GLOBALS['maca_option_update_counts'][ $name ] = absint( $GLOBALS['maca_option_update_counts'][ $name ] ?? 0 ) + 1;
+		if ( ! empty( $GLOBALS['maca_option_update_failures'][ $name ] ) ) {
+			return false;
+		}
 		$GLOBALS['maca_options'][ $name ] = $value;
 		return true;
 	}
@@ -486,6 +490,7 @@ function maca_load_addon_classes(): void {
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-outbound-policy.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-endpoint-policy.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-settings.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-cleanup.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-ai-task-contract.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-client.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-entitlement-summary.php';
@@ -580,6 +585,7 @@ function maca_set_wordpress_ai_connector_enabled( bool $enabled ): void {
 function maca_reset_test_state(): void {
 	$GLOBALS['maca_options'] = array();
 	$GLOBALS['maca_option_update_counts'] = array();
+	$GLOBALS['maca_option_update_failures'] = array();
 	$GLOBALS['maca_option_read_counts'] = array();
 	$GLOBALS['maca_transients'] = array();
 	$GLOBALS['maca_http_requests'] = array();

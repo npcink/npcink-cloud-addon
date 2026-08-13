@@ -2,7 +2,7 @@
 
 ## Rule
 
-`npcink-openclaw-adapter` must not store Cloud credentials.
+`npcink-ai-client-adapter` must not store Cloud credentials.
 
 Adapter code should call this addon through the public PHP functions and runtime client.
 
@@ -10,6 +10,7 @@ Adapter code should call this addon through the public PHP functions and runtime
 
 ```php
 npcink_cloud_addon_is_configured(): bool
+npcink_cloud_addon_get_connection_state(): array
 npcink_cloud_addon_get_settings(): array
 npcink_cloud_addon_runtime_client(): ?Npcink_Cloud_Runtime_Client
 npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
@@ -19,12 +20,17 @@ npcink_cloud_addon_build_media_derivative_proposal_payload(array $ability_respon
 npcink_cloud_addon_receive_media_derivative_artifact(array $artifact, string $trace_id = '')
 ```
 
+For new integrations, use `npcink_cloud_addon_get_connection_state()` and a
+scenario-specific transport helper. The raw settings and concrete runtime
+client functions remain deprecated compatibility seams for the existing
+Toolbox/Adapter consumers and must not be exposed to browser or logging code.
+
 ## Expected Adapter Flow
 
 1. Check `function_exists( 'npcink_cloud_addon_runtime_client' )`.
 2. Call `npcink_cloud_addon_runtime_client()`.
 3. If it returns `null`, fail closed or use the local fallback path.
-4. Shape the OpenClaw/Core payload in adapter code.
+4. Shape the channel/Core payload in adapter code.
 5. Call `execute_runtime()`.
 6. Poll with `get_run()` and read final output with `get_run_result()`.
 7. If the Cloud result contains write intent, pass it to Core proposal/preflight.

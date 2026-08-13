@@ -1100,6 +1100,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 */
 		private function detect_scene_ability_name(): string {
 			$map = array(
+				'WordPress\\AI\\Abilities\\Image\\Generate_Image_Prompt' => 'ai/image-prompt-generation',
 				'WordPress\\AI\\Abilities\\Content_Classification\\Content_Classification' => 'ai/content-classification',
 				'WordPress\\AI\\Abilities\\Comment_Moderation\\Comment_Analysis'           => 'ai/comment-analysis',
 				'WordPress\\AI\\Abilities\\Content_Resizing\\Content_Resizing'              => 'ai/content-resizing',
@@ -1609,6 +1610,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		private const ARTIFACT_ID_PATTERN = '/^art_[0-9a-f]{32}$/';
 		private const DELIVERY_ID_PATTERN = '/^mdl_[0-9a-f]{32}$/';
 		private const MAX_IMAGE_BYTES = 26214400;
+		private const MAX_IMAGE_AGGREGATE_BYTES = 33554432;
 		private const MAX_IMAGE_AXIS = 8192;
 		private const MAX_IMAGE_AREA = 16777216;
 		private const MAX_IMAGE_CANDIDATES = 4;
@@ -1920,6 +1922,18 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				|| count( $result['artifacts'] ) > self::MAX_IMAGE_CANDIDATES
 			) {
 				return array();
+			}
+
+			$aggregate_bytes = 0;
+			foreach ( $result['artifacts'] as $artifact ) {
+				$artifact_bytes = is_array( $artifact ) ? ( $artifact['filesize_bytes'] ?? null ) : null;
+				if ( ! is_int( $artifact_bytes ) || $artifact_bytes < 1 || $artifact_bytes > self::MAX_IMAGE_BYTES ) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact contract is invalid.' );
+				}
+				$aggregate_bytes += $artifact_bytes;
+				if ( $aggregate_bytes > self::MAX_IMAGE_AGGREGATE_BYTES ) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image candidates exceed the aggregate preview byte limit.' );
+				}
 			}
 
 			$client = Npcink_Cloud_Media_Derivative_Transport::verified_client();

@@ -20,3 +20,4 @@ phpstan.neon
 phpstan.neon.dist
 .reasonix
 reasonix.toml
+release-manifest.txt

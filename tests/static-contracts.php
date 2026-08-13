@@ -62,6 +62,8 @@ $site_knowledge_admin_projection = maca_read( $root . '/includes/class-cloud-sit
 $site_knowledge_admin_actions = maca_read( $root . '/includes/class-cloud-site-knowledge-admin-actions.php' );
 $runtime_runs_presenter = maca_read( $root . '/includes/class-cloud-runtime-runs-presenter.php' );
 $settings = maca_read( $root . '/includes/class-cloud-addon-settings.php' );
+$cleanup = maca_read( $root . '/includes/class-cloud-addon-cleanup.php' );
+$uninstall = maca_read( $root . '/uninstall.php' );
 $settings_page = maca_read( $root . '/includes/class-cloud-settings-page.php' );
 $refresh_site_knowledge_handler = maca_extract_class_method_source( $settings_page, 'public static function handle_refresh_site_knowledge(): void' );
 $manage_site_knowledge_index_handler = maca_extract_class_method_source( $settings_page, 'public static function handle_manage_site_knowledge_index(): void' );
@@ -71,6 +73,17 @@ $adapter_doc = maca_read( $root . '/docs/adapter-integration-seam.md' );
 $complexity_doc = maca_read( $root . '/docs/cloud-addon-complexity-budget.md' );
 $test_helpers = maca_read( $root . '/tests/helpers.php' );
 $test_runner = maca_read( $root . '/tests/run.php' );
+
+maca_assert(
+	false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-addon-cleanup.php'" )
+	&& false !== strpos( $cleanup, 'npcink_cloud_addon_wp_ai_connector_connected' )
+	&& false !== strpos( $cleanup, "'_refresh_failure'" )
+	&& false !== strpos( $cleanup, "'_refresh_lock'" )
+	&& false !== strpos( $cleanup, "'_lock'" )
+	&& false !== strpos( $uninstall, 'Npcink_Cloud_Addon_Settings::get_settings()' )
+	&& false !== strpos( $uninstall, 'Npcink_Cloud_Addon_Cleanup::delete_all' ),
+	'Static: disconnect and uninstall share one addon-owned cleanup contract with credential-scoped cache removal.'
+);
 
 $runtime_endpoint_policy_forbidden = array(
 	'Npcink_Cloud_Runtime_Client', 'Npcink_Cloud_Outbound_Policy', 'wp_remote_', 'wp_safe_remote_', 'curl_',
@@ -96,9 +109,30 @@ $local_test_guide = maca_read( $root . '/docs/local-test-guide.md' );
 $composer = maca_read( $root . '/composer.json' );
 $ci_workflow = maca_read( $root . '/.github/workflows/ci.yml' );
 $pr_body_workflow = maca_read( $root . '/.github/workflows/pr-body-contract.yml' );
+$pr_body_validator = maca_read( $root . '/scripts/validate-pr-body.php' );
 $pr_template = maca_read( $root . '/.github/pull_request_template.md' );
 $pr_publisher = maca_read( $root . '/scripts/publish-pr.sh' );
+$release_builder = maca_read( $root . '/scripts/build-release.php' );
+$release_source_manifest = maca_read( $root . '/release-manifest.txt' );
 $composer_config = json_decode( $composer, true );
+
+maca_assert(
+	false !== strpos( $ci_workflow, 'name: PHP ${{ matrix.php }} contracts' )
+	&& false !== strpos( $ci_workflow, 'php-contracts-required:' )
+	&& false !== strpos( $ci_workflow, 'name: PHP contracts' )
+	&& false !== strpos( $ci_workflow, 'needs: php-contracts' )
+	&& false !== strpos( $ci_workflow, 'test "$MATRIX_RESULT" = success' ),
+	'CI preserves the protected PHP contracts status while requiring every PHP version in the matrix.'
+);
+
+maca_assert(
+	false !== strpos( $release_builder, "release-manifest.txt" )
+	&& false === strpos( $release_builder, "glob(" )
+	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-addon-cleanup.php' )
+	&& false !== strpos( $release_source_manifest, 'languages/npcink-cloud-addon-zh_CN.mo' )
+	&& false === strpos( $release_source_manifest, 'reasonix.toml' ),
+	'Release packaging uses one exact source manifest and cannot absorb unrelated workspace files.'
+);
 $boundary_guard = is_array( $composer_config )
 	? (string) ( $composer_config['scripts']['check:boundary'] ?? '' )
 	: '';
@@ -210,6 +244,17 @@ maca_assert(
 	&& false !== strpos( $eval_lab_proxy, 'NPCINK_EVAL_LAB_PATH' )
 	&& false !== strpos( $eval_lab_proxy, 'composer eval:task -- "$@"' ),
 	'Cloud Addon exposes optional eval-lab project quality gate through the task registry.'
+);
+maca_assert(
+	false !== strpos( $composer, 'scripts/run-wp-cli.php i18n make-pot' )
+	&& false !== strpos( $composer, 'scripts/run-wp-cli.php i18n update-po' )
+	&& false !== strpos( $composer, 'scripts/run-wp-cli.php i18n make-mo' )
+	&& false === strpos( $composer, '${WP_CLI_BIN:-/tmp/wp-cli.phar}' )
+	&& false !== strpos( maca_read( $root . '/scripts/check-pot-freshness.php' ), "require_once __DIR__ . '/wp-cli-command.php';" )
+	&& false !== strpos( maca_read( $root . '/scripts/run-plugin-check.php' ), "require_once __DIR__ . '/wp-cli-command.php';" )
+	&& false !== strpos( maca_read( $root . '/scripts/run-plugin-check.php' ), '/Local Sites/magick-ai/app/public' )
+	&& false === strpos( maca_read( $root . '/scripts/run-plugin-check.php' ), '/Local Sites/npcink/app/public' ),
+	'Release and localization tooling resolves WP-CLI from an explicit override or PATH instead of requiring a temporary file.'
 );
 maca_assert(
 	false !== strpos( $composer, '"check:boundary": "sh -c' )
@@ -350,10 +395,14 @@ maca_assert(
 	&& false !== strpos( $pr_template, '## Cloud Addon Boundary' )
 	&& false !== strpos( $pr_template, '## Verification' )
 	&& false !== strpos( $pr_template, '## Risk' )
-	&& false !== strpos( $pr_body_workflow, '"Scope":' )
-	&& false !== strpos( $pr_body_workflow, '"Boundary":' )
-	&& false !== strpos( $pr_body_workflow, '"Verification":' )
-	&& false !== strpos( $pr_body_workflow, '"Risk":' )
+	&& false !== strpos( $pr_body_workflow, 'scripts/validate-pr-body.php -' )
+	&& false !== strpos( $pr_body_validator, "'Scope'" )
+	&& false !== strpos( $pr_body_validator, "'Boundary'" )
+	&& false !== strpos( $pr_body_validator, "'Verification'" )
+	&& false !== strpos( $pr_body_validator, "'Risk'" )
+	&& false !== strpos( $pr_body_validator, 'Residual risk' )
+	&& false !== strpos( $pr_body_validator, 'Rollback plan' )
+	&& false !== strpos( $pr_publisher, 'php scripts/validate-pr-body.php "${body_path}"' )
 	&& false !== strpos( $pr_publisher, "git status --porcelain" )
 	&& false !== strpos( $pr_publisher, 'git merge-base --is-ancestor "origin/${base_branch}" HEAD' )
 	&& false !== strpos( $pr_publisher, '--body-file "${body_path}"' )
@@ -479,6 +528,17 @@ maca_assert(
 	&& false !== strpos( $bootstrap, 'npcink_cloud_addon_receive_media_derivative_artifact' )
 	&& false === strpos( $bootstrap, 'npcink_cloud_addon_download_media_derivative_artifact' ),
 	'Bootstrap exposes verified runtime and exact media delivery helpers without the legacy preview download seam.'
+);
+
+maca_assert(
+	false !== strpos( $bootstrap, 'function npcink_cloud_addon_get_connection_state(): array' )
+	&& false !== strpos( $bootstrap, '@deprecated 0.1.7 Use npcink_cloud_addon_get_connection_state()' )
+	&& false !== strpos( $bootstrap, '@deprecated 0.1.7 Prefer the scenario-specific public transport helpers.' )
+	&& false !== strpos( $runtime_client, '@deprecated 0.1.7 Prefer a scenario-specific runtime method or public facade.' )
+	&& false !== strpos( $readme, 'npcink_cloud_addon_get_connection_state()' )
+	&& false !== strpos( $readme, 'Current known compatibility' )
+	&& false !== strpos( $readme, '`npcink-workflow-toolbox` and `npcink-ai-client-adapter`' ),
+	'Public API keeps compatibility while documenting a non-secret state facade and migration away from raw settings and generic runtime access.'
 );
 
 maca_assert(
@@ -1607,6 +1667,10 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'Delete site index' )
 	&& false !== strpos( $settings_page, 'site_knowledge_confirmation' )
 	&& false !== strpos( $settings_page, 'Open Cloud Site Knowledge' )
+	&& false !== strpos( $settings_page, 'Platform automatic retrieval validation' )
+	&& false !== strpos( $settings_page, 'Cloud runs this automatically after an index rebuild or full index publication.' )
+	&& false === strpos( $settings_page, 'data-npcink-site-knowledge-acceptance' )
+	&& false === strpos( $settings_page, 'handle_run_site_knowledge_acceptance' )
 	&& false !== strpos( $settings_page, '<h3><?php esc_html_e( \'Overview\'' )
 	&& false !== strpos( $settings_page, '<h2 class="screen-reader-text"><?php esc_html_e( \'Site Knowledge\'' )
 	&& false !== strpos( $settings_page, 'function render_secondary_tab_navigation' )
@@ -1869,10 +1933,7 @@ maca_assert(
 	false !== strpos( $settings_page, "ACTION_DISCONNECT = 'npcink_cloud_addon_disconnect'" )
 	&& false !== strpos( $settings_page, "admin_post_' . self::ACTION_DISCONNECT" )
 	&& false !== strpos( $settings_page, 'function handle_disconnect' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Entitlement_Summary::delete_cached_summary' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Addon_Settings::delete_settings()' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Observability_Collector::delete_data()' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::delete_data()' )
+	&& false !== strpos( $settings_page, 'Npcink_Cloud_Addon_Cleanup::delete_all( $settings )' )
 	&& false !== strpos( $settings_page, 'Change connection in Cloud' )
 	&& false !== strpos( $settings_page, 'Open Cloud sites' )
 	&& false !== strpos( $settings_page, 'function render_connection_actions( array $settings, bool $is_verified )' )
@@ -1915,8 +1976,9 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $uninstall, "delete_option( 'npcink_cloud_addon_agent_feedback_summary' )" )
-	&& false !== strpos( $uninstall, "delete_option( 'npcink_cloud_addon_site_knowledge_maintenance_cursor' )" ),
+	false !== strpos( $cleanup, "'npcink_cloud_addon_agent_feedback_summary'" )
+	&& false !== strpos( $cleanup, "'npcink_cloud_addon_site_knowledge_maintenance_cursor'" )
+	&& false !== strpos( $uninstall, 'Npcink_Cloud_Addon_Cleanup::delete_all' ),
 	'Uninstall removes all addon-owned bounded summary and Site Knowledge maintenance state.'
 );
 

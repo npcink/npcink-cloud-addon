@@ -25,20 +25,27 @@
       "Composer\\Config::disableProcessTimeout",
       "WP_PATH=\"${WP_PATH:-/Users/muze/Local Sites/magick-ai/app/public}\"; WP_CLI_BIN=\"${WP_CLI_BIN:-/opt/homebrew/bin/wp}\"; WP_CLI_PHP=\"${WP_CLI_PHP:-$HOME/Library/Application Support/Local/lightning-services/php-8.5.3+1/bin/darwin-arm64/bin/php}\"; WP_DB_SOCKET=\"${WP_DB_SOCKET:-$HOME/Library/Application Support/Local/run/NPb24Zg9g/mysql/mysqld.sock}\"; \"$WP_CLI_PHP\" -d display_errors=0 -d error_reporting=8191 -d mysqli.default_socket=\"$WP_DB_SOCKET\" \"$WP_CLI_BIN\" --path=\"$WP_PATH\" --no-color eval-file scripts/eval-wordpress-ai-generation-reference.php"
     ],
-    "i18n:pot": "WP_CLI_BIN=\"${WP_CLI_BIN:-/tmp/wp-cli.phar}\"; php \"$WP_CLI_BIN\" i18n make-pot . languages/npcink-cloud-addon.pot --slug=npcink-cloud-addon --domain=npcink-cloud-addon --exclude=build,dist,sj,tests,scripts --skip-js",
-    "i18n:update-po": "WP_CLI_BIN=\"${WP_CLI_BIN:-/tmp/wp-cli.phar}\"; php \"$WP_CLI_BIN\" i18n update-po languages/npcink-cloud-addon.pot languages",
-    "i18n:make-mo": "WP_CLI_BIN=\"${WP_CLI_BIN:-/tmp/wp-cli.phar}\"; php \"$WP_CLI_BIN\" i18n make-mo languages languages",
+    "i18n:pot": "@php scripts/run-wp-cli.php i18n make-pot . languages/npcink-cloud-addon.pot --slug=npcink-cloud-addon --domain=npcink-cloud-addon --exclude=build,dist,sj,tests,scripts --skip-js",
+    "i18n:update-po": "@php scripts/run-wp-cli.php i18n update-po languages/npcink-cloud-addon.pot languages",
+    "i18n:make-mo": "@php scripts/run-wp-cli.php i18n make-mo languages languages",
     "i18n:refresh": [
       "@i18n:pot",
       "@i18n:update-po",
       "@i18n:make-mo"
     ],
-    "package:release": "rm -rf build/npcink-cloud-addon build/npcink-cloud-addon.zip && mkdir -p build && rsync -a --delete --exclude-from=.distignore ./ build/npcink-cloud-addon/ && cd build && zip -qr npcink-cloud-addon.zip npcink-cloud-addon",
-    "plugin-check:release": "WP_PATH=\"${WP_PATH:-/Users/muze/Local Sites/npcink/app/public}\"; WP_CLI_BIN=\"${WP_CLI_BIN:-/tmp/wp-cli.phar}\"; WP_CLI_PHP=\"${WP_CLI_PHP:-$HOME/Library/Application Support/Local/lightning-services/php-8.5.3+1/bin/darwin-arm64/bin/php}\"; SOCKET=\"${WP_DB_SOCKET:-$HOME/Library/Application Support/Local/run/NPb24Zg9g/mysql/mysqld.sock}\"; \"$WP_CLI_PHP\" -d display_errors=0 -d error_reporting=8191 -d mysqli.default_socket=\"$SOCKET\" \"$WP_CLI_BIN\" --path=\"$WP_PATH\" --no-color plugin check npcink-cloud-addon --format=table --exclude-directories=tests,.git,.github,vendor,node_modules,build,dist,sj,scripts --exclude-files=.gitignore,.distignore,AGENTS.md,README.md,composer.json,composer.lock,phpcs.xml,phpcs.xml.dist,phpstan.neon,phpstan.neon.dist",
+    "package:release": "@php scripts/build-release.php",
+    "package:verify": "@php scripts/verify-release.php",
+    "plugin-check:release": "@php scripts/run-plugin-check.php",
+    "check:js": "node --check assets/admin-entitlement.js && node --check assets/admin-site-knowledge.js && node --check assets/ai-plugin-localization.js && node --check scripts/smoke-wordpress-ai-text-browser.mjs",
+    "i18n:check": "@php scripts/check-pot-freshness.php",
     "release:verify": [
       "@test:all",
       "@ai:i18n:audit",
       "@check:wporg",
+      "@check:js",
+      "@i18n:check",
+      "@package:release",
+      "@package:verify",
       "@plugin-check:release"
     ],
     "test:all": [

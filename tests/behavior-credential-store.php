@@ -137,6 +137,17 @@ maca_assert(
 	'Behavior: a later successful verification clears the inactive projection and marks the site active.'
 );
 
+$before_verification_write_failure = get_option( Npcink_Cloud_Addon_Settings::option_name(), array() );
+$GLOBALS['maca_option_update_failures'][ Npcink_Cloud_Addon_Settings::option_name() ] = true;
+$verification_write_failure = Npcink_Cloud_Addon_Settings::mark_verification_result( false, 'Probe failed.' );
+maca_assert(
+	is_wp_error( $verification_write_failure )
+	&& 'cloud_verification_state_storage_failed' === $verification_write_failure->get_error_code()
+	&& $before_verification_write_failure === get_option( Npcink_Cloud_Addon_Settings::option_name(), array() ),
+	'Behavior: verification state persistence fails explicitly without replacing the previous connection state.'
+);
+unset( $GLOBALS['maca_option_update_failures'][ Npcink_Cloud_Addon_Settings::option_name() ] );
+
 $valid_stored = get_option( Npcink_Cloud_Addon_Settings::option_name(), array() );
 $tampered = $valid_stored;
 $ciphertext = (string) ( $tampered['credential_envelope']['ciphertext'] ?? '' );

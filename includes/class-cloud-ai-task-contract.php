@@ -29,6 +29,12 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		 * @var array<string,array<string,mixed>>
 		 */
 		private const AI_PLUGIN_COMPATIBILITY = array(
+			'ai/image-prompt-generation' => array(
+				'task'                 => 'image_prompt_generation',
+				'task_family'         => 'generation',
+				'context_requirements' => array( 'current_content', 'site_style_profile' ),
+				'constraints'          => array( 'single_value', 'source_grounded' ),
+			),
 			'ai/title-generation' => array(
 				'task'                 => 'title_generation',
 				'task_family'          => 'generation',
