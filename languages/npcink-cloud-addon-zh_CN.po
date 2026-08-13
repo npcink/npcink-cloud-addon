@@ -272,6 +272,17 @@ msgstr "没有可上传的 observability 事件。"
 #: includes/bootstrap.php:388
 #: includes/bootstrap.php:419
 #: includes/bootstrap.php:450
+#: includes/bootstrap.php:503
+#: includes/bootstrap.php:525
+#: includes/bootstrap.php:547
+#: includes/bootstrap.php:555
+#: includes/bootstrap.php:563
+#: includes/bootstrap.php:571
+#: includes/bootstrap.php:579
+#: includes/bootstrap.php:587
+#: includes/bootstrap.php:595
+#: includes/bootstrap.php:603
+#: includes/bootstrap.php:611
 #: includes/class-cloud-runtime-client.php:1032
 #: includes/class-cloud-runtime-client.php:1138
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:102
@@ -423,7 +434,7 @@ msgstr "免费服务和 AI 积分属于授权时选择的 Cloud 账户，不属�
 msgid "Monitoring"
 msgstr "监控"
 
-#: includes/bootstrap.php:662
+#: includes/bootstrap.php:792
 msgid "Settings"
 msgstr "设置"
 
@@ -2342,3 +2353,15 @@ msgstr "Cloud 请求标识符只能使用字母、数字、点、下划线、冒
 #: includes/class-cloud-site-knowledge-change-bridge.php:679
 msgid "Cloud Site Knowledge run identifier is invalid."
 msgstr "Cloud 站点知识库运行标识符无效。"
+
+#: includes/bootstrap.php:499
+msgid "Toolbox content support requires its fixed runtime contract."
+msgstr "Toolbox 内容支持需要使用其固定运行时合同。"
+
+#: includes/bootstrap.php:521
+msgid "Toolbox site helpers require their fixed runtime contract."
+msgstr "Toolbox 站点助手需要使用其固定运行时合同。"
+
+#: includes/bootstrap.php:543
+msgid "Nightly Inspection requires its fixed runtime contract."
+msgstr "夜间检查需要使用其固定运行时合同。"

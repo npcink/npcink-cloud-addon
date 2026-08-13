@@ -541,6 +541,33 @@ maca_assert(
 	'Public API keeps compatibility while documenting a non-secret state facade and migration away from raw settings and generic runtime access.'
 );
 
+foreach (
+	array(
+		'npcink_cloud_addon_execute_toolbox_content_support_runtime',
+		'npcink_cloud_addon_execute_toolbox_site_helper_runtime',
+		'npcink_cloud_addon_submit_toolbox_nightly_inspection',
+		'npcink_cloud_addon_get_toolbox_nightly_inspection_recent_runs',
+		'npcink_cloud_addon_get_toolbox_runtime_run',
+		'npcink_cloud_addon_get_toolbox_runtime_run_result',
+		'npcink_cloud_addon_retry_toolbox_nightly_inspection',
+		'npcink_cloud_addon_get_toolbox_runtime_entitlement',
+		'npcink_cloud_addon_upload_toolbox_site_media_visual_source',
+		'npcink_cloud_addon_send_agent_feedback_event',
+		'npcink_cloud_addon_get_agent_feedback_summary',
+	) as $toolbox_facade
+) {
+	maca_assert( false !== strpos( $bootstrap, 'function ' . $toolbox_facade ), 'Toolbox uses scenario-specific Addon facade: ' . $toolbox_facade );
+}
+maca_assert(
+	false !== strpos( $bootstrap, "'npcink-toolbox/ai-content-support'" )
+	&& false !== strpos( $bootstrap, "'hosted_ai_content_support.v1'" )
+	&& false !== strpos( $bootstrap, "'npcink-toolbox/ai-site-helper'" )
+	&& false !== strpos( $bootstrap, "'hosted_ai_site_helper.v1'" )
+	&& false !== strpos( $bootstrap, "'npcink-toolbox/analyze-nightly-content-batch'" )
+	&& false !== strpos( $bootstrap, "'cloud_batch_runtime_request.v1'" ),
+	'Toolbox execution facades fail closed to their fixed ability and contract pairs.'
+);
+
 maca_assert(
 	false !== strpos( $runtime_client, 'function execute_wordpress_ai_connector_runtime' )
 	&& false !== strpos( $runtime_client, 'normalize_wordpress_ai_connector_request' )

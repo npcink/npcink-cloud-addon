@@ -482,6 +482,136 @@ if ( ! function_exists( 'npcink_cloud_addon_dispatch_site_knowledge_runtime' ) )
 	}
 }
 
+if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_content_support_runtime' ) ) {
+	/**
+	 * Executes the fixed Toolbox content-support runtime contract.
+	 *
+	 * @param array<string,mixed> $runtime_payload Exact Toolbox runtime payload.
+	 * @param string              $trace_id Optional trace id.
+	 * @param string              $idempotency_key Optional idempotency key.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	function npcink_cloud_addon_execute_toolbox_content_support_runtime( array $runtime_payload, string $trace_id = '', string $idempotency_key = '' ) {
+		if (
+			'npcink-toolbox/ai-content-support' !== (string) ( $runtime_payload['ability_name'] ?? '' )
+			|| 'hosted_ai_content_support.v1' !== (string) ( $runtime_payload['contract_version'] ?? '' )
+		) {
+			return new WP_Error( 'cloud_toolbox_content_support_contract_invalid', __( 'Toolbox content support requires its fixed runtime contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+		}
+
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->execute_runtime( $runtime_payload, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_site_helper_runtime' ) ) {
+	/**
+	 * Executes the fixed Toolbox site-helper runtime contract.
+	 *
+	 * @param array<string,mixed> $runtime_payload Exact Toolbox runtime payload.
+	 * @param string              $trace_id Optional trace id.
+	 * @param string              $idempotency_key Optional idempotency key.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	function npcink_cloud_addon_execute_toolbox_site_helper_runtime( array $runtime_payload, string $trace_id = '', string $idempotency_key = '' ) {
+		if (
+			'npcink-toolbox/ai-site-helper' !== (string) ( $runtime_payload['ability_name'] ?? '' )
+			|| 'hosted_ai_site_helper.v1' !== (string) ( $runtime_payload['contract_version'] ?? '' )
+		) {
+			return new WP_Error( 'cloud_toolbox_site_helper_contract_invalid', __( 'Toolbox site helpers require their fixed runtime contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+		}
+
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->execute_runtime( $runtime_payload, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_submit_toolbox_nightly_inspection' ) ) {
+	/**
+	 * Submits the fixed Toolbox Nightly Inspection runtime contract.
+	 *
+	 * @param array<string,mixed> $runtime_payload Exact Nightly Inspection payload.
+	 * @param string              $trace_id Optional trace id.
+	 * @param string              $idempotency_key Optional idempotency key.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	function npcink_cloud_addon_submit_toolbox_nightly_inspection( array $runtime_payload, string $trace_id = '', string $idempotency_key = '' ) {
+		if (
+			'npcink-toolbox/analyze-nightly-content-batch' !== (string) ( $runtime_payload['ability_name'] ?? '' )
+			|| 'cloud_batch_runtime_request.v1' !== (string) ( $runtime_payload['contract_version'] ?? '' )
+		) {
+			return new WP_Error( 'cloud_toolbox_nightly_inspection_contract_invalid', __( 'Nightly Inspection requires its fixed runtime contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+		}
+
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->execute_runtime( $runtime_payload, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_nightly_inspection_recent_runs' ) ) {
+	/** @return array<string,mixed>|WP_Error */
+	function npcink_cloud_addon_get_toolbox_nightly_inspection_recent_runs( int $limit = 10, string $trace_id = '' ) {
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->get_recent_nightly_inspection_runs( $limit, $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_run' ) ) {
+	/** @return array<string,mixed>|WP_Error */
+	function npcink_cloud_addon_get_toolbox_runtime_run( string $run_id, string $trace_id = '' ) {
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->get_run( $run_id, $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_run_result' ) ) {
+	/** @return array<string,mixed>|WP_Error */
+	function npcink_cloud_addon_get_toolbox_runtime_run_result( string $run_id, string $trace_id = '' ) {
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->get_run_result( $run_id, $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_retry_toolbox_nightly_inspection' ) ) {
+	/** @param array<string,mixed> $input @return array<string,mixed>|WP_Error */
+	function npcink_cloud_addon_retry_toolbox_nightly_inspection( string $run_id, array $input, string $trace_id = '', string $idempotency_key = '' ) {
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->retry_run( $run_id, $input, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_entitlement' ) ) {
+	/** @return array<string,mixed>|WP_Error */
+	function npcink_cloud_addon_get_toolbox_runtime_entitlement( string $trace_id = '' ) {
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->get_current_entitlement( $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_upload_toolbox_site_media_visual_source' ) ) {
+	/** @param array<string,mixed> $file @return array<string,mixed>|WP_Error */
+	function npcink_cloud_addon_upload_toolbox_site_media_visual_source( array $file, string $trace_id = '', string $idempotency_key = '' ) {
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->upload_media_artifact( $file, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_send_agent_feedback_event' ) ) {
+	/** @param array<string,mixed> $payload @return array<string,mixed>|WP_Error */
+	function npcink_cloud_addon_send_agent_feedback_event( array $payload, string $trace_id = '', string $idempotency_key = '' ) {
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->send_agent_feedback_event( $payload, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_get_agent_feedback_summary' ) ) {
+	/** @return array<string,mixed>|WP_Error */
+	function npcink_cloud_addon_get_agent_feedback_summary( int $window_hours = 24, string $trace_id = '' ) {
+		$client = npcink_cloud_addon_runtime_client();
+		return $client ? $client->get_agent_feedback_summary( $window_hours, $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
 if ( ! function_exists( 'npcink_cloud_addon_build_media_derivative_proposal_payload' ) ) {
 	/**
 	 * Builds a Core-ready local proposal payload for a Cloud derivative artifact.

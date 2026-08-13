@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-13T03:13:46+00:00\n"
+"POT-Creation-Date: 2026-08-13T05:15:23+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -41,13 +41,36 @@ msgstr ""
 #: includes/bootstrap.php:388
 #: includes/bootstrap.php:419
 #: includes/bootstrap.php:450
+#: includes/bootstrap.php:503
+#: includes/bootstrap.php:525
+#: includes/bootstrap.php:547
+#: includes/bootstrap.php:555
+#: includes/bootstrap.php:563
+#: includes/bootstrap.php:571
+#: includes/bootstrap.php:579
+#: includes/bootstrap.php:587
+#: includes/bootstrap.php:595
+#: includes/bootstrap.php:603
+#: includes/bootstrap.php:611
 #: includes/class-cloud-runtime-client.php:1032
 #: includes/class-cloud-runtime-client.php:1138
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:102
 msgid "Npcink Cloud is not configured."
 msgstr ""
 
-#: includes/bootstrap.php:662
+#: includes/bootstrap.php:499
+msgid "Toolbox content support requires its fixed runtime contract."
+msgstr ""
+
+#: includes/bootstrap.php:521
+msgid "Toolbox site helpers require their fixed runtime contract."
+msgstr ""
+
+#: includes/bootstrap.php:543
+msgid "Nightly Inspection requires its fixed runtime contract."
+msgstr ""
+
+#: includes/bootstrap.php:792
 msgid "Settings"
 msgstr ""
 
