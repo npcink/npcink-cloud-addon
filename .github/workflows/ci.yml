@@ -52,6 +52,18 @@ jobs:
       - name: Boundary search
         run: composer run check:boundary
 
+  php-contracts-required:
+    name: PHP contracts
+    needs: php-contracts
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Require every PHP contract matrix job
+        env:
+          MATRIX_RESULT: ${{ needs.php-contracts.result }}
+        run: test "$MATRIX_RESULT" = success
+
   release-static:
     name: Release static gates
     runs-on: ubuntu-latest

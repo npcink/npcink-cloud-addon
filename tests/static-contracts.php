@@ -117,6 +117,15 @@ $release_source_manifest = maca_read( $root . '/release-manifest.txt' );
 $composer_config = json_decode( $composer, true );
 
 maca_assert(
+	false !== strpos( $ci_workflow, 'name: PHP ${{ matrix.php }} contracts' )
+	&& false !== strpos( $ci_workflow, 'php-contracts-required:' )
+	&& false !== strpos( $ci_workflow, 'name: PHP contracts' )
+	&& false !== strpos( $ci_workflow, 'needs: php-contracts' )
+	&& false !== strpos( $ci_workflow, 'test "$MATRIX_RESULT" = success' ),
+	'CI preserves the protected PHP contracts status while requiring every PHP version in the matrix.'
+);
+
+maca_assert(
 	false !== strpos( $release_builder, "release-manifest.txt" )
 	&& false === strpos( $release_builder, "glob(" )
 	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-addon-cleanup.php' )
