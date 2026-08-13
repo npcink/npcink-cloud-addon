@@ -45,6 +45,7 @@ $outbound_policy = maca_read( $root . '/includes/class-cloud-outbound-policy.php
 $runtime_endpoint_policy = maca_read( $root . '/includes/class-cloud-runtime-endpoint-policy.php' );
 $transport = maca_read( $root . '/includes/class-cloud-media-derivative-transport.php' );
 $runtime_client = maca_read( $root . '/includes/class-cloud-runtime-client.php' );
+$runtime_client_factory = maca_read( $root . '/includes/class-cloud-runtime-client-factory.php' );
 $ai_task_contract = maca_read( $root . '/includes/class-cloud-ai-task-contract.php' );
 $wordpress_ai_connector = maca_read( $root . '/includes/class-cloud-wordpress-ai-connector.php' );
 $cloud_addon_localization = maca_read( $root . '/includes/class-cloud-addon-localization.php' );
@@ -138,9 +139,20 @@ maca_assert(
 );
 
 maca_assert(
+	false === strpos( $bootstrap, 'function npcink_cloud_addon_runtime_client' )
+	&& false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-runtime-client-factory.php'" )
+	&& false !== strpos( $runtime_client_factory, 'final class Npcink_Cloud_Runtime_Client_Factory' )
+	&& false !== strpos( $runtime_client_factory, 'public static function configured()' )
+	&& false === strpos( $readme, 'Npcink_Cloud_Runtime_Client_Factory' )
+	&& false !== strpos( $readme, 'concrete runtime-client helper has been removed' ),
+	'Concrete runtime-client construction is addon-internal and the removed global helper is not restored as a public integration seam.'
+);
+
+maca_assert(
 	false !== strpos( $release_builder, "release-manifest.txt" )
 	&& false === strpos( $release_builder, "glob(" )
 	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-addon-cleanup.php' )
+	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-runtime-client-factory.php' )
 	&& false !== strpos( $release_source_manifest, 'languages/npcink-cloud-addon-zh_CN.mo' )
 	&& false === strpos( $release_source_manifest, 'reasonix.toml' ),
 	'Release packaging uses one exact source manifest and cannot absorb unrelated workspace files.'
@@ -545,12 +557,13 @@ maca_assert(
 maca_assert(
 	false !== strpos( $bootstrap, 'function npcink_cloud_addon_get_connection_state(): array' )
 	&& false !== strpos( $bootstrap, '@deprecated 0.1.7 Use npcink_cloud_addon_get_connection_state()' )
-	&& false !== strpos( $bootstrap, '@deprecated 0.1.7 Prefer the scenario-specific public transport helpers.' )
+	&& false === strpos( $bootstrap, 'function npcink_cloud_addon_runtime_client' )
 	&& false !== strpos( $runtime_client, '@deprecated 0.1.7 Prefer a scenario-specific runtime method or public facade.' )
 	&& false !== strpos( $readme, 'npcink_cloud_addon_get_connection_state()' )
-	&& false !== strpos( $readme, 'remain callable only as deprecated' )
-	&& false !== strpos( $readme, 'All maintained Npcink consumers' ),
-	'Public API keeps compatibility while documenting a non-secret state facade and migration away from raw settings and generic runtime access.'
+	&& false !== strpos( $readme, 'remains callable only as a deprecated' )
+	&& false !== strpos( $readme, 'concrete runtime-client helper has been removed' )
+	&& false !== strpos( $readme, 'all maintained Npcink consumers' ),
+	'Public API keeps the raw-settings migration path, exposes non-secret state, and removes generic concrete-client access.'
 );
 
 foreach (

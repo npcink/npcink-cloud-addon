@@ -64,21 +64,28 @@ composer run smoke:playground
 
 The command starts one temporary local WordPress Playground instance, mounting
 the current checkout as `npcink-cloud-addon`. It pins the Playground CLI,
-WordPress, and PHP versions in `scripts/smoke-playground.sh`, activates the
+WordPress archive, and PHP versions in `scripts/smoke-playground.sh`, activates the
 plugin through `tests/playground/blueprint.json`, calls an ephemeral local
 assertion route, then terminates the instance and removes its temporary files.
 
-Prerequisites are Node.js 20.18 or later, `npx`, `curl`, and a free local TCP
+Prerequisites are Node.js 20.18 or later, `npx`, `curl`, `unzip`, and a free local TCP
 port (default `9417`). Set `NPCINK_PLAYGROUND_PORT` only when that port is in
 use. Do not mount a checkout containing credentials or point this smoke at
 production data.
+
+The script prefetches the pinned WordPress ZIP with retries and an integrity
+check into WordPress Playground's persistent user cache. This avoids the CLI's
+separate WordPress version-discovery request and makes later runs reusable. A
+download failure is reported as an environment failure before plugin boot; it
+is never treated as a passing or skipped plugin smoke.
 
 Expected evidence:
 
 - the Addon activates in a fresh SQLite/WASM WordPress instance;
 - its public connector API is available;
-- default state is fail-closed: no credentials, runtime client, verified runtime
-  client, or synthetic WordPress AI connector marker;
+- the removed concrete-client global helper remains absent;
+- default state is fail-closed: no credentials, verified runtime client, or
+  synthetic WordPress AI connector marker;
 - the smoke itself makes no Cloud request and exposes no secret value.
 
 This is not evidence for MySQL behavior, native PHP extensions, media import,

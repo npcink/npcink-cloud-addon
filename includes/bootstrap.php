@@ -18,6 +18,7 @@ require_once __DIR__ . '/class-cloud-addon-settings.php';
 require_once __DIR__ . '/class-cloud-addon-cleanup.php';
 require_once __DIR__ . '/class-cloud-ai-task-contract.php';
 require_once __DIR__ . '/class-cloud-runtime-client.php';
+require_once __DIR__ . '/class-cloud-runtime-client-factory.php';
 require_once __DIR__ . '/class-cloud-media-derivative-transport.php';
 require_once __DIR__ . '/class-cloud-entitlement-summary.php';
 require_once __DIR__ . '/class-cloud-observability-collector.php';
@@ -77,22 +78,6 @@ if ( ! function_exists( 'npcink_cloud_addon_get_connection_state' ) ) {
 				'wordpress_ai_connector_enabled' => ! empty( $settings['wordpress_ai_connector_enabled'] ),
 			)
 		);
-	}
-}
-
-if ( ! function_exists( 'npcink_cloud_addon_runtime_client' ) ) {
-	/**
-	 * Returns a configured runtime client, or null when credentials are incomplete.
-	 *
-	 * @deprecated 0.1.7 Prefer the scenario-specific public transport helpers.
-	 * @return Npcink_Cloud_Runtime_Client|null
-	 */
-	function npcink_cloud_addon_runtime_client(): ?Npcink_Cloud_Runtime_Client {
-		if ( ! Npcink_Cloud_Addon_Settings::is_configured() ) {
-			return null;
-		}
-
-		return new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() );
 	}
 }
 
@@ -167,7 +152,7 @@ if ( ! function_exists( 'npcink_cloud_addon_request_image_context_evidence' ) ) 
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_request_image_context_evidence( array $image_context_evidence_request, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		if ( ! $client ) {
 			return new WP_Error(
 				'cloud_runtime_unconfigured',
@@ -197,7 +182,7 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_wordpress_ai_connector_runti
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_execute_wordpress_ai_connector_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		if ( ! $client ) {
 			return new WP_Error(
 				'cloud_runtime_unconfigured',
@@ -288,7 +273,7 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_wordpress_ai_image_generatio
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		if ( ! $client ) {
 			return new WP_Error(
 				'cloud_runtime_unconfigured',
@@ -319,7 +304,7 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_image_generation_run
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_execute_toolbox_image_generation_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		if ( ! $client ) {
 			return new WP_Error(
 				'cloud_runtime_unconfigured',
@@ -350,7 +335,7 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_audio_generation_run
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_execute_toolbox_audio_generation_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		if ( ! $client ) {
 			return new WP_Error(
 				'cloud_runtime_unconfigured',
@@ -381,7 +366,7 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_site_ops_cloud_analy
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_execute_toolbox_site_ops_cloud_analysis_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		if ( ! $client ) {
 			return new WP_Error(
 				'cloud_runtime_unconfigured',
@@ -412,7 +397,7 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_web_search_runtime' 
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_execute_toolbox_web_search_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		if ( ! $client ) {
 			return new WP_Error(
 				'cloud_runtime_unconfigured',
@@ -443,7 +428,7 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_image_source_runtime
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_execute_toolbox_image_source_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		if ( ! $client ) {
 			return new WP_Error(
 				'cloud_runtime_unconfigured',
@@ -499,7 +484,7 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_content_support_runt
 			return new WP_Error( 'cloud_toolbox_content_support_contract_invalid', __( 'Toolbox content support requires its fixed runtime contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 		}
 
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->execute_runtime( $runtime_payload, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -521,7 +506,7 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_site_helper_runtime'
 			return new WP_Error( 'cloud_toolbox_site_helper_contract_invalid', __( 'Toolbox site helpers require their fixed runtime contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 		}
 
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->execute_runtime( $runtime_payload, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -543,7 +528,7 @@ if ( ! function_exists( 'npcink_cloud_addon_submit_toolbox_nightly_inspection' )
 			return new WP_Error( 'cloud_toolbox_nightly_inspection_contract_invalid', __( 'Nightly Inspection requires its fixed runtime contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 		}
 
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->execute_runtime( $runtime_payload, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -551,7 +536,7 @@ if ( ! function_exists( 'npcink_cloud_addon_submit_toolbox_nightly_inspection' )
 if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_nightly_inspection_recent_runs' ) ) {
 	/** @return array<string,mixed>|WP_Error */
 	function npcink_cloud_addon_get_toolbox_nightly_inspection_recent_runs( int $limit = 10, string $trace_id = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->get_recent_nightly_inspection_runs( $limit, $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -559,7 +544,7 @@ if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_nightly_inspection_recen
 if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_run' ) ) {
 	/** @return array<string,mixed>|WP_Error */
 	function npcink_cloud_addon_get_toolbox_runtime_run( string $run_id, string $trace_id = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->get_run( $run_id, $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -567,7 +552,7 @@ if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_run' ) ) {
 if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_run_result' ) ) {
 	/** @return array<string,mixed>|WP_Error */
 	function npcink_cloud_addon_get_toolbox_runtime_run_result( string $run_id, string $trace_id = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->get_run_result( $run_id, $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -575,7 +560,7 @@ if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_run_result' ) ) 
 if ( ! function_exists( 'npcink_cloud_addon_retry_toolbox_nightly_inspection' ) ) {
 	/** @param array<string,mixed> $input @return array<string,mixed>|WP_Error */
 	function npcink_cloud_addon_retry_toolbox_nightly_inspection( string $run_id, array $input, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->retry_run( $run_id, $input, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -583,7 +568,7 @@ if ( ! function_exists( 'npcink_cloud_addon_retry_toolbox_nightly_inspection' ) 
 if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_entitlement' ) ) {
 	/** @return array<string,mixed>|WP_Error */
 	function npcink_cloud_addon_get_toolbox_runtime_entitlement( string $trace_id = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->get_current_entitlement( $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -591,7 +576,7 @@ if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_entitlement' ) )
 if ( ! function_exists( 'npcink_cloud_addon_upload_toolbox_site_media_visual_source' ) ) {
 	/** @param array<string,mixed> $file @return array<string,mixed>|WP_Error */
 	function npcink_cloud_addon_upload_toolbox_site_media_visual_source( array $file, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->upload_media_artifact( $file, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -599,7 +584,7 @@ if ( ! function_exists( 'npcink_cloud_addon_upload_toolbox_site_media_visual_sou
 if ( ! function_exists( 'npcink_cloud_addon_send_agent_feedback_event' ) ) {
 	/** @param array<string,mixed> $payload @return array<string,mixed>|WP_Error */
 	function npcink_cloud_addon_send_agent_feedback_event( array $payload, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->send_agent_feedback_event( $payload, $trace_id, $idempotency_key ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
@@ -607,7 +592,7 @@ if ( ! function_exists( 'npcink_cloud_addon_send_agent_feedback_event' ) ) {
 if ( ! function_exists( 'npcink_cloud_addon_get_agent_feedback_summary' ) ) {
 	/** @return array<string,mixed>|WP_Error */
 	function npcink_cloud_addon_get_agent_feedback_summary( int $window_hours = 24, string $trace_id = '' ) {
-		$client = npcink_cloud_addon_runtime_client();
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
 		return $client ? $client->get_agent_feedback_summary( $window_hours, $trace_id ) : new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 	}
 }
