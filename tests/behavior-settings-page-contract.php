@@ -343,6 +343,19 @@ maca_assert(
 	'Behavior: standalone settings links and GET forms stay on the registered options-general.php page.'
 );
 
+$settings_page_source = file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php' );
+$permissions_script_source = file_get_contents( MACA_TEST_ROOT . '/assets/admin-permissions.js' );
+maca_assert(
+	is_string( $settings_page_source )
+	&& is_string( $permissions_script_source )
+	&& false !== strpos( $settings_page_source, 'set_local_permission_feedback' )
+	&& false !== strpos( $settings_page_source, 'redirect_to_local_permission' )
+	&& false !== strpos( $settings_page_source, 'data-npcink-local-permission-feedback' )
+	&& false !== strpos( $permissions_script_source, "form.setAttribute( 'aria-busy', 'true' )" )
+	&& false !== strpos( $permissions_script_source, 'scrollIntoView' ),
+	'Behavior: local permission switches expose a saving state, row-level feedback, and focus restoration after redirect.'
+);
+
 maca_reset_test_state();
 maca_seed_settings( false );
 $failed_settings = Npcink_Cloud_Addon_Settings::get_settings();

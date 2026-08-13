@@ -185,6 +185,40 @@
 	text-transform: lowercase;
 }
 
+.npcink-cloud-local-permission__progress,
+.npcink-cloud-local-permission__feedback {
+	display: block;
+	font-size: 12px;
+	margin: -8px 0 12px 70px;
+}
+
+.npcink-cloud-local-permission__progress {
+	color: #646970;
+}
+
+.npcink-cloud-local-permission__feedback {
+	border-left: 3px solid #72aee6;
+	padding: 4px 8px;
+}
+
+.npcink-cloud-local-permission__feedback--success {
+	border-color: #00a32a;
+	color: #006b1b;
+}
+
+.npcink-cloud-local-permission__feedback--error {
+	border-color: #d63638;
+	color: #8a2424;
+}
+
+.npcink-cloud-local-permission.is-saving {
+	opacity: .68;
+}
+
+.npcink-cloud-local-permission.is-saving .npcink-cloud-local-permission__control {
+	cursor: wait;
+}
+
 .npcink-ai-switch {
 	align-items: center;
 	display: inline-flex;
@@ -918,6 +952,11 @@
 		grid-column: 2;
 	}
 
+	.npcink-cloud-local-permission__progress,
+	.npcink-cloud-local-permission__feedback {
+		margin-left: 70px;
+	}
+
 	.npcink-cloud-site-knowledge-consent {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) auto;
@@ -944,6 +983,33 @@
 }
 
 @media (max-width: 480px) {
+	.npcink-cloud-site-knowledge-heading .npcink-cloud-summary__actions {
+		align-items: flex-start;
+		display: grid;
+		gap: 8px;
+		width: 100%;
+	}
+
+	.npcink-cloud-site-knowledge-heading .npcink-cloud-summary__actions > form,
+	.npcink-cloud-site-knowledge-heading .npcink-cloud-summary__actions > form .button-primary {
+		box-sizing: border-box;
+		width: 100%;
+	}
+
+	.npcink-cloud-site-knowledge-heading .npcink-cloud-secondary-action {
+		justify-self: start;
+	}
+
+	.npcink-cloud-site-knowledge-heading .button.npcink-cloud-secondary-action {
+		background: transparent;
+		border: 0;
+		box-shadow: none;
+		color: #2271b1;
+		min-height: auto;
+		padding: 0;
+		text-decoration: underline;
+	}
+
 	.npcink-cloud-overview-status,
 	.npcink-cloud-site-knowledge-status {
 		border: 0;
@@ -984,5 +1050,10 @@
 	.npcink-cloud-site-knowledge-consent__state,
 	.npcink-cloud-site-knowledge-consent .button {
 		justify-self: start;
+	}
+
+	.npcink-cloud-local-permission__progress,
+	.npcink-cloud-local-permission__feedback {
+		margin-left: 0;
 	}
 }

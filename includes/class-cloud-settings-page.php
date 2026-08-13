@@ -116,6 +116,21 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					'updateFailedLabel' => __( 'Update failed', 'npcink-cloud-addon' ),
 				)
 			);
+
+			wp_enqueue_script(
+				'npcink-cloud-addon-admin-permissions',
+				plugins_url( 'assets/admin-permissions.js', NPCINK_CLOUD_ADDON_FILE ),
+				array(),
+				NPCINK_CLOUD_ADDON_VERSION,
+				true
+			);
+			wp_localize_script(
+				'npcink-cloud-addon-admin-permissions',
+				'npcinkCloudPermissions',
+				array(
+					'savingLabel' => __( 'Saving…', 'npcink-cloud-addon' ),
+				)
+			);
 		}
 
 		/**
@@ -583,24 +598,26 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				$settings['site_knowledge_generation_reference_enabled'] = false;
 			}
 			if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
-				self::set_admin_notice(
+				self::set_local_permission_feedback(
 					'error',
-					__( 'The local permission could not be saved securely. No permission or background delivery state was changed.', 'npcink-cloud-addon' )
+					__( 'The local permission could not be saved securely. No permission or background delivery state was changed.', 'npcink-cloud-addon' ),
+					$permission
 				);
-				self::redirect_to_page( 'permissions' );
+				self::redirect_to_local_permission( $permission );
 			}
 			self::sync_local_permission_effects( $permission );
 
-			self::set_admin_notice(
+			self::set_local_permission_feedback(
 				'success',
 				sprintf(
 					/* translators: 1: local permission label, 2: enabled or disabled state. */
 					__( '%1$s %2$s.', 'npcink-cloud-addon' ),
 					(string) $definitions[ $permission ]['label'],
 					$enabled ? __( 'enabled', 'npcink-cloud-addon' ) : __( 'disabled', 'npcink-cloud-addon' )
-				)
+				),
+				$permission
 			);
-			self::redirect_to_page( 'permissions' );
+			self::redirect_to_local_permission( $permission );
 		}
 
 		/**
@@ -1376,6 +1393,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				return;
 			}
 
+			$feedback = self::get_local_permission_feedback();
 			?>
 			<section class="npcink-cloud-local-permissions" aria-labelledby="npcink-cloud-local-permissions-title">
 				<div class="npcink-cloud-local-permissions__header">
@@ -1384,16 +1402,16 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<div class="npcink-cloud-local-permissions__list">
 					<?php $definitions = self::get_local_permission_definitions(); ?>
 					<?php foreach ( array( 'wordpress_ai_connector_enabled', 'site_knowledge_delivery_enabled' ) as $permission ) : ?>
-						<?php self::render_local_permission_switch( $permission, $definitions[ $permission ], ! empty( $settings[ $permission ] ) ); ?>
+						<?php self::render_local_permission_switch( $permission, $definitions[ $permission ], ! empty( $settings[ $permission ] ), $feedback ); ?>
 					<?php endforeach; ?>
 					<?php if ( ! empty( $settings['site_knowledge_delivery_enabled'] ) ) : ?>
-						<?php self::render_local_permission_switch( 'site_knowledge_generation_reference_enabled', $definitions['site_knowledge_generation_reference_enabled'], ! empty( $settings['site_knowledge_generation_reference_enabled'] ) ); ?>
+						<?php self::render_local_permission_switch( 'site_knowledge_generation_reference_enabled', $definitions['site_knowledge_generation_reference_enabled'], ! empty( $settings['site_knowledge_generation_reference_enabled'] ), $feedback ); ?>
 					<?php endif; ?>
 				</div>
-				<details class="npcink-cloud-advanced-detail npcink-cloud-local-permissions__more">
+				<details class="npcink-cloud-advanced-detail npcink-cloud-local-permissions__more"<?php echo 'monitoring_enabled' === (string) ( $feedback['permission'] ?? '' ) ? ' open' : ''; ?>>
 					<summary><?php esc_html_e( 'More local permissions', 'npcink-cloud-addon' ); ?></summary>
 					<div class="npcink-cloud-advanced-detail__body">
-						<?php self::render_local_permission_switch( 'monitoring_enabled', $definitions['monitoring_enabled'], ! empty( $settings['monitoring_enabled'] ) ); ?>
+						<?php self::render_local_permission_switch( 'monitoring_enabled', $definitions['monitoring_enabled'], ! empty( $settings['monitoring_enabled'] ), $feedback ); ?>
 					</div>
 				</details>
 			</section>
@@ -1406,16 +1424,18 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param string                             $permission Permission key.
 		 * @param array{label:string,description:string} $definition Permission copy.
 		 * @param bool                               $enabled Whether the switch is enabled.
+		 * @param array<string,string>               $feedback Latest permission feedback.
 		 * @return void
 		 */
-		private static function render_local_permission_switch( string $permission, array $definition, bool $enabled ): void {
+		private static function render_local_permission_switch( string $permission, array $definition, bool $enabled, array $feedback = array() ): void {
 			$input_id = 'npcink-cloud-local-permission-' . sanitize_html_class( str_replace( '_', '-', $permission ) );
+			$is_feedback_target = $permission === (string) ( $feedback['permission'] ?? '' );
 			?>
-			<form class="npcink-cloud-local-permission" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<form id="<?php echo esc_attr( $input_id . '-form' ); ?>" class="npcink-cloud-local-permission" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-npcink-local-permission<?php echo $is_feedback_target ? ' data-npcink-local-permission-focus' : ''; ?>>
 				<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( self::ACTION_UPDATE_LOCAL_PERMISSION ) ); ?>" />
 				<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_UPDATE_LOCAL_PERMISSION ); ?>" />
 				<input type="hidden" name="permission" value="<?php echo esc_attr( $permission ); ?>" />
-				<input type="hidden" name="enabled" value="0" />
+				<input type="hidden" name="enabled" value="0" data-npcink-local-permission-value />
 				<label class="npcink-cloud-local-permission__control" for="<?php echo esc_attr( $input_id ); ?>">
 					<span class="npcink-ai-switch">
 						<input
@@ -1424,7 +1444,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							id="<?php echo esc_attr( $input_id ); ?>"
 							name="enabled"
 							value="1"
-							onchange="this.form.submit();"
 							<?php checked( $enabled ); ?>
 						/>
 						<span class="npcink-ai-switch__track" aria-hidden="true">
@@ -1437,6 +1456,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					</span>
 					<span class="npcink-cloud-local-permission__state"><?php echo $enabled ? esc_html__( 'enabled', 'npcink-cloud-addon' ) : esc_html__( 'disabled', 'npcink-cloud-addon' ); ?></span>
 				</label>
+				<span class="npcink-cloud-local-permission__progress" role="status" aria-live="polite" data-npcink-local-permission-progress hidden></span>
+				<?php if ( $is_feedback_target && '' !== (string) ( $feedback['message'] ?? '' ) ) : ?>
+					<p class="npcink-cloud-local-permission__feedback npcink-cloud-local-permission__feedback--<?php echo esc_attr( sanitize_key( (string) ( $feedback['type'] ?? 'error' ) ) ); ?>" role="status" tabindex="-1" data-npcink-local-permission-feedback><?php echo esc_html( (string) $feedback['message'] ); ?></p>
+				<?php endif; ?>
 				<noscript>
 					<button type="submit" class="button button-secondary"><?php esc_html_e( 'Save', 'npcink-cloud-addon' ); ?></button>
 				</noscript>
@@ -2318,7 +2341,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						return;
 					}
 					?>
-					<div class="npcink-cloud-section-heading">
+					<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-heading">
 						<h3><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h3>
 						<div class="npcink-cloud-summary__actions">
 							<?php if ( $delivery_enabled ) : ?>
@@ -2328,8 +2351,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 									<button type="submit" class="button button-primary"><?php esc_html_e( 'Request public content refresh', 'npcink-cloud-addon' ); ?></button>
 								</form>
 							<?php endif; ?>
-							<a class="button button-secondary" href="<?php echo esc_url( self::tab_view_url( 'site_knowledge', 'index' ) ); ?>"><?php esc_html_e( 'Manage index', 'npcink-cloud-addon' ); ?></a>
-							<a class="button button-secondary" href="<?php echo esc_url( $base_url . '/portal/site-knowledge' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud Site Knowledge', 'npcink-cloud-addon' ); ?></a>
+							<a class="button button-secondary npcink-cloud-secondary-action" href="<?php echo esc_url( self::tab_view_url( 'site_knowledge', 'index' ) ); ?>"><?php esc_html_e( 'Manage index', 'npcink-cloud-addon' ); ?></a>
+							<a class="npcink-cloud-text-link npcink-cloud-secondary-action" href="<?php echo esc_url( $base_url . '/portal/site-knowledge' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud Site Knowledge', 'npcink-cloud-addon' ); ?></a>
 						</div>
 					</div>
 					<?php if ( ! $delivery_enabled ) : ?>
@@ -2813,6 +2836,38 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		}
 
 		/**
+		 * Stores feedback for one local permission row.
+		 *
+		 * @param string $type Notice type.
+		 * @param string $message Notice message.
+		 * @param string $permission Permission key.
+		 * @return void
+		 */
+		private static function set_local_permission_feedback( string $type, string $message, string $permission ): void {
+			set_transient(
+				self::local_permission_feedback_transient_key(),
+				array(
+					'type' => sanitize_key( $type ),
+					'message' => self::redact_sensitive_message( $message ),
+					'permission' => sanitize_key( $permission ),
+				),
+				60
+			);
+		}
+
+		/**
+		 * Returns and clears local permission row feedback.
+		 *
+		 * @return array<string,string>
+		 */
+		private static function get_local_permission_feedback(): array {
+			$feedback = get_transient( self::local_permission_feedback_transient_key() );
+			delete_transient( self::local_permission_feedback_transient_key() );
+
+			return is_array( $feedback ) ? $feedback : array();
+		}
+
+		/**
 		 * Stores the latest manual readiness result for this administrator.
 		 *
 		 * @param array<string,mixed> $result Readiness result.
@@ -2870,6 +2925,15 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		}
 
 		/**
+		 * Returns a local permission feedback transient key for the current user.
+		 *
+		 * @return string
+		 */
+		private static function local_permission_feedback_transient_key(): string {
+			return 'npcink_cloud_permission_feedback_' . absint( get_current_user_id() );
+		}
+
+		/**
 		 * Returns a manual readiness result transient key for the current user.
 		 *
 		 * @return string
@@ -2892,6 +2956,25 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			if ( '' !== $view ) {
 				$url = add_query_arg( 'view', sanitize_key( $view ), $url );
 			}
+
+			wp_safe_redirect( $url );
+			exit;
+		}
+
+		/**
+		 * Redirects to and identifies one local permission row.
+		 *
+		 * @param string $permission Permission key.
+		 * @return void
+		 */
+		private static function redirect_to_local_permission( string $permission ): void {
+			$url = add_query_arg(
+				array(
+					'tab' => 'permissions',
+					'permission' => sanitize_key( $permission ),
+				),
+				self::page_url()
+			);
 
 			wp_safe_redirect( $url );
 			exit;

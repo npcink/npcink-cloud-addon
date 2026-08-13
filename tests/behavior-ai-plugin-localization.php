@@ -73,6 +73,14 @@ maca_assert(
 );
 
 maca_assert(
+	'高级设置' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Advanced settings', 'Advanced settings', 'ai' )
+	&& '加载连接器审批状态失败。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Failed to load connector approval status.', 'Failed to load connector approval status.', 'ai' )
+	&& '正在生成摘要：%1$d / %2$d…' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Generating summaries: %1$d / %2$d…', 'Generating summaries: %1$d / %2$d…', 'ai' )
+	&& '文章内容至少达到 %d 个字符后可生成标题。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Title generation will be available when the post content has at least %d characters.', 'Title generation will be available when the post content has at least %d characters.', 'ai' ),
+	'AI plugin localization covers the audited fixed UI candidates without translating dynamic ability metadata.'
+);
+
+maca_assert(
 	'能力浏览器' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Abilities Explorer',
 		'Abilities Explorer',
