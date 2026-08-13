@@ -11,15 +11,9 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-delete_option( 'npcink_cloud_addon_settings' );
-delete_option( 'npcink_cloud_addon_observability_buffer' );
-delete_option( 'npcink_cloud_addon_observability_status' );
-delete_option( 'npcink_cloud_addon_observability_summary' );
-delete_option( 'npcink_cloud_addon_agent_feedback_summary' );
-delete_option( 'npcink_cloud_addon_editor_assist_pending' );
-delete_option( 'npcink_cloud_addon_site_knowledge_change_buffer' );
-delete_option( 'npcink_cloud_addon_site_knowledge_change_status' );
-delete_option( 'npcink_cloud_addon_site_knowledge_maintenance_cursor' );
-wp_clear_scheduled_hook( 'npcink_cloud_addon_flush_observability' );
-wp_clear_scheduled_hook( 'npcink_cloud_addon_flush_site_knowledge_changes' );
-wp_clear_scheduled_hook( 'npcink_cloud_addon_reconcile_site_knowledge_changes' );
+require_once __DIR__ . '/includes/class-cloud-credential-store.php';
+require_once __DIR__ . '/includes/class-cloud-addon-settings.php';
+require_once __DIR__ . '/includes/class-cloud-addon-cleanup.php';
+
+$npcink_cloud_addon_uninstall_settings = Npcink_Cloud_Addon_Settings::get_settings();
+Npcink_Cloud_Addon_Cleanup::delete_all( $npcink_cloud_addon_uninstall_settings );

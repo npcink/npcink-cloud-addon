@@ -15,6 +15,7 @@ require_once __DIR__ . '/class-cloud-credential-store.php';
 require_once __DIR__ . '/class-cloud-outbound-policy.php';
 require_once __DIR__ . '/class-cloud-runtime-endpoint-policy.php';
 require_once __DIR__ . '/class-cloud-addon-settings.php';
+require_once __DIR__ . '/class-cloud-addon-cleanup.php';
 require_once __DIR__ . '/class-cloud-ai-task-contract.php';
 require_once __DIR__ . '/class-cloud-runtime-client.php';
 require_once __DIR__ . '/class-cloud-media-derivative-transport.php';
@@ -49,6 +50,7 @@ if ( ! function_exists( 'npcink_cloud_addon_get_settings' ) ) {
 	 * The returned array includes the stored secret for server-side callers.
 	 * Do not print this array into admin HTML or logs.
 	 *
+	 * @deprecated 0.1.7 Use npcink_cloud_addon_get_connection_state() for non-signing integrations.
 	 * @return array<string,mixed>
 	 */
 	function npcink_cloud_addon_get_settings(): array {
@@ -56,10 +58,33 @@ if ( ! function_exists( 'npcink_cloud_addon_get_settings' ) ) {
 	}
 }
 
+if ( ! function_exists( 'npcink_cloud_addon_get_connection_state' ) ) {
+	/**
+	 * Returns a non-secret connection and local-permission projection.
+	 *
+	 * @return array<string,mixed>
+	 */
+	function npcink_cloud_addon_get_connection_state(): array {
+		$settings = Npcink_Cloud_Addon_Settings::get_settings();
+		$state = Npcink_Cloud_Addon_Settings::get_credential_state();
+
+		return array_merge(
+			$state,
+			array(
+				'monitoring_enabled' => ! empty( $settings['monitoring_enabled'] ),
+				'site_knowledge_delivery_enabled' => ! empty( $settings['site_knowledge_delivery_enabled'] ),
+				'site_knowledge_generation_reference_enabled' => ! empty( $settings['site_knowledge_generation_reference_enabled'] ),
+				'wordpress_ai_connector_enabled' => ! empty( $settings['wordpress_ai_connector_enabled'] ),
+			)
+		);
+	}
+}
+
 if ( ! function_exists( 'npcink_cloud_addon_runtime_client' ) ) {
 	/**
 	 * Returns a configured runtime client, or null when credentials are incomplete.
 	 *
+	 * @deprecated 0.1.7 Prefer the scenario-specific public transport helpers.
 	 * @return Npcink_Cloud_Runtime_Client|null
 	 */
 	function npcink_cloud_addon_runtime_client(): ?Npcink_Cloud_Runtime_Client {

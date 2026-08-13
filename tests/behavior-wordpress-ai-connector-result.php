@@ -44,6 +44,18 @@ namespace WordPress\AI\Abilities\Suggest_Reply {
 	}
 }
 
+namespace WordPress\AI\Abilities\Image {
+	final class Generate_Image_Prompt {
+		public function detected_scene_ability_name(): string {
+			$model  = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
+			$method = new \ReflectionMethod( $model, 'detect_scene_ability_name' );
+			$method->setAccessible( true );
+
+			return (string) $method->invoke( $model );
+		}
+	}
+}
+
 namespace {
 	require_once __DIR__ . '/helpers.php';
 
@@ -121,6 +133,10 @@ namespace {
 	maca_assert(
 		'ai/suggest-reply' === ( new \WordPress\AI\Abilities\Suggest_Reply\Suggest_Reply() )->detected_scene_ability_name(),
 		'Behavior: the text connector recognizes the WordPress AI suggest reply ability as a bounded scene.'
+	);
+	maca_assert(
+		'ai/image-prompt-generation' === ( new \WordPress\AI\Abilities\Image\Generate_Image_Prompt() )->detected_scene_ability_name(),
+		'Behavior: the text connector recognizes the current WordPress AI image-prompt ability class as a bounded scene.'
 	);
 
 	maca_reset_test_state();
@@ -244,6 +260,11 @@ namespace {
 	$purged_artifact = $image_result;
 	$purged_artifact['artifacts'][0]['purged_at'] = gmdate( 'Y-m-d\TH:i:s\Z' );
 	$invalid_image_results[] = $purged_artifact;
+	$aggregate_too_large = $image_result;
+	$aggregate_too_large['artifacts'] = array_fill( 0, 2, $image_result['artifacts'][0] );
+	$aggregate_too_large['artifacts'][0]['filesize_bytes'] = 16777217;
+	$aggregate_too_large['artifacts'][1]['filesize_bytes'] = 16777216;
+	$invalid_image_results[] = $aggregate_too_large;
 
 	$invalid_results_rejected = true;
 	foreach ( $invalid_image_results as $invalid_image_result ) {
@@ -261,7 +282,7 @@ namespace {
 	}
 	maca_assert(
 		$invalid_results_rejected,
-		'Behavior: image candidate recovery rejects legacy inline output, wrong operations, excess candidates, coerced facts, invalid UTC timestamps, and purged artifacts before HTTP.'
+		'Behavior: image candidate recovery rejects legacy inline output, wrong operations, excess candidates, aggregate byte amplification, coerced facts, invalid UTC timestamps, and purged artifacts before HTTP.'
 	);
 
 	maca_reset_test_state();

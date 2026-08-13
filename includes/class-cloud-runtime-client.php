@@ -73,6 +73,59 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		private const TOOLBOX_IMAGE_SOURCE_MAX_RETENTION_TTL = 86400;
 		private const TOOLBOX_IMAGE_SOURCE_ALLOWED_PROVIDERS = array( 'auto', 'cloud', 'unsplash', 'pixabay', 'pexels' );
 		private const TOOLBOX_IMAGE_SOURCE_ALLOWED_LATENCY_MODES = array( 'fast_first', 'complete' );
+		private const REQUEST_IDENTIFIER_MAX_CHARS = 128;
+		private const AGENT_FEEDBACK_ALLOWED_OUTCOMES = array( 'accepted', 'rejected', 'edited_before_accept', 'ignored', 'expired', 'blocked_by_policy', 'blocked_by_missing_input' );
+		private const AGENT_FEEDBACK_ALLOWED_LABELS = array(
+			'evidence_useful',
+			'evidence_weak',
+			'wrong_intent',
+			'wrong_next_step',
+			'missing_context',
+			'wrong_priority',
+			'already_handled',
+			'unsafe_or_overreaching',
+			'too_generic',
+			'duplicate_suggestion',
+			'good_but_needs_human_draft',
+			'not_relevant_to_site',
+			'source_or_license_risk',
+			'visual_quality_low',
+			'operator_confidence_high',
+			'operator_confidence_low',
+			'media_search_has_results',
+			'media_search_no_results',
+			'media_search_runtime_error',
+			'media_candidate_adopted',
+			'alt_suggestion_applied',
+			'alt_saved_unchanged',
+			'alt_saved_edited',
+			'alt_saved_decorative',
+			'alt_saved_cleared',
+			'alt_suggestion_not_saved',
+		);
+		private const AGENT_FEEDBACK_FORBIDDEN_KEYS = array(
+			'approval_policy',
+			'approval_truth',
+			'approve',
+			'approved',
+			'commit',
+			'confirm_token',
+			'direct_publish',
+			'direct_wordpress_write',
+			'execute',
+			'final_write_policy',
+			'final_write_target',
+			'preflight_policy',
+			'publish',
+			'router_adoption',
+			'set_post_content',
+			'update_post',
+			'wordpress_write_policy',
+			'wordpress_write_target',
+			'write_confirmed',
+			'write_control',
+			'write_controls',
+		);
 		private const WP_AI_CONNECTOR_ALLOWED_TASKS = array(
 			'alt_text_suggest',
 			'comment_moderation',
@@ -218,6 +271,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 * @param array<string,mixed> $payload Runtime execute payload.
 		 * @param string              $trace_id Optional trace id.
 		 * @param string              $idempotency_key Optional idempotency key.
+		 * @deprecated 0.1.7 Prefer a scenario-specific runtime method or public facade.
 		 * @return array<string,mixed>|WP_Error
 		 */
 		public function execute_runtime( array $payload, string $trace_id = '', string $idempotency_key = '' ) {
@@ -909,10 +963,15 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		public function send_agent_feedback_event( array $payload, string $trace_id = '', string $idempotency_key = '' ) {
-			if ( empty( $payload ) || 'cloud_agent_feedback.v1' !== (string) ( $payload['contract_version'] ?? '' ) ) {
+			$payload = $this->normalize_agent_feedback_payload( $payload );
+			if ( is_wp_error( $payload ) ) {
+				return $payload;
+			}
+
+			if ( empty( $payload ) ) {
 				return new WP_Error(
 					'cloud_agent_feedback_payload_invalid',
-					__( 'Agent feedback requires the cloud_agent_feedback.v1 contract.', 'npcink-cloud-addon' ),
+					__( 'Agent feedback requires a valid cloud_agent_feedback.v1 payload.', 'npcink-cloud-addon' ),
 					array( 'status' => 400 )
 				);
 			}
@@ -984,8 +1043,17 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				);
 			}
 
-			$trace_id = $this->normalize_trace_id( $trace_id );
-			$idempotency_key = sanitize_text_field( $idempotency_key );
+			$trace_id = $this->normalize_request_identifier( $trace_id, 'trace' );
+			if ( is_wp_error( $trace_id ) ) {
+				return $trace_id;
+			}
+			$idempotency_key = $this->normalize_request_identifier( $idempotency_key, 'idempotency' );
+			if ( is_wp_error( $idempotency_key ) ) {
+				return $idempotency_key;
+			}
+			if ( '' === $trace_id ) {
+				$trace_id = 'trace_cloud_' . wp_generate_uuid4();
+			}
 			$body = '';
 
 			if ( null !== $raw_body ) {
@@ -1081,8 +1149,17 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				);
 			}
 
-			$trace_id        = $this->normalize_trace_id( $trace_id );
-			$idempotency_key = sanitize_text_field( $idempotency_key );
+			$trace_id = $this->normalize_request_identifier( $trace_id, 'trace' );
+			if ( is_wp_error( $trace_id ) ) {
+				return $trace_id;
+			}
+			$idempotency_key = $this->normalize_request_identifier( $idempotency_key, 'idempotency' );
+			if ( is_wp_error( $idempotency_key ) ) {
+				return $idempotency_key;
+			}
+			if ( '' === $trace_id ) {
+				$trace_id = 'trace_cloud_' . wp_generate_uuid4();
+			}
 			$headers         = $this->build_signed_headers( $method, $path, '', $idempotency_key, $trace_id, 'application/octet-stream' );
 			$headers['Accept'] = sanitize_text_field( $accept );
 			unset( $headers['Content-Type'] );
@@ -3154,6 +3231,189 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		}
 
 		/**
+		 * Validates one Agent feedback event against the exact Cloud-owned schema.
+		 *
+		 * @param array<string,mixed> $payload Raw feedback payload.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		private function normalize_agent_feedback_payload( array $payload ) {
+			$allowed_fields = array(
+				'contract_version'    => 32,
+				'site_id'             => 191,
+				'agent_id'            => 96,
+				'agent_version'       => 64,
+				'source_runtime'      => 64,
+				'source_run_id'       => 191,
+				'handoff_id'          => 191,
+				'handoff_type'        => 64,
+				'local_surface'       => 96,
+				'local_outcome'       => 64,
+				'operator_note'       => 500,
+				'local_proposal_id'   => 191,
+				'source_action_id'    => 191,
+				'source_object_type'  => 64,
+				'source_object_id'    => 191,
+				'source_severity'     => 64,
+				'redaction_status'    => 64,
+				'retention_class'     => 64,
+				'created_at'          => 64,
+			);
+			$list_fields = array(
+				'feedback_labels'     => array( 12, 64 ),
+				'evidence_ref_ids'    => array( 24, 191 ),
+				'source_reason_codes' => array( 12, 96 ),
+			);
+			$all_fields = array_merge( array_keys( $allowed_fields ), array_keys( $list_fields ), array( 'source_score' ) );
+			$required_fields = array( 'contract_version', 'agent_id', 'source_runtime', 'handoff_type', 'local_surface', 'local_outcome', 'created_at' );
+
+			$forbidden_key = $this->find_forbidden_agent_feedback_key( $payload );
+			if ( '' !== $forbidden_key ) {
+				return new WP_Error(
+					'cloud_agent_feedback_write_authority_not_allowed',
+					__( 'Agent feedback may not carry approval, preflight, or WordPress write authority.', 'npcink-cloud-addon' ),
+					array( 'status' => 400, 'key' => $forbidden_key )
+				);
+			}
+			if ( array() !== array_diff( array_keys( $payload ), $all_fields ) || array() !== array_diff( $required_fields, array_keys( $payload ) ) ) {
+				return new WP_Error(
+					'cloud_agent_feedback_payload_invalid',
+					__( 'Agent feedback contains missing or unsupported fields.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$normalized = array();
+			foreach ( $allowed_fields as $field => $max_chars ) {
+				if ( ! array_key_exists( $field, $payload ) ) {
+					continue;
+				}
+				if ( ! is_string( $payload[ $field ] ) ) {
+					return new WP_Error(
+						'cloud_agent_feedback_payload_invalid',
+						__( 'Agent feedback scalar fields must be strings.', 'npcink-cloud-addon' ),
+						array( 'status' => 400, 'field' => $field )
+					);
+				}
+				$value = trim( $payload[ $field ] );
+				if ( $this->text_length( $value ) > $max_chars || ( in_array( $field, $required_fields, true ) && '' === $value ) ) {
+					return new WP_Error(
+						'cloud_agent_feedback_payload_invalid',
+						__( 'Agent feedback contains an empty or oversized field.', 'npcink-cloud-addon' ),
+						array( 'status' => 400, 'field' => $field )
+					);
+				}
+				$normalized[ $field ] = $value;
+			}
+
+			if ( 'cloud_agent_feedback.v1' !== (string) ( $normalized['contract_version'] ?? '' ) ) {
+				return new WP_Error(
+					'cloud_agent_feedback_payload_invalid',
+					__( 'Agent feedback requires the cloud_agent_feedback.v1 contract.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+			if ( ! in_array( (string) $normalized['local_outcome'], self::AGENT_FEEDBACK_ALLOWED_OUTCOMES, true ) ) {
+				return new WP_Error(
+					'cloud_agent_feedback_payload_invalid',
+					__( 'Agent feedback contains an unsupported local outcome.', 'npcink-cloud-addon' ),
+					array( 'status' => 400, 'field' => 'local_outcome' )
+				);
+			}
+			$created_at = (string) $normalized['created_at'];
+			$created_at_valid = 1 === preg_match(
+				'/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})\z/',
+				$created_at
+			);
+			try {
+				$created_at_date = $created_at_valid ? new DateTimeImmutable( $created_at ) : false;
+			} catch ( Exception $exception ) {
+				$created_at_date = false;
+			}
+			if ( false === $created_at_date ) {
+				return new WP_Error(
+					'cloud_agent_feedback_payload_invalid',
+					__( 'Agent feedback created_at must be a valid date and time.', 'npcink-cloud-addon' ),
+					array( 'status' => 400, 'field' => 'created_at' )
+				);
+			}
+
+			foreach ( $list_fields as $field => $limits ) {
+				if ( ! array_key_exists( $field, $payload ) ) {
+					continue;
+				}
+				$value = $payload[ $field ];
+				$is_list = is_array( $value ) && ( array() === $value || array_keys( $value ) === range( 0, count( $value ) - 1 ) );
+				if ( ! $is_list || count( $value ) > $limits[0] ) {
+					return new WP_Error(
+						'cloud_agent_feedback_payload_invalid',
+						__( 'Agent feedback list fields must be bounded lists.', 'npcink-cloud-addon' ),
+						array( 'status' => 400, 'field' => $field )
+					);
+				}
+				$normalized[ $field ] = array();
+				foreach ( $value as $item ) {
+					if ( ! is_string( $item ) || '' === trim( $item ) || $this->text_length( trim( $item ) ) > $limits[1] ) {
+						return new WP_Error(
+							'cloud_agent_feedback_payload_invalid',
+							__( 'Agent feedback list entries must be bounded strings.', 'npcink-cloud-addon' ),
+							array( 'status' => 400, 'field' => $field )
+						);
+					}
+					$item = trim( $item );
+					if ( 'feedback_labels' === $field && ! in_array( $item, self::AGENT_FEEDBACK_ALLOWED_LABELS, true ) ) {
+						return new WP_Error(
+							'cloud_agent_feedback_payload_invalid',
+							__( 'Agent feedback contains an unsupported feedback label.', 'npcink-cloud-addon' ),
+							array( 'status' => 400, 'field' => $field )
+						);
+					}
+					if ( ! in_array( $item, $normalized[ $field ], true ) ) {
+						$normalized[ $field ][] = $item;
+					}
+				}
+			}
+
+			if ( array_key_exists( 'source_score', $payload ) ) {
+				if ( null !== $payload['source_score'] && ( ! is_int( $payload['source_score'] ) || $payload['source_score'] < 0 || $payload['source_score'] > 100 ) ) {
+					return new WP_Error(
+						'cloud_agent_feedback_payload_invalid',
+						__( 'Agent feedback source_score must be an integer from 0 through 100.', 'npcink-cloud-addon' ),
+						array( 'status' => 400, 'field' => 'source_score' )
+					);
+				}
+				$normalized['source_score'] = $payload['source_score'];
+			}
+
+			return $normalized;
+		}
+
+		/**
+		 * Finds forbidden write-authority fields anywhere in Agent feedback input.
+		 *
+		 * @param mixed  $value Value to inspect.
+		 * @param string $prefix Current field path.
+		 * @return string
+		 */
+		private function find_forbidden_agent_feedback_key( $value, string $prefix = '' ): string {
+			if ( ! is_array( $value ) ) {
+				return '';
+			}
+			foreach ( $value as $key => $item ) {
+				$normalized_key = strtolower( trim( (string) $key ) );
+				$current_path = '' === $prefix ? $normalized_key : $prefix . '.' . $normalized_key;
+				if ( in_array( $normalized_key, self::AGENT_FEEDBACK_FORBIDDEN_KEYS, true ) ) {
+					return $current_path;
+				}
+				$nested = $this->find_forbidden_agent_feedback_key( $item, $current_path );
+				if ( '' !== $nested ) {
+					return $nested;
+				}
+			}
+
+			return '';
+		}
+
+		/**
 		 * Normalizes a Toolbox image context evidence request.
 		 *
 		 * @param array<string,mixed> $request Raw request.
@@ -3560,15 +3820,29 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		}
 
 		/**
-		 * Normalizes one trace id.
+		 * Validates one caller-supplied trace or idempotency identifier.
 		 *
-		 * @param string $trace_id Raw trace id.
-		 * @return string
+		 * @param string $value Raw identifier.
+		 * @param string $kind Identifier kind for the error code.
+		 * @return string|WP_Error
 		 */
-		private function normalize_trace_id( string $trace_id ): string {
-			$trace_id = sanitize_text_field( trim( $trace_id ) );
+		private function normalize_request_identifier( string $value, string $kind ) {
+			$value = trim( $value );
+			if ( '' === $value ) {
+				return '';
+			}
+			if ( strlen( $value ) > self::REQUEST_IDENTIFIER_MAX_CHARS || 1 !== preg_match( '/\A[A-Za-z0-9._:-]+\z/', $value ) ) {
+				$error_code = 'idempotency' === $kind
+					? 'cloud_runtime_idempotency_key_invalid'
+					: 'cloud_runtime_trace_id_invalid';
+				return new WP_Error(
+					$error_code,
+					__( 'Cloud request identifiers must use only letters, numbers, dot, underscore, colon, or hyphen and contain at most 128 characters.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
 
-			return '' !== $trace_id ? $trace_id : 'trace_cloud_' . wp_generate_uuid4();
+			return $value;
 		}
 
 		/**

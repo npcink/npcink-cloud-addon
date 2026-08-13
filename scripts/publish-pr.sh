@@ -79,10 +79,7 @@ esac
 
 [ -f "${body_path}" ] || fail "body file not found: ${body_path}"
 
-for required_heading in Scope Boundary Verification Risk; do
-	grep -Eiq "^#{1,6}[[:space:]]+.*${required_heading}" "${body_path}" \
-		|| fail "body file is missing the ${required_heading} heading"
-done
+php scripts/validate-pr-body.php "${body_path}" || fail 'body file does not satisfy the PR contract'
 
 if [ "${base_branch}" = 'production' ]; then
 	grep -Fq 'Approved for production validation by operator.' "${body_path}" \

@@ -27,6 +27,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		private const MAX_STATUS_ERROR_CODE_BYTES = 128;
 		private const MAX_STATUS_ERROR_MESSAGE_BYTES = 500;
 		private const MAX_STATUS_ERROR_STAGE_BYTES = 64;
+		private const ALLOWED_UPLOAD_MIME_TYPES = array( 'image/avif', 'image/jpeg', 'image/png', 'image/webp' );
 
 		/**
 		 * Dispatches a Cloud derivative job from an abilities-side request contract.
@@ -1375,10 +1376,44 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				);
 			}
 
+			$declared_mime = self::normalize_media_type( (string) ( $descriptor['mime_type'] ?? '' ) );
+			if ( ! in_array( $declared_mime, self::ALLOWED_UPLOAD_MIME_TYPES, true ) ) {
+				return new WP_Error(
+					'cloud_media_derivative_upload_mime_not_allowed',
+					__( 'Media derivative uploads require an allowed image mime type.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$image_info = function_exists( 'getimagesizefromstring' ) ? @getimagesizefromstring( $contents ) : false;
+			$detected_mime = is_array( $image_info ) ? self::normalize_media_type( (string) ( $image_info['mime'] ?? '' ) ) : '';
+			$width = is_array( $image_info ) ? (int) ( $image_info[0] ?? 0 ) : 0;
+			$height = is_array( $image_info ) ? (int) ( $image_info[1] ?? 0 ) : 0;
+			if ( ! is_array( $image_info ) || $declared_mime !== $detected_mime ) {
+				return new WP_Error(
+					'cloud_media_derivative_upload_image_invalid',
+					__( 'Media derivative upload bytes do not match the declared image mime type.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+			if (
+				$width <= 0
+				|| $height <= 0
+				|| $width > self::MAX_IMAGE_DIMENSION
+				|| $height > self::MAX_IMAGE_DIMENSION
+				|| ( $width * $height ) > self::MAX_IMAGE_PIXELS
+			) {
+				return new WP_Error(
+					'cloud_media_derivative_upload_dimensions_invalid',
+					__( 'Media derivative upload dimensions exceed the local image limits.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+
 			return array(
 				'field_name' => sanitize_key( $field_name ),
 				'filename'   => sanitize_file_name( (string) ( $descriptor['filename'] ?? $field_name ) ),
-				'mime_type'  => sanitize_text_field( (string) ( $descriptor['mime_type'] ?? 'application/octet-stream' ) ),
+				'mime_type'  => $declared_mime,
 				'contents'   => $contents,
 			);
 		}

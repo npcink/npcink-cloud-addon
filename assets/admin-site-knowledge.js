@@ -4,7 +4,6 @@
 	const config = window.npcinkCloudSiteKnowledge || {};
 	const usageContainer = document.querySelector( '[data-npcink-site-knowledge-usage]' );
 	const refreshController = usageContainer || document.querySelector( '[data-npcink-site-knowledge-refresh]' );
-
 	if ( ! refreshController || ! config.ajaxUrl || ! config.action || ! config.nonce ) {
 		return;
 	}

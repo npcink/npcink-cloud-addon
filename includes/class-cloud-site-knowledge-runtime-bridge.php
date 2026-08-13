@@ -246,6 +246,17 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				'total_batches' => absint( $maintenance_source['total_batches'] ?? 0 ),
 				'last_error_code' => sanitize_key( (string) ( $maintenance_source['last_error_code'] ?? '' ) ),
 			);
+			$acceptance_source = is_array( $source['retrieval_acceptance'] ?? null ) ? $source['retrieval_acceptance'] : array();
+			$acceptance_status = sanitize_key( (string) ( $acceptance_source['status'] ?? 'pending' ) );
+			$retrieval_acceptance = array(
+				'status' => in_array( $acceptance_status, array( 'pending', 'passed', 'no_hit', 'failed', 'not_applicable' ), true ) ? $acceptance_status : 'pending',
+				'automatic' => ! empty( $acceptance_source['automatic'] ),
+				'reason' => sanitize_key( (string) ( $acceptance_source['reason'] ?? '' ) ),
+				'index_revision' => sanitize_text_field( (string) ( $acceptance_source['index_revision'] ?? '' ) ),
+				'verified_at' => sanitize_text_field( (string) ( $acceptance_source['verified_at'] ?? '' ) ),
+				'result_count' => absint( $acceptance_source['result_count'] ?? 0 ),
+				'error_code' => sanitize_key( (string) ( $acceptance_source['error_code'] ?? '' ) ),
+			);
 
 			return array(
 				'state' => 'fresh',
@@ -267,6 +278,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				'last_sync_at' => sanitize_text_field( (string) ( $coverage['last_sync_at'] ?? '' ) ),
 				'warning_ratio' => is_numeric( $quota['warning_ratio'] ?? null ) ? (float) $quota['warning_ratio'] : 0.85,
 				'maintenance' => $maintenance,
+				'retrieval_acceptance' => $retrieval_acceptance,
 				'synced_at' => gmdate( 'Y-m-d H:i:s' ) . ' UTC',
 				'fresh_until' => gmdate( 'Y-m-d H:i:s', time() + self::STATUS_FRESHNESS_TTL_SECONDS ) . ' UTC',
 			);

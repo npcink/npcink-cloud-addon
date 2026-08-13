@@ -25,10 +25,29 @@ if ( 0 !== $site_knowledge_admin_actions_status ) {
 	exit( $site_knowledge_admin_actions_status );
 }
 
+$custom_cleanup_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-cleanup-custom-option.php' );
+passthru( $custom_cleanup_command, $custom_cleanup_status );
+if ( 0 !== $custom_cleanup_status ) {
+	exit( $custom_cleanup_status );
+}
+
+$public_api_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-public-api.php' );
+passthru( $public_api_command, $public_api_status );
+if ( 0 !== $public_api_status ) {
+	exit( $public_api_status );
+}
+
+$pr_body_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-pr-body-contract.php' );
+passthru( $pr_body_command, $pr_body_status );
+if ( 0 !== $pr_body_status ) {
+	exit( $pr_body_status );
+}
+
 require __DIR__ . '/static-contracts.php';
 require __DIR__ . '/behavior-runtime-endpoint-policy.php';
 require __DIR__ . '/behavior-runtime-runs-presenter.php';
 require __DIR__ . '/behavior-credential-store.php';
+require __DIR__ . '/behavior-cleanup.php';
 require __DIR__ . '/behavior-outbound-policy.php';
 require __DIR__ . '/behavior-cloud-addon-localization.php';
 require __DIR__ . '/behavior-wordpress-ai-connector-result.php';

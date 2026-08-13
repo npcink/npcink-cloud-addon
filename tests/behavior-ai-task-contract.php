@@ -41,6 +41,20 @@ final class Maca_AI_Task_Test_Ability {
 
 maca_load_addon_classes();
 
+$GLOBALS['maca_abilities']['ai/image-prompt-generation'] = new Maca_AI_Task_Test_Ability(
+	'ai/image-prompt-generation',
+	array(),
+	array( 'type' => 'string' )
+);
+$image_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( 'ai/image-prompt-generation' );
+maca_assert(
+	is_array( $image_contract )
+	&& 'image_prompt_generation' === (string) ( $image_contract['task'] ?? '' )
+	&& 'generation' === (string) ( $image_contract['task_family'] ?? '' )
+	&& 'suggestion_only' === (string) ( $image_contract['write_posture'] ?? '' ),
+	'Behavior: the text-only ai-wp-admin image prompt ability receives a bounded compatibility task projection.'
+);
+
 $GLOBALS['maca_abilities']['ai/title-generation'] = new Maca_AI_Task_Test_Ability(
 	'ai/title-generation',
 	array(),

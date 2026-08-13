@@ -81,6 +81,7 @@ WordPress write path.
 
 ```php
 npcink_cloud_addon_is_configured(): bool
+npcink_cloud_addon_get_connection_state(): array
 npcink_cloud_addon_get_settings(): array
 npcink_cloud_addon_runtime_client(): ?Npcink_Cloud_Runtime_Client
 npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
@@ -190,7 +191,15 @@ queue, create a Core proposal, approve anything, or write media metadata.
 Returned evidence is candidate basis only and must still be visually confirmed
 by the local operator before any future governed apply path.
 
-`npcink_cloud_addon_get_settings()` returns server-side settings, including the stored secret. Do not print it into HTML or logs.
+Use `npcink_cloud_addon_get_connection_state()` for status and local permission
+checks. It intentionally omits credential identifiers and the stored secret.
+
+`npcink_cloud_addon_get_settings()` remains temporarily available for existing
+server-side signing integrations, but is deprecated because it returns the
+stored secret. `npcink_cloud_addon_runtime_client()` and generic
+`execute_runtime()` are also compatibility seams; new integrations should use
+the scenario-specific public helpers listed above. Current known compatibility
+consumers are `npcink-workflow-toolbox` and `npcink-ai-client-adapter`.
 
 The public PHP settings shape still contains `site_id`, `key_id`, and `secret`
 for server-side signing, but the WordPress option contains only a versioned
