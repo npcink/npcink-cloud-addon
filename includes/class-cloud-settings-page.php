@@ -453,6 +453,18 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			$message = self::format_probe_failure_message( $probe );
+			if ( 'auth.site_inactive' === (string) ( $probe['auth_error_code'] ?? '' ) ) {
+				$inactive_settings = Npcink_Cloud_Addon_Settings::get_settings();
+				$inactive_settings['verified'] = false;
+				$inactive_settings['verified_at'] = '';
+				$inactive_settings['last_verification_error'] = '';
+				$inactive_settings['activation_state'] = 'inactive';
+				$inactive_settings['activation_reason'] = 'cloud_site_inactive';
+				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $inactive_settings ) ) {
+					self::set_admin_notice( 'error', __( 'Cloud verification completed, but the activation state could not be stored securely.', 'npcink-cloud-addon' ) );
+				}
+				return;
+			}
 			$verification = Npcink_Cloud_Addon_Settings::mark_verification_result( false, $message );
 			if ( is_wp_error( $verification ) ) {
 				self::set_admin_notice( 'error', $verification->get_error_message() );
@@ -1364,9 +1376,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @return void
 		 */
 		private static function render_connection_actions( array $settings, bool $is_verified ): void {
+			$activation_required = 'inactive' === sanitize_key( (string) ( $settings['activation_state'] ?? '' ) );
 			?>
 			<div class="npcink-cloud-summary__actions">
-				<?php if ( $is_verified ) : ?>
+				<?php if ( $activation_required ) : ?>
+					<a class="button button-primary" href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Activate this site in Cloud', 'npcink-cloud-addon' ); ?></a>
+					<?php self::render_reverify_form( $settings, __( 'Check activation again', 'npcink-cloud-addon' ) ); ?>
+				<?php elseif ( $is_verified ) : ?>
 					<a class="button button-secondary" href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud sites', 'npcink-cloud-addon' ); ?></a>
 				<?php else : ?>
 					<?php self::render_reverify_form( $settings ); ?>
@@ -1422,7 +1438,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param array<string,mixed> $settings Stored settings.
 		 * @return void
 		 */
-		private static function render_reverify_form( array $settings ): void {
+		private static function render_reverify_form( array $settings, string $label = '' ): void {
 			?>
 			<form class="npcink-cloud-verify-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( self::ACTION_SAVE ) ); ?>" />
@@ -1434,7 +1450,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<input type="hidden" name="site_knowledge_delivery_enabled" value="<?php echo esc_attr( ! empty( $settings['site_knowledge_delivery_enabled'] ) ? '1' : '0' ); ?>" />
 				<input type="hidden" name="site_knowledge_generation_reference_enabled" value="<?php echo esc_attr( ! empty( $settings['site_knowledge_generation_reference_enabled'] ) ? '1' : '0' ); ?>" />
 				<input type="hidden" name="wordpress_ai_connector_enabled" value="<?php echo esc_attr( ! empty( $settings['wordpress_ai_connector_enabled'] ) ? '1' : '0' ); ?>" />
-				<button type="submit" class="button button-secondary"><?php esc_html_e( 'Re-verify and refresh', 'npcink-cloud-addon' ); ?></button>
+				<button type="submit" class="button button-secondary"><?php echo esc_html( '' !== $label ? $label : __( 'Re-verify and refresh', 'npcink-cloud-addon' ) ); ?></button>
 			</form>
 			<?php
 		}
@@ -2607,6 +2623,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @return string
 		 */
 		private static function format_probe_failure_message( array $probe ): string {
+			if ( 'auth.site_inactive' === (string) ( $probe['auth_error_code'] ?? '' ) ) {
+				return __( 'The site is connected, but Cloud service is not active yet. Activate this site in Npcink Cloud, then check activation again here.', 'npcink-cloud-addon' );
+			}
 			$messages = array();
 			if ( empty( $probe['live_ok'] ) && ! empty( $probe['live_message'] ) ) {
 				$messages[] = sprintf(

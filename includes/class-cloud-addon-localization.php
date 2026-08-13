@@ -82,6 +82,10 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 		 */
 		public static function translations(): array {
 			return array(
+				'Activate this site in Cloud' => '在 Cloud 中激活此站点',
+				'Check activation again' => '重新检查激活状态',
+				'The site is connected, but Cloud service is not active yet. Activate this site in Npcink Cloud, then check activation again here.' => '站点已连接，但 Cloud 运行服务尚未激活。请先在 Npcink Cloud 中激活此站点，再返回这里重新检查。',
+				'Cloud verification completed, but the activation state could not be stored securely.' => 'Cloud 检查已完成，但无法安全保存站点激活状态。',
 				'Connected, activation required' => '已连接，等待激活',
 				'This site is bound and its connection credential is stored, but Cloud runtime service is inactive. Activate it in Npcink Cloud, then verify the connection here.' => '此站点已绑定并保存连接凭据，但 Cloud 运行服务尚未激活。请先在 Npcink Cloud 中激活，再回到这里验证连接。',
 				'Cloud connection completed. This site is bound but not active because no active-site slot was available. Activate it in Npcink Cloud, then verify the connection here.' => 'Cloud 连接已完成。由于没有可用的活动站点名额，此站点已绑定但尚未激活。请先在 Npcink Cloud 中激活，再回到这里验证连接。',
