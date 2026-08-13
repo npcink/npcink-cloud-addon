@@ -451,6 +451,38 @@ maca_assert(
 );
 
 maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 403 ),
+	'body'     => wp_json_encode(
+		array(
+			'status'     => 'error',
+			'error_code' => 'auth.site_inactive',
+			'message'    => 'site is bound but Cloud service is inactive',
+			'data'       => array(
+				'recovery_contract' => 'cloud_site_activation_recovery.v1',
+				'site_status'        => 'inactive',
+				'activation_required' => true,
+				'action'             => 'activate_site',
+				'portal_url'         => 'https://cloud.example.test/portal',
+			),
+		)
+	),
+);
+
+$inactive_client = new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() );
+$inactive_probe = $inactive_client->probe_connectivity();
+$inactive_error_data = is_array( $inactive_probe['auth_error_data'] ?? null ) ? $inactive_probe['auth_error_data'] : array();
+
+maca_assert(
+	'auth.site_inactive' === (string) ( $inactive_probe['auth_error_code'] ?? '' )
+	&& 'auth.site_inactive' === (string) ( $inactive_error_data['cloud_error_code'] ?? '' )
+	&& 'activate_site' === (string) ( $inactive_error_data['cloud_error_data']['action'] ?? '' )
+	&& false !== strpos( (string) ( $inactive_probe['auth_message'] ?? '' ), 'site is bound' ),
+	'Behavior: connectivity probing preserves the structured inactive-site recovery code and facts for local UX mapping.'
+);
+
+maca_reset_test_state();
 maca_seed_settings( false );
 $settings = Npcink_Cloud_Addon_Settings::get_settings();
 $GLOBALS['maca_http_response_queue'][] = array(
@@ -491,4 +523,30 @@ maca_assert(
 	&& false !== strpos( (string) ( $failed_state['message'] ?? '' ), 'Cloud unavailable.' )
 	&& false === get_transient( 'npcink_cloud_notice_1' ),
 	'Behavior: verification failure remains visible in the connection summary without a duplicate redirect notice.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$inactive_settings = Npcink_Cloud_Addon_Settings::get_settings();
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 403 ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'error',
+			'error_code' => 'auth.site_inactive',
+			'message' => 'site is bound but Cloud service is inactive',
+			'data' => array( 'site_status' => 'inactive', 'activation_required' => true, 'action' => 'activate_site' ),
+		)
+	),
+);
+
+$method->invoke( null, $inactive_settings, 'Verified.' );
+$inactive_state = Npcink_Cloud_Addon_Settings::get_credential_state();
+
+maca_assert(
+	'activation_required' === (string) ( $inactive_state['code'] ?? '' )
+	&& 'Connected, activation required' === (string) ( $inactive_state['label'] ?? '' )
+	&& false === (bool) ( $inactive_state['verified'] ?? true )
+	&& '' === (string) ( $inactive_state['last_verification_error'] ?? '' ),
+	'Behavior: auth.site_inactive becomes the connected activation-required state instead of a signature failure.'
 );

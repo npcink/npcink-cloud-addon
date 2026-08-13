@@ -346,6 +346,24 @@ maca_assert(
 );
 
 maca_reset_test_state();
+maca_seed_settings( false );
+$inactive_render_settings = Npcink_Cloud_Addon_Settings::get_settings();
+$inactive_render_settings['activation_state'] = 'inactive';
+$inactive_render_settings['activation_reason'] = 'cloud_site_inactive';
+Npcink_Cloud_Addon_Settings::write_settings( $inactive_render_settings );
+ob_start();
+Npcink_Cloud_Settings_Page::render();
+$inactive_rendered = (string) ob_get_clean();
+
+maca_assert(
+	false !== strpos( $inactive_rendered, 'Connected, activation required' )
+	&& false !== strpos( $inactive_rendered, 'Activate this site in Cloud' )
+	&& false !== strpos( $inactive_rendered, 'Check activation again' )
+	&& false === strpos( $inactive_rendered, 'Signed verification failed' ),
+	'Behavior: an inactive bound site renders activation recovery actions without calling it a signature failure.'
+);
+
+maca_reset_test_state();
 maca_seed_settings( true );
 $http_before_overview = count( $GLOBALS['maca_http_requests'] );
 ob_start();
