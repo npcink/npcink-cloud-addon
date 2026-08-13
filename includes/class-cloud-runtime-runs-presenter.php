@@ -38,16 +38,24 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Runs_Presenter' ) ) {
 		/**
 		 * Builds display-ready detail from one Cloud run response.
 		 * @param array<string,mixed> $response Cloud response.
-		 * @return array<string,string>
+		 * @return array<string,mixed>
 		 */
 		public static function detail( array $response ): array {
+			$status = sanitize_key( self::runtime_pick( $response, array( 'data.status', 'run.status', 'status' ) ) );
+			$result_status = sanitize_key( self::runtime_pick( $response, array( 'data.result_status', 'result.status', 'result_status' ) ) );
+			$retryable = self::runtime_value( $response, array( 'data.retryable', 'run.retryable', 'retryable', 'data.run_lifecycle.retryable' ) );
 			return array(
 				'run_id' => self::normalize_run_id( self::runtime_pick( $response, array( 'data.run_id', 'run.run_id', 'run_id' ) ) ),
-				'status_label' => self::format_status_label( self::runtime_pick( $response, array( 'data.status', 'run.status', 'status' ) ) ),
-				'result_status_label' => self::format_status_label( self::runtime_pick( $response, array( 'data.result_status', 'result.status', 'result_status' ) ) ),
+				'status' => $status,
+				'status_label' => self::format_status_label( $status ),
+				'result_status' => $result_status,
+				'result_status_label' => self::format_status_label( $result_status ),
 				'error_code' => self::runtime_pick( $response, array( 'data.error_code', 'error_code', 'data.run_lifecycle.error_code' ) ),
 				'started_at' => self::runtime_pick( $response, array( 'data.run_lifecycle.processing_started_at', 'data.started_at', 'started_at' ) ),
 				'finished_at' => self::runtime_pick( $response, array( 'data.run_lifecycle.processing_finished_at', 'data.completed_at', 'completed_at' ) ),
+				'has_result' => in_array( $result_status, array( 'success', 'succeeded', 'completed', 'available', 'ready' ), true ),
+				'retryable' => true === $retryable
+					&& in_array( $status, array( 'failed', 'error', 'cancelled', 'canceled', 'timed_out', 'timeout' ), true ),
 			);
 		}
 
@@ -74,6 +82,16 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Runs_Presenter' ) ) {
 
 		/** @return string First non-empty scalar from the candidate paths. */
 		private static function runtime_pick( array $source, array $paths ): string {
+			$value = self::runtime_value( $source, $paths );
+			if ( is_bool( $value ) ) {
+				return $value ? __( 'yes', 'npcink-cloud-addon' ) : __( 'no', 'npcink-cloud-addon' );
+			}
+
+			return is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '';
+		}
+
+		/** @return mixed First non-empty scalar from the candidate paths. */
+		private static function runtime_value( array $source, array $paths ) {
 			foreach ( $paths as $path ) {
 				$value = $source;
 				foreach ( explode( '.', $path ) as $segment ) {
@@ -84,14 +102,14 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Runs_Presenter' ) ) {
 					$value = $value[ $segment ];
 				}
 				if ( is_bool( $value ) ) {
-					return $value ? __( 'yes', 'npcink-cloud-addon' ) : __( 'no', 'npcink-cloud-addon' );
+					return $value;
 				}
 				if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
-					return sanitize_text_field( (string) $value );
+					return $value;
 				}
 			}
 
-			return '';
+			return null;
 		}
 
 		/** @return string Localized known state or the visible unknown state. */

@@ -38,6 +38,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Projection' ) ) {
 				'tooltip' => '',
 				'percent' => null,
 				'severity' => 'ok',
+				'retrieval_acceptance' => self::build_retrieval_acceptance( array() ),
 				'details' => array(
 					'chunks' => array( 'available' => false, 'label' => __( 'Indexed chunks', 'npcink-cloud-addon' ), 'value' => '' ),
 					'sync' => array( 'available' => false, 'label' => __( 'Per-sync limit', 'npcink-cloud-addon' ), 'value' => '' ),
@@ -79,6 +80,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Projection' ) ) {
 			);
 			$projection['percent'] = $remaining_percent;
 			$projection['severity'] = $severity;
+			$projection['retrieval_acceptance'] = self::build_retrieval_acceptance(
+				is_array( $summary['retrieval_acceptance'] ?? null ) ? $summary['retrieval_acceptance'] : array()
+			);
 
 			$indexed_chunks = absint( $summary['indexed_chunks'] ?? 0 );
 			$max_chunks = absint( $summary['max_chunks'] ?? 0 );
@@ -121,6 +125,37 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Projection' ) ) {
 			}
 
 			return $projection;
+		}
+
+		/**
+		 * Builds a bounded automatic retrieval-validation projection.
+		 *
+		 * @param array<string,mixed> $acceptance Cloud acceptance status.
+		 * @return array<string,mixed>
+		 */
+		private static function build_retrieval_acceptance( array $acceptance ): array {
+			$status = sanitize_key( (string) ( $acceptance['status'] ?? 'pending' ) );
+			$labels = array(
+				'passed' => __( 'Passed automatically', 'npcink-cloud-addon' ),
+				'no_hit' => __( 'Expected document was not matched', 'npcink-cloud-addon' ),
+				'failed' => __( 'Automatic retrieval failed', 'npcink-cloud-addon' ),
+				'not_applicable' => __( 'No public document is available for validation', 'npcink-cloud-addon' ),
+				'pending' => __( 'Waiting for automatic validation', 'npcink-cloud-addon' ),
+			);
+			if ( ! isset( $labels[ $status ] ) ) {
+				$status = 'pending';
+			}
+			$verified_at = trim( (string) ( $acceptance['verified_at'] ?? '' ) );
+
+			return array(
+				'status' => $status,
+				'label' => $labels[ $status ],
+				'verified_at' => $verified_at,
+				'verified_label' => '' !== $verified_at
+					/* translators: %s: formatted date and time of the last Site Knowledge verification. */
+					? sprintf( __( 'Last verified: %s', 'npcink-cloud-addon' ), self::format_datetime( $verified_at ) )
+					: '',
+			);
 		}
 
 		/**

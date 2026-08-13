@@ -431,11 +431,27 @@ update_option(
 $GLOBALS['maca_http_response_queue'][] = new WP_Error( 'http_request_failed', 'Final bounded attempt failed.' );
 $exhausted = Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
 $exhausted_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+$exhausted_health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
 maca_assert(
 	'delivery_attempts_exhausted' === (string) ( $exhausted['last_error_code'] ?? '' )
 	&& array( 8025 ) === (array) ( $exhausted_buffer['post_ids'] ?? array() )
-	&& 0 === absint( $exhausted_buffer['attempts'] ?? 0 ),
+	&& 0 === absint( $exhausted_buffer['attempts'] ?? 0 )
+	&& 25 === absint( $exhausted_health['dropped_count'] ?? 0 )
+	&& '' !== (string) ( $exhausted_health['last_dropped_at'] ?? '' ),
 	'Behavior: exhausting one Site Knowledge batch preserves later buffered work.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+for ( $post_id = 9000; $post_id <= 9500; $post_id++ ) {
+	maca_add_public_post_fixture( $post_id );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_saved_post( $post_id, $GLOBALS['maca_posts'][ $post_id ] );
+}
+$overflow_health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+maca_assert(
+	500 === absint( $overflow_health['buffer_count'] ?? 0 )
+	&& 1 === absint( $overflow_health['dropped_count'] ?? 0 ),
+	'Behavior: bounded Site Knowledge buffer overflow counts the oldest change notification that can no longer be retained.'
 );
 
 maca_reset_site_knowledge_bridge_state();

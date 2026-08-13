@@ -104,6 +104,13 @@ maca_assert(
 	true === Npcink_Cloud_Addon_Settings::is_site_knowledge_generation_reference_enabled(),
 	'Verified local settings can enable Site Knowledge title-style reference.'
 );
+maca_set_site_knowledge_delivery_enabled( false );
+maca_assert(
+	false === Npcink_Cloud_Addon_Settings::is_site_knowledge_generation_reference_enabled()
+	&& false === (bool) Npcink_Cloud_Addon_Settings::get_settings()['site_knowledge_generation_reference_enabled'],
+	'Disabling Site Knowledge delivery also disables the hidden generation-reference permission.'
+);
+maca_set_site_knowledge_delivery_enabled( true );
 maca_set_site_knowledge_generation_reference_enabled( false );
 
 $registry = new Maca_Connector_Registry_Stub();

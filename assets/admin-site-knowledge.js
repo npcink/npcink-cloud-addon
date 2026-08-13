@@ -15,6 +15,7 @@
 	const spinner = usageContainer ? usageContainer.querySelector( '.npcink-cloud-site-knowledge-usage__spinner' ) : null;
 	const actions = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-actions]' ) : null;
 	const detailRows = document.querySelectorAll( '[data-npcink-site-knowledge-detail]' );
+	const acceptance = document.querySelector( '[data-npcink-site-knowledge-acceptance]' );
 	const initialState = refreshController.dataset.npcinkSiteKnowledgeState || '';
 	const initialValueLabel = valueLabel ? valueLabel.textContent : '';
 	let requestInFlight = false;
@@ -84,6 +85,17 @@
 		}
 
 		updateDetails( usage.details || {} );
+		if ( acceptance && usage.retrieval_acceptance ) {
+			const acceptanceStatus = acceptance.querySelector( '[data-npcink-site-knowledge-acceptance-status]' );
+			const acceptanceTime = acceptance.querySelector( '[data-npcink-site-knowledge-acceptance-time]' );
+			if ( acceptanceStatus && usage.retrieval_acceptance.label ) {
+				acceptanceStatus.textContent = usage.retrieval_acceptance.label;
+			}
+			if ( acceptanceTime ) {
+				acceptanceTime.textContent = usage.retrieval_acceptance.verified_label || '';
+				acceptanceTime.hidden = '' === acceptanceTime.textContent;
+			}
+		}
 	};
 
 	const refresh = async () => {
@@ -113,7 +125,8 @@
 			const payload = await response.json();
 
 			if ( ! response.ok || ! payload.success || ! payload.data || ! payload.data.available ) {
-				throw new Error( 'site_knowledge_usage_refresh_failed' );
+				const errorMessage = payload && payload.data && payload.data.message ? payload.data.message : '';
+				throw new Error( errorMessage || 'site_knowledge_usage_refresh_failed' );
 			}
 
 			updateUsage( payload.data );
@@ -122,13 +135,14 @@
 			}
 		} catch ( error ) {
 			const hasRetainedUsage = 'stale' === initialState && '' !== initialValueLabel;
+			const actionableMessage = error && error.message && 'site_knowledge_usage_refresh_failed' !== error.message ? error.message : '';
 			if ( valueLabel ) {
 				valueLabel.textContent = hasRetainedUsage
 					? initialValueLabel
-					: ( config.failedLabel || 'Site Knowledge usage is temporarily unavailable.' );
+					: ( actionableMessage || config.failedLabel || 'Site Knowledge usage is temporarily unavailable.' );
 			}
 			if ( statusLabel ) {
-				statusLabel.textContent = hasRetainedUsage ? ( config.updateFailedLabel || 'Update failed' ) : '';
+				statusLabel.textContent = hasRetainedUsage ? ( actionableMessage || config.updateFailedLabel || 'Update failed' ) : '';
 				statusLabel.hidden = '' === statusLabel.textContent;
 			}
 			refreshController.dataset.npcinkSiteKnowledgeState = 'unavailable';

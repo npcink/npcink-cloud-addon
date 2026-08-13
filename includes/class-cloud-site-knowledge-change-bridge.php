@@ -118,7 +118,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				'last_changed_at' => sanitize_text_field( (string) ( $status['last_changed_at'] ?? '' ) ),
 				'last_post_id' => absint( $status['last_post_id'] ?? 0 ),
 				'last_sent_count' => absint( $status['last_sent_count'] ?? 0 ),
-				'total_sent' => absint( $status['total_sent'] ?? 0 ),
+					'total_sent' => absint( $status['total_sent'] ?? 0 ),
+					'dropped_count' => absint( $status['dropped_count'] ?? 0 ),
+					'last_dropped_at' => sanitize_text_field( (string) ( $status['last_dropped_at'] ?? '' ) ),
 				'last_index_action' => sanitize_key( (string) ( $status['last_index_action'] ?? '' ) ),
 				'last_index_action_at' => sanitize_text_field( (string) ( $status['last_index_action_at'] ?? '' ) ),
 				'last_index_action_status' => sanitize_key( (string) ( $status['last_index_action_status'] ?? '' ) ),
@@ -876,10 +878,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return;
 			}
 
-			$buffer = self::get_buffer();
-			$merged = array_values( array_unique( array_merge( $buffer['post_ids'], $clean ) ) );
-			if ( count( $merged ) > self::MAX_BUFFER_ITEMS ) {
-				$merged = array_slice( $merged, -1 * self::MAX_BUFFER_ITEMS );
+				$buffer = self::get_buffer();
+				$merged = array_values( array_unique( array_merge( $buffer['post_ids'], $clean ) ) );
+				if ( count( $merged ) > self::MAX_BUFFER_ITEMS ) {
+					$dropped = count( $merged ) - self::MAX_BUFFER_ITEMS;
+					$merged = array_slice( $merged, -1 * self::MAX_BUFFER_ITEMS );
+					self::record_dropped_changes( $dropped );
 			}
 			if ( $merged === array_values( $buffer['post_ids'] ) ) {
 				self::schedule_flush( self::DEBOUNCE_SECONDS );
@@ -1175,7 +1179,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$attempts = max( absint( $buffer['attempts'] ?? 0 ), absint( $latest_buffer['attempts'] ?? 0 ) ) + 1;
 			if ( $attempts >= self::MAX_DELIVERY_ATTEMPTS ) {
 				$remaining = self::remaining_after_delivery( $latest_buffer['post_ids'], $attempted_post_ids, $sent_fingerprints );
+				$dropped = max( 0, count( $latest_buffer['post_ids'] ) - count( $remaining ) );
 				self::save_buffer( $remaining, 0 );
+				self::record_dropped_changes( $dropped );
 				if ( ! empty( $remaining ) ) {
 					self::schedule_flush( self::RETRY_SECONDS );
 				}
@@ -1241,6 +1247,23 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			update_option( self::STATUS_OPTION, $status, false );
 
 			return $status;
+		}
+
+		/**
+		 * Records bounded delivery changes that could no longer be retained.
+		 *
+		 * @param int $count Dropped change count.
+		 * @return void
+		 */
+		private static function record_dropped_changes( int $count ): void {
+			if ( $count < 1 ) {
+				return;
+			}
+
+			$status = self::get_status();
+			$status['dropped_count'] = absint( $status['dropped_count'] ?? 0 ) + $count;
+			$status['last_dropped_at'] = gmdate( 'c' );
+			update_option( self::STATUS_OPTION, $status, false );
 		}
 
 		/**

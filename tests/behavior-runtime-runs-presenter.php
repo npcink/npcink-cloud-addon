@@ -51,6 +51,7 @@ $detail = Npcink_Cloud_Runtime_Runs_Presenter::detail(
 	array(
 		'data' => array(
 			'run_id' => 'run_<i>detail</i>/bad:2', 'status' => 'running', 'error_code' => 418,
+			'retryable' => true,
 			'run_lifecycle' => array( 'processing_started_at' => '2026-07-15 02:03:04 UTC' ),
 			'completed_at' => '2026-07-15 03:04:05 UTC',
 		),
@@ -65,6 +66,25 @@ maca_assert(
 	&& '2026-07-15 02:03:04 UTC' === (string) ( $detail['started_at'] ?? '' )
 	&& '2026-07-15 03:04:05 UTC' === (string) ( $detail['finished_at'] ?? '' ),
 	'Behavior: Runtime Runs presenter resolves nested detail paths without owning transport or rendering.'
+);
+maca_assert(
+	false === (bool) ( $detail['retryable'] ?? true )
+	&& false === (bool) ( $detail['has_result'] ?? true ),
+	'Behavior: a running Cloud run never exposes result or retry actions even when an upstream retryable flag is present.'
+);
+
+$failed_retryable_detail = Npcink_Cloud_Runtime_Runs_Presenter::detail(
+	array( 'data' => array( 'run_id' => 'run_failed', 'status' => 'failed', 'result_status' => 'failed', 'retryable' => true ) )
+);
+$successful_detail = Npcink_Cloud_Runtime_Runs_Presenter::detail(
+	array( 'data' => array( 'run_id' => 'run_success', 'status' => 'completed', 'result_status' => 'success', 'retryable' => false ) )
+);
+maca_assert(
+	true === (bool) ( $failed_retryable_detail['retryable'] ?? false )
+	&& false === (bool) ( $failed_retryable_detail['has_result'] ?? true )
+	&& false === (bool) ( $successful_detail['retryable'] ?? true )
+	&& true === (bool) ( $successful_detail['has_result'] ?? false ),
+	'Behavior: Runtime Runs actions follow Cloud retryability and terminal result availability.'
 );
 
 $empty_rows = Npcink_Cloud_Runtime_Runs_Presenter::recent_rows( array( 'runs' => array( array() ) ) );

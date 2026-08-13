@@ -93,7 +93,8 @@
 			const payload = await response.json();
 
 			if ( ! response.ok || ! payload.success || ! payload.data || ! payload.data.label ) {
-				throw new Error( 'entitlement_refresh_failed' );
+				const errorMessage = payload && payload.data && payload.data.message ? payload.data.message : '';
+				throw new Error( errorMessage || 'entitlement_refresh_failed' );
 			}
 
 			summary.textContent = payload.data.label;
@@ -102,9 +103,10 @@
 			retry.hidden = true;
 		} catch ( error ) {
 			const hasRetainedSummary = 'stale' === initialState && '' !== initialLabel;
+			const actionableMessage = error && error.message && 'entitlement_refresh_failed' !== error.message ? error.message : '';
 			summary.textContent = hasRetainedSummary
-				? initialLabel + ' · ' + ( config.updateFailedLabel || 'Update failed' )
-				: ( config.failedLabel || 'Plan and entitlement are temporarily unavailable.' );
+				? initialLabel + ' · ' + ( actionableMessage || config.updateFailedLabel || 'Update failed' )
+				: ( actionableMessage || config.failedLabel || 'Plan and entitlement are temporarily unavailable.' );
 			container.dataset.npcinkEntitlementState = 'unavailable';
 			retry.hidden = false;
 		} finally {
