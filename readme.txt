@@ -4,7 +4,7 @@ Tags: magick ai, cloud, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.1.6
+Stable tag: 0.1.7
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,9 +37,9 @@ Authorization headers, database names, table names, or filesystem paths.
 
 This plugin connects to the Npcink Cloud service configured by the site administrator through the Cloud Base URL setting.
 
-The plugin contacts the configured Cloud service only after an administrator enters a Cloud Base URL and Cloud API Key, saves the settings, verifies the connection, or a local Npcink component explicitly uses the Cloud runtime client.
+The plugin contacts the configured Cloud service after Portal authorization and connection verification, or when an administrator uses the advanced recovery form with a Cloud Base URL and API key. A local Npcink component may also explicitly use the Cloud runtime client.
 
-Requests may include the configured site identifier, key identifier, request timestamp, nonce, trace identifier, idempotency key, HMAC signature headers, runtime request payloads supplied by local Npcink components, metadata-only monitoring events when enabled, and read-only requests for health, run status, run result, usage statistics, entitlement summaries, observability summaries, and Agent feedback quality summaries. The stored Cloud API Key secret is used server-side for request signing and is not printed in wp-admin.
+Requests may include the configured site identifier, key identifier, request timestamp, nonce, trace identifier, idempotency key, HMAC signature headers, and read-only requests for health, run status, run result, usage statistics, entitlement summaries, observability summaries, and Agent feedback quality summaries. WordPress AI/runtime requests can include the prompt, source text, and task configuration supplied for that operation. Optional metadata-only monitoring is separate and does not include prompt or content data. The stored Cloud API Key secret is used server-side for request signing and is not printed in wp-admin.
 
 For host-supplied media derivative runtime jobs, requests may also include a
 short TTL source artifact descriptor and derivative request parameters from the
@@ -47,10 +47,10 @@ local read-only ability output. Cloud credentials and signed headers are added
 by the addon transport and are not copied into the ability payload.
 
 For Site Knowledge transport, requests may include public post/page identifiers,
-public content manifest metadata, approved comment change hints, local delivery
-consent state, and explicit administrator delivery intents for Cloud-owned index
-operations. Drafts, private posts, password-protected posts, credentials, and
-raw database fields must not be sent by this transport.
+public article/page content and public metadata when delivery is enabled, approved
+comment change hints, local delivery consent state, and explicit administrator
+delivery intents for Cloud-owned index operations. Drafts, private posts,
+password-protected posts, credentials, and raw database fields must not be sent.
 
 The Site Knowledge change bridge health seam returns
 `site_knowledge_change_bridge_status.v1`. Local consumers should surface it as
@@ -79,8 +79,8 @@ Npcink Cloud service information:
 1. Place this directory in `wp-content/plugins/npcink-cloud-addon`.
 2. Activate `Npcink Cloud Addon`.
 3. Open `Npcink AI > Cloud Addon`, or `Settings > Npcink Cloud Addon` when the addon is installed standalone.
-4. Enter Cloud Base URL and Cloud API Key.
-5. Click `Save and Verify`.
+4. Choose `Connect with Npcink Cloud` and authorize this site in the Portal.
+5. If Portal authorization is unavailable, expand advanced recovery and enter the Cloud Base URL and API key, then choose `Save and Verify`.
 
 == Frequently Asked Questions ==
 
@@ -90,7 +90,7 @@ No. Keys are issued by Npcink Cloud.
 
 = Do I need a Npcink Cloud account? =
 
-Yes. A site administrator needs a Cloud Base URL and a Cloud API Key issued by the configured Npcink Cloud service before the connector can verify successfully.
+Yes. A site administrator needs a Npcink Cloud account and Portal authorization. The advanced recovery form accepts a Cloud Base URL and API key when Portal authorization is unavailable.
 
 = Does this plugin display the Cloud secret? =
 

@@ -145,6 +145,7 @@ $expected_hooks = array(
 	'admin_enqueue_scripts' => array( 'enqueue_admin_assets', 10 ),
 	'admin_post_npcink_cloud_addon_save' => array( 'handle_save', 10 ),
 	'admin_post_npcink_cloud_addon_complete_auth' => array( 'handle_complete_auth', 10 ),
+	'admin_post_npcink_cloud_addon_start_auth' => array( 'handle_start_auth', 10 ),
 	'admin_post_npcink_cloud_addon_start_custom_auth' => array( 'handle_start_custom_auth', 10 ),
 	'admin_post_npcink_cloud_addon_disconnect' => array( 'handle_disconnect', 10 ),
 	'admin_post_npcink_cloud_addon_update_local_permission' => array( 'handle_update_local_permission', 10 ),
@@ -326,9 +327,20 @@ $rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $rendered, 'Npcink Cloud Addon' )
 	&& false !== strpos( $rendered, 'Add this site in Npcink Cloud' )
+	&& false !== strpos( $rendered, 'npcink_cloud_addon_start_auth' )
 	&& false !== strpos( $rendered, 'Free service and AI credits belong to the Cloud account selected during authorization' )
 	&& $http_before_render === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: the representative unconfigured admin render explains account-owned Free service and performs zero outbound HTTP requests.'
+);
+
+$tab_url_builder = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'tab_url' );
+$page_form_action_builder = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'page_form_action_url' );
+$tab_url_builder->setAccessible( true );
+$page_form_action_builder->setAccessible( true );
+maca_assert(
+	'https://wordpress.example.test/wp-admin/options-general.php?page=npcink-cloud-addon&tab=site_knowledge' === $tab_url_builder->invoke( null, 'site_knowledge' )
+	&& 'https://wordpress.example.test/wp-admin/options-general.php' === $page_form_action_builder->invoke( null ),
+	'Behavior: standalone settings links and GET forms stay on the registered options-general.php page.'
 );
 
 maca_reset_test_state();

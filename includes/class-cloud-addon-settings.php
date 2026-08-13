@@ -176,7 +176,9 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			public static function is_site_knowledge_generation_reference_enabled(): bool {
 				$settings = self::get_settings();
 
-				return self::is_verified() && ! empty( $settings['site_knowledge_generation_reference_enabled'] );
+				return self::is_verified()
+					&& ! empty( $settings['site_knowledge_delivery_enabled'] )
+					&& ! empty( $settings['site_knowledge_generation_reference_enabled'] );
 			}
 
 			/**
@@ -297,6 +299,9 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			if ( array_key_exists( 'site_knowledge_generation_reference_enabled', $payload ) ) {
 				$next['site_knowledge_generation_reference_enabled'] = ! empty( $payload['site_knowledge_generation_reference_enabled'] );
 			}
+			if ( empty( $next['site_knowledge_delivery_enabled'] ) ) {
+				$next['site_knowledge_generation_reference_enabled'] = false;
+			}
 
 			if ( array_key_exists( 'wordpress_ai_connector_enabled', $payload ) ) {
 				$next['wordpress_ai_connector_enabled'] = ! empty( $payload['wordpress_ai_connector_enabled'] );
@@ -356,6 +361,23 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			}
 
 			return false !== update_option( self::option_name(), $stored, false );
+		}
+
+		/**
+		 * Checks whether settings can be encrypted without changing stored state.
+		 *
+		 * @param array<string,mixed> $settings Candidate settings.
+		 * @return bool
+		 */
+		public static function can_store_settings( array $settings ): bool {
+			$normalized = self::normalize_settings( $settings );
+			$current_stored = get_option( self::option_name(), array() );
+			$current_stored = is_array( $current_stored ) ? $current_stored : array();
+			if ( self::has_unreadable_credential_envelope( $current_stored ) && ! self::has_complete_credentials( $normalized ) ) {
+				return false;
+			}
+
+			return ! is_wp_error( self::build_stored_option( $normalized ) );
 		}
 
 		/**
@@ -459,7 +481,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				'site_knowledge_delivery_enabled' => array_key_exists( 'site_knowledge_delivery_enabled', $settings )
 					? ! empty( $settings['site_knowledge_delivery_enabled'] )
 					: false,
-				'site_knowledge_generation_reference_enabled' => ! empty( $settings['site_knowledge_generation_reference_enabled'] ),
+				'site_knowledge_generation_reference_enabled' => ! empty( $settings['site_knowledge_delivery_enabled'] )
+					&& ! empty( $settings['site_knowledge_generation_reference_enabled'] ),
 				'wordpress_ai_connector_enabled' => array_key_exists( 'wordpress_ai_connector_enabled', $settings )
 					? ! empty( $settings['wordpress_ai_connector_enabled'] )
 					: true,

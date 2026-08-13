@@ -43,12 +43,13 @@
 			</div>
 
 			<h2>我们接收的信息</h2>
-			<p>根据站点配置和功能使用情况，发送到 Npcink Cloud 的请求可能包含：配置的 site identifier、key identifier、request timestamp、nonce、trace identifier、idempotency key、HMAC signature headers、Cloud Base URL target、本地 Npcink 组件提供的 runtime request payload、health check requests、run status 和 run result requests、usage、entitlement 和 observability summary requests、管理员启用后的 metadata-only 插件 monitoring events，以及本地 Npcink 组件启用后的 public content-change hints。</p>
-			<p>对于由本地主机提供的 media derivative runtime jobs，请求还可能包含短期 source artifact descriptor、derivative parameters，以及本地主机组件提供的 bounded media derivative inputs。</p>
+			<p><strong>WordPress AI 和 runtime：</strong>本地功能明确运行时，请求可能包含用于生成结果的 prompt 或 source text、任务配置以及必要的技术标识。</p>
+			<p><strong>Media：</strong>明确启动受限媒体任务时，请求可能包含选定的图片/媒体字节，或短期 source artifact descriptor 和 derivative parameters。</p>
+			<p><strong>Site Knowledge：</strong>启用投递后，公开文章/页面及其公开元数据可能发送给 Cloud 进行索引。草稿、私密或受密码保护内容、凭据和原始数据库字段不会发送。</p>
+			<p><strong>Monitoring：</strong>仅发送插件版本、事件类型、状态、耗时、错误代码、路由、标识符、计数和延迟等元数据，不包含 prompt、文章正文、生成内容或媒体字节。</p>
 
 			<h2>我们不会有意收集的信息</h2>
-			<p>Npcink Cloud Addon 的 metadata-only monitoring 设计为不上传 prompts、generated content、article body content、raw request or response payloads、provider credentials、Cloud API secrets、passwords、cookies、无关系统的 nonces、Authorization headers、database names、table names 或 filesystem paths。</p>
-			<p>Cloud API Key secret 仅由本地 WordPress 站点用于服务端签名，不会打印到 wp-admin 页面。</p>
+			<p>Cloud API Key secret 仅由本地 WordPress 站点用于服务端签名，不会打印到 wp-admin 页面。数据保留和删除由已配置的 Cloud 服务依据其<a href="https://cloud.npc.ink/terms/en/data-retention.html">数据保留政策</a>负责。</p>
 
 			<h2>可选监控</h2>
 			<p>插件 monitoring 是可选功能，需要管理员明确 opt-in。启用后，monitoring 可能上传 plugin slug、plugin version、event kind、status、timing、error code、route、proposal id、ability id、correlation id、counters 和 latency 等运行元数据。</p>

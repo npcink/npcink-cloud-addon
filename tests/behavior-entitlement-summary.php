@@ -119,6 +119,10 @@ $site_knowledge_input = array(
 	'document_percent' => 6,
 	'warning_ratio' => 0.85,
 	'last_sync_at' => '2026-07-15 00:00:00 UTC',
+	'retrieval_acceptance' => array(
+		'status' => 'passed',
+		'verified_at' => '2026-07-15 01:30:00 UTC',
+	),
 );
 $site_knowledge_direct = Npcink_Cloud_Site_Knowledge_Admin_Projection::build( $site_knowledge_input );
 $site_knowledge_usage = $site_knowledge_usage_method->invoke( null, $site_knowledge_input );
@@ -154,6 +158,9 @@ maca_assert(
 	&& 94 === (int) ( $site_knowledge_usage['percent'] ?? -1 )
 	&& 'Indexed 599 documents; remaining 9,401 documents; limit 10,000 documents.' === (string) ( $site_knowledge_usage['tooltip'] ?? '' )
 	&& '2026-07-15 00:00:00' === (string) ( $site_knowledge_direct['details']['lastSync']['value'] ?? '' )
+	&& 'passed' === (string) ( $site_knowledge_direct['retrieval_acceptance']['status'] ?? '' )
+	&& 'Passed automatically' === (string) ( $site_knowledge_direct['retrieval_acceptance']['label'] ?? '' )
+	&& 'Last verified: 2026-07-15 01:30:00' === (string) ( $site_knowledge_direct['retrieval_acceptance']['verified_label'] ?? '' )
 	&& $site_knowledge_direct === $site_knowledge_usage
 	&& ! empty( $overview_metrics['runtime']['available'] )
 	&& '8 of 10 runs remaining' === (string) ( $overview_metrics['runtime']['label'] ?? '' )

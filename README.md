@@ -223,6 +223,10 @@ a synthetic local marker setting so the WordPress AI plugin can recognize the
 verified Cloud configuration without exposing the stored Cloud secret or adding
 split credential fields.
 
+The WordPress AI connector is enabled by default after a successful connection.
+Administrators can turn it off at any time from the Overview tab under Local
+permissions.
+
 The addon also exposes
 `npcink_cloud_addon_execute_wordpress_ai_connector_runtime()` as a narrow seam
 for text connector/provider calls, plus
@@ -233,8 +237,7 @@ proxies.
 
 The local `Reference site content during generation` permission is off by
 default. When an administrator enables it, the scene-gated text model adds one
-task-bound `site_knowledge_reference` hint to title, excerpt, meta description,
-summary, and classification requests. Cloud may use existing Site Knowledge as
+task-bound `site_knowledge_reference` hint to title and summary requests. Cloud may use existing Site Knowledge as
 hidden style context or existing taxonomy vocabulary, while the WordPress AI
 plugin continues to receive only the ordinary task result. The addon does not
 receive or display source text, taxonomy evidence, chunks, similarity scores,
