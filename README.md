@@ -82,8 +82,6 @@ WordPress write path.
 ```php
 npcink_cloud_addon_is_configured(): bool
 npcink_cloud_addon_get_connection_state(): array
-npcink_cloud_addon_get_settings(): array
-npcink_cloud_addon_runtime_client(): ?Npcink_Cloud_Runtime_Client
 npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
 npcink_cloud_addon_get_manual_readiness_result(): array
 npcink_cloud_addon_dispatch_media_derivative_cloud_request(array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '')
@@ -194,12 +192,12 @@ by the local operator before any future governed apply path.
 Use `npcink_cloud_addon_get_connection_state()` for status and local permission
 checks. It intentionally omits credential identifiers and the stored secret.
 
-`npcink_cloud_addon_get_settings()` remains temporarily available for existing
-server-side signing integrations, but is deprecated because it returns the
-stored secret. `npcink_cloud_addon_runtime_client()` and generic
-`execute_runtime()` are also compatibility seams; new integrations should use
-the scenario-specific public helpers listed above. Current known compatibility
-consumers are `npcink-workflow-toolbox` and `npcink-ai-client-adapter`.
+`npcink_cloud_addon_get_settings()` and
+`npcink_cloud_addon_runtime_client()` remain callable only as deprecated
+compatibility seams. They are intentionally omitted from the recommended
+interface because the former returns server-side signing settings and the
+latter exposes the concrete transport client. All maintained Npcink consumers
+must use the scenario-specific public helpers listed above.
 
 Toolbox consumers should use the scenario-specific facades for content support,
 site helpers, Nightly Inspection submit/read/retry, Site Media visual-source

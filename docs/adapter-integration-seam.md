@@ -4,15 +4,13 @@
 
 `npcink-ai-client-adapter` must not store Cloud credentials.
 
-Adapter code should call this addon through the public PHP functions and runtime client.
+Adapter code should call this addon through scenario-specific public PHP functions.
 
 ## Public Functions
 
 ```php
 npcink_cloud_addon_is_configured(): bool
 npcink_cloud_addon_get_connection_state(): array
-npcink_cloud_addon_get_settings(): array
-npcink_cloud_addon_runtime_client(): ?Npcink_Cloud_Runtime_Client
 npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
 npcink_cloud_addon_execute_wordpress_ai_connector_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_dispatch_media_derivative_cloud_request(array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '', array $watermark_artifact = array())
@@ -20,10 +18,10 @@ npcink_cloud_addon_build_media_derivative_proposal_payload(array $ability_respon
 npcink_cloud_addon_receive_media_derivative_artifact(array $artifact, string $trace_id = '')
 ```
 
-For new integrations, use `npcink_cloud_addon_get_connection_state()` and a
+For integrations, use `npcink_cloud_addon_get_connection_state()` and a
 scenario-specific transport helper. The raw settings and concrete runtime
-client functions remain deprecated compatibility seams for the existing
-Toolbox/Adapter consumers and must not be exposed to browser or logging code.
+client functions are deprecated compatibility seams only and must not be used
+by Adapter, Toolbox, browser, or logging code.
 
 Toolbox integrations must use the `npcink_cloud_addon_*toolbox*`, Agent
 Feedback, and Site Media visual-source helpers exposed by `includes/bootstrap.php`.
@@ -130,15 +128,11 @@ branding, approve adoption, or write attachment metadata.
 ## Example
 
 ```php
-$client = function_exists( 'npcink_cloud_addon_runtime_client' )
-	? npcink_cloud_addon_runtime_client()
-	: null;
-
-if ( ! $client ) {
+if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_content_support_runtime' ) ) {
 	return new WP_Error( 'cloud_addon_unavailable', 'Npcink Cloud Addon is not configured.' );
 }
 
-$response = $client->execute_runtime(
+$response = npcink_cloud_addon_execute_toolbox_content_support_runtime(
 	$payload,
 	$trace_id,
 	$idempotency_key
