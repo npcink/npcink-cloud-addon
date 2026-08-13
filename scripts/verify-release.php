@@ -63,4 +63,3 @@ foreach ( array( '.git', '.github', 'tests', 'scripts', 'build', 'dist', 'sj', '
 }
 echo '[release] verified_files=' . count( $actual_names ) . PHP_EOL;
 echo '[release] sha256=' . $manifest['zip_sha256'] . PHP_EOL;
-

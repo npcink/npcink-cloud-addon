@@ -60,4 +60,3 @@ foreach ( array( 'valid' => $valid_body, 'placeholder' => $placeholder_body ) as
 		'Behavior: PR body validator ' . ( 'valid' === $case ? 'accepts meaningful sections.' : 'rejects empty template placeholders.' )
 	);
 }
-

@@ -21,4 +21,3 @@ maca_assert(
 	&& ! array_key_exists( 'npcink_cloud_addon_settings', $GLOBALS['maca_options'] ),
 	'Behavior: unified cleanup honors the configured custom settings option name.'
 );
-

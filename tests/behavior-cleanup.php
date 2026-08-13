@@ -56,4 +56,3 @@ maca_assert(
 	&& array() === $GLOBALS['maca_scheduled_events'],
 	'Behavior: unified disconnect cleanup removes settings, connector marker, credential-scoped caches, buffers, locks, and cron hooks.'
 );
-
