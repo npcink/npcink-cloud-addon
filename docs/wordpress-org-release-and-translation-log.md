@@ -2,7 +2,7 @@
 
 Status: active operational handoff.
 
-Last updated: 2026-07-13.
+Last updated: 2026-08-14.
 
 This document records the WordPress.org release, assets, legal pages, and zh_CN
 translation work completed for `npcink-cloud-addon`.
@@ -14,7 +14,7 @@ translation work completed for `npcink-cloud-addon`.
 - WordPress.org SVN URL: `https://plugins.svn.wordpress.org/npcink-cloud-addon/`
 - Historical local SVN working copy: `build/wporg-svn`
 - Release package: `build/npcink-cloud-addon.zip`
-- Stable tag: `0.1.3`
+- Stable tag: `0.1.7`
 
 The plugin has passed WordPress.org review and was submitted to SVN. Later asset
 updates were submitted separately.
@@ -31,6 +31,33 @@ Known SVN revisions:
 - `r3606249`: release `0.1.3` with the simplified admin overview, aligned
   quota summaries, hardened authorization redirect, refreshed screenshots,
   and updated `zh_CN` catalogs.
+- `r3646532`: release `0.1.7` with the bounded runtime facade closeout,
+  improved connection and Site Knowledge feedback, read-only retrieval
+  acceptance projection, fixed WordPress AI localization compatibility, and
+  the current 33-file release package.
+
+## 2026-08-14 0.1.7 Release Closeout
+
+Version `0.1.7` was published to WordPress.org SVN from the clean Addon
+`origin/master` release candidate after the required local gates passed:
+
+```text
+SVN revision: r3646532
+Tag: https://plugins.svn.wordpress.org/npcink-cloud-addon/tags/0.1.7/
+Package SHA256: 44b36245bd34d013b960816b9c0241e07e288339c493def50fd95ead19fbcd19
+```
+
+Verification evidence:
+
+- `composer run test:all` passed;
+- `composer run smoke:playground` passed on WordPress 7.0.4 / PHP 8.2;
+- `WP_CLI_BIN=/opt/homebrew/bin/wp composer run release:verify` passed;
+- the package contained exactly 33 release files;
+- WordPress.org review guard, POT freshness, and strict Plugin Check passed.
+
+The publication was performed through a temporary SVN working copy. The Git
+working tree was not used as an SVN working copy and remains free of generated
+release-state edits.
 
 ## Release Verification
 
