@@ -51,10 +51,34 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			add_filter( 'wpai_preferred_text_models', array( __CLASS__, 'filter_preferred_text_models' ) );
 			add_filter( 'wpai_preferred_vision_models', array( __CLASS__, 'filter_preferred_vision_models' ) );
 			add_filter( 'wpai_preferred_image_models', array( __CLASS__, 'filter_preferred_image_models' ) );
+			add_filter( 'wpai_generated_image_filename', array( __CLASS__, 'filter_generated_image_filename' ), 10, 2 );
 			add_filter( 'wp_get_abilities_result', array( __CLASS__, 'prioritize_wordpress_ai_abilities_for_rest_list' ), 20, 2 );
 			add_action( 'wp_before_execute_ability', array( __CLASS__, 'begin_wordpress_ai_ability_context' ), 10, 3 );
 			add_action( 'wp_after_execute_ability', array( __CLASS__, 'end_wordpress_ai_ability_context' ), 10, 4 );
 			add_action( 'shutdown', array( __CLASS__, 'reset_wordpress_ai_ability_context' ), 1 );
+		}
+
+		/**
+		 * Normalizes WordPress AI image-import filenames to the filter's basename contract.
+		 *
+		 * WordPress AI appends the MIME-derived extension after this filter. Some
+		 * callers pass a complete filename, which would otherwise produce names such
+		 * as `example.png.png`.
+		 *
+		 * @param string              $filename Proposed image filename or basename.
+		 * @param array<string,mixed> $args Image import arguments.
+		 * @return string Filename without a supported image extension.
+		 */
+		public static function filter_generated_image_filename( string $filename, array $args = array() ): string {
+			unset( $args );
+			$filename = trim( $filename );
+			$basename = preg_replace( '/\.(?:png|jpe?g|webp)$/i', '', $filename );
+
+			if ( ! is_string( $basename ) || '' === trim( $basename ) ) {
+				return 'ai-generated-image';
+			}
+
+			return $basename;
 		}
 
 		/**
