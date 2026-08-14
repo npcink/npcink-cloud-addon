@@ -93,6 +93,31 @@ if ( ! class_exists( 'Maca_Ability_Stub' ) ) {
 }
 
 maca_reset_test_state();
+Npcink_Cloud_WordPress_AI_Connector::register();
+maca_assert(
+	2 === (int) ( $GLOBALS['maca_filters']['wpai_generated_image_filename'][10][0]['accepted_args'] ?? 0 ),
+	'WordPress AI connector registers the generated-image basename compatibility filter with import arguments.'
+);
+
+$generated_image_filename_examples = array(
+	'npcink-cloud-adoption-smoke.png' => 'npcink-cloud-adoption-smoke',
+	'editorial-image.JPG'             => 'editorial-image',
+	'generated-photo.jpeg'            => 'generated-photo',
+	'generated-asset.WebP'            => 'generated-asset',
+	'image.release-candidate'          => 'image.release-candidate',
+	'.png'                             => 'ai-generated-image',
+);
+foreach ( $generated_image_filename_examples as $input_filename => $expected_filename ) {
+	maca_assert(
+		$expected_filename === apply_filters(
+			'wpai_generated_image_filename',
+			$input_filename,
+			array( 'mime_type' => 'image/png' )
+		),
+		'WordPress AI generated-image filename compatibility keeps one MIME-derived extension for ' . $input_filename . '.'
+	);
+}
+
 maca_seed_settings( true );
 
 maca_assert(
