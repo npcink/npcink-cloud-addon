@@ -15,7 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, resolve } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const AUTOSAVE_LOCK = 'npcink-cloud-addon-p5-b3-browser-proof';
@@ -92,6 +92,152 @@ function parseJson(output, label) {
 		}
 		throw new Error(`${label} did not return JSON: ${error.message}`);
 	}
+}
+
+function parseCommandJson(output, label) {
+	const text = String(output || '').trim();
+	const start = text.indexOf('{');
+	const end = text.lastIndexOf('}');
+	if (start < 0 || end < start) {
+		throw new Error(`${label} did not return a JSON object.`);
+	}
+	try {
+		return JSON.parse(text.slice(start, end + 1));
+	} catch (error) {
+		throw new Error(`${label} returned invalid JSON: ${error.message}`);
+	}
+}
+
+const PROVIDER_LEDGER_TASK_KEYS = [
+	'title_generation',
+	'content_summary',
+	'content_rewrite',
+];
+const PROVIDER_LEDGER_IDENTIFIER = /^[a-z0-9][a-z0-9._-]{2,63}$/;
+
+function exactObjectKeys(value, expectedKeys, label) {
+	assert(value && typeof value === 'object' && !Array.isArray(value), `${label} is a JSON object.`);
+	const actual = Object.keys(value).sort();
+	const expected = [...expectedKeys].sort();
+	assert(JSON.stringify(actual) === JSON.stringify(expected), `${label} contains only the reviewed fields.`);
+}
+
+function providerLedgerCommand(plan, args, label) {
+	let output = '';
+	try {
+		output = execFileSync(
+			'pnpm',
+			['run', 'provider:call-ledger', ...args],
+			{
+				cwd: plan.ledger_repo,
+				encoding: 'utf8',
+				stdio: ['ignore', 'pipe', 'pipe'],
+			}
+		);
+	} catch (error) {
+		const stderr = String(error?.stderr || '').replace(/\s+/g, ' ').trim();
+		throw new Error(`${label} failed closed${stderr ? `: ${stderr.slice(0, 500)}` : '.'}`);
+	}
+	return parseCommandJson(output, label);
+}
+
+function loadProviderLedgerPlan(rawPlan) {
+	assert(rawPlan.trim() !== '', 'Real Provider quality validation requires WP_AI_TEXT_PROVIDER_LEDGER_PLAN before fixture creation.');
+	let plan;
+	try {
+		plan = JSON.parse(rawPlan);
+	} catch (error) {
+		throw new Error(`WP_AI_TEXT_PROVIDER_LEDGER_PLAN is invalid JSON: ${error.message}`);
+	}
+	exactObjectKeys(plan, ['experiment_id', 'ledger_repo', 'dispatches'], 'Provider ledger plan');
+	assert(PROVIDER_LEDGER_IDENTIFIER.test(plan.experiment_id), 'Provider ledger experiment_id uses the bounded identifier format.');
+	assert(typeof plan.ledger_repo === 'string' && isAbsolute(plan.ledger_repo), 'Provider ledger_repo is an absolute path.');
+	const ledgerRepo = resolve(plan.ledger_repo);
+	assert(existsSync(`${ledgerRepo}/package.json`), 'Provider ledger repository contains package.json.');
+	assert(existsSync(`${ledgerRepo}/scripts/provider_call_ledger.py`), 'Provider ledger repository contains the reviewed ledger command.');
+	exactObjectKeys(plan.dispatches, PROVIDER_LEDGER_TASK_KEYS, 'Provider ledger dispatch map');
+	const dispatchIds = new Set();
+	const itemIds = new Set();
+	const dispatches = {};
+	for (const taskKey of PROVIDER_LEDGER_TASK_KEYS) {
+		const dispatch = plan.dispatches[taskKey];
+		exactObjectKeys(dispatch, ['item_id', 'dispatch_id'], `Provider ledger ${taskKey} dispatch`);
+		assert(PROVIDER_LEDGER_IDENTIFIER.test(dispatch.item_id), `Provider ledger ${taskKey} item_id uses the bounded identifier format.`);
+		assert(PROVIDER_LEDGER_IDENTIFIER.test(dispatch.dispatch_id), `Provider ledger ${taskKey} dispatch_id uses the bounded identifier format.`);
+		assert(!itemIds.has(dispatch.item_id), `Provider ledger ${taskKey} item_id is unique within the run.`);
+		assert(!dispatchIds.has(dispatch.dispatch_id), `Provider ledger ${taskKey} dispatch_id is unique within the run.`);
+		itemIds.add(dispatch.item_id);
+		dispatchIds.add(dispatch.dispatch_id);
+		dispatches[taskKey] = {
+			item_id: dispatch.item_id,
+			dispatch_id: dispatch.dispatch_id,
+		};
+	}
+	return {
+		experiment_id: plan.experiment_id,
+		ledger_repo: ledgerRepo,
+		dispatches,
+	};
+}
+
+function preflightProviderLedgerPlan(plan) {
+	const status = providerLedgerCommand(
+		plan,
+		['status', '--experiment-id', plan.experiment_id],
+		'Provider ledger status preflight'
+	);
+	assert(status.contract_version === 'npcink.provider_call_ledger.v1', 'Provider ledger status uses the reviewed contract.');
+	assert(status.experiment_id === plan.experiment_id && status.status === 'open', 'Provider ledger experiment is open and matches the plan.');
+	assert(status.items && typeof status.items === 'object', 'Provider ledger status exposes reserved items.');
+	assert(Array.isArray(status.claims), 'Provider ledger status exposes the bounded claim list.');
+	assert(Number.isInteger(status.claimed_calls) && Number.isInteger(status.remaining_calls), 'Provider ledger status exposes integer aggregate counters.');
+	for (const taskKey of PROVIDER_LEDGER_TASK_KEYS) {
+		const dispatch = plan.dispatches[taskKey];
+		assert(status.items[dispatch.item_id], `Provider ledger reserves the ${taskKey} item.`);
+		const existingClaim = status.claims.find((claim) => claim.dispatch_id === dispatch.dispatch_id);
+		assert(!existingClaim || existingClaim.item_id === dispatch.item_id, `Provider ledger ${taskKey} dispatch is unused or an idempotent same-item replay.`);
+		assert(existingClaim || status.items[dispatch.item_id].remaining_calls > 0, `Provider ledger ${taskKey} item has capacity before fixture creation.`);
+	}
+	return {
+		contract_version: status.contract_version,
+		experiment_id: status.experiment_id,
+		claimed_calls: status.claimed_calls,
+		remaining_calls: status.remaining_calls,
+	};
+}
+
+function claimProviderLedgerDispatch(plan, taskKey) {
+	const dispatch = plan.dispatches[taskKey];
+	const receipt = providerLedgerCommand(
+		plan,
+		[
+			'claim',
+			'--experiment-id', plan.experiment_id,
+			'--item-id', dispatch.item_id,
+			'--dispatch-id', dispatch.dispatch_id,
+		],
+		`Provider ledger ${taskKey} claim`
+	);
+	assert(receipt.contract_version === 'npcink.provider_call_ledger.v1', `Provider ledger ${taskKey} claim uses the reviewed contract.`);
+	assert(receipt.status === 'claimed', `Provider ledger ${taskKey} claim has claimed status.`);
+	assert(receipt.experiment_id === plan.experiment_id, `Provider ledger ${taskKey} claim matches the experiment.`);
+	assert(receipt.item_id === dispatch.item_id && receipt.dispatch_id === dispatch.dispatch_id, `Provider ledger ${taskKey} claim matches the planned dispatch.`);
+	assert(typeof receipt.idempotent_replay === 'boolean', `Provider ledger ${taskKey} claim exposes an explicit replay flag.`);
+	assert(
+		Number.isInteger(receipt.experiment_claimed_calls)
+		&& Number.isInteger(receipt.experiment_remaining_calls),
+		`Provider ledger ${taskKey} claim exposes integer aggregate counters.`
+	);
+	assert(receipt.provider_dispatch_allowed === true, `Provider ledger authorizes the ${taskKey} Provider dispatch.`);
+	return {
+		task_key: taskKey,
+		item_id: receipt.item_id,
+		dispatch_id: receipt.dispatch_id,
+		provider_dispatch_allowed: true,
+		idempotent_replay: receipt.idempotent_replay === true,
+		experiment_claimed_calls: receipt.experiment_claimed_calls,
+		experiment_remaining_calls: receipt.experiment_remaining_calls,
+	};
 }
 
 function readAiCreditSummary(label) {
@@ -337,12 +483,16 @@ function readFakeProviderEvidence(fakeProvider) {
 	);
 }
 
-function readQualityCorrelationEvidence(token) {
+function readQualityCorrelationEvidence(postId) {
 	return parseJson(
 		wpCli([
 			'eval',
 			`
-$token = ${phpString(token)};
+$post_id = ${Number(postId)};
+$expected_scopes = array();
+foreach (array('title_generation', 'content_summary', 'content_rewrite') as $task_key) {
+	$expected_scopes[$task_key] = hash_hmac('sha256', $post_id . '|' . $task_key, wp_salt('auth'));
+}
 $events = (array) get_option(Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array());
 $pending = (array) get_option(Npcink_Cloud_Editor_Assist_Quality::PENDING_OPTION, array());
 $kind_counts = array();
@@ -358,13 +508,15 @@ foreach ($events as $event) {
 	if (
 		!is_array($event)
 		|| 'editor_assist_quality.v1' !== (string) ($event['quality_contract'] ?? '')
-		|| false === strpos((string) ($event['correlation_id'] ?? ''), $token)
 	) {
+		continue;
+	}
+	$task = (string) ($event['task_key'] ?? '');
+	if (($expected_scopes[$task] ?? '') !== (string) ($event['object_scope_hash'] ?? '')) {
 		continue;
 	}
 	++$event_total;
 	$kind = (string) ($event['event_kind'] ?? '');
-	$task = (string) ($event['task_key'] ?? '');
 	$outcome = (string) ($event['outcome'] ?? '');
 	$kind_counts[$kind] = ($kind_counts[$kind] ?? 0) + 1;
 	$task_counts[$task] = ($task_counts[$task] ?? 0) + 1;
@@ -383,7 +535,7 @@ foreach ($events as $event) {
 	}
 }
 foreach ($pending as $record) {
-	if (is_array($record) && false !== strpos((string) ($record['run_id'] ?? ''), $token)) {
+	if (is_array($record) && $post_id === absint($record['post_id'] ?? 0)) {
 		++$pending_count;
 	}
 }
@@ -959,6 +1111,8 @@ before/after assertion for the three real Provider calls.
 Set WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY=1 for a real-Provider technical checkpoint
 that fails before dispatch unless metadata-only monitoring is enabled and then
 verifies the three generated suggestions and their three local-save outcomes.
+This mode also requires WP_AI_TEXT_PROVIDER_LEDGER_PLAN with one bounded ledger
+experiment and unique title_generation, content_summary, and content_rewrite dispatches.
 This automated checkpoint does not prove real-editor acceptance.`;
 }
 
@@ -982,6 +1136,24 @@ function runPreflightOnly() {
 		const preflightBaseUrl = localBaseUrl(env('WP_BASE_URL', 'https://magick-ai.local'));
 		const readiness = preflight();
 		assertReadiness(preflightBaseUrl, readiness);
+		const providerLedgerValidation = env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1';
+		let providerLedgerEvidence = { validated: false };
+		if (providerLedgerValidation) {
+			assert(
+				readiness.monitoring_enabled === true,
+				'Real quality-correlation validation requires explicit metadata-only monitoring before any Provider dispatch.'
+			);
+			const plan = loadProviderLedgerPlan(env('WP_AI_TEXT_PROVIDER_LEDGER_PLAN'));
+			const ledgerStatus = preflightProviderLedgerPlan(plan);
+			providerLedgerEvidence = {
+				validated: true,
+				contract_version: ledgerStatus.contract_version,
+				experiment_id: ledgerStatus.experiment_id,
+				claimed_calls: ledgerStatus.claimed_calls,
+				remaining_calls: ledgerStatus.remaining_calls,
+				content_fields_recorded: false,
+			};
+		}
 		const summary = {
 			contract: 'wordpress_ai_text_browser_preflight.v1',
 			mode: 'preflight_only',
@@ -996,6 +1168,7 @@ function runPreflightOnly() {
 			browser_started: false,
 			provider_execution_attempted: false,
 			wordpress_write_attempted: false,
+			provider_call_ledger_evidence: providerLedgerEvidence,
 		};
 		console.log(`WP_AI_TEXT_BROWSER_PREFLIGHT=${JSON.stringify(summary)}`);
 		pass(`WordPress AI text browser preflight completed at ${preflightBaseUrl}.`);
@@ -1023,6 +1196,7 @@ const summaryPath = env('WP_AI_TEXT_SUMMARY_PATH', '');
 const fakeProviderMode = env('WP_AI_TEXT_FAKE_PROVIDER') === '1';
 const qualityValidationMode = env('WP_AI_TEXT_VALIDATE_QUALITY') === '1';
 const providerQualityValidationMode = env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1';
+const providerLedgerPlanRaw = env('WP_AI_TEXT_PROVIDER_LEDGER_PLAN');
 const qualityEvidenceMode = qualityValidationMode || providerQualityValidationMode;
 const expectedCreditDeltaRaw = env('WP_AI_TEXT_EXPECT_CREDIT_DELTA');
 const expectedCreditDelta = expectedCreditDeltaRaw === '' ? 0 : Number(expectedCreditDeltaRaw);
@@ -1038,6 +1212,9 @@ if (qualityValidationMode && providerQualityValidationMode) {
 	console.error('FAIL: Select only one quality-correlation validation mode.');
 	process.exit(2);
 }
+const providerLedgerPlan = providerQualityValidationMode
+	? loadProviderLedgerPlan(providerLedgerPlanRaw)
+	: null;
 
 const token = randomBytes(6).toString('hex');
 const creditMeteringPadding = creditAssertionMode
@@ -1073,6 +1250,8 @@ let titleRegenerationCount = 0;
 let titleEditedBeforeInsert = false;
 let creditBefore = null;
 let creditAfter = null;
+let providerLedgerPreflight = null;
+const providerLedgerClaims = [];
 const abilityResponses = [];
 const preSaveWrites = [];
 const saveWrites = [];
@@ -1091,6 +1270,7 @@ try {
 			readiness.monitoring_enabled === true,
 			'Real quality-correlation validation requires explicit metadata-only monitoring before any Provider dispatch.'
 		);
+		providerLedgerPreflight = preflightProviderLedgerPlan(providerLedgerPlan);
 	}
 	if (creditAssertionMode) {
 		assert(!fakeProviderMode, 'AI-credit delta validation requires configured Cloud Provider mode.');
@@ -1178,6 +1358,9 @@ try {
 	);
 	assert(!(await titleGenerate.isDisabled()), 'Title-generation control is enabled for the fixture content.');
 	titleFlowStartedAt = Date.now();
+	if (providerQualityValidationMode) {
+		providerLedgerClaims.push(claimProviderLedgerDispatch(providerLedgerPlan, 'title_generation'));
+	}
 	await titleGenerate.click();
 	if (fakeProviderMode) {
 		await waitForCondition(
@@ -1255,6 +1438,9 @@ try {
 		summaryButton = await waitForVisibleLocator(page, [page.locator('.ai-summarization-plugin-button')], 'Generate Summary button');
 	}
 	assert(!(await summaryButton.isDisabled()), 'Generate Summary is enabled for the fixture content.');
+	if (providerQualityValidationMode) {
+		providerLedgerClaims.push(claimProviderLedgerDispatch(providerLedgerPlan, 'content_summary'));
+	}
 	await summaryButton.click();
 	await page.waitForFunction(() => {
 		const blocks = window.wp?.data?.select?.('core/block-editor')?.getBlocks?.() || [];
@@ -1298,6 +1484,9 @@ try {
 		}
 	}
 	assert(rephraseControl !== null, 'UI review evidence: the current resizing dropdown exposes the localized Rephrase control.');
+	if (providerQualityValidationMode) {
+		providerLedgerClaims.push(claimProviderLedgerDispatch(providerLedgerPlan, 'content_rewrite'));
+	}
 	await rephraseControl.click();
 	const resizeModal = await waitForVisibleLocator(
 		page,
@@ -1434,7 +1623,7 @@ try {
 		);
 	}
 	if (qualityEvidenceMode) {
-		qualityCorrelationEvidence = readQualityCorrelationEvidence(token);
+		qualityCorrelationEvidence = readQualityCorrelationEvidence(postId);
 	}
 	if (qualityValidationMode) {
 		assert(
@@ -1574,6 +1763,17 @@ try {
 			after: creditAfter,
 			used_delta: creditAfter.used - creditBefore.used,
 			remaining_delta: creditAfter.remaining - creditBefore.remaining,
+		} : {
+			validated: false,
+		},
+		provider_call_ledger_evidence: providerQualityValidationMode ? {
+			validated: true,
+			contract_version: providerLedgerPreflight.contract_version,
+			experiment_id: providerLedgerPreflight.experiment_id,
+			preflight_claimed_calls: providerLedgerPreflight.claimed_calls,
+			preflight_remaining_calls: providerLedgerPreflight.remaining_calls,
+			claims: providerLedgerClaims,
+			content_fields_recorded: false,
 		} : {
 			validated: false,
 		},
