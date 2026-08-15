@@ -358,6 +358,11 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, "'serialized_hash' => hash('sha256', serialize_block(\$block))" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'normalizeEvidenceText(finalSnapshot.summary_meta)' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "env('WP_AI_TEXT_FAKE_PROVIDER') === '1'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'Real quality-correlation validation requires explicit metadata-only monitoring before any Provider dispatch.' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'qualityCorrelationEvidence.event_total === 6' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "qualityCorrelationEvidence.task_counts?.title_generation === 2" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "qualityCorrelationEvidence.outcome_by_task?.content_rewrite?.saved_exact_output === 1" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "env('WP_AI_TEXT_EXPECT_CREDIT_DELTA')" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'readAiCreditSummary' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'usedDelta === expectedCreditDelta' )
@@ -376,6 +381,9 @@ maca_assert(
 	&& false !== strpos( $local_test_guide, 'WP_AI_TEXT_FAKE_PROVIDER=1' )
 	&& false !== strpos( $local_test_guide, 'It stores no prompt, post content, generated title, credentials, or' )
 	&& false !== strpos( $local_test_guide, 'headers, dispatches no real Provider request' )
+	&& false !== strpos( $local_test_guide, 'WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY=1' )
+	&& false !== strpos( $local_test_guide, 'fails during preflight, before a draft or Provider request exists' )
+	&& false !== strpos( $local_test_guide, 'not real-editor usefulness, acceptance, or a multi-site cohort' )
 	&& false !== strpos( $local_test_guide, '`cloud_run_id` only inside metadata-only request context for correlation' )
 	&& false !== strpos( $local_test_guide, 'proves zero post writes before the explicit Save/Update click' ),
 	'Opt-in browser acceptance uses the official AI 1.2.0 UI, supports a local expiring fake Provider, preserves suggestion-only review, records content-free adoption evidence, and cleans up its local fixture.'

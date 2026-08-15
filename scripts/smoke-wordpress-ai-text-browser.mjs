@@ -955,7 +955,11 @@ Options:
 
 With no option, the script runs the complete opt-in browser acceptance.
 Set WP_AI_TEXT_EXPECT_CREDIT_DELTA=8 to add the deterministic signed-entitlement
-before/after assertion for the three real Provider calls.`;
+before/after assertion for the three real Provider calls.
+Set WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY=1 for a real-Provider technical checkpoint
+that fails before dispatch unless metadata-only monitoring is enabled and then
+verifies the three generated suggestions and their three local-save outcomes.
+This automated checkpoint does not prove real-editor acceptance.`;
 }
 
 function parseCliMode(args) {
@@ -1018,6 +1022,8 @@ const failureScreenshotPath = resolve(env('WP_AI_TEXT_FAILURE_SCREENSHOT', `${ar
 const summaryPath = env('WP_AI_TEXT_SUMMARY_PATH', '');
 const fakeProviderMode = env('WP_AI_TEXT_FAKE_PROVIDER') === '1';
 const qualityValidationMode = env('WP_AI_TEXT_VALIDATE_QUALITY') === '1';
+const providerQualityValidationMode = env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1';
+const qualityEvidenceMode = qualityValidationMode || providerQualityValidationMode;
 const expectedCreditDeltaRaw = env('WP_AI_TEXT_EXPECT_CREDIT_DELTA');
 const expectedCreditDelta = expectedCreditDeltaRaw === '' ? 0 : Number(expectedCreditDeltaRaw);
 const creditAssertionMode = expectedCreditDeltaRaw !== '';
@@ -1026,6 +1032,10 @@ if (
 	&& expectedCreditDelta !== 8
 ) {
 	console.error('FAIL: WP_AI_TEXT_EXPECT_CREDIT_DELTA supports only the reviewed value 8.');
+	process.exit(2);
+}
+if (qualityValidationMode && providerQualityValidationMode) {
+	console.error('FAIL: Select only one quality-correlation validation mode.');
 	process.exit(2);
 }
 
@@ -1074,6 +1084,13 @@ try {
 	if (qualityValidationMode) {
 		assert(fakeProviderMode, 'Quality-correlation validation requires fake-provider mode.');
 		assert(readiness.monitoring_enabled === true, 'Quality-correlation validation requires verified metadata-only monitoring.');
+	}
+	if (providerQualityValidationMode) {
+		assert(!fakeProviderMode, 'Real quality-correlation validation requires configured Cloud Provider mode.');
+		assert(
+			readiness.monitoring_enabled === true,
+			'Real quality-correlation validation requires explicit metadata-only monitoring before any Provider dispatch.'
+		);
 	}
 	if (creditAssertionMode) {
 		assert(!fakeProviderMode, 'AI-credit delta validation requires configured Cloud Provider mode.');
@@ -1416,8 +1433,10 @@ try {
 			'Fake-provider evidence: all three editor tasks remain internal, result-only, suggestion-only, and network-preempted.'
 		);
 	}
-	if (qualityValidationMode) {
+	if (qualityEvidenceMode) {
 		qualityCorrelationEvidence = readQualityCorrelationEvidence(token);
+	}
+	if (qualityValidationMode) {
 		assert(
 			qualityCorrelationEvidence.event_total === 8
 			&& qualityCorrelationEvidence.session_total === 3
@@ -1445,6 +1464,42 @@ try {
 			&& qualityCorrelationEvidence.forbidden_fields.length === 0,
 			'Quality evidence: Cloud-bound correlation contains only metadata and omits content and local identities.'
 		);
+	}
+	if (providerQualityValidationMode) {
+		assert(
+			qualityCorrelationEvidence.event_total === 6
+			&& qualityCorrelationEvidence.session_total === 3
+			&& qualityCorrelationEvidence.pending_count === 0,
+			'Real quality evidence: three successful generations resolve into three complete editor sessions.'
+		);
+		assert(
+			qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.completed'] === 3
+			&& (qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.repeated'] || 0) === 0
+			&& qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.outcome.observed'] === 3,
+			'Real quality evidence: each generated suggestion has one metadata-only local-save outcome.'
+		);
+		assert(
+			qualityCorrelationEvidence.task_counts?.title_generation === 2
+			&& qualityCorrelationEvidence.task_counts?.content_summary === 2
+			&& qualityCorrelationEvidence.task_counts?.content_rewrite === 2
+			&& qualityCorrelationEvidence.outcome_by_task?.title_generation?.saved_exact_output === 1
+			&& qualityCorrelationEvidence.outcome_by_task?.content_summary?.saved_exact_output === 1
+			&& qualityCorrelationEvidence.outcome_by_task?.content_rewrite?.saved_exact_output === 1,
+			'Real quality evidence: title, summary, and rewrite adoption are classified independently.'
+		);
+		assert(
+			qualityCorrelationEvidence.invalid_content_storage === 0
+			&& Array.isArray(qualityCorrelationEvidence.forbidden_fields)
+			&& qualityCorrelationEvidence.forbidden_fields.length === 0,
+			'Real quality evidence: Cloud-bound correlation contains only metadata and omits content and local identities.'
+		);
+	}
+	if (qualityEvidenceMode) {
+		qualityCorrelationEvidence = {
+			validated: true,
+			mode: providerQualityValidationMode ? 'configured_cloud_provider' : 'local_fake_provider',
+			...qualityCorrelationEvidence,
+		};
 	}
 	if (creditAssertionMode) {
 		creditAfter = readAiCreditSummary('AI-credit result');
@@ -1509,7 +1564,7 @@ try {
 			time_to_first_suggestion_ms: Math.max(0, titleFirstSuggestionAt - titleFlowStartedAt),
 			insert_to_save_ms: Math.max(0, titleSaveCompletedAt - titleInsertedAt),
 		},
-		quality_correlation_evidence: qualityValidationMode ? qualityCorrelationEvidence : {
+		quality_correlation_evidence: qualityEvidenceMode ? qualityCorrelationEvidence : {
 			validated: false,
 		},
 		ai_credit_evidence: creditAssertionMode ? {
