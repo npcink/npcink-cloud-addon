@@ -53,7 +53,8 @@
 
 			<h2>Optional Monitoring</h2>
 			<p>Plugin monitoring is optional and requires explicit administrator opt-in. When enabled, monitoring may upload operational metadata such as plugin slug, plugin version, event kind, status, timing, error code, route, proposal id, ability id, correlation id, counters, and latency.</p>
-			<p>Monitoring data is used to provide service health, reliability, quality, and diagnostic summaries. It is not local WordPress governance truth.</p>
+			<p>For supported editor journeys, this may record that generation started, succeeded, failed, was retried or accepted, and whether an accepted result was saved or abandoned. It does not send prompt text, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages.</p>
+			<p>Uploads are authenticated to the configured Cloud site and may therefore be associated with that site. Monitoring data is used to diagnose failures, measure reliability, and improve Npcink features. It is not used for advertising, individual user scoring, automatic approval, or automatic WordPress content changes. Monitoring is off by default and an administrator can turn it off at any time.</p>
 
 			<h2>How We Use Information</h2>
 			<p>Npcink Cloud may use received information to authenticate and verify signed requests, provide hosted runtime features, return health, entitlement, and usage summaries, process bounded media derivative jobs, provide optional observability and quality summaries, protect service reliability, prevent abuse, and troubleshoot service errors.</p>

@@ -429,6 +429,13 @@ media bytes, raw request/response payloads, provider credentials, Cloud API
 secrets, passwords, cookies, nonces, Authorization headers, database names,
 table names, or filesystem paths.
 
+The customer-journey subset records only supported editor steps such as
+generation start, success, failure, retry, acceptance, save, and abandonment.
+It excludes raw WordPress user and post ids, email addresses, URLs, DOM data,
+and free-form error messages. Signed uploads are associated with the configured
+Cloud site for diagnosis, but are not used for advertising, individual user
+scoring, automatic approval, or automatic WordPress content changes.
+
 Cloud observability summaries are dashboard projections only. They must not be
 used to approve proposals, change Core status, execute WordPress writes, or
 configure router, prompt, or preset behavior.

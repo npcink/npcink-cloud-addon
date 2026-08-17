@@ -1348,8 +1348,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					'description' => __( 'Use indexed public articles as generation context.', 'npcink-cloud-addon' ),
 				),
 				'monitoring_enabled' => array(
-					'label'       => __( 'Monitoring', 'npcink-cloud-addon' ),
-					'description' => __( 'Upload metadata-only plugin monitoring events.', 'npcink-cloud-addon' ),
+					'label'       => __( 'Usage and error diagnostics', 'npcink-cloud-addon' ),
+					'description' => __( 'Optionally send metadata-only events about feature steps, outcomes, timing, and machine-readable error codes to help diagnose failures and improve reliability. This does not send prompts, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.', 'npcink-cloud-addon' ),
 				),
 			);
 		}

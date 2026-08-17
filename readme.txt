@@ -32,6 +32,12 @@ ability id, correlation id, and counters. It must not upload prompts,
 generated content, article body content, media bytes, raw request or response
 payloads, provider credentials, Cloud API secrets, passwords, cookies, nonces,
 Authorization headers, database names, table names, or filesystem paths.
+Customer-journey monitoring is limited to supported editor steps such as
+generation started, succeeded, failed, retried, accepted, saved, or abandoned.
+It does not send raw WordPress user or post IDs, email addresses, URLs, DOM
+data, or free-form error messages. Uploads are authenticated to the configured
+Cloud site, so they may be associated with that site; they are not used for
+advertising, individual user scoring, or automatic WordPress content changes.
 
 == External Services ==
 
@@ -108,9 +114,21 @@ No. Monitoring requires explicit administrator opt-in and verified Cloud setting
 
 Monitoring sends operational metadata only, such as plugin slug/version, event kind, status, timing, error code, route, proposal id, ability id, correlation id, counters, and latency.
 
+For supported editor journeys, this may show that generation started,
+succeeded, failed, was retried or accepted, and whether an accepted result was
+saved or abandoned. Monitoring uploads are associated with the configured
+Cloud site, but do not include raw WordPress user or post IDs.
+
 = Does monitoring upload prompts, content, or raw payloads? =
 
 No. Metadata-only monitoring is designed not to upload prompts, generated content, article body content, media bytes, raw request or response payloads, provider credentials, Cloud API secrets, passwords, cookies, nonces, Authorization headers, database names, table names, or filesystem paths.
+
+= How is monitoring data used? =
+
+Monitoring data is used to diagnose failures, measure reliability, and improve
+Npcink features. It is not used for advertising, individual user scoring,
+automatic approval, or automatic WordPress content changes. Monitoring is off
+by default and an administrator can turn it off at any time.
 
 = Can media derivative jobs send media data to Cloud? =
 
