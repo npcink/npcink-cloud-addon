@@ -78,6 +78,8 @@ Allowed runtime/read endpoints:
 - `GET /v1/observability/plugin-summary`
 - `POST /v1/agent-feedback/events`
 - `GET /v1/agent-feedback/summary`
+- `POST /v1/customer-journey/events`
+- `GET /v1/customer-journey/summary`
 - `GET /health/live` for unsigned liveness
 
 ## Local Verification

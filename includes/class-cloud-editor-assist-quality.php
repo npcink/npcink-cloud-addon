@@ -49,6 +49,7 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 		 * @param string              $run_id Cloud run ID.
 		 * @param string              $output_text Generated suggestion.
 		 * @param int                 $latency_ms Cloud runtime latency.
+		 * @param string              $journey_session_id Opaque customer journey session id.
 		 * @return void
 		 */
 		public static function record_generation(
@@ -57,7 +58,8 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 			array $ability_input,
 			string $run_id,
 			string $output_text,
-			int $latency_ms
+			int $latency_ms,
+			string $journey_session_id = ''
 		): void {
 			if (
 				! Npcink_Cloud_Addon_Settings::is_monitoring_enabled()
@@ -110,6 +112,9 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 				'actor_scope_hash'   => self::scope_hash( (string) $actor_id ),
 				'generated_at'       => $now,
 				'latency_ms'         => max( 0, $latency_ms ),
+				'journey_session_id' => '' !== $journey_session_id
+					? $journey_session_id
+					: Npcink_Cloud_Customer_Journey::build_session_id( $task_key, $ability_input ),
 			);
 			$records[] = $record;
 			if ( count( $records ) > self::MAX_PENDING ) {
@@ -131,6 +136,13 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 					array(
 						'status' => 'warning',
 					)
+				);
+				Npcink_Cloud_Customer_Journey::capture_generation(
+					$task_key,
+					'retried',
+					(string) $record['journey_session_id'],
+					$latency_ms,
+					$run_id
 				);
 			}
 		}
@@ -197,6 +209,23 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 						break;
 					}
 				}
+				$journey_session_id = (string) ( $latest['journey_session_id'] ?? '' );
+				$task_key = (string) ( $latest['task_key'] ?? '' );
+				$run_id = (string) ( $latest['run_id'] ?? '' );
+				if ( 'saved_exact_output' === $outcome ) {
+					Npcink_Cloud_Customer_Journey::capture_generation(
+						$task_key,
+						'accepted',
+						$journey_session_id,
+						0,
+						$run_id
+					);
+				}
+				Npcink_Cloud_Customer_Journey::capture_save(
+					'succeeded',
+					$journey_session_id,
+					$run_id
+				);
 
 				self::emit_event(
 					$latest,
@@ -252,6 +281,11 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 					}
 				);
 				$latest = $group[ count( $group ) - 1 ];
+				Npcink_Cloud_Customer_Journey::capture_save(
+					'abandoned',
+					(string) ( $latest['journey_session_id'] ?? '' ),
+					(string) ( $latest['run_id'] ?? '' )
+				);
 				self::emit_event(
 					$latest,
 					'addon.editor_assist.outcome.expired',

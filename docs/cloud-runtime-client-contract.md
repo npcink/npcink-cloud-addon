@@ -52,6 +52,8 @@ send_observability_events(array $events, string $trace_id = '', string $idempote
 send_agent_feedback_event(array $payload, string $trace_id = '', string $idempotency_key = '')
 get_agent_feedback_summary(int $window_hours = 24, string $trace_id = '')
 get_observability_summary(int $window_hours = 24, string $trace_id = '')
+send_customer_journey_events(array $events, string $trace_id = '', string $idempotency_key = '')
+get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '', string $trace_id = '')
 ```
 
 The low-level signed `request()` helper is private implementation detail. It must enforce the endpoint allowlist in this contract and must not be exposed as a generic public Cloud proxy.
@@ -107,6 +109,8 @@ It returns `null` until the addon settings have passed Save and Verify.
 | `send_agent_feedback_event()` | `POST /v1/agent-feedback/events` |
 | `get_agent_feedback_summary()` | `GET /v1/agent-feedback/summary` |
 | `get_observability_summary()` | `GET /v1/observability/plugin-summary` |
+| `send_customer_journey_events()` | `POST /v1/customer-journey/events` |
+| `get_customer_journey_summary()` | `GET /v1/customer-journey/summary` |
 
 ## Diagnostics Surface
 

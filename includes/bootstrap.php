@@ -22,6 +22,7 @@ require_once __DIR__ . '/class-cloud-runtime-client-factory.php';
 require_once __DIR__ . '/class-cloud-media-derivative-transport.php';
 require_once __DIR__ . '/class-cloud-entitlement-summary.php';
 require_once __DIR__ . '/class-cloud-observability-collector.php';
+require_once __DIR__ . '/class-cloud-customer-journey.php';
 require_once __DIR__ . '/class-cloud-editor-assist-quality.php';
 require_once __DIR__ . '/class-cloud-site-knowledge-change-bridge.php';
 require_once __DIR__ . '/class-cloud-site-knowledge-runtime-bridge.php';
@@ -111,6 +112,35 @@ if ( ! function_exists( 'npcink_cloud_addon_get_manual_readiness_result' ) ) {
 		$client = new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() );
 
 		return $client->manual_readiness_test();
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_get_customer_journey_summary' ) ) {
+	/**
+	 * Reads the current site's metadata-only customer journey summary.
+	 *
+	 * This is a manual diagnostic read. It does not expose content, identity,
+	 * WordPress write controls, or an analytics dashboard.
+	 *
+	 * @param int    $window_hours Summary window from 1 to 168 hours.
+	 * @param string $cohort_id Optional bounded cohort id.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	function npcink_cloud_addon_get_customer_journey_summary( int $window_hours = 24, string $cohort_id = '' ) {
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
+		if ( ! $client ) {
+			return new WP_Error(
+				'cloud_runtime_unconfigured',
+				__( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		return $client->get_customer_journey_summary(
+			$window_hours,
+			$cohort_id,
+			'trace_customer_journey_summary_' . wp_generate_uuid4()
+		);
 	}
 }
 
@@ -746,6 +776,7 @@ if ( ! function_exists( 'npcink_cloud_addon_bootstrap' ) ) {
 	function npcink_cloud_addon_bootstrap(): void {
 		Npcink_Cloud_Addon_Settings::register();
 		Npcink_Cloud_Observability_Collector::register();
+		Npcink_Cloud_Customer_Journey::register();
 		Npcink_Cloud_Editor_Assist_Quality::register();
 		Npcink_Cloud_Site_Knowledge_Change_Bridge::register();
 		Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();

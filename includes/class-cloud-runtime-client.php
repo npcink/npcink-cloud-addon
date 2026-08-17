@@ -962,6 +962,38 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		}
 
 		/**
+		 * Sends a metadata-only customer journey batch.
+		 *
+		 * @param array<int,array<string,mixed>> $events Closed journey event batch.
+		 * @param string                         $trace_id Optional trace id.
+		 * @param string                         $idempotency_key Optional idempotency key.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		public function send_customer_journey_events( array $events, string $trace_id = '', string $idempotency_key = '' ) {
+			if ( empty( $events ) || count( $events ) > 100 ) {
+				return new WP_Error(
+					'cloud_customer_journey_events_invalid',
+					__( 'Customer journey upload requires between 1 and 100 metadata-only events.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+			if ( '' === $idempotency_key ) {
+				$idempotency_key = 'journey_' . wp_generate_uuid4();
+			}
+
+			return $this->request(
+				'POST',
+				'/v1/customer-journey/events',
+				array(
+					'contract_version' => 'customer_journey_event.v1',
+					'events'           => array_values( $events ),
+				),
+				$idempotency_key,
+				$trace_id
+			);
+		}
+
+		/**
 		 * Sends one local Agent handoff feedback event for Cloud eval rollups.
 		 *
 		 * @param array<string,mixed> $payload Agent feedback payload.
@@ -1020,6 +1052,33 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			$window_hours = min( 168, max( 1, absint( $window_hours ) ) );
 
 			return $this->request( 'GET', '/v1/observability/plugin-summary?window_hours=' . rawurlencode( (string) $window_hours ), null, '', $trace_id );
+		}
+
+		/**
+		 * Reads the current site's customer journey summary.
+		 *
+		 * @param int    $window_hours Summary window in hours.
+		 * @param string $cohort_id Optional cohort id.
+		 * @param string $trace_id Optional trace id.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		public function get_customer_journey_summary( int $window_hours = 24, string $cohort_id = '', string $trace_id = '' ) {
+			$window_hours = min( 168, max( 1, absint( $window_hours ) ) );
+			$cohort_id = trim( $cohort_id );
+			if ( strlen( $cohort_id ) > 64 || ( '' !== $cohort_id && 1 !== preg_match( '/^[A-Za-z0-9._:-]+$/', $cohort_id ) ) ) {
+				return new WP_Error(
+					'cloud_customer_journey_cohort_invalid',
+					__( 'Customer journey cohort id is invalid.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$path = '/v1/customer-journey/summary?window_hours=' . rawurlencode( (string) $window_hours );
+			if ( '' !== $cohort_id ) {
+				$path .= '&cohort_id=' . rawurlencode( $cohort_id );
+			}
+
+			return $this->request( 'GET', $path, null, '', $trace_id );
 		}
 
 		/**

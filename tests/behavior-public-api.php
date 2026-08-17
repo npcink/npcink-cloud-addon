@@ -39,3 +39,21 @@ maca_assert(
 	&& Npcink_Cloud_Runtime_Client_Factory::configured() instanceof Npcink_Cloud_Runtime_Client,
 	'Behavior: deprecated raw settings remain callable while the concrete runtime client seam is removed from the public API.'
 );
+
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array( 'contract_version' => 'customer_journey_summary.v1' ),
+		)
+	),
+);
+$summary = npcink_cloud_addon_get_customer_journey_summary( 48, 'pilot_1' );
+$summary_request = $GLOBALS['maca_http_requests'][0] ?? array();
+maca_assert(
+	! is_wp_error( $summary )
+	&& false !== strpos( (string) ( $summary_request['url'] ?? '' ), '/v1/customer-journey/summary?window_hours=48&cohort_id=pilot_1' )
+	&& 'GET' === (string) ( $summary_request['args']['method'] ?? '' ),
+	'Behavior: the manual customer-journey helper performs one bounded signed read without adding an analytics UI.'
+);
