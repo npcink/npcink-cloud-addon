@@ -433,10 +433,6 @@ msgstr "Cloud 会创建或激活此站点连接，并通过一次性授权码返
 msgid "Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud."
 msgstr "免费服务和 AI 积分属于授权时选择的 Cloud 账户，不属于此站点。同一账户可随时重新连接；更换到其他账户时，须遵守 Cloud 显示的站点移除和冷却要求。"
 
-#: includes/class-cloud-settings-page.php:1351
-msgid "Monitoring"
-msgstr "监控"
-
 #: includes/bootstrap.php:808
 msgid "Settings"
 msgstr "设置"
@@ -1659,10 +1655,6 @@ msgstr "将公开内容变更发送到 Cloud 站点知识库。"
 msgid "Use indexed public articles as generation context."
 msgstr "使用已索引的公开文章作为生成上下文。"
 
-#: includes/class-cloud-settings-page.php:1352
-msgid "Upload metadata-only plugin monitoring events."
-msgstr "上传仅包含元数据的插件监控事件。"
-
 #: includes/class-cloud-settings-page.php:1412
 msgid "More local permissions"
 msgstr "更多本地授权"
@@ -2521,3 +2513,11 @@ msgstr "客户旅程上传需要包含 1 到 100 条仅元数据事件。"
 #: includes/class-cloud-runtime-client.php:1071
 msgid "Customer journey cohort id is invalid."
 msgstr "客户旅程分组 ID 无效。"
+
+#: includes/class-cloud-settings-page.php:1351
+msgid "Usage and error diagnostics"
+msgstr "使用与故障诊断"
+
+#: includes/class-cloud-settings-page.php:1352
+msgid "Optionally send metadata-only events about feature steps, outcomes, timing, and machine-readable error codes to help diagnose failures and improve reliability. This does not send prompts, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time."
+msgstr "可选发送功能步骤、执行结果、耗时和机器可读错误码等元数据，用于排查故障并改善可靠性。不会发送 Prompt、源内容或生成内容、WordPress 用户或文章原始 ID、邮箱、URL、DOM 数据、凭据或自由文本错误消息。默认关闭；管理员可随时关闭。"
