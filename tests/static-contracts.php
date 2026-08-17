@@ -56,6 +56,7 @@ $admin_site_knowledge_js = maca_read( $root . '/assets/admin-site-knowledge.js' 
 $admin_css = maca_read( $root . '/assets/admin.css' );
 $entitlement_summary = maca_read( $root . '/includes/class-cloud-entitlement-summary.php' );
 $observability = maca_read( $root . '/includes/class-cloud-observability-collector.php' );
+$customer_journey = maca_read( $root . '/includes/class-cloud-customer-journey.php' );
 $site_knowledge_bridge = maca_read( $root . '/includes/class-cloud-site-knowledge-change-bridge.php' );
 $site_knowledge_full_index_doc = maca_read( $root . '/docs/site-knowledge-full-index-delivery.md' );
 $site_knowledge_runtime_bridge = maca_read( $root . '/includes/class-cloud-site-knowledge-runtime-bridge.php' );
@@ -74,6 +75,20 @@ $adapter_doc = maca_read( $root . '/docs/adapter-integration-seam.md' );
 $complexity_doc = maca_read( $root . '/docs/cloud-addon-complexity-budget.md' );
 $test_helpers = maca_read( $root . '/tests/helpers.php' );
 $test_runner = maca_read( $root . '/tests/run.php' );
+$release_source_manifest = maca_read( $root . '/release-manifest.txt' );
+
+maca_assert(
+	false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-customer-journey.php'" )
+	&& false !== strpos( $customer_journey, "'surface'              => 'wordpress_editor'" )
+	&& false !== strpos( $customer_journey, "Npcink_Cloud_Observability_Collector::CRON_HOOK" )
+	&& false === strpos( $customer_journey, 'wp_schedule_event(' )
+	&& false !== strpos( $runtime_client, "'/v1/customer-journey/events'" )
+	&& false !== strpos( $runtime_client, "'/v1/customer-journey/summary?window_hours='" )
+	&& false !== strpos( $cleanup, 'npcink_cloud_addon_customer_journey_buffer' )
+	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-customer-journey.php' )
+	&& false !== strpos( $test_runner, "behavior-customer-journey.php" ),
+	'Static: customer journey delivery remains opt-in metadata transport on the existing scheduler with named endpoints, cleanup, packaging, and behavior coverage.'
+);
 
 maca_assert(
 	false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-addon-cleanup.php'" )
@@ -115,7 +130,6 @@ $pr_template = maca_read( $root . '/.github/pull_request_template.md' );
 $pr_publisher = maca_read( $root . '/scripts/publish-pr.sh' );
 $image_context_pilot = maca_read( $root . '/scripts/eval-local-image-context-artifact-pilot.php' );
 $release_builder = maca_read( $root . '/scripts/build-release.php' );
-$release_source_manifest = maca_read( $root . '/release-manifest.txt' );
 $composer_config = json_decode( $composer, true );
 
 maca_assert(
