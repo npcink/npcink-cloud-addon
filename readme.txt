@@ -4,7 +4,7 @@ Tags: magick ai, cloud, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.1.7
+Stable tag: 0.1.8
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -154,6 +154,18 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 4. Advanced troubleshooting with service detail, runtime runs, and connection recovery.
 
 == Changelog ==
+
+= 0.1.8 =
+
+* Add opt-in, privacy-safe editor journey events for generation, recovery, acceptance, and save outcomes.
+* Clarify exactly what monitoring sends, how site-associated metadata is used, and which sensitive data is never collected.
+* Tighten monitoring-consent gates for editor quality evidence and prevent duplicate extensions on imported AI images.
+
+= 0.1.7 =
+
+* Replace the public concrete runtime client seam with bounded scenario-specific connector facades.
+* Improve connection, Site Knowledge, and read-only runtime result feedback while preserving local WordPress write ownership.
+* Refresh WordPress AI localization compatibility and the verified release package.
 
 = 0.1.6 =
 
