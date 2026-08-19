@@ -11,6 +11,9 @@ bounded signed transport.
 
 ## Engineering Decisions and Standards
 
+- [Production monitoring consent and package handoff ADR](docs/decisions/002-production-monitoring-consent-and-package-handoff.md)
+- [Production monitoring development retrospective](docs/production-monitoring-development-retrospective-2026-08-19.md)
+
 - [Runtime seam closeout and engineering standard](docs/runtime-seam-closeout-and-engineering-standard-2026-08-13.md)
   records the consumer-migration, public-seam removal, Playground stabilization,
   verification ladder, publication workflow, and reusable closeout checklist.
