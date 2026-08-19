@@ -32,15 +32,18 @@ user id, email, URL, DOM state, arbitrary exception messages, credentials, or
 headers. Post and actor context are used only in a local keyed hash that rotates
 every 30 minutes; raw values are not retained in the journey buffer.
 
-For a bounded invited-user observation window, the local operator may set
+For an explicitly controlled experiment, the local operator may optionally set
 `NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID` in WordPress configuration.
+This field is not required for normal production operation: Cloud assigns every
+event to the authenticated WordPress site, and ordinary production operators
+should leave the cohort unset.
 The value must be an opaque 1-64 character identifier containing only letters,
 digits, `.`, `_`, `:`, or `-`. It must not contain a person, account, site,
 article, or prompt identifier. Invalid values fail closed and are omitted. The
 constant is read at capture time, is not copied into an Addon setting, and
 should be removed when the observation window closes.
 
-Example Local commands:
+Example experiment-only Local commands:
 
 ```bash
 wp config set NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID human-value-20260819
