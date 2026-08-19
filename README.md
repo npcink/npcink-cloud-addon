@@ -436,6 +436,15 @@ and free-form error messages. Signed uploads are associated with the configured
 Cloud site for diagnosis, but are not used for advertising, individual user
 scoring, automatic approval, or automatic WordPress content changes.
 
+During a bounded invited-user observation window, an operator may set the same
+opaque `NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID` value on the participating
+sites. Valid values are 1-64 characters from letters, digits, `.`, `_`, `:`, and
+`-`; they must not encode editor, account, site, article, prompt, or content
+identity. The optional tag is projected only on new customer-journey events,
+allows the existing Cloud summary to exclude earlier technical smoke, and must
+be removed after the window. It adds no Addon analytics UI or persistent cohort
+setting.
+
 Cloud observability summaries are dashboard projections only. They must not be
 used to approve proposals, change Core status, execute WordPress writes, or
 configure router, prompt, or preset behavior.

@@ -37,6 +37,25 @@ maca_assert(
 maca_reset_test_state();
 maca_seed_settings( true );
 maca_set_monitoring_enabled( true );
+Npcink_Cloud_Customer_Journey::capture_generation(
+	'content_summary',
+	'started',
+	'journey_session_without_cohort'
+);
+$untagged_events = maca_customer_journey_events();
+maca_assert(
+	1 === count( $untagged_events )
+	&& ! array_key_exists( 'cohort_id', $untagged_events[0] ),
+	'Behavior: existing sites remain compatible and omit cohort metadata until an operator declares it locally.'
+);
+
+if ( ! defined( 'NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID' ) ) {
+	define( 'NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID', 'human_value_cohort_20260819' );
+}
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_monitoring_enabled( true );
 $session_a = Npcink_Cloud_Customer_Journey::build_session_id( 'content_summary', array( 'post_id' => 42 ) );
 $session_b = Npcink_Cloud_Customer_Journey::build_session_id( 'content_summary', array( 'post_id' => 42 ) );
 Npcink_Cloud_Customer_Journey::capture_generation( 'content_summary', 'started', $session_a );
@@ -59,6 +78,7 @@ maca_assert(
 	$session_a === $session_b
 	&& 3 === count( $events )
 	&& 'wordpress_editor' === (string) ( $events[0]['surface'] ?? '' )
+	&& 'human_value_cohort_20260819' === (string) ( $events[0]['cohort_id'] ?? '' )
 	&& 'summary_generation' === (string) ( $events[0]['journey'] ?? '' )
 	&& 'started' === (string) ( $events[0]['step'] ?? '' )
 	&& 'succeeded' === (string) ( $events[1]['step'] ?? '' )
@@ -87,7 +107,7 @@ maca_assert(
 	&& false !== strpos( (string) ( $failed_request['url'] ?? '' ), '/v1/customer-journey/events' )
 	&& Npcink_Cloud_Customer_Journey::CONTRACT_VERSION === (string) ( $failed_body['contract_version'] ?? '' )
 	&& 3 === count( (array) ( $failed_body['events'] ?? array() ) ),
-	'Behavior: a failed journey upload keeps the exact bounded batch for retry.'
+	'Behavior: a failed journey upload keeps the exact cohort-tagged bounded batch for retry.'
 );
 
 $GLOBALS['maca_http_response_queue'][] = array(
