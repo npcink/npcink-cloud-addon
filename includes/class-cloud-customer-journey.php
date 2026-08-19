@@ -18,6 +18,7 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 	final class Npcink_Cloud_Customer_Journey {
 		public const CONTRACT_VERSION = 'customer_journey_event.v1';
 		public const BUFFER_OPTION = 'npcink_cloud_addon_customer_journey_buffer';
+		public const COHORT_ID_CONSTANT = 'NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID';
 
 		private const MAX_BUFFER_ITEMS = 200;
 		private const MAX_BATCH_ITEMS = 50;
@@ -251,6 +252,10 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 				'step'                 => $step,
 				'occurred_at'          => self::timestamp(),
 			);
+			$cohort_id = self::cohort_id();
+			if ( '' !== $cohort_id ) {
+				$normalized['cohort_id'] = $cohort_id;
+			}
 			$duration_ms = absint( $event['duration_ms'] ?? 0 );
 			if ( $duration_ms > 0 ) {
 				$normalized['duration_ms'] = min( 86400000, $duration_ms );
@@ -308,6 +313,27 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 			$value = preg_replace( '/[^A-Za-z0-9._:-]/', '_', trim( $value ) ) ?? '';
 
 			return substr( $value, 0, $max_length );
+		}
+
+		/**
+		 * Reads one optional operator-declared cohort tag without persisting it.
+		 */
+		private static function cohort_id(): string {
+			if ( ! defined( self::COHORT_ID_CONSTANT ) ) {
+				return '';
+			}
+
+			$value = constant( self::COHORT_ID_CONSTANT );
+			if ( ! is_string( $value ) ) {
+				return '';
+			}
+
+			$value = trim( $value );
+			if ( strlen( $value ) > 64 || 1 !== preg_match( '/^[A-Za-z0-9._:-]+$/', $value ) ) {
+				return '';
+			}
+
+			return $value;
 		}
 
 		/**

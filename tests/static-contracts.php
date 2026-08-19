@@ -80,6 +80,8 @@ $release_source_manifest = maca_read( $root . '/release-manifest.txt' );
 maca_assert(
 	false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-customer-journey.php'" )
 	&& false !== strpos( $customer_journey, "'surface'              => 'wordpress_editor'" )
+	&& false !== strpos( $customer_journey, 'NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID' )
+	&& false !== strpos( $customer_journey, "preg_match( '/^[A-Za-z0-9._:-]+$/'" )
 	&& false !== strpos( $customer_journey, "Npcink_Cloud_Observability_Collector::CRON_HOOK" )
 	&& false === strpos( $customer_journey, 'wp_schedule_event(' )
 	&& false !== strpos( $runtime_client, "'/v1/customer-journey/events'" )
@@ -87,7 +89,7 @@ maca_assert(
 	&& false !== strpos( $cleanup, 'npcink_cloud_addon_customer_journey_buffer' )
 	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-customer-journey.php' )
 	&& false !== strpos( $test_runner, "behavior-customer-journey.php" ),
-	'Static: customer journey delivery remains opt-in metadata transport on the existing scheduler with named endpoints, cleanup, packaging, and behavior coverage.'
+	'Static: customer journey delivery remains opt-in metadata transport with a bounded local cohort tag, the existing scheduler, named endpoints, cleanup, packaging, and behavior coverage.'
 );
 
 maca_assert(
