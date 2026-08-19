@@ -4,7 +4,7 @@ Tags: magick ai, cloud, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.1.8
+Stable tag: 0.1.9
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ It does not send raw WordPress user or post IDs, email addresses, URLs, DOM
 data, or free-form error messages. Uploads are authenticated to the configured
 Cloud site, so they may be associated with that site; they are not used for
 advertising, individual user scoring, or automatic WordPress content changes.
+During a bounded invited-user observation window, the site operator may add one
+opaque cohort identifier so Cloud summaries can exclude earlier technical test
+events. The identifier must not encode an editor, account, site, article,
+prompt, or content identity.
 
 == External Services ==
 
@@ -154,6 +158,11 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 4. Advanced troubleshooting with service detail, runtime runs, and connection recovery.
 
 == Changelog ==
+
+= 0.1.9 =
+
+* Add an optional anonymous cohort identifier for separating invited-user observations from earlier technical test events.
+* Keep cohort declaration local to WordPress configuration, reject invalid values, and document that identifiers must not encode user or content identity.
 
 = 0.1.8 =
 
