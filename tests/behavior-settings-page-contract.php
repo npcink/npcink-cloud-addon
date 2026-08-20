@@ -137,6 +137,19 @@ maca_load_addon_classes();
 require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-change-bridge.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php';
 
+$readiness_token_formatter = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'format_readiness_token' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$readiness_token_formatter->setAccessible( true );
+}
+
+maca_assert(
+	'Ready' === $readiness_token_formatter->invoke( null, 'ready' )
+	&& 'continue' === $readiness_token_formatter->invoke( null, 'continue' )
+	&& 'Cloud Addon' === $readiness_token_formatter->invoke( null, 'cloud_addon' )
+	&& 'unavailable' === $readiness_token_formatter->invoke( null, 'unexpected-upstream-token' ),
+	'Behavior: readiness token formatting translates the bounded vocabulary and fails closed for unknown tokens.'
+);
+
 maca_reset_test_state();
 Npcink_Cloud_Settings_Page::register();
 

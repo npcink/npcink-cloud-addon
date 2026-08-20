@@ -2030,7 +2030,46 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				return __( 'not run', 'npcink-cloud-addon' );
 			}
 
-			return sanitize_key( (string) ( $readiness['bounded_status'] ?? $readiness['status'] ?? 'unavailable' ) );
+			return self::format_readiness_token( (string) ( $readiness['bounded_status'] ?? $readiness['status'] ?? 'unavailable' ) );
+		}
+
+		/**
+		 * Formats a bounded readiness token without exposing arbitrary upstream text.
+		 *
+		 * @param string $token Bounded status, owner, or next-action token.
+		 * @return string
+		 */
+		private static function format_readiness_token( string $token ): string {
+			$token = sanitize_key( $token );
+			switch ( $token ) {
+			case 'ready':
+				return __( 'Ready', 'npcink-cloud-addon' );
+			case 'failed':
+				return __( 'Failed', 'npcink-cloud-addon' );
+			case 'not_configured':
+				return __( 'Not configured', 'npcink-cloud-addon' );
+			case 'partial':
+				return __( 'Partial', 'npcink-cloud-addon' );
+			case 'not_run':
+				return __( 'not run', 'npcink-cloud-addon' );
+			case 'cloud_addon':
+				return __( 'Cloud Addon', 'npcink-cloud-addon' );
+			case 'cloud':
+				return __( 'Cloud', 'npcink-cloud-addon' );
+			case 'operator':
+				return __( 'Operator', 'npcink-cloud-addon' );
+			case 'continue':
+				return __( 'continue', 'npcink-cloud-addon' );
+			case 'retry_test':
+				return __( 'Retry', 'npcink-cloud-addon' );
+			case 'check_cloud_status':
+				return __( 'Check Cloud status', 'npcink-cloud-addon' );
+			case 'open_settings':
+				return __( 'Open settings', 'npcink-cloud-addon' );
+			case 'unavailable':
+			default:
+				return __( 'unavailable', 'npcink-cloud-addon' );
+		}
 		}
 
 		/**
@@ -2044,8 +2083,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				return __( 'Use Run readiness test to execute the liveness and signed-read checks.', 'npcink-cloud-addon' );
 			}
 
-			$owner = sanitize_key( (string) ( $readiness['owner_label'] ?? 'cloud_addon' ) );
-			$next_action = sanitize_key( (string) ( $readiness['next_safe_action'] ?? $readiness['next_action'] ?? 'retry_test' ) );
+			$owner = self::format_readiness_token( (string) ( $readiness['owner_label'] ?? 'cloud_addon' ) );
+			$next_action = self::format_readiness_token( (string) ( $readiness['next_safe_action'] ?? $readiness['next_action'] ?? 'retry_test' ) );
 			$blocked = sanitize_text_field( (string) ( $readiness['blocked_reason'] ?? '' ) );
 
 			if ( '' !== $blocked ) {
