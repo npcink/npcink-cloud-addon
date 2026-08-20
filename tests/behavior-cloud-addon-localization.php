@@ -159,6 +159,16 @@ maca_assert(
 		'ready',
 		'ready',
 		'npcink-cloud-addon'
+	)
+	&& '继续' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'continue',
+		'continue',
+		'npcink-cloud-addon'
+	)
+	&& '云端扩展' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Cloud Addon',
+		'Cloud Addon',
+		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers the connected summary, troubleshooting, readiness, and monitoring-consent surfaces.'
 );

@@ -230,7 +230,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Not configured' => '未配置',
 				'Partial' => '部分配置',
 				'not run' => '未运行',
-				'Cloud Addon' => 'Cloud 连接器',
+				'Cloud Addon' => '云端扩展',
 				'Cloud' => 'Cloud',
 				'Operator' => '管理员',
 				'Check Cloud status' => '检查 Cloud 状态',
