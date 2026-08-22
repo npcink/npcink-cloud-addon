@@ -998,6 +998,18 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 			}
 
+			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
+			$journey_input = $ability_name === (string) ( $ability_context['ability_id'] ?? '' )
+				&& is_array( $ability_context['input'] ?? null )
+				? $ability_context['input']
+				: array();
+			$journey_session_id = Npcink_Cloud_Customer_Journey::build_session_id( $task, $journey_input );
+			Npcink_Cloud_Customer_Journey::capture_generation(
+				$task,
+				'started',
+				$journey_session_id
+			);
+
 			$started  = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
 			$response = npcink_cloud_addon_execute_registered_ai_task_runtime(
 				$ability_name,
@@ -1020,16 +1032,34 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			);
 
 			if ( is_wp_error( $response ) ) {
+				Npcink_Cloud_Customer_Journey::capture_generation_failure(
+					$task,
+					$journey_session_id,
+					$duration_ms,
+					$response->get_error_code()
+				);
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), $task );
 			if ( '' === $output_text ) {
+				Npcink_Cloud_Customer_Journey::capture_generation_failure(
+					$task,
+					$journey_session_id,
+					$duration_ms,
+					'cloud_wp_ai_output_missing'
+				);
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector response did not include text output.' );
 			}
 
 			$run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) );
-			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
+			Npcink_Cloud_Customer_Journey::capture_generation(
+				$task,
+				'succeeded',
+				$journey_session_id,
+				$duration_ms,
+				$run_id
+			);
 			if (
 				class_exists( 'Npcink_Cloud_Editor_Assist_Quality' )
 				&& $ability_name === (string) ( $ability_context['ability_id'] ?? '' )
@@ -1041,7 +1071,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					$ability_context['input'],
 					$run_id,
 					$output_text,
-					$duration_ms
+					$duration_ms,
+					$journey_session_id
 				);
 			}
 

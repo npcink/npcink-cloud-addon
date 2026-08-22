@@ -2,7 +2,7 @@
 
 Standalone WordPress plugin for connecting a local Npcink installation to `npcink-cloud`.
 
-The addon is a thin Cloud connector. It stores the Cloud Base URL and the Cloud API Key signing credentials returned by Cloud site authorization, sends signed runtime requests, reads health and entitlement status, transports opt-in metadata-only plugin observability and Agent feedback data, bridges public Site Knowledge change hints to Cloud, and exposes a minimal PHP interface for local plugins. Signing credentials are persisted as one authenticated encrypted envelope rather than plaintext option fields.
+The addon is a thin Cloud connector. It stores the Cloud Base URL and the Cloud API Key signing credentials returned by Cloud site authorization, sends signed runtime requests, reads health and entitlement status, transports opt-in metadata-only plugin observability, customer journey, and Agent feedback data, bridges public Site Knowledge change hints to Cloud, and exposes a minimal PHP interface for local plugins. Signing credentials are persisted as one authenticated encrypted envelope rather than plaintext option fields.
 
 Cross-project platform coordination starts from
 `/Users/muze/gitee/npcink-workflow-toolbox/docs/platform/README.md`. This
@@ -12,6 +12,8 @@ bounded signed transport.
 ## Engineering Decisions and Standards
 
 - [Site Knowledge Recommendation Connector Record](docs/site-knowledge-recommendation-connector-record-v1.md) records the WordPress-side coverage, fail-closed, UI, and troubleshooting lessons for Cloud-backed article recommendations.
+- [Production monitoring consent and package handoff ADR](docs/decisions/002-production-monitoring-consent-and-package-handoff.md)
+- [Production monitoring development retrospective](docs/production-monitoring-development-retrospective-2026-08-19.md)
 
 - [Runtime seam closeout and engineering standard](docs/runtime-seam-closeout-and-engineering-standard-2026-08-13.md)
   records the consumer-migration, public-seam removal, Playground stabilization,
@@ -49,6 +51,10 @@ The addon owns:
 - Bounded Agent feedback event transport and read-only quality projection:
   - `POST /v1/agent-feedback/events`
   - `GET /v1/agent-feedback/summary`
+- Opt-in privacy-safe customer journey transport and manual summary read:
+  - `POST /v1/customer-journey/events`
+  - `GET /v1/customer-journey/summary`
+  - [Customer journey transport contract](docs/customer-journey-transport-v1.md)
 - Site Knowledge public content change bridge through `POST /v1/runtime/execute`, including a bounded settings-page status and manual public refresh transport.
 - Toolbox Site Knowledge runtime bridge through `POST /v1/runtime/execute`.
 - An `Advanced and troubleshooting > Runtime runs` section for read-only Nightly Inspection recent/status/result detail and nonce-protected Cloud-owned retry requests.
@@ -97,6 +103,7 @@ npcink_cloud_addon_is_configured(): bool
 npcink_cloud_addon_get_connection_state(): array
 npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
 npcink_cloud_addon_get_manual_readiness_result(): array
+npcink_cloud_addon_get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '')
 npcink_cloud_addon_dispatch_media_derivative_cloud_request(array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_request_image_context_evidence(array $image_context_evidence_request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_wordpress_ai_connector_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
@@ -136,9 +143,11 @@ pull_media_artifact(string $artifact_id, string $trace_id = '')
 acknowledge_media_artifact_delivery(string $artifact_id, array $payload, string $trace_id = '', string $idempotency_key = '')
 get_current_entitlement(string $trace_id = '')
 send_observability_events(array $events, string $trace_id = '', string $idempotency_key = '')
+send_customer_journey_events(array $events, string $trace_id = '', string $idempotency_key = '')
 send_agent_feedback_event(array $payload, string $trace_id = '', string $idempotency_key = '')
 get_agent_feedback_summary(int $window_hours = 24, string $trace_id = '')
 get_observability_summary(int $window_hours = 24, string $trace_id = '')
+get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '', string $trace_id = '')
 ```
 
 The low-level signed request method is private and endpoint-allowlisted. New
@@ -423,6 +432,23 @@ Monitoring does not upload prompts, generated content, article body content,
 media bytes, raw request/response payloads, provider credentials, Cloud API
 secrets, passwords, cookies, nonces, Authorization headers, database names,
 table names, or filesystem paths.
+
+The customer-journey subset records only supported editor steps such as
+generation start, success, failure, retry, acceptance, save, and abandonment.
+It excludes raw WordPress user and post ids, email addresses, URLs, DOM data,
+and free-form error messages. Signed uploads are associated with the configured
+Cloud site for diagnosis, but are not used for advertising, individual user
+scoring, automatic approval, or automatic WordPress content changes.
+
+Normal production operation does not require a cohort tag: every signed event
+is already associated with the authenticated Cloud site. For an explicitly
+controlled experiment, an operator may optionally set
+`NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID` on the participating sites.
+Valid values are 1-64 characters from letters, digits, `.`, `_`, `:`, and `-`;
+they must not encode editor, account, site, article, prompt, or content
+identity. The optional tag is projected only on new customer-journey events and
+allows the existing Cloud summary to isolate that experiment from other data.
+It is not part of the normal production-user setup.
 
 Cloud observability summaries are dashboard projections only. They must not be
 used to approve proposals, change Core status, execute WordPress writes, or

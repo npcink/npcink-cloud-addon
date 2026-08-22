@@ -56,6 +56,7 @@ $admin_site_knowledge_js = maca_read( $root . '/assets/admin-site-knowledge.js' 
 $admin_css = maca_read( $root . '/assets/admin.css' );
 $entitlement_summary = maca_read( $root . '/includes/class-cloud-entitlement-summary.php' );
 $observability = maca_read( $root . '/includes/class-cloud-observability-collector.php' );
+$customer_journey = maca_read( $root . '/includes/class-cloud-customer-journey.php' );
 $site_knowledge_bridge = maca_read( $root . '/includes/class-cloud-site-knowledge-change-bridge.php' );
 $site_knowledge_full_index_doc = maca_read( $root . '/docs/site-knowledge-full-index-delivery.md' );
 $site_knowledge_runtime_bridge = maca_read( $root . '/includes/class-cloud-site-knowledge-runtime-bridge.php' );
@@ -74,6 +75,22 @@ $adapter_doc = maca_read( $root . '/docs/adapter-integration-seam.md' );
 $complexity_doc = maca_read( $root . '/docs/cloud-addon-complexity-budget.md' );
 $test_helpers = maca_read( $root . '/tests/helpers.php' );
 $test_runner = maca_read( $root . '/tests/run.php' );
+$release_source_manifest = maca_read( $root . '/release-manifest.txt' );
+
+maca_assert(
+	false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-customer-journey.php'" )
+	&& false !== strpos( $customer_journey, "'surface'              => 'wordpress_editor'" )
+	&& false !== strpos( $customer_journey, 'NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID' )
+	&& false !== strpos( $customer_journey, "preg_match( '/^[A-Za-z0-9._:-]+$/'" )
+	&& false !== strpos( $customer_journey, "Npcink_Cloud_Observability_Collector::CRON_HOOK" )
+	&& false === strpos( $customer_journey, 'wp_schedule_event(' )
+	&& false !== strpos( $runtime_client, "'/v1/customer-journey/events'" )
+	&& false !== strpos( $runtime_client, "'/v1/customer-journey/summary?window_hours='" )
+	&& false !== strpos( $cleanup, 'npcink_cloud_addon_customer_journey_buffer' )
+	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-customer-journey.php' )
+	&& false !== strpos( $test_runner, "behavior-customer-journey.php" ),
+	'Static: customer journey delivery remains opt-in metadata transport with a bounded local cohort tag, the existing scheduler, named endpoints, cleanup, packaging, and behavior coverage.'
+);
 
 maca_assert(
 	false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-addon-cleanup.php'" )
@@ -115,7 +132,6 @@ $pr_template = maca_read( $root . '/.github/pull_request_template.md' );
 $pr_publisher = maca_read( $root . '/scripts/publish-pr.sh' );
 $image_context_pilot = maca_read( $root . '/scripts/eval-local-image-context-artifact-pilot.php' );
 $release_builder = maca_read( $root . '/scripts/build-release.php' );
-$release_source_manifest = maca_read( $root . '/release-manifest.txt' );
 $composer_config = json_decode( $composer, true );
 
 maca_assert(
@@ -340,6 +356,8 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'browser_started: false' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'provider_execution_attempted: false' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'wordpress_write_attempted: false' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "const providerLedgerValidation = env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'provider_call_ledger_evidence: providerLedgerEvidence' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "readiness.ai_version === '1.2.0'" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "['shorten', 'expand', 'rephrase']" )
 	&& false === strpos( $wp_ai_text_browser_smoke, "'lengthen'" )
@@ -358,6 +376,25 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, "'serialized_hash' => hash('sha256', serialize_block(\$block))" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'normalizeEvidenceText(finalSnapshot.summary_meta)' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "env('WP_AI_TEXT_FAKE_PROVIDER') === '1'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "env('WP_AI_TEXT_PROVIDER_LEDGER_PLAN')" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "['status', '--experiment-id', plan.experiment_id]" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'item_id is unique within the run.' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "receipt.status === 'claimed'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "typeof receipt.idempotent_replay === 'boolean'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "'claim'," )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'receipt.provider_dispatch_allowed === true' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "claimProviderLedgerDispatch(providerLedgerPlan, 'title_generation')" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "claimProviderLedgerDispatch(providerLedgerPlan, 'content_summary')" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "claimProviderLedgerDispatch(providerLedgerPlan, 'content_rewrite')" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'provider_call_ledger_evidence' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'Real quality-correlation validation requires explicit metadata-only monitoring before any Provider dispatch.' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'qualityCorrelationEvidence.event_total === 6' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "hash_hmac('sha256', \$post_id . '|' . \$task_key, wp_salt('auth'))" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "(\$expected_scopes[\$task] ?? '') !== (string) (\$event['object_scope_hash'] ?? '')" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, 'readQualityCorrelationEvidence(postId)' )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "qualityCorrelationEvidence.task_counts?.title_generation === 2" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "qualityCorrelationEvidence.outcome_by_task?.content_rewrite?.saved_exact_output === 1" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "env('WP_AI_TEXT_EXPECT_CREDIT_DELTA')" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'readAiCreditSummary' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'usedDelta === expectedCreditDelta' )
@@ -376,6 +413,11 @@ maca_assert(
 	&& false !== strpos( $local_test_guide, 'WP_AI_TEXT_FAKE_PROVIDER=1' )
 	&& false !== strpos( $local_test_guide, 'It stores no prompt, post content, generated title, credentials, or' )
 	&& false !== strpos( $local_test_guide, 'headers, dispatches no real Provider request' )
+	&& false !== strpos( $local_test_guide, 'WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY=1' )
+	&& false !== strpos( $local_test_guide, 'WP_AI_TEXT_PROVIDER_LEDGER_PLAN' )
+	&& false !== strpos( $local_test_guide, 'immediately before the matching UI dispatch' )
+	&& false !== strpos( $local_test_guide, 'fails during preflight, before a draft or Provider request exists' )
+	&& false !== strpos( $local_test_guide, 'not real-editor usefulness, acceptance, or a multi-site cohort' )
 	&& false !== strpos( $local_test_guide, '`cloud_run_id` only inside metadata-only request context for correlation' )
 	&& false !== strpos( $local_test_guide, 'proves zero post writes before the explicit Save/Update click' ),
 	'Opt-in browser acceptance uses the official AI 1.2.0 UI, supports a local expiring fake Provider, preserves suggestion-only review, records content-free adoption evidence, and cleans up its local fixture.'
@@ -1613,7 +1655,9 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'Reference site content during generation' )
 	&& false === strpos( $settings_page, 'AI generation reference' )
 	&& false !== strpos( $settings_page, 'Use indexed public articles as generation context.' )
-	&& false !== strpos( $settings_page, 'Upload metadata-only plugin monitoring events.' )
+	&& false !== strpos( $settings_page, 'Usage and error diagnostics' )
+	&& false !== strpos( $settings_page, 'This does not send prompts, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages.' )
+	&& false !== strpos( $settings_page, 'Off by default; administrators can turn it off at any time.' )
 	&& false !== strpos( $settings_page, 'More local permissions' )
 	&& false === strpos( $settings_page, 'npcink-cloud-local-permission--dependent' )
 	&& false === strpos( $admin_css, '.npcink-cloud-local-permission--dependent' )

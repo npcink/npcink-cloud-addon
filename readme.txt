@@ -4,7 +4,7 @@ Tags: magick ai, cloud, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.1.7
+Stable tag: 0.1.9
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,16 @@ ability id, correlation id, and counters. It must not upload prompts,
 generated content, article body content, media bytes, raw request or response
 payloads, provider credentials, Cloud API secrets, passwords, cookies, nonces,
 Authorization headers, database names, table names, or filesystem paths.
+Customer-journey monitoring is limited to supported editor steps such as
+generation started, succeeded, failed, retried, accepted, saved, or abandoned.
+It does not send raw WordPress user or post IDs, email addresses, URLs, DOM
+data, or free-form error messages. Uploads are authenticated to the configured
+Cloud site, so they may be associated with that site; they are not used for
+advertising, individual user scoring, or automatic WordPress content changes.
+During a bounded invited-user observation window, the site operator may add one
+opaque cohort identifier so Cloud summaries can exclude earlier technical test
+events. The identifier must not encode an editor, account, site, article,
+prompt, or content identity.
 
 == External Services ==
 
@@ -108,9 +118,21 @@ No. Monitoring requires explicit administrator opt-in and verified Cloud setting
 
 Monitoring sends operational metadata only, such as plugin slug/version, event kind, status, timing, error code, route, proposal id, ability id, correlation id, counters, and latency.
 
+For supported editor journeys, this may show that generation started,
+succeeded, failed, was retried or accepted, and whether an accepted result was
+saved or abandoned. Monitoring uploads are associated with the configured
+Cloud site, but do not include raw WordPress user or post IDs.
+
 = Does monitoring upload prompts, content, or raw payloads? =
 
 No. Metadata-only monitoring is designed not to upload prompts, generated content, article body content, media bytes, raw request or response payloads, provider credentials, Cloud API secrets, passwords, cookies, nonces, Authorization headers, database names, table names, or filesystem paths.
+
+= How is monitoring data used? =
+
+Monitoring data is used to diagnose failures, measure reliability, and improve
+Npcink features. It is not used for advertising, individual user scoring,
+automatic approval, or automatic WordPress content changes. Monitoring is off
+by default and an administrator can turn it off at any time.
 
 = Can media derivative jobs send media data to Cloud? =
 
@@ -136,6 +158,23 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 4. Advanced troubleshooting with service detail, runtime runs, and connection recovery.
 
 == Changelog ==
+
+= 0.1.9 =
+
+* Add an optional anonymous cohort identifier for separating invited-user observations from earlier technical test events.
+* Keep cohort declaration local to WordPress configuration, reject invalid values, and document that identifiers must not encode user or content identity.
+
+= 0.1.8 =
+
+* Add opt-in, privacy-safe editor journey events for generation, recovery, acceptance, and save outcomes.
+* Clarify exactly what monitoring sends, how site-associated metadata is used, and which sensitive data is never collected.
+* Tighten monitoring-consent gates for editor quality evidence and prevent duplicate extensions on imported AI images.
+
+= 0.1.7 =
+
+* Replace the public concrete runtime client seam with bounded scenario-specific connector facades.
+* Improve connection, Site Knowledge, and read-only runtime result feedback while preserving local WordPress write ownership.
+* Refresh WordPress AI localization compatibility and the verified release package.
 
 = 0.1.6 =
 

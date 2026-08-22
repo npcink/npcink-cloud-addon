@@ -2,7 +2,7 @@
 
 Status: active operational handoff.
 
-Last updated: 2026-08-14.
+Last updated: 2026-08-18.
 
 This document records the WordPress.org release, assets, legal pages, and zh_CN
 translation work completed for `npcink-cloud-addon`.
@@ -14,7 +14,7 @@ translation work completed for `npcink-cloud-addon`.
 - WordPress.org SVN URL: `https://plugins.svn.wordpress.org/npcink-cloud-addon/`
 - Historical local SVN working copy: `build/wporg-svn`
 - Release package: `build/npcink-cloud-addon.zip`
-- Stable tag: `0.1.7`
+- Stable tag: `0.1.8`
 
 The plugin has passed WordPress.org review and was submitted to SVN. Later asset
 updates were submitted separately.
@@ -34,7 +34,53 @@ Known SVN revisions:
 - `r3646532`: release `0.1.7` with the bounded runtime facade closeout,
   improved connection and Site Knowledge feedback, read-only retrieval
   acceptance projection, fixed WordPress AI localization compatibility, and
-  the current 33-file release package.
+  the 33-file release package.
+- `r3652021`: release `0.1.8` with privacy-safe customer journey delivery,
+  clearer monitoring disclosure, consent-gated editor quality evidence, the
+  AI image extension fix, and the current 34-file release package.
+
+## 2026-08-18 0.1.8 Release Closeout
+
+Version `0.1.8` was published to WordPress.org SVN from clean merged Addon
+`origin/master` revision `0114ff6eb0e4f2a0729f9a28cc7cf505203c2302` after
+release PR `#102` passed the protected PHP matrix, PR body contract, and
+release static gates:
+
+```text
+SVN revision: r3652021
+Tag: https://plugins.svn.wordpress.org/npcink-cloud-addon/tags/0.1.8/
+Local package SHA256: 86ff40a5c4c7d66a5c789bcfaa6b0180f79cd8be83000e6a1c41fb1baf2913d1
+Official package SHA256: 733301a0ec7e9acc6fa649b015bc54def5479c57fdf034791d8644151336258e
+```
+
+Release scope:
+
+- opt-in, metadata-only customer journey events for generation, failure
+  recovery, acceptance, save, and abandonment outcomes;
+- clearer monitoring scope and use disclosure, including explicit exclusions
+  for content, raw WordPress user/post IDs, URLs, DOM data, and free-form error
+  messages;
+- monitoring-consent enforcement for editor quality evidence;
+- the AI image duplicate-extension fix already merged after `0.1.7`;
+- restored `0.1.7` changelog continuity in the WordPress.org readme.
+
+Verification evidence:
+
+- `composer validate --no-check-publish` passed;
+- `composer run test:all` passed;
+- `composer run smoke:playground` passed on WordPress 7.0.4 / PHP 8.2;
+- `WP_CLI_BIN=/opt/homebrew/bin/wp composer run release:verify` passed on the
+  exact merged `origin/master` revision;
+- WordPress.org review guard, POT freshness, JavaScript syntax checks, release
+  ZIP verification, and strict Plugin Check passed;
+- the package contained exactly 34 release files;
+- WordPress.org API reported `version=0.1.8` and the official 0.1.8 download;
+- the official ZIP and the local merged-source package had different container
+  hashes but identical extracted file contents.
+
+The release kept monitoring opt-in and metadata-only. It did not add router,
+prompt, preset, approval, proposal, workflow, scheduler, billing, WordPress
+write, or Cloud control-plane ownership to the addon.
 
 ## 2026-08-14 0.1.7 Release Closeout
 

@@ -178,6 +178,12 @@ browser, invoke an AI provider, or write WordPress data. Use
 `composer run smoke:wp-ai-text-browser -- --help` to inspect the two modes
 without connecting to WordPress.
 
+For a real-Provider checkpoint, pass the same
+`WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY=1` and
+`WP_AI_TEXT_PROVIDER_LEDGER_PLAN` values to this preflight command first. It
+also verifies monitoring permission, the open experiment, reserved items,
+dispatch conflicts, and available item capacity without claiming a call.
+
 Run this opt-in browser gate against a disposable local/development WordPress
 site with the official WordPress AI 1.2.0 plugin, a verified Cloud Addon
 connection, and only title generation, summarization, and content resizing
@@ -245,6 +251,46 @@ generations produce complete generated/repeated/save evidence for three local
 sessions. It also proves that the edited title is unmatched, the accepted
 summary and rewrite are exact matches, no pending fixture state remains, and
 Cloud-bound events omit content, post IDs, user IDs, credentials, and headers.
+
+Before spending Provider budget for a real-editor cohort, run one automated
+real-Provider technical checkpoint. The site
+operator must separately enable metadata-only monitoring in the verified Cloud
+Addon settings. Then run the real Provider browser acceptance with:
+
+```bash
+WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY=1 \
+WP_AI_TEXT_PROVIDER_LEDGER_PLAN='{
+  "experiment_id":"editor-cohort-20260815",
+  "ledger_repo":"/absolute/path/to/npcink-ai-cloud",
+  "dispatches":{
+    "title_generation":{"item_id":"site-a-title","dispatch_id":"site-a-title-001"},
+    "content_summary":{"item_id":"site-a-summary","dispatch_id":"site-a-summary-001"},
+    "content_rewrite":{"item_id":"site-a-rewrite","dispatch_id":"site-a-rewrite-001"}
+  }
+}' \
+composer run smoke:wp-ai-text-browser
+```
+
+This mode fails during preflight, before a draft or Provider request exists,
+when monitoring is not explicitly enabled, the ledger plan is malformed, the
+experiment is closed, an item is unavailable, or a dispatch ID conflicts with
+another item. The strict plan contains only experiment, repository, item, and
+dispatch identifiers; the receipt contains only allow/replay and bounded
+counter evidence. Neither may contain credentials, post content, generated
+text, user IDs, or post IDs.
+
+The smoke atomically claims each planned call immediately before the matching UI dispatch.
+Only a successful ledger command with
+`provider_dispatch_allowed=true` permits the click. A stopped run does not
+refund a claim; rerunning the same dispatch ID for the same item is an
+idempotent replay and consumes no additional ledger budget. After the one
+normal local save, it
+requires exactly one generation and one outcome event for title, summary, and
+selected-text rewrite, no pending fixture session, and no content, post ID,
+user ID, credential, or header in the Cloud-bound buffer. It does not enable
+monitoring on the operator's behalf and does not turn metadata correlation into
+WordPress approval or final-write truth. It proves instrumentation readiness,
+not real-editor usefulness, acceptance, or a multi-site cohort.
 
 When the optional WordPress AI request log is enabled, the Addon records
 `cloud_run_id` only inside metadata-only request context for correlation. It

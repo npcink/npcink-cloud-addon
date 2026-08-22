@@ -25,6 +25,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private const ACTION_START_CUSTOM_AUTH = 'npcink_cloud_addon_start_custom_auth';
 		private const ACTION_DISCONNECT = 'npcink_cloud_addon_disconnect';
 		private const ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission';
+		private const ACTION_DISMISS_MONITORING_PROMPT = 'npcink_cloud_addon_dismiss_monitoring_prompt';
 		private const ACTION_REFRESH_SITE_KNOWLEDGE = 'npcink_cloud_addon_refresh_site_knowledge';
 		private const ACTION_REFRESH_SITE_KNOWLEDGE_ARTICLE = 'npcink_cloud_addon_refresh_site_knowledge_article';
 		private const ACTION_REFRESH_SITE_KNOWLEDGE_STATUS = 'npcink_cloud_addon_refresh_site_knowledge_status';
@@ -49,6 +50,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			add_action( 'admin_post_' . self::ACTION_START_CUSTOM_AUTH, array( __CLASS__, 'handle_start_custom_auth' ) );
 			add_action( 'admin_post_' . self::ACTION_DISCONNECT, array( __CLASS__, 'handle_disconnect' ) );
 			add_action( 'admin_post_' . self::ACTION_UPDATE_LOCAL_PERMISSION, array( __CLASS__, 'handle_update_local_permission' ) );
+			add_action( 'admin_post_' . self::ACTION_DISMISS_MONITORING_PROMPT, array( __CLASS__, 'handle_dismiss_monitoring_prompt' ) );
 			add_action( 'admin_post_' . self::ACTION_REFRESH_SITE_KNOWLEDGE, array( __CLASS__, 'handle_refresh_site_knowledge' ) );
 			add_action( 'admin_post_' . self::ACTION_REFRESH_SITE_KNOWLEDGE_ARTICLE, array( __CLASS__, 'handle_refresh_site_knowledge_article' ) );
 			add_action( 'wp_ajax_' . self::ACTION_REFRESH_SITE_KNOWLEDGE_STATUS, array( __CLASS__, 'handle_refresh_site_knowledge_status' ) );
@@ -270,6 +272,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 
 			check_admin_referer( self::ACTION_SAVE );
 
+			$was_verified = Npcink_Cloud_Addon_Settings::is_verified();
 			$base_url = isset( $_POST['base_url'] ) ? sanitize_text_field( wp_unslash( $_POST['base_url'] ) ) : '';
 			$api_key  = isset( $_POST['api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['api_key'] ) ) : '';
 			$timeout  = isset( $_POST['timeout'] ) ? absint( wp_unslash( $_POST['timeout'] ) ) : 8;
@@ -295,6 +298,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			self::persist_and_verify_settings( $settings, __( 'Cloud settings saved and verified.', 'npcink-cloud-addon' ) );
+			self::maybe_prompt_for_monitoring_consent( $was_verified );
 			self::redirect_to_page();
 		}
 
@@ -308,6 +312,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				wp_die( esc_html__( 'You do not have permission to manage Npcink Cloud settings.', 'npcink-cloud-addon' ) );
 			}
 
+			$was_verified = Npcink_Cloud_Addon_Settings::is_verified();
 			$raw_state = filter_input( INPUT_GET, 'state', FILTER_UNSAFE_RAW );
 			$raw_code = filter_input( INPUT_GET, 'code', FILTER_UNSAFE_RAW );
 			$state = is_string( $raw_state ) ? sanitize_text_field( wp_unslash( $raw_state ) ) : '';
@@ -355,6 +360,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			self::persist_and_verify_settings( $settings, __( 'Cloud connection completed and verified.', 'npcink-cloud-addon' ) );
+			self::maybe_prompt_for_monitoring_consent( $was_verified );
 
 			self::redirect_to_page( 'permissions' );
 		}
@@ -596,6 +602,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$enabled = ! empty( $_POST['enabled'] );
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
 			$settings[ $permission ] = $enabled;
+			if ( 'monitoring_enabled' === $permission ) {
+				self::clear_monitoring_consent_prompt();
+			}
 			if ( 'site_knowledge_delivery_enabled' === $permission && ! $enabled ) {
 				$settings['site_knowledge_generation_reference_enabled'] = false;
 			}
@@ -620,6 +629,21 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				$permission
 			);
 			self::redirect_to_local_permission( $permission );
+		}
+
+		/**
+		 * Dismisses the one-time monitoring consent prompt after connection.
+		 *
+		 * @return void
+		 */
+		public static function handle_dismiss_monitoring_prompt(): void {
+			if ( ! current_user_can( self::MENU_CAPABILITY ) ) {
+				wp_die( esc_html__( 'You do not have permission to manage Npcink Cloud settings.', 'npcink-cloud-addon' ) );
+			}
+
+			check_admin_referer( self::ACTION_DISMISS_MONITORING_PROMPT );
+			self::clear_monitoring_consent_prompt();
+			self::redirect_to_page( 'permissions' );
 		}
 
 		/**
@@ -1367,8 +1391,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					'description' => __( 'Use indexed public articles as generation context.', 'npcink-cloud-addon' ),
 				),
 				'monitoring_enabled' => array(
-					'label'       => __( 'Monitoring', 'npcink-cloud-addon' ),
-					'description' => __( 'Upload metadata-only plugin monitoring events.', 'npcink-cloud-addon' ),
+					'label'       => __( 'Usage and error diagnostics', 'npcink-cloud-addon' ),
+					'description' => __( 'Send metadata-only events about feature steps, outcomes, timing, and machine-readable error codes to help diagnose failures and improve reliability. This does not send prompts, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.', 'npcink-cloud-addon' ),
 				),
 			);
 		}
@@ -1828,7 +1852,44 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				</table>
 				<p class="description"><?php esc_html_e( 'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.', 'npcink-cloud-addon' ); ?></p>
 			</section>
+			<?php self::render_monitoring_consent_prompt( $settings, $is_verified ); ?>
 			<?php self::render_local_permissions( $settings, $is_verified ); ?>
+			<?php
+		}
+
+		/**
+		 * Renders the one-time monitoring consent prompt after first verification.
+		 *
+		 * @param array<string,mixed> $settings Stored settings.
+		 * @param bool                $is_verified Whether the connector has verified credentials.
+		 * @return void
+		 */
+		private static function render_monitoring_consent_prompt( array $settings, bool $is_verified ): void {
+			if ( ! $is_verified || ! empty( $settings['monitoring_enabled'] ) || ! self::has_monitoring_consent_prompt() ) {
+				return;
+			}
+			?>
+			<dialog class="npcink-cloud-monitoring-consent" open role="dialog" aria-modal="true" aria-labelledby="npcink-cloud-monitoring-consent-title">
+				<div class="npcink-cloud-monitoring-consent__body">
+					<h2 id="npcink-cloud-monitoring-consent-title"><?php esc_html_e( 'Cloud connection verified', 'npcink-cloud-addon' ); ?></h2>
+					<p><?php esc_html_e( 'Would you like to help improve reliability by sharing anonymous usage and error diagnostics from this WordPress site?', 'npcink-cloud-addon' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Only feature steps, outcomes, timing, versions, and machine-readable error codes are sent. Prompts, source or generated content, user or post identifiers, URLs, credentials, and request headers are never sent.', 'npcink-cloud-addon' ); ?></p>
+					<div class="npcink-cloud-monitoring-consent__actions">
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_UPDATE_LOCAL_PERMISSION ); ?>" />
+							<input type="hidden" name="permission" value="monitoring_enabled" />
+							<input type="hidden" name="enabled" value="1" />
+							<?php wp_nonce_field( self::ACTION_UPDATE_LOCAL_PERMISSION ); ?>
+							<button type="submit" class="button button-primary"><?php esc_html_e( 'Allow anonymous diagnostics', 'npcink-cloud-addon' ); ?></button>
+						</form>
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_DISMISS_MONITORING_PROMPT ); ?>" />
+							<?php wp_nonce_field( self::ACTION_DISMISS_MONITORING_PROMPT ); ?>
+							<button type="submit" class="button button-secondary"><?php esc_html_e( 'Not now', 'npcink-cloud-addon' ); ?></button>
+						</form>
+					</div>
+				</div>
+			</dialog>
 			<?php
 		}
 
@@ -1988,7 +2049,46 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				return __( 'not run', 'npcink-cloud-addon' );
 			}
 
-			return sanitize_key( (string) ( $readiness['bounded_status'] ?? $readiness['status'] ?? 'unavailable' ) );
+			return self::format_readiness_token( (string) ( $readiness['bounded_status'] ?? $readiness['status'] ?? 'unavailable' ) );
+		}
+
+		/**
+		 * Formats a bounded readiness token without exposing arbitrary upstream text.
+		 *
+		 * @param string $token Bounded status, owner, or next-action token.
+		 * @return string
+		 */
+		private static function format_readiness_token( string $token ): string {
+			$token = sanitize_key( $token );
+			switch ( $token ) {
+			case 'ready':
+				return __( 'Ready', 'npcink-cloud-addon' );
+			case 'failed':
+				return __( 'Failed', 'npcink-cloud-addon' );
+			case 'not_configured':
+				return __( 'Not configured', 'npcink-cloud-addon' );
+			case 'partial':
+				return __( 'Partial', 'npcink-cloud-addon' );
+			case 'not_run':
+				return __( 'not run', 'npcink-cloud-addon' );
+			case 'cloud_addon':
+				return __( 'Cloud Addon', 'npcink-cloud-addon' );
+			case 'cloud':
+				return __( 'Cloud', 'npcink-cloud-addon' );
+			case 'operator':
+				return __( 'Operator', 'npcink-cloud-addon' );
+			case 'continue':
+				return __( 'continue', 'npcink-cloud-addon' );
+			case 'retry_test':
+				return __( 'Retry', 'npcink-cloud-addon' );
+			case 'check_cloud_status':
+				return __( 'Check Cloud status', 'npcink-cloud-addon' );
+			case 'open_settings':
+				return __( 'Open settings', 'npcink-cloud-addon' );
+			case 'unavailable':
+			default:
+				return __( 'unavailable', 'npcink-cloud-addon' );
+		}
 		}
 
 		/**
@@ -2002,8 +2102,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				return __( 'Use Run readiness test to execute the liveness and signed-read checks.', 'npcink-cloud-addon' );
 			}
 
-			$owner = sanitize_key( (string) ( $readiness['owner_label'] ?? 'cloud_addon' ) );
-			$next_action = sanitize_key( (string) ( $readiness['next_safe_action'] ?? $readiness['next_action'] ?? 'retry_test' ) );
+			$owner = self::format_readiness_token( (string) ( $readiness['owner_label'] ?? 'cloud_addon' ) );
+			$next_action = self::format_readiness_token( (string) ( $readiness['next_safe_action'] ?? $readiness['next_action'] ?? 'retry_test' ) );
 			$blocked = sanitize_text_field( (string) ( $readiness['blocked_reason'] ?? '' ) );
 
 			if ( '' !== $blocked ) {
@@ -3097,6 +3197,47 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 */
 		private static function manual_readiness_transient_key(): string {
 			return 'npcink_cloud_readiness_' . absint( get_current_user_id() );
+		}
+
+		/**
+		 * Marks the first successful connection for one-time monitoring consent.
+		 *
+		 * @param bool $was_verified Whether the site was already verified before this request.
+		 * @return void
+		 */
+		private static function maybe_prompt_for_monitoring_consent( bool $was_verified ): void {
+			if ( $was_verified || ! Npcink_Cloud_Addon_Settings::is_verified() || Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+				return;
+			}
+
+			set_transient( self::monitoring_consent_prompt_transient_key(), true, DAY_IN_SECONDS );
+		}
+
+		/**
+		 * Returns whether the one-time monitoring consent prompt is pending.
+		 *
+		 * @return bool
+		 */
+		private static function has_monitoring_consent_prompt(): bool {
+			return (bool) get_transient( self::monitoring_consent_prompt_transient_key() );
+		}
+
+		/**
+		 * Clears the one-time monitoring consent prompt.
+		 *
+		 * @return void
+		 */
+		private static function clear_monitoring_consent_prompt(): void {
+			delete_transient( self::monitoring_consent_prompt_transient_key() );
+		}
+
+		/**
+		 * Returns the one-time monitoring consent prompt key for the current administrator.
+		 *
+		 * @return string
+		 */
+		private static function monitoring_consent_prompt_transient_key(): string {
+			return 'npcink_cloud_monitoring_consent_' . absint( get_current_user_id() );
 		}
 
 		/**

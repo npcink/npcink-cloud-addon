@@ -137,6 +137,19 @@ maca_load_addon_classes();
 require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-change-bridge.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php';
 
+$readiness_token_formatter = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'format_readiness_token' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$readiness_token_formatter->setAccessible( true );
+}
+
+maca_assert(
+	'Ready' === $readiness_token_formatter->invoke( null, 'ready' )
+	&& 'continue' === $readiness_token_formatter->invoke( null, 'continue' )
+	&& 'Cloud Addon' === $readiness_token_formatter->invoke( null, 'cloud_addon' )
+	&& 'unavailable' === $readiness_token_formatter->invoke( null, 'unexpected-upstream-token' ),
+	'Behavior: readiness token formatting translates the bounded vocabulary and fails closed for unknown tokens.'
+);
+
 maca_reset_test_state();
 Npcink_Cloud_Settings_Page::register();
 
@@ -149,6 +162,7 @@ $expected_hooks = array(
 	'admin_post_npcink_cloud_addon_start_custom_auth' => array( 'handle_start_custom_auth', 10 ),
 	'admin_post_npcink_cloud_addon_disconnect' => array( 'handle_disconnect', 10 ),
 	'admin_post_npcink_cloud_addon_update_local_permission' => array( 'handle_update_local_permission', 10 ),
+	'admin_post_npcink_cloud_addon_dismiss_monitoring_prompt' => array( 'handle_dismiss_monitoring_prompt', 10 ),
 	'admin_post_npcink_cloud_addon_refresh_site_knowledge' => array( 'handle_refresh_site_knowledge', 10 ),
 	'admin_post_npcink_cloud_addon_refresh_site_knowledge_article' => array( 'handle_refresh_site_knowledge_article', 10 ),
 	'wp_ajax_npcink_cloud_addon_refresh_site_knowledge_status' => array( 'handle_refresh_site_knowledge_status', 10 ),
@@ -355,6 +369,28 @@ maca_assert(
 	&& false !== strpos( $permissions_script_source, "form.setAttribute( 'aria-busy', 'true' )" )
 	&& false !== strpos( $permissions_script_source, 'scrollIntoView' ),
 	'Behavior: local permission switches expose a saving state, row-level feedback, and focus restoration after redirect.'
+);
+
+maca_assert(
+	false !== strpos( $settings_page_source, 'npcink-cloud-monitoring-consent' )
+	&& false !== strpos( $settings_page_source, 'Allow anonymous diagnostics' )
+	&& false !== strpos( $settings_page_source, 'Not now' )
+	&& false !== strpos( $settings_page_source, 'maybe_prompt_for_monitoring_consent' ),
+	'Behavior: first verified connection offers one explicit metadata-only monitoring consent prompt.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+set_transient( 'npcink_cloud_monitoring_consent_' . get_current_user_id(), true, DAY_IN_SECONDS );
+ob_start();
+Npcink_Cloud_Settings_Page::render();
+$consent_rendered = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $consent_rendered, 'role="dialog"' )
+	&& false !== strpos( $consent_rendered, 'Cloud connection verified' )
+	&& false !== strpos( $consent_rendered, 'Allow anonymous diagnostics' )
+	&& false !== strpos( $consent_rendered, 'Not now' ),
+	'Behavior: a pending first-connection consent is rendered as a bounded confirmation dialog without Cloud HTTP.'
 );
 
 maca_reset_test_state();

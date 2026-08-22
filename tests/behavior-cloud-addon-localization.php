@@ -115,6 +115,65 @@ maca_assert(
 );
 
 maca_assert(
+	'上次验证成功' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Last verification succeeded',
+		'Last verification succeeded',
+		'npcink-cloud-addon'
+	)
+	&& '当前服务' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Current service',
+		'Current service',
+		'npcink-cloud-addon'
+	)
+	&& '检查' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Checks',
+		'Checks',
+		'npcink-cloud-addon'
+	)
+	&& '运行记录' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Runtime runs',
+		'Runtime runs',
+		'npcink-cloud-addon'
+	)
+	&& '手动就绪测试已完成。连接器已就绪。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Manual readiness test completed. Connector is ready.',
+		'Manual readiness test completed. Connector is ready.',
+		'npcink-cloud-addon'
+	)
+	&& '允许匿名诊断' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Allow anonymous diagnostics',
+		'Allow anonymous diagnostics',
+		'npcink-cloud-addon'
+	)
+	&& '暂不允许' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Not now',
+		'Not now',
+		'npcink-cloud-addon'
+	)
+	&& '托管运行时' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Hosted Runtime',
+		'Hosted Runtime',
+		'npcink-cloud-addon'
+	)
+	&& '就绪' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'ready',
+		'ready',
+		'npcink-cloud-addon'
+	)
+	&& '继续' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'continue',
+		'continue',
+		'npcink-cloud-addon'
+	)
+	&& '云端扩展' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Cloud Addon',
+		'Cloud Addon',
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback covers the connected summary, troubleshooting, readiness, and monitoring-consent surfaces.'
+);
+
+maca_assert(
 	'允许 WordPress AI 使用 Npcink Cloud。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Allow WordPress AI to use Npcink Cloud.',
 		'Allow WordPress AI to use Npcink Cloud.',
@@ -128,6 +187,16 @@ maca_assert(
 	&& '生成时参考站点内容' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Reference site content during generation',
 		'Reference site content during generation',
+		'npcink-cloud-addon'
+	)
+	&& '使用与故障诊断' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Usage and error diagnostics',
+		'Usage and error diagnostics',
+		'npcink-cloud-addon'
+	)
+	&& '可选发送功能步骤、执行结果、耗时和机器可读错误码等元数据，用于排查故障并改善可靠性。不会发送 Prompt、源内容或生成内容、WordPress 用户或文章原始 ID、邮箱、URL、DOM 数据、凭据或自由文本错误消息。默认关闭；管理员可随时关闭。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Optionally send metadata-only events about feature steps, outcomes, timing, and machine-readable error codes to help diagnose failures and improve reliability. This does not send prompts, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.',
+		'Optionally send metadata-only events about feature steps, outcomes, timing, and machine-readable error codes to help diagnose failures and improve reliability. This does not send prompts, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.',
 		'npcink-cloud-addon'
 	)
 	&& '更多本地授权' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -145,7 +214,7 @@ maca_assert(
 		'Running',
 		'npcink-cloud-addon'
 	),
-	'Addon localization fallback covers verified local permissions admin copy.'
+	'Addon localization fallback covers verified local permissions and explicit monitoring-scope copy.'
 );
 
 maca_assert(
