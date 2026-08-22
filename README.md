@@ -11,6 +11,8 @@ bounded signed transport.
 
 ## Engineering Decisions and Standards
 
+- [Site Knowledge Recommendation Connector Record](docs/site-knowledge-recommendation-connector-record-v1.md) records the WordPress-side coverage, fail-closed, UI, and troubleshooting lessons for Cloud-backed article recommendations.
+
 - [Runtime seam closeout and engineering standard](docs/runtime-seam-closeout-and-engineering-standard-2026-08-13.md)
   records the consumer-migration, public-seam removal, Playground stabilization,
   verification ladder, publication workflow, and reusable closeout checklist.

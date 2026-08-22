@@ -26,6 +26,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private const ACTION_DISCONNECT = 'npcink_cloud_addon_disconnect';
 		private const ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission';
 		private const ACTION_REFRESH_SITE_KNOWLEDGE = 'npcink_cloud_addon_refresh_site_knowledge';
+		private const ACTION_REFRESH_SITE_KNOWLEDGE_ARTICLE = 'npcink_cloud_addon_refresh_site_knowledge_article';
 		private const ACTION_REFRESH_SITE_KNOWLEDGE_STATUS = 'npcink_cloud_addon_refresh_site_knowledge_status';
 		private const ACTION_MANAGE_SITE_KNOWLEDGE_INDEX = 'npcink_cloud_addon_manage_site_knowledge_index';
 		private const ACTION_RETRY_RUNTIME_RUN = 'npcink_cloud_addon_retry_runtime_run';
@@ -49,6 +50,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			add_action( 'admin_post_' . self::ACTION_DISCONNECT, array( __CLASS__, 'handle_disconnect' ) );
 			add_action( 'admin_post_' . self::ACTION_UPDATE_LOCAL_PERMISSION, array( __CLASS__, 'handle_update_local_permission' ) );
 			add_action( 'admin_post_' . self::ACTION_REFRESH_SITE_KNOWLEDGE, array( __CLASS__, 'handle_refresh_site_knowledge' ) );
+			add_action( 'admin_post_' . self::ACTION_REFRESH_SITE_KNOWLEDGE_ARTICLE, array( __CLASS__, 'handle_refresh_site_knowledge_article' ) );
 			add_action( 'wp_ajax_' . self::ACTION_REFRESH_SITE_KNOWLEDGE_STATUS, array( __CLASS__, 'handle_refresh_site_knowledge_status' ) );
 			add_action( 'admin_post_' . self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX, array( __CLASS__, 'handle_manage_site_knowledge_index' ) );
 			add_action( 'admin_post_' . self::ACTION_RETRY_RUNTIME_RUN, array( __CLASS__, 'handle_retry_runtime_run' ) );
@@ -633,6 +635,23 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			check_admin_referer( self::ACTION_REFRESH_SITE_KNOWLEDGE );
 
 			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+			self::set_admin_notice( ! empty( $result['ok'] ) ? 'success' : 'error', (string) $result['message'] );
+			self::redirect_to_page( 'site_knowledge' );
+		}
+
+		/**
+		 * Handles one administrator-requested public article refresh.
+		 *
+		 * @return void
+		 */
+		public static function handle_refresh_site_knowledge_article(): void {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html__( 'You do not have permission to manage Npcink Cloud settings.', 'npcink-cloud-addon' ) );
+			}
+
+			check_admin_referer( self::ACTION_REFRESH_SITE_KNOWLEDGE_ARTICLE );
+			$post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
+			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_article_refresh( $post_id );
 			self::set_admin_notice( ! empty( $result['ok'] ) ? 'success' : 'error', (string) $result['message'] );
 			self::redirect_to_page( 'site_knowledge' );
 		}
@@ -2302,8 +2321,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$delivery_enabled = ! empty( $site_knowledge['delivery_enabled'] );
 			$active_view = self::site_knowledge_view_from_request();
 			$last_delivery_error = (string) ( $site_knowledge['last_delivery_error'] ?? '' );
+			$status_summary = $delivery_enabled ? Npcink_Cloud_Site_Knowledge_Runtime_Bridge::get_cached_status_summary() : array();
 			$cloud_usage = $delivery_enabled
-				? self::get_site_knowledge_usage_projection( Npcink_Cloud_Site_Knowledge_Runtime_Bridge::get_cached_status_summary() )
+				? self::get_site_knowledge_usage_projection( $status_summary )
 				: self::get_site_knowledge_usage_projection( array() );
 			$show_technical_detail = ! empty( $site_knowledge['wp_cron_disabled'] )
 				|| '' !== $last_delivery_error
@@ -2367,9 +2387,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<?php endif; ?>
 						<?php
 						return;
-					endif;
-					?>
-					<table class="widefat striped npcink-cloud-site-knowledge-status">
+						endif;
+						?>
+						<?php self::render_site_knowledge_article_coverage( $status_summary ); ?>
+						<table class="widefat striped npcink-cloud-site-knowledge-status">
 						<tbody>
 							<tr>
 								<th scope="row"><?php esc_html_e( 'Delivery', 'npcink-cloud-addon' ); ?></th>
@@ -2413,6 +2434,142 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						</div>
 					</details>
 			<?php
+		}
+
+		/**
+		 * Renders the bounded article-level Cloud index comparison.
+		 *
+		 * @param array<string,mixed> $summary Retained Site Knowledge status summary.
+		 * @return void
+		 */
+		private static function render_site_knowledge_article_coverage( array $summary ): void {
+			$coverage = is_array( $summary['article_coverage'] ?? null ) ? $summary['article_coverage'] : array();
+			$filter = self::site_knowledge_article_filter_from_request();
+			$rows = array_values(
+				array_filter(
+					Npcink_Cloud_Site_Knowledge_Runtime_Bridge::article_index_statuses( $summary ),
+					static function ( array $row ) use ( $filter ): bool {
+						return 'all' === $filter || $filter === (string) ( $row['status'] ?? '' );
+					}
+				)
+			);
+			$per_page = 50;
+			$total_pages = max( 1, (int) ceil( count( $rows ) / $per_page ) );
+			$page = min( self::site_knowledge_article_page_from_request(), $total_pages );
+			$visible_rows = array_slice( $rows, ( $page - 1 ) * $per_page, $per_page );
+			?>
+			<section class="npcink-cloud-site-knowledge-coverage" data-npcink-site-knowledge-article-coverage>
+				<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-coverage__heading">
+					<h3><?php esc_html_e( 'Article index coverage', 'npcink-cloud-addon' ); ?></h3>
+					<button type="button" class="button button-secondary" data-npcink-site-knowledge-coverage-refresh><?php esc_html_e( 'Check index status', 'npcink-cloud-addon' ); ?></button>
+				</div>
+				<?php if ( empty( $summary['available'] ) ) : ?>
+					<p class="description"><?php esc_html_e( 'Article coverage will appear after the Cloud index status is refreshed.', 'npcink-cloud-addon' ); ?></p>
+			</section>
+					<?php return; ?>
+				<?php endif; ?>
+				<div class="npcink-cloud-site-knowledge-coverage__summary" aria-label="<?php esc_attr_e( 'Article index coverage summary', 'npcink-cloud-addon' ); ?>">
+					<span><strong><?php echo esc_html( (string) absint( $coverage['indexed_count'] ?? 0 ) ); ?></strong> <?php esc_html_e( 'indexed', 'npcink-cloud-addon' ); ?></span>
+					<span><strong><?php echo esc_html( (string) absint( $coverage['not_indexed_count'] ?? 0 ) ); ?></strong> <?php esc_html_e( 'not indexed', 'npcink-cloud-addon' ); ?></span>
+					<span><strong><?php echo esc_html( (string) absint( $coverage['compared_count'] ?? 0 ) ); ?></strong> <?php esc_html_e( 'compared', 'npcink-cloud-addon' ); ?></span>
+				</div>
+				<?php if ( ! empty( $coverage['has_more'] ) ) : ?>
+					<p class="description"><?php esc_html_e( 'Showing the 1,000 most recently modified public posts and pages. Older content is not included in this comparison.', 'npcink-cloud-addon' ); ?></p>
+				<?php endif; ?>
+				<nav class="npcink-cloud-site-knowledge-filters" aria-label="<?php esc_attr_e( 'Filter articles by index status', 'npcink-cloud-addon' ); ?>">
+					<?php foreach ( array( 'all' => __( 'All', 'npcink-cloud-addon' ), 'not_indexed' => __( 'Not indexed', 'npcink-cloud-addon' ), 'indexed' => __( 'Indexed', 'npcink-cloud-addon' ) ) as $status => $label ) : ?>
+						<a class="button<?php echo $filter === $status ? ' button-primary' : ''; ?>" href="<?php echo esc_url( self::site_knowledge_article_url( $status, 1 ) ); ?>"<?php echo $filter === $status ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
+					<?php endforeach; ?>
+				</nav>
+				<?php if ( empty( $visible_rows ) ) : ?>
+					<p class="description"><?php esc_html_e( 'No articles match this filter.', 'npcink-cloud-addon' ); ?></p>
+				<?php else : ?>
+					<?php self::render_site_knowledge_article_table( $visible_rows ); ?>
+				<?php endif; ?>
+				<?php self::render_site_knowledge_article_pagination( $filter, $page, $total_pages ); ?>
+			</section>
+			<?php
+		}
+
+		/** Renders one page of article-level status rows. */
+		private static function render_site_knowledge_article_table( array $rows ): void {
+			?>
+			<div class="npcink-cloud-site-knowledge-article-table-wrap">
+				<table class="widefat striped npcink-cloud-site-knowledge-article-table">
+					<thead><tr>
+						<th scope="col"><?php esc_html_e( 'Article', 'npcink-cloud-addon' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Last modified', 'npcink-cloud-addon' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Index status', 'npcink-cloud-addon' ); ?></th>
+						<th scope="col"><span class="screen-reader-text"><?php esc_html_e( 'Actions', 'npcink-cloud-addon' ); ?></span></th>
+					</tr></thead>
+					<tbody>
+					<?php foreach ( $rows as $row ) :
+						$is_indexed = 'indexed' === (string) ( $row['status'] ?? '' );
+						$title = '' !== (string) ( $row['title'] ?? '' ) ? (string) $row['title'] : __( '(no title)', 'npcink-cloud-addon' );
+					?>
+						<tr>
+							<td><a href="<?php echo esc_url( (string) ( $row['url'] ?? '' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $title ); ?></a></td>
+							<td><?php echo esc_html( self::format_datetime_value( (string) ( $row['modified_gmt'] ?? '' ) ) ); ?></td>
+							<td><span class="npcink-cloud-site-knowledge-index-state npcink-cloud-site-knowledge-index-state--<?php echo $is_indexed ? 'indexed' : 'missing'; ?>"><?php echo $is_indexed ? esc_html__( 'Indexed', 'npcink-cloud-addon' ) : esc_html__( 'Not indexed', 'npcink-cloud-addon' ); ?></span></td>
+							<td><?php if ( ! $is_indexed ) : ?>
+								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+									<?php wp_nonce_field( self::ACTION_REFRESH_SITE_KNOWLEDGE_ARTICLE ); ?>
+									<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_REFRESH_SITE_KNOWLEDGE_ARTICLE ); ?>" />
+									<input type="hidden" name="post_id" value="<?php echo esc_attr( (string) absint( $row['post_id'] ?? 0 ) ); ?>" />
+									<button type="submit" class="button button-small"><?php esc_html_e( 'Refresh this article', 'npcink-cloud-addon' ); ?></button>
+								</form>
+							<?php endif; ?></td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+			<?php
+		}
+
+		/** Renders article-status pagination when more than one page exists. */
+		private static function render_site_knowledge_article_pagination( string $filter, int $page, int $total_pages ): void {
+			if ( $total_pages < 2 ) {
+				return;
+			}
+			?>
+			<div class="tablenav"><div class="tablenav-pages">
+				<?php if ( $page > 1 ) : ?><a class="button" href="<?php echo esc_url( self::site_knowledge_article_url( $filter, $page - 1 ) ); ?>">&lsaquo; <?php esc_html_e( 'Previous page', 'npcink-cloud-addon' ); ?></a><?php endif; ?>
+				<span class="displaying-num"><?php echo esc_html( sprintf(
+					/* translators: 1: current article page, 2: total article pages. */
+					__( 'Page %1$d of %2$d', 'npcink-cloud-addon' ),
+					$page,
+					$total_pages
+				) ); ?></span>
+				<?php if ( $page < $total_pages ) : ?><a class="button" href="<?php echo esc_url( self::site_knowledge_article_url( $filter, $page + 1 ) ); ?>"><?php esc_html_e( 'Next page', 'npcink-cloud-addon' ); ?> &rsaquo;</a><?php endif; ?>
+			</div></div>
+			<?php
+		}
+
+		/** Returns the requested article status filter. */
+		private static function site_knowledge_article_filter_from_request(): string {
+			$raw = filter_input( INPUT_GET, 'article_status', FILTER_UNSAFE_RAW );
+			$filter = is_string( $raw ) ? sanitize_key( wp_unslash( $raw ) ) : 'not_indexed';
+
+			return in_array( $filter, array( 'all', 'not_indexed', 'indexed' ), true ) ? $filter : 'not_indexed';
+		}
+
+		/** Returns the requested article list page. */
+		private static function site_knowledge_article_page_from_request(): int {
+			$raw = filter_input( INPUT_GET, 'article_page', FILTER_UNSAFE_RAW );
+
+			return max( 1, absint( is_string( $raw ) ? wp_unslash( $raw ) : 1 ) );
+		}
+
+		/** Builds one bounded article-filter URL. */
+		private static function site_knowledge_article_url( string $status, int $page ): string {
+			return add_query_arg(
+				array(
+					'article_status' => sanitize_key( $status ),
+					'article_page' => max( 1, $page ),
+				),
+				self::tab_url( 'site_knowledge' )
+			);
 		}
 
 		/**

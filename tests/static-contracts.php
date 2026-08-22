@@ -1800,6 +1800,7 @@ maca_assert(
 	&& 1 === substr_count( $settings_page, "esc_html_e( 'Available knowledge documents'" )
 	&& false !== strpos( $admin_site_knowledge_js, "'not_refreshed' === initialState || 'stale' === initialState" )
 	&& false !== strpos( $admin_site_knowledge_js, 'data-npcink-site-knowledge-detail' )
+	&& false !== strpos( $admin_site_knowledge_js, '! valueLabel && 0 === detailRows.length && ! articleCoverage' )
 	&& false !== strpos( $admin_site_knowledge_js, "progress.setAttribute( 'aria-valuenow', String( percent ) )" )
 	&& false !== strpos( $settings_page, 'class="npcink-cloud-metric-actions"' )
 	&& false !== strpos( $settings_page, 'data-npcink-site-knowledge-actions' )

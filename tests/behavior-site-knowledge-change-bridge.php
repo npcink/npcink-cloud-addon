@@ -373,6 +373,33 @@ maca_assert(
 
 maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
+maca_add_public_post_fixture( 706 );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ),
+);
+$single_refresh = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_public_post_refresh( 706 );
+$single_refresh_body = json_decode( (string) ( $GLOBALS['maca_http_requests'][0]['args']['body'] ?? '' ), true );
+maca_assert(
+	is_array( $single_refresh )
+	&& array( 706 ) === ( $single_refresh_body['input']['post_ids'] ?? array() )
+	&& 'article_refresh' === (string) ( $single_refresh_body['input']['operation_source'] ?? '' )
+	&& 1 === count( (array) ( $single_refresh_body['input']['documents'] ?? array() ) ),
+	'Behavior: single-article refresh sends exactly one currently public document through the existing transport.'
+);
+
+$GLOBALS['maca_posts'][706]->post_status = 'draft';
+$request_count_before_draft = count( $GLOBALS['maca_http_requests'] );
+$draft_refresh = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_public_post_refresh( 706 );
+maca_assert(
+	is_wp_error( $draft_refresh )
+	&& 'cloud_site_knowledge_article_not_public' === $draft_refresh->get_error_code()
+	&& $request_count_before_draft === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: single-article refresh rejects non-public content without Cloud traffic.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
 maca_add_public_post_fixture( 708 );
 update_option(
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION,

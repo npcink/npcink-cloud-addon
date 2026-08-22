@@ -203,8 +203,39 @@ maca_assert(
 		'idle',
 		'idle',
 		'npcink-cloud-addon'
+	)
+	&& '文章索引覆盖情况' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Article index coverage',
+		'Article index coverage',
+		'npcink-cloud-addon'
+	)
+	&& '刷新这篇文章' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Refresh this article',
+		'Refresh this article',
+		'npcink-cloud-addon'
+	)
+	&& '核对索引状态' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Check index status',
+		'Check index status',
+		'npcink-cloud-addon'
+	)
+	&& '%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',
+		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',
+		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers compact Site Knowledge usage and delivery status copy.'
+);
+
+maca_assert(
+	'%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。' === Npcink_Cloud_Addon_Localization::filter_ngettext(
+		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',
+		'%d change notification is no longer in the local delivery buffer. Request a public content refresh to reconcile it.',
+		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',
+		2,
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback covers dynamic Site Knowledge delivery-buffer plural copy.'
 );
 
 maca_assert(

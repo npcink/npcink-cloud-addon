@@ -336,6 +336,25 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		/**
+		 * Sends one currently public post/page through the existing refresh transport.
+		 *
+		 * @param int $post_id Public WordPress post id.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		public static function request_public_post_refresh( int $post_id ) {
+			if ( ! self::is_enabled() ) {
+				return new WP_Error( 'cloud_site_knowledge_delivery_disabled', __( 'Site Knowledge delivery is disabled locally.', 'npcink-cloud-addon' ) );
+			}
+
+			$post = function_exists( 'get_post' ) ? get_post( $post_id ) : null;
+			if ( ! self::is_public_post( $post ) ) {
+				return new WP_Error( 'cloud_site_knowledge_article_not_public', __( 'Only published posts and pages can be refreshed in Site Knowledge.', 'npcink-cloud-addon' ) );
+			}
+
+			return self::request_site_knowledge_sync( 'refresh', array( $post_id ), 'article_refresh', array( $post_id ) );
+		}
+
+		/**
 		 * Sends one bounded batch of changed public content to Cloud.
 		 *
 		 * @return array<string,mixed>

@@ -20,6 +20,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		private const STATUS_FRESHNESS_TTL_SECONDS = 300;
 		private const STATUS_CACHE_TTL_SECONDS = 86400;
 		private const STATUS_REFRESH_LOCK_TTL_SECONDS = 15;
+		private const MAX_STATUS_POST_IDS = 1000;
 		private const ALLOWED_CONTRACTS = array(
 			'npcink-cloud/site-knowledge-search' => 'site_knowledge_search.v1',
 			'npcink-cloud/site-knowledge-status' => 'site_knowledge_status.v1',
@@ -169,6 +170,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				return self::unavailable_status_summary( 'refreshing' );
 			}
 
+			$post_id_selection = self::local_public_post_ids();
+			$post_ids = $post_id_selection['post_ids'];
 			$result = null;
 			try {
 				$result = self::dispatch_runtime(
@@ -178,7 +181,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 						'execution_pattern' => 'inline',
 						'input' => array(
 							'contract_version' => 'site_knowledge_status.v1',
-							'include_coverage' => false,
+							'include_coverage' => true,
+							'post_ids' => $post_ids,
 							'write_posture' => 'suggestion_only',
 							'direct_wordpress_write' => false,
 						),
@@ -200,7 +204,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				return self::unavailable_status_summary( 'unavailable' );
 			}
 
-			$summary = self::normalize_status_summary( $result );
+			$summary = self::normalize_status_summary( $result, $post_ids, $post_id_selection['has_more'] );
 			if ( empty( $summary['available'] ) ) {
 				return $summary;
 			}
@@ -219,7 +223,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		 * @param array<string,mixed> $result Cloud runtime result.
 		 * @return array<string,mixed>
 		 */
-		private static function normalize_status_summary( array $result ): array {
+		private static function normalize_status_summary( array $result, array $compared_post_ids = array(), bool $has_more = false ): array {
 			$source = self::runtime_result_payload( $result );
 			$coverage = is_array( $source['coverage'] ?? null ) ? $source['coverage'] : array();
 			$quota = is_array( $coverage['quota'] ?? null ) ? $coverage['quota'] : array();
@@ -257,6 +261,21 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				'result_count' => absint( $acceptance_source['result_count'] ?? 0 ),
 				'error_code' => sanitize_key( (string) ( $acceptance_source['error_code'] ?? '' ) ),
 			);
+			$compared_post_ids = array_values( array_unique( array_filter( array_map( 'absint', $compared_post_ids ) ) ) );
+			$indexed_post_ids_source = $coverage['indexed_post_ids'] ?? null;
+			if (
+				! empty( $compared_post_ids )
+				&& (
+					! is_array( $indexed_post_ids_source )
+					|| count( $compared_post_ids ) !== absint( $coverage['indexed_post_ids_requested'] ?? 0 )
+				)
+			) {
+				return self::unavailable_status_summary( 'not_returned' );
+			}
+			$indexed_post_ids = array_values( array_intersect(
+				$compared_post_ids,
+				array_values( array_unique( array_filter( array_map( 'absint', is_array( $indexed_post_ids_source ) ? $indexed_post_ids_source : array() ) ) ) )
+			) );
 
 			return array(
 				'state' => 'fresh',
@@ -279,9 +298,97 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				'warning_ratio' => is_numeric( $quota['warning_ratio'] ?? null ) ? (float) $quota['warning_ratio'] : 0.85,
 				'maintenance' => $maintenance,
 				'retrieval_acceptance' => $retrieval_acceptance,
+				'article_coverage' => array(
+					'compared_post_ids' => $compared_post_ids,
+					'indexed_post_ids' => $indexed_post_ids,
+					'compared_count' => count( $compared_post_ids ),
+					'indexed_count' => count( $indexed_post_ids ),
+					'not_indexed_count' => max( 0, count( $compared_post_ids ) - count( $indexed_post_ids ) ),
+					'has_more' => $has_more,
+				),
 				'synced_at' => gmdate( 'Y-m-d H:i:s' ) . ' UTC',
 				'fresh_until' => gmdate( 'Y-m-d H:i:s', time() + self::STATUS_FRESHNESS_TTL_SECONDS ) . ' UTC',
 			);
+		}
+
+		/**
+		 * Builds current local display rows from one retained Cloud comparison.
+		 *
+		 * @param array<string,mixed> $summary Retained Site Knowledge status summary.
+		 * @return array<int,array<string,mixed>>
+		 */
+		public static function article_index_statuses( array $summary ): array {
+			$coverage = is_array( $summary['article_coverage'] ?? null ) ? $summary['article_coverage'] : array();
+			$compared_post_ids = is_array( $coverage['compared_post_ids'] ?? null ) ? $coverage['compared_post_ids'] : array();
+			$indexed_post_ids = array_fill_keys(
+				array_values( array_unique( array_filter( array_map( 'absint', is_array( $coverage['indexed_post_ids'] ?? null ) ? $coverage['indexed_post_ids'] : array() ) ) ) ),
+				true
+			);
+			$rows = array();
+
+			if ( ! function_exists( 'get_post' ) ) {
+				return $rows;
+			}
+
+			foreach ( array_slice( array_values( array_unique( array_filter( array_map( 'absint', $compared_post_ids ) ) ) ), 0, self::MAX_STATUS_POST_IDS ) as $post_id ) {
+				$post = get_post( $post_id );
+				if ( ! self::is_public_article( $post ) ) {
+					continue;
+				}
+
+				$title = function_exists( 'get_the_title' ) ? (string) get_the_title( $post_id ) : (string) ( $post->post_title ?? '' );
+				$url = function_exists( 'get_permalink' ) ? (string) get_permalink( $post_id ) : '';
+				$rows[] = array(
+					'post_id' => $post_id,
+					'title' => sanitize_text_field( $title ),
+					'url' => esc_url_raw( $url ),
+					'modified_gmt' => sanitize_text_field( (string) ( $post->post_modified_gmt ?? '' ) ),
+					'status' => isset( $indexed_post_ids[ $post_id ] ) ? 'indexed' : 'not_indexed',
+				);
+			}
+
+			return $rows;
+		}
+
+		/**
+		 * Selects the most recently modified public posts/pages for Cloud comparison.
+		 *
+		 * @return array{post_ids:array<int,int>,has_more:bool}
+		 */
+		private static function local_public_post_ids(): array {
+			if ( ! function_exists( 'get_posts' ) ) {
+				return array( 'post_ids' => array(), 'has_more' => false );
+			}
+
+			$post_ids = get_posts(
+				array(
+					'post_type' => array( 'post', 'page' ),
+					'post_status' => 'publish',
+					'posts_per_page' => self::MAX_STATUS_POST_IDS + 1,
+					'orderby' => 'modified',
+					'order' => 'DESC',
+					'fields' => 'ids',
+					'no_found_rows' => true,
+				)
+			);
+			$post_ids = is_array( $post_ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $post_ids ) ) ) ) : array();
+
+			return array(
+				'post_ids' => array_slice( $post_ids, 0, self::MAX_STATUS_POST_IDS ),
+				'has_more' => count( $post_ids ) > self::MAX_STATUS_POST_IDS,
+			);
+		}
+
+		/**
+		 * Returns whether a local object is a currently public article/page.
+		 *
+		 * @param mixed $post WordPress post object.
+		 * @return bool
+		 */
+		private static function is_public_article( $post ): bool {
+			return is_object( $post )
+				&& 'publish' === sanitize_key( (string) ( $post->post_status ?? '' ) )
+				&& in_array( sanitize_key( (string) ( $post->post_type ?? '' ) ), array( 'post', 'page' ), true );
 		}
 
 		/**
