@@ -2576,104 +2576,104 @@ msgstr "打开设置"
 
 #: includes/class-cloud-settings-page.php:2563
 msgid "Article index coverage"
-msgstr ""
+msgstr "文章索引覆盖"
 
 #: includes/class-cloud-settings-page.php:2564
 msgid "Check index status"
-msgstr ""
+msgstr "检查索引状态"
 
 #: includes/class-cloud-settings-page.php:2567
 msgid "Article coverage will appear after the Cloud index status is refreshed."
-msgstr ""
+msgstr "刷新 Cloud 索引状态后，文章覆盖情况会显示在这里。"
 
 #: includes/class-cloud-settings-page.php:2571
 msgid "Article index coverage summary"
-msgstr ""
+msgstr "文章索引覆盖摘要"
 
 #: includes/class-cloud-settings-page.php:2572
 msgid "indexed"
-msgstr ""
+msgstr "已索引"
 
 #: includes/class-cloud-settings-page.php:2573
 msgid "not indexed"
-msgstr ""
+msgstr "未索引"
 
 #: includes/class-cloud-settings-page.php:2574
 msgid "compared"
-msgstr ""
+msgstr "已核对"
 
 #: includes/class-cloud-settings-page.php:2577
 msgid "Showing the 1,000 most recently modified public posts and pages. Older content is not included in this comparison."
-msgstr ""
+msgstr "显示最近修改的 1,000 篇公开文章和页面。更早的内容不包含在本次核对中。"
 
 #: includes/class-cloud-settings-page.php:2579
 msgid "Filter articles by index status"
-msgstr ""
+msgstr "按索引状态筛选文章"
 
 #: includes/class-cloud-settings-page.php:2580
 msgid "All"
-msgstr ""
+msgstr "全部"
 
 #: includes/class-cloud-settings-page.php:2580
 #: includes/class-cloud-settings-page.php:2613
 msgid "Not indexed"
-msgstr ""
+msgstr "未索引"
 
 #: includes/class-cloud-settings-page.php:2580
 #: includes/class-cloud-settings-page.php:2613
 msgid "Indexed"
-msgstr ""
+msgstr "已索引"
 
 #: includes/class-cloud-settings-page.php:2585
 msgid "No articles match this filter."
-msgstr ""
+msgstr "没有符合此筛选条件的文章。"
 
 #: includes/class-cloud-settings-page.php:2600
 msgid "Article"
-msgstr ""
+msgstr "文章"
 
 #: includes/class-cloud-settings-page.php:2601
 msgid "Last modified"
-msgstr ""
+msgstr "最后修改"
 
 #: includes/class-cloud-settings-page.php:2602
 msgid "Index status"
-msgstr ""
+msgstr "索引状态"
 
 #: includes/class-cloud-settings-page.php:2603
 msgid "Actions"
-msgstr ""
+msgstr "操作"
 
 #: includes/class-cloud-settings-page.php:2608
 msgid "(no title)"
-msgstr ""
+msgstr "（无标题）"
 
 #: includes/class-cloud-settings-page.php:2619
 msgid "Refresh this article"
-msgstr ""
+msgstr "刷新此文章"
 
 #: includes/class-cloud-settings-page.php:2637
 msgid "Previous page"
-msgstr ""
+msgstr "上一页"
 
 #. translators: 1: current article page, 2: total article pages.
 #: includes/class-cloud-settings-page.php:2640
 #, php-format
 msgid "Page %1$d of %2$d"
-msgstr ""
+msgstr "第 %1$d 页，共 %2$d 页"
 
 #: includes/class-cloud-settings-page.php:2644
 msgid "Next page"
-msgstr ""
+msgstr "下一页"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:70
 msgid "Choose a valid published article to refresh."
-msgstr ""
+msgstr "请选择有效的已发布文章进行刷新。"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:81
 msgid "Article refresh requested. Check its index status again after Cloud finishes processing."
-msgstr ""
+msgstr "已请求刷新文章。Cloud 处理完成后，请再次检查其索引状态。"
 
 #: includes/class-cloud-site-knowledge-change-bridge.php:351
 msgid "Only published posts and pages can be refreshed in Site Knowledge."
-msgstr ""
+msgstr "只有已发布的文章和页面可以在 Site Knowledge 中刷新。"
