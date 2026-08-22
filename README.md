@@ -11,6 +11,7 @@ bounded signed transport.
 
 ## Engineering Decisions and Standards
 
+- [Site Knowledge Recommendation Connector Record](docs/site-knowledge-recommendation-connector-record-v1.md) records the WordPress-side coverage, fail-closed, UI, and troubleshooting lessons for Cloud-backed article recommendations.
 - [Production monitoring consent and package handoff ADR](docs/decisions/002-production-monitoring-consent-and-package-handoff.md)
 - [Production monitoring development retrospective](docs/production-monitoring-development-retrospective-2026-08-19.md)
 

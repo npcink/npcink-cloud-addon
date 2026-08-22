@@ -25,6 +25,31 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 		 */
 		public static function register(): void {
 			add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
+			add_filter( 'ngettext', array( __CLASS__, 'filter_ngettext' ), 20, 5 );
+		}
+
+		/**
+		 * Translates selected plural addon strings when the language pack lags.
+		 *
+		 * @param string $translation Existing plural translation.
+		 * @param string $single Singular source string.
+		 * @param string $plural Plural source string.
+		 * @param int    $number Number used for plural selection.
+		 * @param string $domain Text domain.
+		 * @return string
+		 */
+		public static function filter_ngettext( string $translation, string $single, string $plural, int $number, string $domain ): string {
+			if ( self::TEXT_DOMAIN !== $domain || ! self::should_localize() ) {
+				return $translation;
+			}
+			$source = 1 === $number ? $single : $plural;
+			if ( '' !== $translation && $translation !== $source ) {
+				return $translation;
+			}
+
+			$translations = self::translations();
+
+			return $translations[ $source ] ?? $translation;
 		}
 
 		/**
@@ -256,6 +281,33 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Last error time' => '上次错误时间',
 				'WP-Cron disabled' => 'WP-Cron 已禁用',
 				'Manual flush command' => '手动刷新命令',
+				'%d change notification is no longer in the local delivery buffer. Request a public content refresh to reconcile it.' => '%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。',
+				'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.' => '%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。',
+				'Article index coverage' => '文章索引覆盖情况',
+				'Check index status' => '核对索引状态',
+				'Article coverage will appear after the Cloud index status is refreshed.' => '刷新 Cloud 索引状态后，将显示文章覆盖情况。',
+				'Article index coverage summary' => '文章索引覆盖摘要',
+				'indexed' => '已索引',
+				'not indexed' => '未索引',
+				'compared' => '已核对',
+				'Showing the 1,000 most recently modified public posts and pages. Older content is not included in this comparison.' => '当前核对最近修改的 1,000 篇公开文章和页面，更早的内容不在本次结果中。',
+				'Filter articles by index status' => '按索引状态筛选文章',
+				'All' => '全部',
+				'Not indexed' => '未索引',
+				'Indexed' => '已索引',
+				'No articles match this filter.' => '没有符合当前筛选条件的文章。',
+				'Article' => '文章',
+				'Last modified' => '最后修改时间',
+				'Index status' => '索引状态',
+				'Actions' => '操作',
+				'(no title)' => '（无标题）',
+				'Refresh this article' => '刷新这篇文章',
+				'Previous page' => '上一页',
+				'Next page' => '下一页',
+				'Page %1$d of %2$d' => '第 %1$d / %2$d 页',
+				'Only published posts and pages can be refreshed in Site Knowledge.' => '只有已发布的文章和页面可以刷新到站点知识库。',
+				'Choose a valid published article to refresh.' => '请选择有效的已发布文章进行刷新。',
+				'Article refresh requested. Check its index status again after Cloud finishes processing.' => '已请求刷新文章。Cloud 处理完成后，请再次核对索引状态。',
 				'WordPress AI alt text generation requires a local WordPress attachment.' => 'WordPress AI 替代文本生成需要本地 WordPress 附件。',
 				'WordPress AI alt text generation requires one bounded attachment prompt.' => 'WordPress AI 替代文本生成需要一个有边界的附件提示词。',
 				'You are not allowed to use this attachment for Cloud alt text generation.' => '您无权使用此附件进行 Cloud 替代文本生成。',

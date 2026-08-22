@@ -16,11 +16,13 @@
 	const actions = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-actions]' ) : null;
 	const detailRows = document.querySelectorAll( '[data-npcink-site-knowledge-detail]' );
 	const acceptance = document.querySelector( '[data-npcink-site-knowledge-acceptance]' );
+	const articleCoverage = document.querySelector( '[data-npcink-site-knowledge-article-coverage]' );
+	const articleCoverageRefresh = document.querySelector( '[data-npcink-site-knowledge-coverage-refresh]' );
 	const initialState = refreshController.dataset.npcinkSiteKnowledgeState || '';
 	const initialValueLabel = valueLabel ? valueLabel.textContent : '';
 	let requestInFlight = false;
 
-	if ( ! valueLabel && 0 === detailRows.length ) {
+	if ( ! valueLabel && 0 === detailRows.length && ! articleCoverage ) {
 		return;
 	}
 
@@ -35,6 +37,9 @@
 		}
 		if ( actions ) {
 			actions.hidden = ! loading && ( ! retry || retry.hidden );
+		}
+		if ( articleCoverageRefresh ) {
+			articleCoverageRefresh.disabled = loading;
 		}
 	};
 
@@ -130,6 +135,10 @@
 			}
 
 			updateUsage( payload.data );
+			if ( articleCoverage ) {
+				window.location.reload();
+				return;
+			}
 			if ( retry ) {
 				retry.hidden = true;
 			}
@@ -156,6 +165,9 @@
 
 	if ( retry ) {
 		retry.addEventListener( 'click', refresh );
+	}
+	if ( articleCoverageRefresh ) {
+		articleCoverageRefresh.addEventListener( 'click', refresh );
 	}
 
 	if ( 'not_refreshed' === initialState || 'stale' === initialState ) {

@@ -57,6 +57,34 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 		}
 
 		/**
+		 * Requests a refresh for one currently public article.
+		 *
+		 * @param int $post_id Public WordPress post id.
+		 * @return array<string,mixed>
+		 */
+		public static function request_article_refresh( int $post_id ): array {
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
+				return self::result( false, 'not_verified', __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'article_refresh' );
+			}
+			if ( $post_id < 1 ) {
+				return self::result( false, 'invalid_article', __( 'Choose a valid published article to refresh.', 'npcink-cloud-addon' ), 'article_refresh' );
+			}
+
+			$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_public_post_refresh( $post_id );
+			if ( is_wp_error( $result ) ) {
+				return self::result( false, 'article_refresh_failed', $result->get_error_message(), 'article_refresh', 0, 0, 0, sanitize_key( (string) $result->get_error_code() ) );
+			}
+
+			return self::result(
+				true,
+				'article_refresh_requested',
+				__( 'Article refresh requested. Check its index status again after Cloud finishes processing.', 'npcink-cloud-addon' ),
+				'article_refresh',
+				1
+			);
+		}
+
+		/**
 		 * Requests one administrator index operation.
 		 *
 		 * @param string $operation Sanitized operation slug.

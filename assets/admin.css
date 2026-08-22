@@ -871,6 +871,64 @@
 	overflow-wrap: anywhere;
 }
 
+.npcink-cloud-site-knowledge-coverage {
+	margin: 20px 0;
+	max-width: 860px;
+}
+
+.npcink-cloud-site-knowledge-coverage__heading {
+	margin-bottom: 8px;
+}
+
+.npcink-cloud-site-knowledge-coverage__summary,
+.npcink-cloud-site-knowledge-filters {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+}
+
+.npcink-cloud-site-knowledge-coverage__summary {
+	margin-bottom: 8px;
+}
+
+.npcink-cloud-site-knowledge-filters {
+	margin: 14px 0 10px;
+}
+
+.npcink-cloud-site-knowledge-article-table-wrap {
+	overflow-x: auto;
+}
+
+.npcink-cloud-site-knowledge-article-table th:nth-child(2) {
+	width: 150px;
+}
+
+.npcink-cloud-site-knowledge-article-table th:nth-child(3) {
+	width: 100px;
+}
+
+.npcink-cloud-site-knowledge-article-table th:last-child {
+	width: 140px;
+}
+
+.npcink-cloud-site-knowledge-article-table td form {
+	margin: 0;
+}
+
+.npcink-cloud-site-knowledge-index-state {
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.npcink-cloud-site-knowledge-index-state--indexed {
+	color: #008a20;
+}
+
+.npcink-cloud-site-knowledge-index-state--missing {
+	color: #996800;
+}
+
 .npcink-cloud-text-link {
 	display: inline-block;
 	line-height: 2.15384615;

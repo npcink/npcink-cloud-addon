@@ -51,6 +51,19 @@ reconnecting Cloud credentials alone never grants content-delivery consent.
 - Cache and show a short-lived, read-only article-usage summary from Cloud's
   `site_knowledge_status.v1` quota projection while local delivery is enabled.
   Cloud remains the only source of index counts, limits, and quota state.
+- Compare at most the 1,000 most recently modified public post/page ids through
+  `site_knowledge_status.v1`. Cloud returns matching indexed ids only;
+  WordPress remains the source of titles, permalinks, and modification times.
+- Require Cloud's normalized `indexed_post_ids_requested` count to match the
+  local comparison manifest before treating an absent id as `not_indexed`.
+  Missing or partial comparison evidence does not produce article rows.
+- Show only the truthful per-article states `indexed` and `not_indexed`, default
+  the operator list to missing articles, and disclose when older content falls
+  outside the bounded comparison.
+- Let a present administrator refresh one currently published post or page
+  through the existing `site_knowledge_sync.v1` public-content transport. The
+  action is nonce- and capability-protected and does not create a local index
+  task, change WordPress content, or claim Cloud completion.
 - Show shallow connector state, buffered public changes, last delivery, last
   error, next flush, last local index action, and a link to Cloud Site
   Knowledge detail.
