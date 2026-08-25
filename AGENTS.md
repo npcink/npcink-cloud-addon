@@ -23,6 +23,11 @@ runtime truth rules here beyond addon-owned connector contracts.
 - Do not expose split credential fields in the UI.
 - Do not print or log the stored `secret`.
 - Do not make the settings page a second control plane.
+- Before changing the settings page or Site Knowledge operator surface, read
+  `docs/admin-simplification-and-delivery-engineering-standard-2026-08-25.md`
+  and `docs/admin-surface-standard.md`. Keep healthy automatic behavior quiet,
+  expose recovery only after a real failure, and keep Runtime Runs and index
+  lifecycle detail in Cloud.
 - Read `docs/cloud-addon-complexity-budget.md` before expanding addon scope;
   keep security/boundary checks, but do not add product-control complexity.
 - For WordPress AI plugin zh_CN compatibility strings, follow
@@ -53,6 +58,11 @@ runtime truth rules here beyond addon-owned connector contracts.
   the PR, and requests squash auto-merge after required checks. It deliberately
   does not delete local or remote branches because this repository commonly
   uses multiple worktrees.
+- After auto-merge is requested, inspect the complete check rollup. A merged PR
+  is not sufficient evidence when a scope-relevant optional check failed. If a
+  file included in `release-manifest.txt` is added, renamed, or removed, run
+  both `composer run package:release` and `composer run package:verify` before
+  publication and require the Release static gates result to be green.
 - The cross-repository contract is
   `/Users/muze/gitee/npcink-workflow-toolbox/docs/platform/pr-publishing-standard-v1.md`.
 - For multi-repo milestones, run the central matrix from

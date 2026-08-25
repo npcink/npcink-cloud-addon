@@ -11,6 +11,10 @@ bounded signed transport.
 
 ## Engineering Decisions and Standards
 
+- [Admin simplification and delivery engineering standard](docs/admin-simplification-and-delivery-engineering-standard-2026-08-25.md)
+  records the current operator mental model, automatic Site Knowledge behavior,
+  Cloud ownership boundary, merge lessons, release-manifest gate, and reusable
+  delivery checklist.
 - [Site Knowledge Recommendation Connector Record](docs/site-knowledge-recommendation-connector-record-v1.md) records the WordPress-side coverage, fail-closed, UI, and troubleshooting lessons for Cloud-backed article recommendations.
 - [Production monitoring consent and package handoff ADR](docs/decisions/002-production-monitoring-consent-and-package-handoff.md)
 - [Production monitoring development retrospective](docs/production-monitoring-development-retrospective-2026-08-19.md)
