@@ -45,7 +45,6 @@ if ( 0 !== $pr_body_status ) {
 
 require __DIR__ . '/static-contracts.php';
 require __DIR__ . '/behavior-runtime-endpoint-policy.php';
-require __DIR__ . '/behavior-runtime-runs-presenter.php';
 require __DIR__ . '/behavior-credential-store.php';
 require __DIR__ . '/behavior-cleanup.php';
 require __DIR__ . '/behavior-outbound-policy.php';

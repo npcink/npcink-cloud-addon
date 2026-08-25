@@ -9,6 +9,7 @@ PLAYGROUND_PORT="${NPCINK_PLAYGROUND_PORT:-9417}"
 BLUEPRINT="${ROOT_DIR}/tests/playground/blueprint.json"
 MU_PLUGIN_DIR="${ROOT_DIR}/tests/playground/mu-plugins"
 RESULT_PATH="/wp-json/npcink-cloud-addon-playground/v1/smoke"
+SITE_KNOWLEDGE_RESULT_PATH="${RESULT_PATH}?mode=site_knowledge"
 TEMP_DIR=""
 SERVER_PID=""
 
@@ -141,3 +142,17 @@ for (const [key, value] of Object.entries(expected)) {
 }
 console.log("[ok] Playground activated the addon and preserved its default fail-closed connector boundary.");
 ' "${RESULT_JSON}"
+
+SITE_KNOWLEDGE_RESULT_JSON="${TEMP_DIR}/site-knowledge-result.json"
+if ! curl --location --silent --show-error "http://127.0.0.1:${PLAYGROUND_PORT}${SITE_KNOWLEDGE_RESULT_PATH}" >"${SITE_KNOWLEDGE_RESULT_JSON}"; then
+	cat "${SITE_KNOWLEDGE_RESULT_JSON}" >&2 || true
+	fail 'WordPress Playground Site Knowledge reconciliation route failed.'
+fi
+node -e '
+const fs = require("fs");
+const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+if (result.site_knowledge_reconciliation !== true) {
+  throw new Error(`Unexpected Site Knowledge result: ${JSON.stringify(result)}`);
+}
+console.log("[ok] Playground verified the real WordPress ordered reconciliation cursor across 51 same-second posts.");
+' "${SITE_KNOWLEDGE_RESULT_JSON}"

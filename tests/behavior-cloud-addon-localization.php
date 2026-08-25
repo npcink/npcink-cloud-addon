@@ -41,9 +41,9 @@ maca_assert(
 		'Authorize with this endpoint',
 		'npcink-cloud-addon'
 	)
-	&& '本地授权' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Local permissions',
-		'Local permissions',
+	&& '功能' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Features',
+		'Features',
 		'npcink-cloud-addon'
 	)
 	&& '站点知识库' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -115,27 +115,42 @@ maca_assert(
 );
 
 maca_assert(
-	'上次验证成功' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Last verification succeeded',
-		'Last verification succeeded',
-		'npcink-cloud-addon'
-	)
-	&& '当前服务' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Current service',
-		'Current service',
-		'npcink-cloud-addon'
-	)
-	&& '检查' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Checks',
-		'Checks',
-		'npcink-cloud-addon'
-	)
-	&& '运行记录' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Runtime runs',
-		'Runtime runs',
-		'npcink-cloud-addon'
-	)
-	&& '手动就绪测试已完成。连接器已就绪。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'检查' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Checks',
+			'Checks',
+				'npcink-cloud-addon'
+			)
+			&& '连接与服务' === Npcink_Cloud_Addon_Localization::filter_gettext(
+				'Connection and service',
+				'Connection and service',
+				'npcink-cloud-addon'
+			)
+			&& '已连接' === Npcink_Cloud_Addon_Localization::filter_gettext(
+				'Connected',
+				'Connected',
+				'npcink-cloud-addon'
+			)
+			&& '打开 Cloud' === Npcink_Cloud_Addon_Localization::filter_gettext(
+				'Open Cloud',
+				'Open Cloud',
+				'npcink-cloud-addon'
+			)
+			&& '连接管理' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Connection management',
+			'Connection management',
+			'npcink-cloud-addon'
+		)
+		&& '更换 Cloud 账号' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Change Cloud account',
+			'Change Cloud account',
+			'npcink-cloud-addon'
+		)
+		&& '断开此站点' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Disconnect this site',
+			'Disconnect this site',
+			'npcink-cloud-addon'
+		)
+			&& '手动就绪测试已完成。连接器已就绪。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Manual readiness test completed. Connector is ready.',
 		'Manual readiness test completed. Connector is ready.',
 		'npcink-cloud-addon'
@@ -189,9 +204,9 @@ maca_assert(
 		'Reference site content during generation',
 		'npcink-cloud-addon'
 	)
-	&& '使用与故障诊断' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Usage and error diagnostics',
-		'Usage and error diagnostics',
+	&& '发送匿名诊断信息' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Send anonymous diagnostics',
+		'Send anonymous diagnostics',
 		'npcink-cloud-addon'
 	)
 	&& '可选发送功能步骤、执行结果、耗时和机器可读错误码等元数据，用于排查故障并改善可靠性。不会发送 Prompt、源内容或生成内容、WordPress 用户或文章原始 ID、邮箱、URL、DOM 数据、凭据或自由文本错误消息。默认关闭；管理员可随时关闭。' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -199,9 +214,9 @@ maca_assert(
 		'Optionally send metadata-only events about feature steps, outcomes, timing, and machine-readable error codes to help diagnose failures and improve reliability. This does not send prompts, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.',
 		'npcink-cloud-addon'
 	)
-	&& '更多本地授权' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'More local permissions',
-		'More local permissions',
+	&& '隐私设置' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Privacy settings',
+		'Privacy settings',
 		'npcink-cloud-addon'
 	)
 	&& '排队中' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -218,9 +233,9 @@ maca_assert(
 );
 
 maca_assert(
-	'桥接健康详情' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Bridge health detail',
-		'Bridge health detail',
+		'知识库投递' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Knowledge base delivery',
+			'Knowledge base delivery',
 		'npcink-cloud-addon'
 	)
 	&& '手动刷新命令' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -248,12 +263,7 @@ maca_assert(
 		'Indexed %1$s documents; remaining %2$s documents; limit %3$s documents.',
 		'npcink-cloud-addon'
 	)
-	&& 'Cloud 索引详情' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Cloud index details',
-		'Cloud index details',
-		'npcink-cloud-addon'
-	)
-	&& '暂时无法获取知识库用量。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		&& '暂时无法获取知识库用量。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Site Knowledge usage is temporarily unavailable.',
 		'Site Knowledge usage is temporarily unavailable.',
 		'npcink-cloud-addon'
@@ -273,21 +283,21 @@ maca_assert(
 		'idle',
 		'npcink-cloud-addon'
 	)
-	&& '文章索引覆盖情况' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Article index coverage',
-		'Article index coverage',
+	&& '知识库详情' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Knowledge base details',
+		'Knowledge base details',
 		'npcink-cloud-addon'
 	)
-	&& '刷新这篇文章' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Refresh this article',
-		'Refresh this article',
-		'npcink-cloud-addon'
-	)
-	&& '核对索引状态' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Check index status',
-		'Check index status',
-		'npcink-cloud-addon'
-	)
+		&& '重新更新' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Update again',
+			'Update again',
+			'npcink-cloud-addon'
+		)
+		&& '查看高级排查' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'View advanced troubleshooting',
+			'View advanced troubleshooting',
+			'npcink-cloud-addon'
+		)
 	&& '%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',
 		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',

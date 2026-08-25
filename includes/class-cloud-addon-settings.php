@@ -21,6 +21,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		private const MAX_TIMEOUT = 60;
 		private const LOCAL_DEFAULT_BASE_URL = 'http://localhost:8010/';
 		private const PRODUCTION_DEFAULT_BASE_URL = 'https://cloud.npc.ink/';
+		private const SETTINGS_SCHEMA_VERSION = 2;
 
 		/**
 		 * Registers WordPress settings metadata hook.
@@ -70,8 +71,23 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		public static function get_settings(): array {
 			$stored = get_option( self::option_name(), false );
 			$stored = is_array( $stored ) ? $stored : array();
+			$settings = self::settings_from_stored_option( $stored );
 
-			return self::settings_from_stored_option( $stored );
+			if ( ! empty( $settings['verified'] ) && self::SETTINGS_SCHEMA_VERSION !== absint( $stored['settings_schema_version'] ?? 0 ) ) {
+				// Older releases exposed this switch. Verified sites now use the
+				// connector by default; retain an explicit recovery switch only in
+				// newer stored options.
+				if ( empty( $settings['wordpress_ai_connector_enabled'] ) ) {
+					$settings['wordpress_ai_connector_enabled'] = true;
+				}
+				$next_stored = self::build_stored_option( $settings, $stored['credential_envelope'] ?? null );
+				if ( ! is_wp_error( $next_stored ) ) {
+					$next_stored['settings_schema_version'] = self::SETTINGS_SCHEMA_VERSION;
+					update_option( self::option_name(), $next_stored, false );
+				}
+			}
+
+			return $settings;
 		}
 
 		/**
@@ -597,6 +613,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 
 			unset( $settings['site_id'], $settings['key_id'], $settings['secret'] );
 			$settings['credential_envelope'] = $envelope;
+			$settings['settings_schema_version'] = self::SETTINGS_SCHEMA_VERSION;
 
 			return $settings;
 		}

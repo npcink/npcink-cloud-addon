@@ -156,21 +156,19 @@ status backed by an existing addon contract. If no addon read contract exists,
 the row must say that the capability is not connected or Cloud-owned instead of
 fabricating a check.
 
-## Runtime Runs Surface
+## Runtime Runs Ownership
 
-The Cloud Addon `Advanced and troubleshooting > Runtime runs` section may use the existing
-run endpoints for Nightly Inspection detail: recent runs, one-run status,
-one-run result, and a nonce-protected retry request for a known run. It is a
-low-frequency
-Cloud-owned recovery/detail surface. Its local default projection is limited to
-nightly-run availability and result retention; batch, quota-exhaustion, and
-contract-reuse internals remain in the Cloud-owned detail/data contract rather
-than the WordPress settings UI.
+The Cloud Addon does not expose a WordPress runtime-runs UI. Run history,
+run-ID lookup, status, result, retention, and retry presentation belong to
+Cloud, where technical detail can be shown without turning WordPress settings
+into an operations console.
 
-The tab must not submit scheduled reviews, rebuild Toolbox local snapshots,
-create Core proposals, approve changes, create a local retry queue, or write
-WordPress data. If Cloud rejects a retry because the original run input is not
-recoverable, the addon shows the Cloud error and fails closed.
+The existing `get_recent_nightly_inspection_runs()`, `get_run()`,
+`get_run_result()`, and `retry_run()` methods remain bounded transport
+contracts for maintained integrations. They must not create local run truth,
+submit scheduled reviews, rebuild Toolbox local snapshots, create Core
+proposals, approve changes, create a local retry queue, or write WordPress
+data.
 
 ## Signing
 

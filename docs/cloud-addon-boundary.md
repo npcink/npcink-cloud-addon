@@ -33,8 +33,8 @@ index, freshness, and collection lifecycle owner.
 - Table-native diagnostic grouping for existing local configuration,
   connectivity, signed transport, entitlement readiness, and support facts.
 - Runtime request dispatch and run/result reads.
-- Bounded Nightly Inspection runtime run detail: recent runs, one-run status,
-  one-run result, and nonce-protected Cloud-owned retry requests.
+- Bounded Nightly Inspection run read and retry transport for maintained
+  integrations; run detail and operations presentation remain Cloud-only.
 - Verified dispatch helpers for host-owned media derivative Cloud jobs.
 - Stats and entitlement read projections.
 - Bounded Cloud checks for credentials, combined connection/signed-read state,
@@ -276,7 +276,10 @@ authority.
 
 Nightly Inspection runtime run detail may use `GET /v1/runs/nightly-inspection/recent`,
 `GET /v1/runs/{run_id}`, `GET /v1/runs/{run_id}/result`, and
-`POST /v1/runs/{run_id}/retry` only. It is a Cloud run-state/detail surface.
+`POST /v1/runs/{run_id}/retry` only. These are bounded transport contracts for
+maintained integrations; the WordPress settings page does not expose their
+history, status, result, retention, or retry controls. Cloud owns the
+run-state/detail surface.
 It must not submit scheduled reviews, reconstruct Toolbox snapshots, own a
 local retry queue, create Core proposals, approve changes, or write WordPress
 data.
@@ -292,7 +295,7 @@ The local UI stays shallow:
 - last verification time
 - entitlement summary
 - opt-in monitoring consent and attention-only local buffer/error status; Cloud observability and Agent feedback aggregates stay in Cloud
-- a bounded `Advanced and troubleshooting > Runtime runs` section with compact Nightly Inspection availability/retention plus recent/status/result and retry request detail
+- Cloud detail links when an abnormal local status needs technical investigation; runtime history and operations remain Cloud-only
 
 The advanced checks table stays compact and may show credentials, one combined
 connection/signed-read row, hosted-runtime, and an explicitly requested readiness result. It
