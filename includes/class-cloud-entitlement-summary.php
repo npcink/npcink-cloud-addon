@@ -92,7 +92,7 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 
 			return self::unavailable_summary(
 				'not_refreshed',
-				__( 'Entitlement summary has not been refreshed yet. Re-verify and refresh to read the latest Cloud summary.', 'npcink-cloud-addon' )
+				__( 'The latest Cloud summary is not available yet. Check the connection to try again.', 'npcink-cloud-addon' )
 			);
 		}
 

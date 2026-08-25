@@ -33,9 +33,15 @@ if ( ! function_exists( 'get_posts' ) ) {
 	 */
 	function get_posts( array $args = array() ): array {
 		$limit = absint( $args['posts_per_page'] ?? 50 );
+		$date_query = is_array( $args['date_query'][0] ?? null ) ? $args['date_query'][0] : array();
+		$modified_after = strtotime( (string) ( $date_query['after'] ?? '' ) );
 		$ids   = array();
 		foreach ( $GLOBALS['maca_posts'] as $post_id => $post ) {
 			if ( 'publish' !== (string) ( $post->post_status ?? '' ) ) {
+				continue;
+			}
+			$post_modified = strtotime( (string) ( $post->post_modified_gmt ?? '' ) . ' UTC' );
+			if ( false !== $modified_after && false !== $post_modified && $post_modified <= $modified_after ) {
 				continue;
 			}
 			$ids[] = absint( $post_id );
@@ -334,6 +340,45 @@ maca_assert(
 	&& false === (bool) ( $health['delivery_enabled'] ?? true )
 	&& 'disabled' === (string) ( $health['status'] ?? '' ),
 	'Behavior: disabled Site Knowledge delivery consent stops automatic public content buffering.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 710 );
+maca_add_public_post_fixture( 711 );
+$GLOBALS['maca_posts'][710]->post_modified_gmt = '2026-06-30 00:00:00';
+$GLOBALS['maca_posts'][711]->post_modified_gmt = '2026-07-02 00:00:00';
+update_option(
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,
+	array(
+		'last_delivery_ok' => true,
+		'last_delivered_at' => '2026-07-01T00:00:00+00:00',
+	),
+	false
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$reconciled_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert(
+	array( 711 ) === array_values( $reconciled_buffer['post_ids'] ?? array() ),
+	'Behavior: hourly Site Knowledge reconciliation buffers only public content modified after the last successful delivery.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+for ( $post_id = 800; $post_id <= 850; $post_id++ ) {
+	maca_add_public_post_fixture( $post_id );
+	$GLOBALS['maca_posts'][ $post_id ]->post_modified_gmt = sprintf( '2026-07-10 00:00:%02d', $post_id - 800 );
+}
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$first_reconcile_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$second_reconcile_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+$reconcile_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION, array() );
+maca_assert(
+	50 === count( (array) ( $first_reconcile_buffer['post_ids'] ?? array() ) )
+	&& 51 === count( (array) ( $second_reconcile_buffer['post_ids'] ?? array() ) )
+	&& 850 === absint( $reconcile_cursor['post_id'] ?? 0 ),
+	'Behavior: reconciliation advances a durable ordered cursor across more than one page instead of limiting each run to the newest 50 changes.'
 );
 
 maca_reset_site_knowledge_bridge_state();

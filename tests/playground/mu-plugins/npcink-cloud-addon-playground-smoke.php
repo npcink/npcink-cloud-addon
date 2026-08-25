@@ -20,7 +20,7 @@ add_action(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'permission_callback' => '__return_true',
-				'callback'            => 'npcink_cloud_addon_playground_smoke_response',
+			'callback'            => 'npcink_cloud_addon_playground_smoke_response',
 			)
 		);
 	}
@@ -33,6 +33,9 @@ add_action(
  */
 function npcink_cloud_addon_playground_smoke_response() {
 	require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	if ( 'site_knowledge' === sanitize_key( (string) ( $_GET['mode'] ?? '' ) ) ) {
+		return npcink_cloud_addon_playground_site_knowledge_response();
+	}
 
 	$active = is_plugin_active( 'npcink-cloud-addon/npcink-cloud-addon.php' );
 	$public_api_present = function_exists( 'npcink_cloud_addon_is_configured' )
@@ -79,4 +82,69 @@ function npcink_cloud_addon_playground_smoke_response() {
 			'write_posture'                     => 'connector_only_no_direct_wordpress_write',
 		)
 	);
+}
+
+/**
+ * Exercises the real WordPress SQL reconciliation page without Cloud traffic.
+ *
+ * @return WP_REST_Response|WP_Error
+ */
+function npcink_cloud_addon_playground_site_knowledge_response() {
+	global $wpdb;
+	$fixture_ids = array();
+	$modified_gmt = '2026-08-25 00:00:00';
+	for ( $index = 0; $index < 51; $index++ ) {
+		$inserted = $wpdb->insert(
+			$wpdb->posts,
+			array(
+				'post_author' => 1,
+				'post_date' => $modified_gmt,
+				'post_date_gmt' => $modified_gmt,
+				'post_content' => 'Playground Site Knowledge fixture',
+				'post_title' => 'Playground fixture ' . $index,
+				'post_status' => 'publish',
+				'post_name' => 'npcink-playground-fixture-' . $index,
+				'post_modified' => $modified_gmt,
+				'post_modified_gmt' => $modified_gmt,
+				'post_type' => 'post',
+			),
+			array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+		);
+		if ( false !== $inserted ) {
+			$fixture_ids[] = (int) $wpdb->insert_id;
+		}
+	}
+
+	$result = array( 'first_page' => 0, 'second_page' => 0, 'same_second_cursor' => false );
+	try {
+		$bridge = new ReflectionClass( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' );
+		$query = $bridge->getMethod( 'query_reconciliation_posts' );
+		$query->setAccessible( true );
+		$first_page = $query->invoke( null, array( 'modified_gmt' => $modified_gmt, 'post_id' => 0 ) );
+		$last = end( $first_page );
+		$cursor = array(
+			'modified_gmt' => (string) ( $last->post_modified_gmt ?? '' ),
+			'post_id' => (int) ( $last->ID ?? 0 ),
+		);
+		$second_page = $query->invoke( null, $cursor );
+		$first_fixture_ids = array_intersect( $fixture_ids, array_map( static function ( $post ) { return (int) ( $post->ID ?? 0 ); }, $first_page ) );
+		$second_fixture_ids = array_intersect( $fixture_ids, array_map( static function ( $post ) { return (int) ( $post->ID ?? 0 ); }, $second_page ) );
+		$result = array(
+			'first_page' => count( $first_page ),
+			'second_page' => count( $second_page ),
+			'first_fixture_page' => count( $first_fixture_ids ),
+			'second_fixture_page' => count( $second_fixture_ids ),
+			'same_second_cursor' => $cursor['modified_gmt'] === $modified_gmt && $cursor['post_id'] > 0,
+		);
+	} finally {
+		foreach ( $fixture_ids as $fixture_id ) {
+			$wpdb->delete( $wpdb->posts, array( 'ID' => $fixture_id ), array( '%d' ) );
+		}
+	}
+
+	if ( 50 !== $result['first_fixture_page'] || 1 !== $result['second_fixture_page'] || ! $result['same_second_cursor'] ) {
+		return new WP_Error( 'npcink_cloud_addon_playground_site_knowledge_failed', 'The real WordPress reconciliation page did not preserve the ordered cursor.', array( 'status' => 500, 'data' => $result ) );
+	}
+
+	return rest_ensure_response( array( 'site_knowledge_reconciliation' => true ) );
 }

@@ -46,16 +46,17 @@ When verified, the default page should prioritize:
 
 - `Overview` as the first working tab, showing plan/entitlement plus
   attention-only monitoring or Site Knowledge rows. It also contains the
-  immediate-save local permissions; generation reference is dependent on Site
-  Knowledge delivery and metadata-only monitoring consent stays folded under
-  `More local permissions`;
+  single immediate-save `Enable Site Knowledge` feature choice. Public-content
+  delivery and supported generation reference move together; connector state
+  is not presented as another permission. Metadata-only monitoring consent
+  stays folded under `Privacy settings`;
 - a dedicated Site Knowledge tab for local delivery consent, bounded public
   content refresh transport, explicit administrator delivery intents, and
   shallow bridge state while Cloud owns index execution, rebuild/delete
   handling, lifecycle, and freshness policy;
 - one `Advanced and troubleshooting` entry for compact account/usage
-  projections, local monitoring upload state, connection checks, runtime runs,
-  and connection recovery;
+  projections, local monitoring upload state, connection checks, and
+  connection management;
 - a clear path to update/re-verify settings.
 
 Toolbox no longer owns Cloud Checks or Troubleshooting Checks for basic AI
@@ -69,21 +70,24 @@ console.
 
 Verified admin navigation should stay at three top-level entries:
 
-- `Overview`: compact plan plus attention-only connector rows, followed by the
-  two primary local permission switches and folded secondary consent.
-- `Site Knowledge`: delivery, buffered public changes, and last delivery plus
-  the common refresh action. Errors appear only when present. Index operations
-  use an explicit `Manage index` entry; local error or WP-Cron recovery facts
-  appear under `Technical delivery details` only when action is needed.
-- `Advanced and troubleshooting`: service detail, checks, runtime runs, and
-  connection recovery as secondary tabs. Manual credentials stay inside a
+- `Overview`: compact healthy connection/service state plus plan, followed by
+  attention-only connector rows, one Site Knowledge feature switch, and folded
+  privacy consent. Routine Site Knowledge delivery buffering remains silent;
+  only a recorded delivery error creates an attention row. The Cloud entry
+  appears here once.
+- `Site Knowledge`: compact automatic-update status and last delivery. Healthy
+  state has no manual refresh action; recovery update appears only after a
+  delivery failure. Settings, maintenance, and Cloud detail use explicit links,
+  while local error or WP-Cron facts remain in advanced checks.
+- `Advanced and troubleshooting`: service detail, checks, and
+  connection management as secondary tabs. Manual credentials stay inside a
   collapsed recovery disclosure.
 
 Do not reintroduce separate `Status`, `Troubleshooting`, `Connection
 Management`, `Details`, or `Runtime Runs` top-level tabs when the content fits
 one of the three entries above. Old `details`, `status`, `diagnostics`, and
-`runtime_runs` URLs may redirect to the current tab
-owners for compatibility.
+`runtime_runs` URLs may normalize to `Advanced and troubleshooting > Service
+details` for compatibility, but they must not render a local run surface.
 
 ## Advanced / Low-Frequency Details
 
@@ -95,7 +99,7 @@ Low-frequency details may include:
   the cross-account cooldown;
 - a last connection failure and sanitized Cloud error classification, when present;
 - compact package and availability fields plus one combined credit usage row;
-- Cloud-owned runtime recent/status/result detail and retry request entry;
+- links to Cloud-owned technical detail when a local abnormal status needs investigation;
 - sanitized diagnostics rows and Cloud detail links;
 - metadata-only monitoring buffer/error status only when action is needed;
 - last verification failure text.
@@ -166,6 +170,11 @@ Healthy verified connections do not repeat `Last verified`, entitlement sync
 timestamps, or successful monitoring upload timestamps. Those values may
 remain in machine contracts and explicit support checks, but default UI should
 surface them only when they explain a blocker.
+
+The page-level connection summary is reserved for unverified or unhealthy
+states. A healthy verified connection appears only as the first compact row in
+`Overview`; credential success and cached signed-read explanations stay out of
+the default UI.
 
 ## Verification
 

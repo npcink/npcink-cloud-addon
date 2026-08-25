@@ -280,8 +280,6 @@ $runtime_with_optional_fields = $runtime_normalizer->invoke(
 	)
 );
 
-$format_runtime_days = maca_private_method( Npcink_Cloud_Settings_Page::class, 'format_runtime_days_projection' );
-
 maca_assert(
 	is_array( $runtime_without_optional_fields )
 	&& empty( $runtime_not_reported['reported'] )
@@ -299,10 +297,9 @@ maca_assert(
 	&& false === (bool) ( $runtime_without_optional_fields['contract_reuse']['adds_approval_store'] ?? true )
 	&& false === (bool) ( $runtime_without_optional_fields['contract_reuse']['adds_queue'] ?? true )
 	&& false === (bool) ( $runtime_without_optional_fields['contract_reuse']['adds_write_executor'] ?? true )
-	&& 'unavailable' === $format_runtime_days->invoke( null, $runtime_without_optional_fields, 'result_retention_days' )
 	&& is_array( $runtime_with_optional_fields )
 	&& true === (bool) ( $runtime_with_optional_fields['quota_exhausted'] ?? false )
-	&& '14 days' === $format_runtime_days->invoke( null, $runtime_with_optional_fields, 'result_retention_days' ),
+	&& 14 === (int) ( $runtime_with_optional_fields['result_retention_days'] ?? 0 ),
 	'Behavior: Pro Cloud Runtime projection preserves unavailable optional fields, contract reuse boundaries, and quota exhaustion strictly.'
 );
 
