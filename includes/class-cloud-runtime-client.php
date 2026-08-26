@@ -361,7 +361,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				$idempotency_key = 'toolbox_ai_image_generation_' . wp_generate_uuid4();
 			}
 
-			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+			$response = $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+
+			return $this->project_runtime_execute_failure( $response );
 		}
 
 		/**
@@ -1732,6 +1734,41 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		}
 
 		/**
+		 * Projects an inline runtime business failure without changing run-status reads.
+		 *
+		 * @param array<string,mixed>|WP_Error $response Runtime execute response.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		private function project_runtime_execute_failure( $response ) {
+			if ( is_wp_error( $response ) || ! is_array( $response ) ) {
+				return $response;
+			}
+
+			$data = is_array( $response['data'] ?? null ) ? $response['data'] : array();
+			$status = sanitize_key( (string) ( $data['status'] ?? '' ) );
+			$error_code = $this->normalize_remote_error_code( $data['error_code'] ?? '' );
+			if ( ! in_array( $status, array( 'failed', 'error', 'canceled' ), true ) && '' === $error_code ) {
+				return $response;
+			}
+
+			$message = $this->normalize_error_message( $data['error_message'] ?? $data['message'] ?? '' );
+			if ( '' === $message ) {
+				$message = __( 'Cloud runtime request failed.', 'npcink-cloud-addon' );
+			}
+
+			return new WP_Error(
+				$this->map_remote_error_code( $error_code ),
+				$message,
+				array(
+					'status'            => 502,
+					'cloud_http_status' => 200,
+					'cloud_error_code'  => $error_code,
+					'cloud_error_data'  => $data,
+				)
+			);
+		}
+
+		/**
 		 * Decodes a raw byte response with bounded size checks.
 		 *
 		 * @param array<string,mixed> $response WP HTTP response.
@@ -2691,7 +2728,6 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 
 			$image_count = absint( $request['n'] ?? 1 );
 			$image_count = min( 4, max( 1, $image_count ) );
-
 			$timeout_seconds = absint( $request['timeout_seconds'] ?? self::WP_AI_IMAGE_GENERATION_MAX_TIMEOUT_SECONDS );
 			$retention_ttl   = absint( $request['retention_ttl'] ?? self::WP_AI_IMAGE_GENERATION_MAX_RETENTION_TTL );
 
@@ -2812,6 +2848,12 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 
 			$image_count = absint( $request['n'] ?? 1 );
 			$image_count = min( 4, max( 1, $image_count ) );
+			$review = is_array( $request['review'] ?? null ) ? $request['review'] : array();
+			$source_locale = sanitize_key( (string) ( $review['source_prompt_locale'] ?? '' ) );
+			$translation_mode = sanitize_key( (string) ( $review['prompt_translation_mode'] ?? 'none' ) );
+			if ( ! in_array( $translation_mode, array( 'none', 'preplanned_pair', 'required' ), true ) ) {
+				$translation_mode = 'none';
+			}
 
 			$timeout_seconds = absint( $request['timeout_seconds'] ?? self::WP_AI_IMAGE_GENERATION_MAX_TIMEOUT_SECONDS );
 			$retention_ttl   = absint( $request['retention_ttl'] ?? self::WP_AI_IMAGE_GENERATION_MAX_RETENTION_TTL );
@@ -2822,6 +2864,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'contract_version'    => self::WP_AI_IMAGE_GENERATION_CONTRACT,
 				'channel'             => 'toolbox_image_generation',
 				'execution_kind'      => 'image_generation',
+				'profile_id'          => 'wp-ai.image-generation',
 				'execution_pattern'   => 'inline',
 				'input'               => array(
 					'contract_version' => self::WP_AI_IMAGE_GENERATION_CONTRACT,
@@ -2832,6 +2875,12 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 					'n'                 => $image_count,
 					'aspect_ratio'      => $aspect_ratio,
 					'resolution'        => sanitize_key( (string) ( $request['resolution'] ?? 'high' ) ),
+					'review'            => array(
+						'source_prompt_reviewed_by_operator' => ! empty( $review['source_prompt_reviewed_by_operator'] ),
+						'source_prompt_locale'               => $source_locale,
+						'prompt_translation_mode'            => $translation_mode,
+						'provider_prompt_reviewed_by_operator' => ! empty( $review['provider_prompt_reviewed_by_operator'] ),
+					),
 				),
 				'data_classification' => 'internal',
 				'storage_mode'        => 'result_only',
