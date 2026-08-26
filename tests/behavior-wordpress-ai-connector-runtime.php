@@ -770,6 +770,12 @@ $toolbox_image_result = $client->execute_toolbox_image_generation_runtime(
 		'aspect_ratio'     => '16:9',
 		'resolution'       => 'high',
 		'source_surface'   => 'toolbox_featured_image',
+		'review'           => array(
+			'source_prompt_reviewed_by_operator'   => true,
+			'source_prompt_locale'                 => 'zh_CN',
+			'prompt_translation_mode'              => 'required',
+			'provider_prompt_reviewed_by_operator' => false,
+		),
 		'timeout_seconds'  => 120,
 	),
 	'trace-toolbox-image',
@@ -789,6 +795,7 @@ maca_assert(
 	&& 'image_generation_request.v1' === (string) ( $toolbox_image_request_body['contract_version'] ?? '' )
 	&& 'toolbox_image_generation' === (string) ( $toolbox_image_request_body['channel'] ?? '' )
 	&& 'image_generation' === (string) ( $toolbox_image_request_body['execution_kind'] ?? '' )
+	&& 'wp-ai.image-generation' === (string) ( $toolbox_image_request_body['profile_id'] ?? '' )
 	&& 'inline' === (string) ( $toolbox_image_request_body['execution_pattern'] ?? '' )
 	&& 'result_only' === (string) ( $toolbox_image_request_body['storage_mode'] ?? '' )
 	&& 90 === (int) ( $toolbox_image_request_body['timeout_seconds'] ?? 0 )
@@ -798,8 +805,44 @@ maca_assert(
 	&& 'image_generation' === (string) ( $toolbox_image_request_body['input']['task'] ?? '' )
 	&& ! isset( $toolbox_image_request_body['input']['response_format'] )
 	&& '16:9' === (string) ( $toolbox_image_request_body['input']['aspect_ratio'] ?? '' )
+	&& true === (bool) ( $toolbox_image_request_body['input']['review']['source_prompt_reviewed_by_operator'] ?? false )
+	&& 'zh_cn' === (string) ( $toolbox_image_request_body['input']['review']['source_prompt_locale'] ?? '' )
+	&& 'required' === (string) ( $toolbox_image_request_body['input']['review']['prompt_translation_mode'] ?? '' )
+	&& false === (bool) ( $toolbox_image_request_body['input']['review']['provider_prompt_reviewed_by_operator'] ?? true )
 	&& 3 === (int) ( $toolbox_image_request_body['input']['n'] ?? 0 ),
 	'Behavior: Toolbox image generation runtime projects a transport-only Cloud image-generation payload.'
+);
+
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array(
+				'run_id'       => 'run_toolbox_image_denied',
+				'status'       => 'failed',
+				'error_code'   => 'provider.access_denied',
+				'error_message' => 'image generation provider request failed',
+			)
+		)
+	),
+);
+$toolbox_image_access_denied = $client->execute_toolbox_image_generation_runtime(
+	array(
+		'contract_version' => 'image_generation_request.v1',
+		'task'             => 'image_generation',
+		'prompt'           => 'A reviewed editorial image description.',
+	)
+);
+$toolbox_image_access_denied_data = is_wp_error( $toolbox_image_access_denied )
+	? $toolbox_image_access_denied->get_error_data()
+	: array();
+maca_assert(
+	is_wp_error( $toolbox_image_access_denied )
+	&& 'cloud_provider_access_denied' === $toolbox_image_access_denied->get_error_code()
+	&& 'provider.access_denied' === (string) ( $toolbox_image_access_denied_data['cloud_error_code'] ?? '' )
+	&& 502 === (int) ( $toolbox_image_access_denied_data['status'] ?? 0 ),
+	'Behavior: Toolbox image generation projects a Cloud HTTP-200 business failure as a structured WP error.'
 );
 
 $toolbox_image_provider_media_field = $client->execute_toolbox_image_generation_runtime(
