@@ -52,6 +52,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Endpoint_Policy' ) ) {
 					'/v1/customer-journey/events',
 					'/v1/observability/plugin-events',
 					'/v1/agent-feedback/events',
+					'/v1/runtime/callbacks/terminal',
 				),
 				'GET'  => array(
 					'/v1/entitlements/current',

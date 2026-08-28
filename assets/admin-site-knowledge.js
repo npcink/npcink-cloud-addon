@@ -143,3 +143,144 @@
 		refresh();
 	}
 }() );
+
+( function () {
+	'use strict';
+
+	const config = window.npcinkCloudSiteKnowledge || {};
+	const table = document.querySelector( '[data-npcink-site-media-status]' );
+	if ( ! table || 'processing' !== table.dataset.state || ! config.ajaxUrl || ! config.mediaAction || ! config.mediaNonce ) {
+		return;
+	}
+
+	const images = table.querySelector( '[data-npcink-site-media-images]' );
+	const progress = table.querySelector( '[data-npcink-site-media-progress]' );
+	const progressLabel = table.querySelector( '[data-npcink-site-media-progress-label]' );
+	const evidence = document.querySelector( '[data-npcink-site-media-evidence]' );
+	const outcomes = document.querySelector( '[data-npcink-site-media-outcomes]' );
+	const speed = document.querySelector( '[data-npcink-site-media-speed]' );
+	const eta = document.querySelector( '[data-npcink-site-media-eta]' );
+	const stateLabel = document.querySelector( '[data-npcink-site-media-state-label]' );
+	const overviewValue = document.querySelector( '[data-npcink-site-media-overview-value]' );
+	const overviewStatus = document.querySelector( '[data-npcink-site-media-overview-status]' );
+	const overviewProgress = document.querySelector( '[data-npcink-site-media-overview-progress]' );
+	const pollError = document.querySelector( '[data-npcink-site-media-poll-error]' );
+	const pollInterval = Math.max( 5000, Number( config.mediaPollInterval ) || 10000 );
+	let requestInFlight = false;
+	let stopped = false;
+
+	const schedule = () => {
+		if ( ! stopped ) {
+			window.setTimeout( poll, pollInterval );
+		}
+	};
+
+	const formatEta = ( value ) => {
+		if ( ! value ) {
+			return config.estimatingLabel || '';
+		}
+		const parsed = new Date( value );
+		return Number.isNaN( parsed.getTime() ) ? ( config.estimatingLabel || '' ) : parsed.toLocaleString();
+	};
+
+	const update = ( status ) => {
+		const processed = Math.max( 0, Number( status.indexed ) || 0 );
+		const total = Math.max( 0, Number( status.total ) || 0 );
+		// Keep this aligned with the server-rendered overview: cumulative processed / total.
+		const percent = total > 0 ? Math.max( 0, Math.min( 100, Math.floor( processed / total * 100 ) ) ) : 0;
+		const rate = Math.max( 0, Number( status.items_per_minute ) || 0 );
+
+		table.dataset.state = status.state || 'processing';
+		if ( images && total > 0 ) {
+			images.textContent = processed + ' / ' + total;
+		}
+		if ( progress ) {
+			if ( percent > 0 ) {
+				progress.style.setProperty( '--npcink-cloud-progress', percent + '%' );
+				progress.setAttribute( 'aria-valuenow', String( percent ) );
+				progress.classList.remove( 'npcink-cloud-progress--indeterminate' );
+			} else {
+				progress.style.setProperty( '--npcink-cloud-progress', '0%' );
+				progress.setAttribute( 'aria-valuenow', '0' );
+				progress.classList.add( 'npcink-cloud-progress--indeterminate' );
+			}
+		}
+		if ( progressLabel ) {
+			progressLabel.textContent = percent > 0 ? percent + '%' : ( config.processingLabel || '' );
+		}
+		if ( evidence ) {
+			evidence.textContent = String( Math.max( 0, Number( status.evidence ) || 0 ) );
+		}
+		if ( outcomes ) {
+			outcomes.textContent = Math.max( 0, Number( status.successful ) || 0 ) + ' / ' + Math.max( 0, Number( status.failed ) || 0 );
+		}
+		if ( speed ) {
+			speed.textContent = rate > 0 ? rate.toFixed( 1 ) + ' ' + ( config.imagesPerMinuteLabel || '' ) : ( config.estimatingLabel || '' );
+		}
+		if ( eta ) {
+			eta.textContent = formatEta( status.eta_at );
+		}
+		if ( stateLabel ) {
+			stateLabel.textContent = config.processingLabel || stateLabel.textContent;
+		}
+		if ( overviewValue && total > 0 ) {
+			overviewValue.textContent = processed + ' / ' + total + ' ' + ( config.imagesLabel || 'images' );
+		}
+		if ( overviewStatus ) {
+			overviewStatus.textContent = total > 0 ? percent + '%' : '';
+		}
+		if ( overviewProgress ) {
+			overviewProgress.style.setProperty( '--npcink-cloud-progress', percent + '%' );
+			overviewProgress.setAttribute( 'aria-valuenow', String( percent ) );
+		}
+	};
+
+	async function poll() {
+		if ( stopped || requestInFlight ) {
+			return;
+		}
+		requestInFlight = true;
+		table.setAttribute( 'aria-busy', 'true' );
+		const body = new URLSearchParams( {
+			action: config.mediaAction,
+			nonce: config.mediaNonce,
+		} );
+
+		try {
+			const response = await window.fetch( config.ajaxUrl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				},
+				body: body.toString(),
+			} );
+			const payload = await response.json();
+			if ( ! response.ok || ! payload.success || ! payload.data ) {
+				throw new Error( payload && payload.data && payload.data.message ? payload.data.message : '' );
+			}
+
+			if ( pollError ) {
+				pollError.hidden = true;
+				pollError.textContent = '';
+			}
+			update( payload.data );
+			if ( 'processing' !== payload.data.state ) {
+				stopped = true;
+				window.location.reload();
+				return;
+			}
+		} catch ( error ) {
+			if ( pollError ) {
+				pollError.hidden = false;
+				pollError.textContent = error && error.message ? error.message : ( config.mediaPollFailedLabel || '' );
+			}
+		} finally {
+			requestInFlight = false;
+			table.setAttribute( 'aria-busy', 'false' );
+			schedule();
+		}
+	}
+
+	schedule();
+}() );

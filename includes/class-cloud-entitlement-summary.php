@@ -253,6 +253,7 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 			$pro_cloud_runtime = is_array( $entitlement['pro_cloud_runtime'] ?? null ) ? $entitlement['pro_cloud_runtime'] : array();
 			$quota_summary = is_array( $data['quota_summary'] ?? null ) ? $data['quota_summary'] : array();
 			$ai_credit_usage_detail = self::normalize_ai_credit_usage_detail( $quota_summary['ai_credit_usage_detail'] ?? array() );
+			$media_image_capacity = self::normalize_media_image_capacity( $quota_summary['resource_limits'] ?? array() );
 
 			return array(
 				'state' => 'fresh',
@@ -272,6 +273,7 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 				),
 				'pro_cloud_runtime' => self::normalize_pro_cloud_runtime( $pro_cloud_runtime ),
 				'ai_credit_usage_detail' => $ai_credit_usage_detail,
+				'media_image_capacity' => $media_image_capacity,
 				'links' => self::build_portal_links( $settings, is_array( $ai_credit_usage_detail['portal_paths'] ?? null ) ? $ai_credit_usage_detail['portal_paths'] : array() ),
 				'synced_at' => gmdate( 'Y-m-d H:i:s' ) . ' UTC',
 				'fresh_until' => gmdate( 'Y-m-d H:i:s', time() + self::FRESHNESS_TTL_SECONDS ) . ' UTC',
@@ -335,6 +337,46 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 					'ai_credit_usage' => sanitize_text_field( (string) ( $portal_paths['ai_credit_usage'] ?? '' ) ),
 					'ai_credit_ledger' => sanitize_text_field( (string) ( $portal_paths['ai_credit_ledger'] ?? '' ) ),
 				),
+			);
+		}
+
+		/**
+		 * Normalizes the Cloud-owned account media capacity for summary-only display.
+		 *
+		 * @param mixed $resource_limits Raw public resource-limit rows.
+		 * @return array<string,mixed>
+		 */
+		private static function normalize_media_image_capacity( $resource_limits ): array {
+			$resource_limits = is_array( $resource_limits ) ? $resource_limits : array();
+			foreach ( $resource_limits as $item ) {
+				if (
+					! is_array( $item )
+					|| 'media_images' !== sanitize_key( (string) ( $item['key'] ?? '' ) )
+					|| 'image' !== sanitize_key( (string) ( $item['unit'] ?? '' ) )
+					|| ! is_numeric( $item['used'] ?? null )
+					|| ! is_numeric( $item['limit'] ?? null )
+					|| ! is_numeric( $item['remaining'] ?? null )
+				) {
+					continue;
+				}
+
+				return array(
+					'available' => true,
+					'used' => max( 0, (float) $item['used'] ),
+					'limit' => max( 0, (float) $item['limit'] ),
+					'remaining' => max( 0, (float) $item['remaining'] ),
+					'status' => sanitize_key( (string) ( $item['status'] ?? '' ) ),
+					'unit' => 'image',
+				);
+			}
+
+			return array(
+				'available' => false,
+				'used' => 0.0,
+				'limit' => 0.0,
+				'remaining' => 0.0,
+				'status' => '',
+				'unit' => '',
 			);
 		}
 
@@ -535,6 +577,7 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 				'hosted_runtime_quota' => array(),
 				'pro_cloud_runtime' => self::normalize_pro_cloud_runtime( array() ),
 				'ai_credit_usage_detail' => self::normalize_ai_credit_usage_detail( array() ),
+				'media_image_capacity' => self::normalize_media_image_capacity( array() ),
 				'links' => array(),
 				'synced_at' => '',
 				'fresh_until' => '',

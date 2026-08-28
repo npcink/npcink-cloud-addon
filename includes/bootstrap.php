@@ -19,6 +19,7 @@ require_once __DIR__ . '/class-cloud-addon-cleanup.php';
 require_once __DIR__ . '/class-cloud-ai-task-contract.php';
 require_once __DIR__ . '/class-cloud-runtime-client.php';
 require_once __DIR__ . '/class-cloud-runtime-client-factory.php';
+require_once __DIR__ . '/class-cloud-runtime-callback.php';
 require_once __DIR__ . '/class-cloud-media-derivative-transport.php';
 require_once __DIR__ . '/class-cloud-entitlement-summary.php';
 require_once __DIR__ . '/class-cloud-observability-collector.php';
@@ -774,6 +775,7 @@ if ( ! function_exists( 'npcink_cloud_addon_bootstrap' ) ) {
 	 */
 	function npcink_cloud_addon_bootstrap(): void {
 		Npcink_Cloud_Addon_Settings::register();
+		Npcink_Cloud_Runtime_Callback::register();
 		Npcink_Cloud_Observability_Collector::register();
 		Npcink_Cloud_Customer_Journey::register();
 		Npcink_Cloud_Editor_Assist_Quality::register();

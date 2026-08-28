@@ -52,6 +52,106 @@ maca_assert(
 
 maca_reset_test_state();
 maca_seed_settings( true );
+$invalid_dispatch_result = $client->request_image_context_evidence(
+	array(
+		'contract_version' => 'image_context_evidence_request.v1',
+		'write_posture' => 'suggestion_only',
+		'direct_wordpress_write' => false,
+		'no_local_model' => true,
+		'no_media_write' => true,
+		'dispatch_mode' => 'price_prediction',
+		'items' => array(
+			array(
+				'attachment_id' => 101,
+				'url' => 'https://example.test/uploads/invalid-dispatch.jpg',
+			),
+		),
+	)
+);
+maca_assert(
+	is_wp_error( $invalid_dispatch_result )
+	&& 'cloud_image_context_evidence_request_invalid' === $invalid_dispatch_result->get_error_code()
+	&& empty( $GLOBALS['maca_http_requests'] ),
+	'Behavior: image context evidence rejects an unknown dispatch mode before Cloud transport.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data' => array( 'run_id' => 'run_image_context_background', 'status' => 'queued' ),
+		)
+	),
+);
+$background_result = $client->request_image_context_evidence(
+	array(
+		'contract_version' => 'image_context_evidence_request.v1',
+		'write_posture' => 'suggestion_only',
+		'direct_wordpress_write' => false,
+		'no_local_model' => true,
+		'no_media_write' => true,
+		'dispatch_mode' => 'background_completion',
+		'items' => array(
+			array(
+				'attachment_id' => 101,
+				'url' => 'https://example.test/uploads/background.jpg',
+				'attachment_url' => 'https://example.test/uploads/background.jpg',
+				'media_fingerprint' => 'sha256:background-fixture',
+				'mime_type' => 'image/jpeg',
+				'title' => 'Background image 1787709601868',
+				'filename' => 'background-1787709601868.jpg',
+			),
+		),
+	),
+	'trace-image-context-background',
+	'image-context-background-idempotency'
+);
+$background_request = end( $GLOBALS['maca_http_requests'] );
+$background_request_body = json_decode( (string) ( $background_request['args']['body'] ?? '' ), true );
+maca_assert(
+	is_array( $background_result )
+	&& 'run_image_context_background' === ( $background_result['run_id'] ?? '' )
+	&& 'queued' === ( $background_result['status'] ?? '' )
+	&& 'inline' === ( $background_request_body['execution_pattern'] ?? '' )
+	&& 'background_completion' === ( $background_request_body['input']['image_context_evidence_request']['dispatch_mode'] ?? '' )
+	&& 'https://example.test/uploads/background.jpg' === ( $background_request_body['input']['image_context_evidence_request']['items'][0]['attachment_url'] ?? '' )
+	&& 'sha256:background-fixture' === ( $background_request_body['input']['image_context_evidence_request']['items'][0]['media_fingerprint'] ?? '' )
+	&& 'image/jpeg' === ( $background_request_body['input']['image_context_evidence_request']['items'][0]['mime_type'] ?? '' )
+	&& ! isset( $background_request_body['input']['image_context_evidence_request']['items'][0]['title'] )
+	&& ! isset( $background_request_body['input']['image_context_evidence_request']['items'][0]['filename'] ),
+	'Behavior: background image recognition preserves its dispatch mode so Cloud can enter the quota-aware whole-run path.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$background_identity_result = $client->request_image_context_evidence(
+	array(
+		'contract_version' => 'image_context_evidence_request.v1',
+		'write_posture' => 'suggestion_only',
+		'direct_wordpress_write' => false,
+		'no_local_model' => true,
+		'no_media_write' => true,
+		'dispatch_mode' => 'background_completion',
+		'items' => array(
+			array(
+				'attachment_id' => 101,
+				'url' => 'https://example.test/uploads/background.jpg',
+			),
+		),
+	)
+);
+maca_assert(
+	is_wp_error( $background_identity_result )
+	&& 'cloud_image_context_evidence_background_identity_invalid' === $background_identity_result->get_error_code()
+	&& empty( $GLOBALS['maca_http_requests'] ),
+	'Behavior: background image recognition fails closed before transport when attachment identity is incomplete.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 200 ),
 	'body'     => wp_json_encode(

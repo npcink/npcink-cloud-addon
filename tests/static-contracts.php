@@ -46,6 +46,7 @@ $runtime_endpoint_policy = maca_read( $root . '/includes/class-cloud-runtime-end
 $transport = maca_read( $root . '/includes/class-cloud-media-derivative-transport.php' );
 $runtime_client = maca_read( $root . '/includes/class-cloud-runtime-client.php' );
 $runtime_client_factory = maca_read( $root . '/includes/class-cloud-runtime-client-factory.php' );
+$runtime_callback = maca_read( $root . '/includes/class-cloud-runtime-callback.php' );
 $ai_task_contract = maca_read( $root . '/includes/class-cloud-ai-task-contract.php' );
 $wordpress_ai_connector = maca_read( $root . '/includes/class-cloud-wordpress-ai-connector.php' );
 $cloud_addon_localization = maca_read( $root . '/includes/class-cloud-addon-localization.php' );
@@ -1055,6 +1056,7 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $runtime_client, "'POST', '/v1/runtime/execute'" )
+	&& false !== strpos( $runtime_client, "'/v1/runtime/callbacks/terminal'" )
 	&& false !== strpos( $runtime_client, "'/v1/runtime/media/uploads'" )
 	&& false !== strpos( $runtime_client, "'/v1/runtime/media/jobs'" )
 	&& false !== strpos( $runtime_client, "'/v1/runtime/media/artifacts/'" )
@@ -1090,6 +1092,25 @@ maca_assert(
 	&& false === strpos( $transport, '/v1/runtime/workflows/' . 'runs' )
 	&& false === strpos( $transport, '/v1/artifacts' ),
 	'Runtime client keeps Cloud calls on named allowlisted contract surfaces.'
+);
+
+maca_assert(
+	false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-runtime-callback.php'" )
+	&& false !== strpos( $bootstrap, 'Npcink_Cloud_Runtime_Callback::register();' )
+	&& false !== strpos( $runtime_endpoint_policy, "'/v1/runtime/callbacks/terminal'" )
+	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-runtime-callback.php' )
+	&& false !== strpos( $test_runner, 'behavior-runtime-callback.php' )
+	&& false !== strpos( $runtime_callback, "private const MEDIA_PLAN_CRON = 'npcink_cloud_addon_continue_media_recognition'" )
+	&& false !== strpos( $runtime_callback, 'wp_schedule_single_event' )
+	&& false !== strpos( $runtime_callback, 'hash_equals' )
+	&& false !== strpos( $runtime_callback, 'get_transient' )
+	&& false === strpos( $runtime_callback, 'get_runtime_run_result' )
+	&& false === strpos( $runtime_callback, 'set_media_recognition_plan' )
+	&& false === strpos( $runtime_callback, 'wp_insert_post' )
+	&& false === strpos( $runtime_callback, 'wp_update_post' )
+	&& false === strpos( $runtime_callback, 'update_post_meta' )
+	&& false === strpos( $runtime_callback, 'set_post_thumbnail' ),
+	'Runtime callback remains a packaged, allowlisted, signature-verified wake-up signal without result, cursor, or WordPress write ownership.'
 );
 
 maca_assert(
@@ -1194,12 +1215,13 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'Entitlement details' )
 	&& false !== strpos( $settings_page, 'AI credit period' )
 	&& false !== strpos( $settings_page, 'Active run limit' )
+	&& 1 === substr_count( $settings_page, 'Plan image capacity' )
+	&& 1 === substr_count( $settings_page, '%1$s used / %2$s limit / %3$s remaining' )
 	&& false === strpos( $settings_page, 'render_credit_usage_summary' )
 	&& false === strpos( $settings_page, '<h3><?php esc_html_e( \'AI Credit Usage\'' )
-	&& false === strpos( $settings_page, '%1$s used / %2$s limit / %3$s remaining' )
 	&& false === strpos( $settings_page, "esc_html_e( 'Used credits'" )
 	&& false === strpos( $settings_page, "'recent_items'" ),
-	'Cloud Addon puts common credit and runtime allowance metrics on Overview, moves low-frequency parameters to service detail, and avoids duplicate summaries.'
+	'Cloud Addon puts common credit and runtime allowance metrics on Overview, keeps one read-only media capacity summary with recognition status, moves low-frequency parameters to service detail, and avoids duplicate summaries.'
 );
 
 maca_assert(
@@ -1837,6 +1859,20 @@ maca_assert(
 	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-progress--warning' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-progress--error' ),
 		'Site Knowledge keeps one auto-refreshed document quota on Overview without duplicating lower-frequency Cloud detail in the local knowledge-base page.'
+);
+
+maca_assert(
+	false !== strpos( $settings_page, "ACTION_POLL_SITE_MEDIA_STATUS = 'npcink_cloud_addon_poll_site_media_status'" )
+	&& false !== strpos( $settings_page, 'data-npcink-site-media-status' )
+	&& false !== strpos( $settings_page, 'data-npcink-site-media-progress-label' )
+	&& false !== strpos( $settings_page, 'Continue recognizing remaining images' )
+	&& false !== strpos( $admin_site_knowledge_js, "'processing' !== payload.data.state" )
+	&& false !== strpos( $admin_site_knowledge_js, 'action: config.mediaAction' )
+	&& false !== strpos( $admin_site_knowledge_js, 'requestInFlight' )
+	&& false !== strpos( $admin_site_knowledge_js, 'Math.floor( processed / total * 100 )' )
+	&& false !== strpos( $settings_page, 'This batch is complete' )
+	&& false === strpos( $admin_site_knowledge_js, 'npcink_cloud_addon_refresh_site_media_index' ),
+	'Media recognition uses one read-only, non-overlapping status poll and leaves task creation to the explicit administrator action.'
 );
 
 maca_assert(

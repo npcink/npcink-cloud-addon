@@ -62,6 +62,16 @@ $entitlement_response = array(
 			),
 		),
 		'quota_summary'    => array(
+			'resource_limits' => array(
+				array(
+					'key' => 'media_images',
+					'used' => 320,
+					'limit' => 5000,
+					'remaining' => 4680,
+					'status' => 'ok',
+					'unit' => 'image',
+				),
+			),
 			'ai_credit_usage_detail' => array(
 				'summary'      => array(
 					'used'      => 12.5,
@@ -88,7 +98,10 @@ maca_assert(
 	&& 'active' === (string) ( $cached_summary['entitlement_status'] ?? '' )
 	&& 'cached' === (string) ( $read_summary['state'] ?? '' )
 	&& 'Pro' === (string) ( $read_summary['package_label'] ?? '' )
-	&& 'ai_credits' === (string) ( $read_summary['ai_credit_usage_detail']['summary']['unit'] ?? '' ),
+	&& 'ai_credits' === (string) ( $read_summary['ai_credit_usage_detail']['summary']['unit'] ?? '' )
+	&& 320.0 === (float) ( $read_summary['media_image_capacity']['used'] ?? 0 )
+	&& 5000.0 === (float) ( $read_summary['media_image_capacity']['limit'] ?? 0 )
+	&& 4680.0 === (float) ( $read_summary['media_image_capacity']['remaining'] ?? 0 ),
 	'Behavior: verification entitlement response can populate the short local summary cache.'
 );
 
