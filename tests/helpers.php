@@ -486,6 +486,12 @@ if ( ! function_exists( 'wp_get_environment_type' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_attachment_is_image' ) ) {
+	function wp_attachment_is_image( int $attachment_id ): bool {
+		return ! in_array( $attachment_id, (array) ( $GLOBALS['maca_non_image_attachment_ids'] ?? array() ), true );
+	}
+}
+
 if ( ! function_exists( 'wp_remote_retrieve_response_code' ) ) {
 	function wp_remote_retrieve_response_code( array $response ): int {
 		return absint( $response['response']['code'] ?? 0 );
@@ -618,6 +624,7 @@ function maca_reset_test_state(): void {
 	$GLOBALS['maca_schedule_single_failures_remaining'] = 0;
 	$GLOBALS['maca_wp_salt'] = 'maca-test-auth-salt';
 	$GLOBALS['maca_wp_environment_type'] = 'local';
+	$GLOBALS['maca_non_image_attachment_ids'] = array();
 	maca_register_default_outbound_filters();
 }
 

@@ -47,6 +47,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @return void
 		 */
 		public static function register(): void {
+			add_action( 'add_attachment', array( __CLASS__, 'handle_media_attachment_changed' ) );
+			add_action( 'edit_attachment', array( __CLASS__, 'handle_media_attachment_changed' ) );
 			add_action( 'admin_menu', array( __CLASS__, 'add_menu_page' ), 50 );
 			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_assets' ) );
 			add_action( 'admin_post_' . self::ACTION_SAVE, array( __CLASS__, 'handle_save' ) );
@@ -65,6 +67,48 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			add_action( 'admin_post_' . self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX, array( __CLASS__, 'handle_manage_site_knowledge_index' ) );
 			add_action( 'admin_post_' . self::ACTION_RUN_MANUAL_READINESS_TEST, array( __CLASS__, 'handle_run_manual_readiness_test' ) );
 			add_action( 'wp_ajax_' . self::ACTION_REFRESH_ENTITLEMENT, array( __CLASS__, 'handle_refresh_entitlement' ) );
+		}
+
+		/**
+		 * Queues one automatic rescan through the existing durable media plan.
+		 *
+		 * Attachment hooks never call Cloud inline. Repeated events for the same
+		 * attachment collapse into one current or pending rescan marker.
+		 *
+		 * @param int $attachment_id Changed attachment id.
+		 * @return void
+		 */
+		public static function handle_media_attachment_changed( int $attachment_id ): void {
+			if (
+				$attachment_id <= 0
+				|| ! Npcink_Cloud_Addon_Settings::is_verified()
+				|| ! Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled()
+				|| ( function_exists( 'wp_attachment_is_image' ) && ! wp_attachment_is_image( $attachment_id ) )
+			) {
+				return;
+			}
+
+			$plan = self::get_media_recognition_plan();
+			$current_ids = self::normalize_media_rescan_attachment_ids( $plan['rescan_attachment_ids'] ?? array() );
+			$pending_ids = self::normalize_media_rescan_attachment_ids( $plan['pending_rescan_attachment_ids'] ?? array() );
+			if ( in_array( $attachment_id, $current_ids, true ) || in_array( $attachment_id, $pending_ids, true ) ) {
+				return;
+			}
+
+			$user_id = get_current_user_id();
+			if ( ! empty( $plan['active'] ) ) {
+				$pending_ids[] = $attachment_id;
+				$plan['pending_rescan_attachment_ids'] = self::normalize_media_rescan_attachment_ids( $pending_ids );
+				if ( $user_id > 0 ) {
+					$plan['pending_rescan_initiated_by'] = $user_id;
+				}
+				$plan['updated_at'] = current_time( 'mysql' );
+				self::set_media_recognition_plan( $plan );
+				self::schedule_media_recognition_plan( 30 );
+				return;
+			}
+
+			self::start_media_recognition_rescan( $plan, array( $attachment_id ), $user_id );
 		}
 
 		/**
@@ -842,6 +886,15 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 			$state = sanitize_key( (string) ( $status['state'] ?? 'not_started' ) );
 			if ( 'complete' === $state ) {
+				$pending_ids = self::normalize_media_rescan_attachment_ids( $plan['pending_rescan_attachment_ids'] ?? array() );
+				if ( ! empty( $pending_ids ) ) {
+					self::start_media_recognition_rescan(
+						$plan,
+						$pending_ids,
+						absint( $plan['pending_rescan_initiated_by'] ?? $plan['initiated_by'] ?? 0 )
+					);
+					return;
+				}
 				$plan['active'] = false;
 				$plan['state'] = 'complete';
 				self::set_media_recognition_plan( $plan );
@@ -2955,6 +3008,87 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		/** @param array<string,mixed> $plan */
 		private static function set_media_recognition_plan( array $plan ): void {
 			update_option( self::MEDIA_PLAN_OPTION, $plan, false );
+		}
+
+		/**
+		 * Starts a fresh inventory pass while retaining only bounded trigger ids.
+		 *
+		 * The trigger ids are diagnostic/idempotency markers. Inventory and
+		 * attachment truth continue to come from WordPress through Toolbox.
+		 *
+		 * @param array<string,mixed> $previous_plan Previous durable plan.
+		 * @param array<int,int>      $attachment_ids Attachment ids that requested the pass.
+		 * @param int                 $initiated_by WordPress user id captured at the hook.
+		 * @return void
+		 */
+		private static function start_media_recognition_rescan( array $previous_plan, array $attachment_ids, int $initiated_by ): void {
+			$attachment_ids = self::normalize_media_rescan_attachment_ids( $attachment_ids );
+			if ( empty( $attachment_ids ) ) {
+				return;
+			}
+
+			$per_page = max( 1, min( 10, absint( $previous_plan['per_page'] ?? 10 ) ) );
+			$now = current_time( 'mysql' );
+			$plan = array(
+				'active' => true,
+				'plan_id' => 'media_plan_' . wp_generate_uuid4(),
+				'initiated_by' => max( 0, $initiated_by ),
+				'started_at' => $now,
+				'updated_at' => $now,
+				'state' => 'partial',
+				'current_run_id' => '',
+				'current_page' => 0,
+				'next_page' => 1,
+				'per_page' => $per_page,
+				'processed_count' => 0,
+				'successful_count' => 0,
+				'failed_count' => 0,
+				'evidence_count' => 0,
+				'duration_seconds' => 0,
+				'percent' => 0,
+				'rescan_attachment_ids' => $attachment_ids,
+				'pending_rescan_attachment_ids' => array(),
+			);
+			self::set_media_recognition_plan( $plan );
+			self::set_media_index_status(
+				array(
+					'state' => 'partial',
+					'indexed' => 0,
+					'completed_before' => 0,
+					'successful' => 0,
+					'successful_before' => 0,
+					'failed' => 0,
+					'failed_before' => 0,
+					'evidence' => 0,
+					'evidence_before' => 0,
+					'batch_size' => 0,
+					'per_page' => $per_page,
+					'page' => 0,
+					'next_page' => 1,
+					'has_more' => true,
+					'total' => 0,
+					'percent' => 0,
+					'duration_seconds' => 0,
+					'run_id' => '',
+					'error_code' => '',
+					'error' => '',
+					'updated_at' => $now,
+				)
+			);
+			self::schedule_media_recognition_plan( 30 );
+		}
+
+		/** @return array<int,int> */
+		private static function normalize_media_rescan_attachment_ids( $attachment_ids ): array {
+			if ( ! is_array( $attachment_ids ) ) {
+				return array();
+			}
+
+			return array_slice(
+				array_values( array_unique( array_filter( array_map( 'absint', $attachment_ids ) ) ) ),
+				0,
+				100
+			);
 		}
 
 		/** Keeps a repeated administrator request attached to the existing plan. */
