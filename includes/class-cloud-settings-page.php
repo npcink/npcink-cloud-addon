@@ -2699,6 +2699,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$media_state_label = $media_state_labels[ $media_state ] ?? $media_state_labels['not_started'];
 			$media_total = absint( $media_status['total'] ?? 0 );
 			$media_processed = absint( $media_status['indexed'] ?? 0 );
+			$media_skipped = max( 0, $media_total - $media_processed );
 			$media_evidence = absint( $media_status['evidence'] ?? 0 );
 			$media_percent = absint( $media_status['percent'] ?? 0 );
 			$media_rate = max( 0, (float) ( $media_status['items_per_minute'] ?? 0 ) );
@@ -2834,10 +2835,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<p class="description"><?php esc_html_e( 'More images remain. Background recognition will continue automatically; no further click is needed.', 'npcink-cloud-addon' ); ?></p>
 					<?php elseif ( in_array( $media_state, array( 'complete', 'partial' ), true ) ) : ?>
 						<p class="description"><?php echo esc_html( sprintf(
-							/* translators: 1: recognized image count, 2: image count with visual evidence. */
-							__( 'Recognized: %1$d images; visual evidence: %2$d.', 'npcink-cloud-addon' ),
+							/* translators: 1: processed image count, 2: image count with visual evidence, 3: images not included in recognition. */
+							$media_skipped > 0 && 'complete' === $media_state
+								? __( 'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.', 'npcink-cloud-addon' )
+								: __( 'Recognized: %1$d images; visual evidence: %2$d.', 'npcink-cloud-addon' ),
 							absint( $media_status['indexed'] ?? 0 ),
-							absint( $media_status['evidence'] ?? 0 )
+							absint( $media_status['evidence'] ?? 0 ),
+							$media_skipped
 						) ); ?></p>
 				<?php elseif ( 'processing' === $media_state ) : ?>
 					<p class="description"><?php esc_html_e( 'Statistics will update when recognition finishes.', 'npcink-cloud-addon' ); ?></p>
@@ -2858,7 +2862,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						/* translators: %d: number of images remaining after this batch. */
 						__( 'This batch is complete. %d images remain.', 'npcink-cloud-addon' ),
 						max( 0, $media_total - $media_processed )
-					) : __( 'All images have been recognized.', 'npcink-cloud-addon' ) ); ?></p>
+					) : ( $media_skipped > 0 ? sprintf(
+						/* translators: %d: number of images not included in recognition. */
+						__( 'Recognition finished. %d images were not included because they did not meet the current image requirements.', 'npcink-cloud-addon' ),
+						$media_skipped
+					) : __( 'All images have been recognized.', 'npcink-cloud-addon' ) ) ); ?></p>
 				<?php endif; ?>
 								<?php if ( 'error' === $media_state && ! empty( $media_status['error'] ) ) : ?><p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( (string) $media_status['error'] ); ?></p><?php endif; ?>
 								<?php if ( empty( $media_plan['active'] ) ) : ?>

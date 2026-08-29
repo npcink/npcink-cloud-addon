@@ -116,6 +116,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'%1$d of %2$d' => '%1$d / %2$d',
 				'Recognize local images so the editor can find them by meaning. Existing media and WordPress content are not changed.' => '识别站内图片，便于编辑器按含义搜索。不会修改已有媒体或 WordPress 内容。',
 				'Recognized: %1$d images; visual evidence: %2$d.' => '已识别：%1$d 张图片；视觉证据：%2$d 条。',
+				'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.' => '已处理：%1$d 张图片；视觉证据：%2$d 条；未纳入识别：%3$d 张。',
+				'Recognition finished. %d images were not included because they did not meet the current image requirements.' => '识别已完成，但有 %d 张图片因不符合当前图片要求未纳入识别。',
 				'Processed %1$d of %2$d images in %3$s seconds (average %4$d images/minute).' => '已处理 %2$d 张中的 %1$d 张，用时 %3$s 秒（平均每分钟 %4$d 张）。',
 				'%s images/minute' => '每分钟 %s 张',
 				'images/minute' => '张图片/分钟',
