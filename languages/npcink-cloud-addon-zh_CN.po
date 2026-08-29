@@ -2655,14 +2655,14 @@ msgstr "Npcink Cloud 尚未通过验证。"
 msgid "The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed."
 msgstr "Cloud 响应超时，后台会安全重试当前批次，无需再次点击。"
 
-#. translators: 1: processed image count, 2: image count with visual evidence, 3: images not included in recognition.
-#: includes/class-cloud-settings-page.php:2842
-#, php-format
-msgid "Processed: %1$d images; visual evidence: %2$d; not included: %3$d."
-msgstr ""
-
 #. translators: %d: number of images not included in recognition.
 #: includes/class-cloud-settings-page.php:2876
 #, php-format
 msgid "Recognition finished. %d images were not included because they did not meet the current image requirements."
+msgstr ""
+
+#. translators: 1: recognized image count, 2: image count with visual evidence, 3: images not included in recognition.
+#: includes/class-cloud-settings-page.php:2842
+#, php-format
+msgid "Recognized: %1$d images; visual evidence: %2$d; not included: %3$d."
 msgstr ""

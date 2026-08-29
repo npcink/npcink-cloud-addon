@@ -2838,8 +2838,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php elseif ( in_array( $media_state, array( 'complete', 'partial' ), true ) ) : ?>
 						<?php if ( $media_excluded > 0 && 'complete' === $media_state ) : ?>
 							<p class="description"><?php echo esc_html( sprintf(
-								/* translators: 1: processed image count, 2: image count with visual evidence, 3: images not included in recognition. */
-								__( 'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.', 'npcink-cloud-addon' ),
+				/* translators: 1: recognized image count, 2: image count with visual evidence, 3: images not included in recognition. */
+				__( 'Recognized: %1$d images; visual evidence: %2$d; not included: %3$d.', 'npcink-cloud-addon' ),
 								$media_successful,
 								absint( $media_status['evidence'] ?? 0 ),
 								$media_excluded
