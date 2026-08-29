@@ -89,14 +89,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			$plan = self::get_media_recognition_plan();
-			$current_ids = self::normalize_media_rescan_attachment_ids( $plan['rescan_attachment_ids'] ?? array() );
-			$pending_ids = self::normalize_media_rescan_attachment_ids( $plan['pending_rescan_attachment_ids'] ?? array() );
-			if ( in_array( $attachment_id, $current_ids, true ) || in_array( $attachment_id, $pending_ids, true ) ) {
-				return;
-			}
-
 			$user_id = get_current_user_id();
 			if ( ! empty( $plan['active'] ) ) {
+				$current_ids = self::normalize_media_rescan_attachment_ids( $plan['rescan_attachment_ids'] ?? array() );
+				$pending_ids = self::normalize_media_rescan_attachment_ids( $plan['pending_rescan_attachment_ids'] ?? array() );
+				if ( in_array( $attachment_id, $current_ids, true ) || in_array( $attachment_id, $pending_ids, true ) ) {
+					return;
+				}
+
 				$pending_ids[] = $attachment_id;
 				$plan['pending_rescan_attachment_ids'] = self::normalize_media_rescan_attachment_ids( $pending_ids );
 				if ( $user_id > 0 ) {

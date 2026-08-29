@@ -915,6 +915,20 @@ maca_assert(
 	'Behavior: completing the current pass atomically starts one pending attachment rescan through the same plan and Cron.'
 );
 
+$completed_rescan_plan_id = (string) ( $restarted_media_plan['plan_id'] ?? '' );
+$restarted_media_plan['active'] = false;
+$restarted_media_plan['state'] = 'complete';
+update_option( 'npcink_cloud_addon_media_recognition_plan', $restarted_media_plan, false );
+Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 702 );
+$repeated_lifecycle_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+maca_assert(
+	! empty( $repeated_lifecycle_media_plan['active'] )
+	&& 'partial' === ( $repeated_lifecycle_media_plan['state'] ?? '' )
+	&& $completed_rescan_plan_id !== (string) ( $repeated_lifecycle_media_plan['plan_id'] ?? '' )
+	&& array( 702 ) === ( $repeated_lifecycle_media_plan['rescan_attachment_ids'] ?? array() ),
+	'Behavior: a later edit to an attachment from a completed rescan starts a new lifecycle instead of being permanently deduplicated.'
+);
+
 maca_reset_test_state();
 maca_seed_settings( true );
 maca_seed_media_recognition_plan( array() );
