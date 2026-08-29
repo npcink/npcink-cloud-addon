@@ -107,6 +107,20 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				self::schedule_media_recognition_plan( 30 );
 				return;
 			}
+			$plan_state = sanitize_key( (string) ( $plan['state'] ?? '' ) );
+			if ( ! empty( $plan ) && ! in_array( $plan_state, array( '', 'not_started', 'complete' ), true ) ) {
+				$pending_ids = self::normalize_media_rescan_attachment_ids( $plan['pending_rescan_attachment_ids'] ?? array() );
+				if ( ! in_array( $attachment_id, $pending_ids, true ) ) {
+					$pending_ids[] = $attachment_id;
+					$plan['pending_rescan_attachment_ids'] = self::normalize_media_rescan_attachment_ids( $pending_ids );
+					if ( $user_id > 0 ) {
+						$plan['pending_rescan_initiated_by'] = $user_id;
+					}
+					$plan['updated_at'] = current_time( 'mysql' );
+					self::set_media_recognition_plan( $plan );
+				}
+				return;
+			}
 
 			self::start_media_recognition_rescan( $plan, array( $attachment_id ), $user_id );
 		}
@@ -886,13 +900,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 			$state = sanitize_key( (string) ( $status['state'] ?? 'not_started' ) );
 			if ( 'complete' === $state ) {
-				$pending_ids = self::normalize_media_rescan_attachment_ids( $plan['pending_rescan_attachment_ids'] ?? array() );
-				if ( ! empty( $pending_ids ) ) {
-					self::start_media_recognition_rescan(
-						$plan,
-						$pending_ids,
-						absint( $plan['pending_rescan_initiated_by'] ?? $plan['initiated_by'] ?? 0 )
-					);
+				if ( self::restart_pending_media_recognition_rescan( $plan ) ) {
 					return;
 				}
 				$plan['active'] = false;
@@ -993,6 +1001,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$plan['updated_at'] = current_time( 'mysql' );
 			self::set_media_recognition_plan( $plan );
 			if ( 'complete' === $plan['state'] ) {
+				if ( self::restart_pending_media_recognition_rescan( $plan ) ) {
+					return;
+				}
 				$plan['active'] = false;
 				self::set_media_recognition_plan( $plan );
 			} else {
@@ -3076,6 +3087,21 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				)
 			);
 			self::schedule_media_recognition_plan( 30 );
+		}
+
+		/** Starts one pending inventory pass after the current pass completes. */
+		private static function restart_pending_media_recognition_rescan( array $plan ): bool {
+			$pending_ids = self::normalize_media_rescan_attachment_ids( $plan['pending_rescan_attachment_ids'] ?? array() );
+			if ( empty( $pending_ids ) ) {
+				return false;
+			}
+
+			self::start_media_recognition_rescan(
+				$plan,
+				$pending_ids,
+				absint( $plan['pending_rescan_initiated_by'] ?? $plan['initiated_by'] ?? 0 )
+			);
+			return true;
 		}
 
 		/** @return array<int,int> */
