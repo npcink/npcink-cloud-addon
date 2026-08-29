@@ -2834,15 +2834,22 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php elseif ( 'partial' === $media_state && ! empty( $media_plan['active'] ) ) : ?>
 						<p class="description"><?php esc_html_e( 'More images remain. Background recognition will continue automatically; no further click is needed.', 'npcink-cloud-addon' ); ?></p>
 					<?php elseif ( in_array( $media_state, array( 'complete', 'partial' ), true ) ) : ?>
-						<p class="description"><?php echo esc_html( sprintf(
-							/* translators: 1: processed image count, 2: image count with visual evidence, 3: images not included in recognition. */
-							$media_skipped > 0 && 'complete' === $media_state
-								? __( 'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.', 'npcink-cloud-addon' )
-								: __( 'Recognized: %1$d images; visual evidence: %2$d.', 'npcink-cloud-addon' ),
-							absint( $media_status['indexed'] ?? 0 ),
-							absint( $media_status['evidence'] ?? 0 ),
-							$media_skipped
-						) ); ?></p>
+						<?php if ( $media_skipped > 0 && 'complete' === $media_state ) : ?>
+							<p class="description"><?php echo esc_html( sprintf(
+								/* translators: 1: processed image count, 2: image count with visual evidence, 3: images not included in recognition. */
+								__( 'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.', 'npcink-cloud-addon' ),
+								absint( $media_status['indexed'] ?? 0 ),
+								absint( $media_status['evidence'] ?? 0 ),
+								$media_skipped
+							) ); ?></p>
+						<?php else : ?>
+							<p class="description"><?php echo esc_html( sprintf(
+								/* translators: 1: recognized image count, 2: image count with visual evidence. */
+								__( 'Recognized: %1$d images; visual evidence: %2$d.', 'npcink-cloud-addon' ),
+								absint( $media_status['indexed'] ?? 0 ),
+								absint( $media_status['evidence'] ?? 0 )
+							) ); ?></p>
+						<?php endif; ?>
 				<?php elseif ( 'processing' === $media_state ) : ?>
 					<p class="description"><?php esc_html_e( 'Statistics will update when recognition finishes.', 'npcink-cloud-addon' ); ?></p>
 					<p class="description"><?php esc_html_e( 'Estimated completion time will appear after Cloud starts processing.', 'npcink-cloud-addon' ); ?></p>
