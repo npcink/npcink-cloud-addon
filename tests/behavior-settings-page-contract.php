@@ -137,6 +137,33 @@ maca_load_addon_classes();
 require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-change-bridge.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php';
 
+$media_excluded_count = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'media_recognition_excluded_count' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$media_excluded_count->setAccessible( true );
+}
+
+maca_assert(
+	1 === $media_excluded_count->invoke(
+		null,
+		array(
+			'total'      => 71,
+			'indexed'    => 71,
+			'successful' => 70,
+			'failed'     => 0,
+		)
+	)
+	&& 1 === $media_excluded_count->invoke(
+		null,
+		array(
+			'total'      => 71,
+			'indexed'    => 70,
+			'successful' => 69,
+			'failed'     => 1,
+		)
+	),
+	'Behavior: completed media recognition derives excluded images from successful and failed outcomes, not processed inventory count.'
+);
+
 $readiness_token_formatter = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'format_readiness_token' );
 if ( PHP_VERSION_ID < 80100 ) {
 	$readiness_token_formatter->setAccessible( true );
