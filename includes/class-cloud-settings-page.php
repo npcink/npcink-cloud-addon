@@ -744,9 +744,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			check_admin_referer( self::ACTION_REFRESH_SITE_MEDIA_INDEX );
+			$current_user_id = get_current_user_id();
 			$current = self::get_media_index_status();
 			$current_state = sanitize_key( (string) ( $current['state'] ?? 'not_started' ) );
-			if ( self::resume_active_media_recognition_plan() ) {
+			if ( self::resume_active_media_recognition_plan( $current_user_id ) ) {
 				self::set_admin_notice( 'warning', __( 'Media recognition is already in progress. Please wait for it to finish.', 'npcink-cloud-addon' ) );
 				self::redirect_to_page( 'site_knowledge' );
 				return;
@@ -762,6 +763,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$evidence_before = $is_continuation ? absint( $current['evidence'] ?? 0 ) : 0;
 			$duration_before = $is_continuation ? max( 0, (float) ( $current['duration_seconds'] ?? 0 ) ) : 0;
 			$plan = $is_continuation ? self::get_media_recognition_plan() : array();
+			$plan['initiated_by'] = $current_user_id;
 			$per_page = $is_continuation ? self::media_recognition_plan_per_page( $plan, $current ) : 0;
 			// Callback delivery is an optimization; the existing Cron remains the fallback.
 			Npcink_Cloud_Runtime_Callback::ensure_registered();
@@ -2806,6 +2808,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( (string) $media_status['error'] ); ?></p>
 					<?php elseif ( 'partial' === $media_state && empty( $media_plan['active'] ) ) : ?>
 						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php esc_html_e( 'An earlier batch is complete, but automatic continuation has not been started. Click Continue once to start the background plan; no further clicks are needed after that.', 'npcink-cloud-addon' ); ?></p>
+					<?php elseif ( 'partial' === $media_state && ! empty( $media_plan['active'] ) ) : ?>
+						<p class="description"><?php esc_html_e( 'More images remain. Background recognition will continue automatically; no further click is needed.', 'npcink-cloud-addon' ); ?></p>
 					<?php elseif ( in_array( $media_state, array( 'complete', 'partial' ), true ) ) : ?>
 						<p class="description"><?php echo esc_html( sprintf(
 							/* translators: 1: recognized image count, 2: image count with visual evidence. */
@@ -2835,7 +2839,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					) : __( 'All images have been recognized.', 'npcink-cloud-addon' ) ); ?></p>
 				<?php endif; ?>
 								<?php if ( 'error' === $media_state && ! empty( $media_status['error'] ) ) : ?><p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( (string) $media_status['error'] ); ?></p><?php endif; ?>
-								<?php self::render_site_media_index_refresh_form( $media_state ); ?>
+								<?php if ( empty( $media_plan['active'] ) ) : ?>
+									<?php self::render_site_media_index_refresh_form( $media_state ); ?>
+								<?php endif; ?>
 								<?php self::render_site_media_status_refresh_form(); ?>
 							</div>
 						</section>
@@ -3118,10 +3124,15 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		}
 
 		/** Keeps a repeated administrator request attached to the existing plan. */
-		private static function resume_active_media_recognition_plan(): bool {
+		private static function resume_active_media_recognition_plan( int $initiated_by = 0 ): bool {
 			$plan = self::get_media_recognition_plan();
 			if ( empty( $plan['active'] ) ) {
 				return false;
+			}
+			if ( $initiated_by > 0 ) {
+				$plan['initiated_by'] = $initiated_by;
+				$plan['updated_at'] = current_time( 'mysql' );
+				self::set_media_recognition_plan( $plan );
 			}
 
 			$delay = 30;

@@ -655,8 +655,8 @@ maca_assert(
 	&& false !== strpos( $settings_page_source, '$client->get_run( $run_id )' )
 	&& false !== strpos( $settings_page_source, '$client->get_run_result( $run_id )' )
 	&& false !== strpos( $settings_page_source, 'is_array( $run[\'data\'] ?? null )' )
-	&& false !== strpos( $settings_page_source, 'self::resume_active_media_recognition_plan()' )
-	&& strpos( $settings_page_source, 'self::resume_active_media_recognition_plan()' ) < strpos( $settings_page_source, 'Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( $page, $per_page )' )
+	&& false !== strpos( $settings_page_source, 'self::resume_active_media_recognition_plan( $current_user_id )' )
+	&& strpos( $settings_page_source, 'self::resume_active_media_recognition_plan( $current_user_id )' ) < strpos( $settings_page_source, 'Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( $page, $per_page )' )
 	&& false === strpos( $settings_page_source, 'handle_poll_site_media_status(): void {\n\t\t\tself::handle_refresh_site_media_index' ),
 	'Behavior: media progress polling is read-only, while repeated starts resume the durable plan before any new batch dispatch.'
 );
@@ -991,6 +991,38 @@ maca_assert(
 	'Behavior: repeating the start intent for an active plan schedules its existing continuation without creating another Cloud batch.'
 );
 
+$GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan']['initiated_by'] = 0;
+$resume_media_plan->invoke( null, 23 );
+$rebound_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+maca_assert(
+	23 === ( $rebound_media_plan['initiated_by'] ?? 0 ),
+	'Behavior: an explicit administrator resume rebinds later Cron work to the current authorized user.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan(
+	array( 'state' => 'partial', 'indexed' => 0, 'total' => 0, 'evidence' => 0, 'next_page' => 1 ),
+	array( 'active' => true, 'state' => 'partial', 'current_page' => 1, 'next_page' => 2 )
+);
+ob_start();
+$site_knowledge_renderer->invoke(
+	null,
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot(),
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	true
+);
+$active_partial_media_rendered = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $active_partial_media_rendered, 'Background recognition will continue automatically; no further click is needed.' )
+	&& false === strpos( $active_partial_media_rendered, 'Continue recognizing remaining images' ),
+	'Behavior: an active partial plan explains automatic continuation without rendering another start action.'
+);
+maca_assert(
+	false !== strpos( $settings_page_source, '$plan[\'initiated_by\'] = $current_user_id;' ),
+	'Behavior: an inactive explicit recovery also binds its future Cron work to the authorized administrator.'
+);
+
 maca_reset_test_state();
 maca_seed_settings( true );
 maca_seed_media_recognition_plan( array() );
@@ -1071,9 +1103,9 @@ maca_assert(
 maca_assert(
 	false !== strpos( $waiting_media_rendered, 'Waiting for background processing' )
 	&& false !== strpos( $waiting_media_rendered, 'Recognition will continue automatically during the next eligible processing window.' )
-	&& 1 === preg_match( '/<button[^>]*disabled=["\'][^"\']*["\'][^>]*>Waiting for background processing<\/button>/', $waiting_media_rendered )
+	&& false === strpos( $waiting_media_rendered, 'name="action" value="npcink_cloud_addon_refresh_site_media_index"' )
 	&& false === strpos( $waiting_media_rendered, '>Recognizing images<' ),
-	'Behavior: a Cloud-deferred run is presented as a non-clickable wait for its next eligible processing window rather than inventing a quota reason.'
+	'Behavior: a Cloud-deferred run is presented as an automatic wait without another start action or an invented quota reason.'
 );
 
 maca_reset_test_state();
