@@ -770,13 +770,15 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( $page, $per_page );
 			$result_ok = ! empty( $result['ok'] );
 			$run_id = sanitize_text_field( (string) ( $result['run_id'] ?? '' ) );
+			$error_code = ! $result_ok ? sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) ) : '';
+			$retryable_transport_failure = ! $result_ok && self::is_retryable_media_recognition_transport_failure( $error_code );
 			$batch_size = absint( $result['sent_count'] ?? 0 );
 			$reused_count = '' !== $run_id ? absint( $result['reused_count'] ?? 0 ) : 0;
 			$screened_count = '' !== $run_id ? absint( $result['screened_count'] ?? 0 ) : 0;
-			$per_page = max( 1, absint( $result['per_page'] ?? $per_page ) );
+			$per_page = max( 1, absint( $result['per_page'] ?? self::media_recognition_plan_per_page( $plan, $current ) ) );
 			$total = absint( $result['total'] ?? ( $current['total'] ?? 0 ) );
 			$has_more = ! empty( $result['has_more'] );
-			$state = ! $result_ok ? 'error' : ( '' !== $run_id ? 'processing' : ( $has_more ? 'partial' : 'complete' ) );
+			$state = ! $result_ok ? ( $retryable_transport_failure ? 'partial' : 'error' ) : ( '' !== $run_id ? 'processing' : ( $has_more ? 'partial' : 'complete' ) );
 			$polling_completed_before = min( $total, $completed_before + $reused_count + $screened_count );
 			$polling_successful_before = $successful_before + $reused_count;
 			$polling_evidence_before = $evidence_before + $reused_count;
@@ -803,13 +805,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'duration_seconds' => $duration_before + max( 0, (float) ( $result['duration_seconds'] ?? 0 ) ),
 				'duration_before' => $duration_before,
 				'run_id' => $run_id,
-				'error_code' => ! $result_ok ? sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) ) : '',
+				'error_code' => ! $result_ok && ! $retryable_transport_failure ? $error_code : '',
 				'error' => ! $result_ok ? self::media_recognition_error_message( sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) ), (string) $result['message'] ) : '',
 				'terminal_event_recorded' => false,
 				'updated_at' => current_time( 'mysql' ),
 			);
-			self::set_media_index_status( $status );
-			$plan['active'] = $result_ok;
+			$plan['active'] = $result_ok || $retryable_transport_failure;
 			$plan['plan_id'] = (string) ( $plan['plan_id'] ?? 'media_plan_' . wp_generate_uuid4() );
 			$plan['initiated_by'] = absint( $plan['initiated_by'] ?? get_current_user_id() );
 			$plan['started_at'] = (string) ( $plan['started_at'] ?? current_time( 'mysql' ) );
@@ -824,23 +825,35 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$plan['processed_count'] = $processed;
 			$plan['updated_at'] = current_time( 'mysql' );
 			$plan = self::merge_media_recognition_plan_progress( $plan, $status );
+			$retry_delay = 30;
+			if ( $retryable_transport_failure ) {
+				$retry = self::media_recognition_transport_retry_state( $plan, $status, $error_code );
+				$plan = $retry['plan'];
+				$status = $retry['status'];
+				$retry_delay = $retry['delay'];
+			} elseif ( $result_ok ) {
+				unset( $plan['transport_retry_count'], $plan['last_transport_error_code'] );
+			}
+			self::set_media_index_status( $status );
 			self::set_media_recognition_plan( $plan );
 			if ( 'processing' === $state || 'partial' === $state ) {
-				self::schedule_media_recognition_plan( 30 );
+				self::schedule_media_recognition_plan( $retry_delay );
 			}
 			self::record_media_recognition_event(
-				$result_ok ? 'started' : 'failed',
-				$result_ok ? 'accepted' : 'failed',
+				$result_ok ? 'started' : ( $retryable_transport_failure ? 'retry_scheduled' : 'failed' ),
+				$result_ok ? 'accepted' : ( $retryable_transport_failure ? 'retrying' : 'failed' ),
 				$run_id,
 				$batch_size,
 				$result_ok ? 0 : $batch_size,
 				(int) round( max( 0, (float) ( $result['duration_seconds'] ?? 0 ) ) * 1000 ),
-				$result_ok ? '' : sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) )
+				$result_ok ? '' : $error_code
 			);
-			$notice_message = $result_ok
+			$notice_message = $retryable_transport_failure
+				? __( 'The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed.', 'npcink-cloud-addon' )
+				: ( $result_ok
 				? (string) $result['message']
-				: self::media_recognition_error_message( sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) ), (string) $result['message'] );
-			self::set_admin_notice( $result_ok ? 'success' : 'error', $notice_message );
+				: self::media_recognition_error_message( $error_code, (string) $result['message'] ) );
+			self::set_admin_notice( $result_ok ? 'success' : ( $retryable_transport_failure ? 'warning' : 'error' ), $notice_message );
 			self::redirect_to_page( 'site_knowledge' );
 		}
 
@@ -939,6 +952,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 			if ( empty( $result['ok'] ) ) {
 				$reason = sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? 'dispatch_failed' ) );
+				if ( self::is_retryable_media_recognition_transport_failure( $reason ) ) {
+					$retry = self::media_recognition_transport_retry_state( $plan, $status, $reason );
+					self::set_media_index_status( $retry['status'] );
+					self::set_media_recognition_plan( $retry['plan'] );
+					self::schedule_media_recognition_plan( $retry['delay'] );
+					self::record_media_recognition_event( 'retry_scheduled', 'retrying', '', 0, 0, 0, $reason );
+					return;
+				}
 				$plan['state'] = 'paused';
 				$plan['active'] = false;
 				$plan['pause_reason'] = $reason;
@@ -1001,6 +1022,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$plan['total_estimate'] = $total;
 			$plan['processed_count'] = $processed;
 			$plan['updated_at'] = current_time( 'mysql' );
+			unset( $plan['transport_retry_count'], $plan['last_transport_error_code'] );
 			self::set_media_recognition_plan( $plan );
 			if ( 'complete' === $plan['state'] ) {
 				if ( self::restart_pending_media_recognition_rescan( $plan ) ) {
@@ -2677,6 +2699,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$media_state_label = $media_state_labels[ $media_state ] ?? $media_state_labels['not_started'];
 			$media_total = absint( $media_status['total'] ?? 0 );
 			$media_processed = absint( $media_status['indexed'] ?? 0 );
+			$media_skipped = max( 0, $media_total - $media_processed );
 			$media_evidence = absint( $media_status['evidence'] ?? 0 );
 			$media_percent = absint( $media_status['percent'] ?? 0 );
 			$media_rate = max( 0, (float) ( $media_status['items_per_minute'] ?? 0 ) );
@@ -2811,12 +2834,22 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php elseif ( 'partial' === $media_state && ! empty( $media_plan['active'] ) ) : ?>
 						<p class="description"><?php esc_html_e( 'More images remain. Background recognition will continue automatically; no further click is needed.', 'npcink-cloud-addon' ); ?></p>
 					<?php elseif ( in_array( $media_state, array( 'complete', 'partial' ), true ) ) : ?>
-						<p class="description"><?php echo esc_html( sprintf(
-							/* translators: 1: recognized image count, 2: image count with visual evidence. */
-							__( 'Recognized: %1$d images; visual evidence: %2$d.', 'npcink-cloud-addon' ),
-							absint( $media_status['indexed'] ?? 0 ),
-							absint( $media_status['evidence'] ?? 0 )
-						) ); ?></p>
+						<?php if ( $media_skipped > 0 && 'complete' === $media_state ) : ?>
+							<p class="description"><?php echo esc_html( sprintf(
+								/* translators: 1: processed image count, 2: image count with visual evidence, 3: images not included in recognition. */
+								__( 'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.', 'npcink-cloud-addon' ),
+								absint( $media_status['indexed'] ?? 0 ),
+								absint( $media_status['evidence'] ?? 0 ),
+								$media_skipped
+							) ); ?></p>
+						<?php else : ?>
+							<p class="description"><?php echo esc_html( sprintf(
+								/* translators: 1: recognized image count, 2: image count with visual evidence. */
+								__( 'Recognized: %1$d images; visual evidence: %2$d.', 'npcink-cloud-addon' ),
+								absint( $media_status['indexed'] ?? 0 ),
+								absint( $media_status['evidence'] ?? 0 )
+							) ); ?></p>
+						<?php endif; ?>
 				<?php elseif ( 'processing' === $media_state ) : ?>
 					<p class="description"><?php esc_html_e( 'Statistics will update when recognition finishes.', 'npcink-cloud-addon' ); ?></p>
 					<p class="description"><?php esc_html_e( 'Estimated completion time will appear after Cloud starts processing.', 'npcink-cloud-addon' ); ?></p>
@@ -2836,7 +2869,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						/* translators: %d: number of images remaining after this batch. */
 						__( 'This batch is complete. %d images remain.', 'npcink-cloud-addon' ),
 						max( 0, $media_total - $media_processed )
-					) : __( 'All images have been recognized.', 'npcink-cloud-addon' ) ); ?></p>
+					) : ( $media_skipped > 0 ? sprintf(
+						/* translators: %d: number of images not included in recognition. */
+						__( 'Recognition finished. %d images were not included because they did not meet the current image requirements.', 'npcink-cloud-addon' ),
+						$media_skipped
+					) : __( 'All images have been recognized.', 'npcink-cloud-addon' ) ) ); ?></p>
 				<?php endif; ?>
 								<?php if ( 'error' === $media_state && ! empty( $media_status['error'] ) ) : ?><p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( (string) $media_status['error'] ); ?></p><?php endif; ?>
 								<?php if ( empty( $media_plan['active'] ) ) : ?>
@@ -2913,7 +2950,39 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<?php
 		}
 
-		/** Maps Cloud media recognition failures to one actionable local message. */
+		/** Returns whether an uncertain transport result may be safely replayed. */
+		private static function is_retryable_media_recognition_transport_failure( string $error_code ): bool {
+			return 'cloud_runtime_request_failed' === sanitize_key( $error_code );
+		}
+
+		/** Builds the unchanged-cursor state for one idempotent transport replay. */
+		private static function media_recognition_transport_retry_state( array $plan, array $status, string $error_code ): array {
+			$retry_count = min( 1000, absint( $plan['transport_retry_count'] ?? 0 ) + 1 );
+			$delay = min( 15 * MINUTE_IN_SECONDS, MINUTE_IN_SECONDS * ( 2 ** min( 4, $retry_count - 1 ) ) );
+
+			$plan['active'] = true;
+			$plan['state'] = 'partial';
+			$plan['transport_retry_count'] = $retry_count;
+			$plan['last_transport_error_code'] = sanitize_key( $error_code );
+			$plan['error_code'] = '';
+			$plan['error'] = '';
+			$plan['updated_at'] = current_time( 'mysql' );
+			unset( $plan['pause_reason'], $plan['next_eligible_at'] );
+
+			$status['state'] = 'partial';
+			$status['error_code'] = '';
+			$status['error'] = '';
+			$status['transport_retry_count'] = $retry_count;
+			$status['retry_reason'] = sanitize_key( $error_code );
+			$status['updated_at'] = current_time( 'mysql' );
+
+			return array(
+				'plan' => $plan,
+				'status' => $status,
+				'delay' => $delay,
+			);
+		}
+
 		private static function media_recognition_error_message( string $error_code, string $fallback = '' ): string {
 			$error_code = strtolower( trim( $error_code ) );
 			if ( false !== strpos( $error_code, 'media_capacity_exhausted' ) ) {

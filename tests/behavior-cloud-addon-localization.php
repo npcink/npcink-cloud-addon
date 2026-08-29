@@ -164,8 +164,36 @@ maca_assert(
 		'Retry this batch',
 		'Retry this batch',
 		'npcink-cloud-addon'
+	)
+	&& 'Cloud 响应超时，后台会安全重试当前批次，无需再次点击。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed.',
+		'The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed.',
+		'npcink-cloud-addon'
+	)
+	&& 'Npcink Cloud 尚未通过验证。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Npcink Cloud is not verified.',
+		'Npcink Cloud is not verified.',
+		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers the complete Site media recognition summary and actions.'
+);
+
+maca_assert(
+	'已处理：%1$d 张图片；视觉证据：%2$d 条；未纳入识别：%3$d 张。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.',
+		'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.',
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback explains processed, evidence, and excluded image counts.'
+);
+
+maca_assert(
+	'识别已完成，但有 %d 张图片因不符合当前图片要求未纳入识别。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Recognition finished. %d images were not included because they did not meet the current image requirements.',
+		'Recognition finished. %d images were not included because they did not meet the current image requirements.',
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback explains why completed image recognition can exclude images.'
 );
 
 maca_assert(
