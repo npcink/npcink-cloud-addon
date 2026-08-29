@@ -154,6 +154,8 @@ maca_reset_test_state();
 Npcink_Cloud_Settings_Page::register();
 
 $expected_hooks = array(
+	'add_attachment' => array( 'handle_media_attachment_changed', 10 ),
+	'edit_attachment' => array( 'handle_media_attachment_changed', 10 ),
 	'admin_menu' => array( 'add_menu_page', 50 ),
 	'admin_enqueue_scripts' => array( 'enqueue_admin_assets', 10 ),
 	'admin_post_npcink_cloud_addon_save' => array( 'handle_save', 10 ),
@@ -838,6 +840,94 @@ $resume_media_plan = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'r
 if ( PHP_VERSION_ID < 80100 ) {
 	$resume_media_plan->setAccessible( true );
 }
+
+maca_reset_test_state();
+maca_seed_settings( false );
+Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 701 );
+maca_assert(
+	empty( $GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan'] )
+	&& empty( $GLOBALS['maca_scheduled_events'] ),
+	'Behavior: attachment changes do not create background recognition work until Cloud settings are verified.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_site_knowledge_delivery_enabled( false );
+Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 701 );
+$GLOBALS['maca_non_image_attachment_ids'] = array( 702 );
+Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 702 );
+maca_assert(
+	empty( $GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan'] )
+	&& empty( $GLOBALS['maca_scheduled_events'] ),
+	'Behavior: disabled Site Knowledge delivery and non-image attachments never start automatic media recognition.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 701 );
+$automatic_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+$automatic_media_status = get_transient( 'npcink_cloud_addon_media_index_status' );
+maca_assert(
+	! empty( $automatic_media_plan['active'] )
+	&& 'partial' === ( $automatic_media_plan['state'] ?? '' )
+	&& 1 === ( $automatic_media_plan['next_page'] ?? 0 )
+	&& array( 701 ) === ( $automatic_media_plan['rescan_attachment_ids'] ?? array() )
+	&& array() === ( $automatic_media_plan['pending_rescan_attachment_ids'] ?? null )
+	&& is_array( $automatic_media_status )
+	&& 'partial' === ( $automatic_media_status['state'] ?? '' )
+	&& isset( $GLOBALS['maca_scheduled_events']['npcink_cloud_addon_continue_media_recognition'] )
+	&& empty( $GLOBALS['maca_http_requests'] ),
+	'Behavior: a verified attachment change queues one fresh inventory pass through the existing media-plan Cron without inline Cloud traffic.'
+);
+
+Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 701 );
+$deduplicated_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+maca_assert(
+	array( 701 ) === ( $deduplicated_media_plan['rescan_attachment_ids'] ?? array() )
+	&& array() === ( $deduplicated_media_plan['pending_rescan_attachment_ids'] ?? null ),
+	'Behavior: repeated add/edit attachment hooks for the same image do not queue a second rescan.'
+);
+
+Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 702 );
+$pending_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+maca_assert(
+	1 === ( $pending_media_plan['current_page'] ?? 0 )
+	&& 1 === ( $pending_media_plan['next_page'] ?? 0 )
+	&& array( 702 ) === ( $pending_media_plan['pending_rescan_attachment_ids'] ?? array() ),
+	'Behavior: a different attachment change during an active pass records one pending rescan without moving the current cursor.'
+);
+
+set_transient(
+	'npcink_cloud_addon_media_index_status',
+	array( 'state' => 'complete', 'has_more' => false, 'next_page' => 0, 'total' => 71, 'indexed' => 71 ),
+	DAY_IN_SECONDS
+);
+Npcink_Cloud_Settings_Page::process_media_recognition_plan();
+$restarted_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+maca_assert(
+	! empty( $restarted_media_plan['active'] )
+	&& 'partial' === ( $restarted_media_plan['state'] ?? '' )
+	&& 1 === ( $restarted_media_plan['current_page'] ?? 0 )
+	&& 1 === ( $restarted_media_plan['next_page'] ?? 0 )
+	&& array( 702 ) === ( $restarted_media_plan['rescan_attachment_ids'] ?? array() )
+	&& array() === ( $restarted_media_plan['pending_rescan_attachment_ids'] ?? null )
+	&& isset( $GLOBALS['maca_scheduled_events']['npcink_cloud_addon_continue_media_recognition'] ),
+	'Behavior: completing the current pass atomically starts one pending attachment rescan through the same plan and Cron.'
+);
+
+$completed_rescan_plan_id = (string) ( $restarted_media_plan['plan_id'] ?? '' );
+$restarted_media_plan['active'] = false;
+$restarted_media_plan['state'] = 'complete';
+update_option( 'npcink_cloud_addon_media_recognition_plan', $restarted_media_plan, false );
+Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 702 );
+$repeated_lifecycle_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+maca_assert(
+	! empty( $repeated_lifecycle_media_plan['active'] )
+	&& 'partial' === ( $repeated_lifecycle_media_plan['state'] ?? '' )
+	&& $completed_rescan_plan_id !== (string) ( $repeated_lifecycle_media_plan['plan_id'] ?? '' )
+	&& array( 702 ) === ( $repeated_lifecycle_media_plan['rescan_attachment_ids'] ?? array() ),
+	'Behavior: a later edit to an attachment from a completed rescan starts a new lifecycle instead of being permanently deduplicated.'
+);
 
 maca_reset_test_state();
 maca_seed_settings( true );
