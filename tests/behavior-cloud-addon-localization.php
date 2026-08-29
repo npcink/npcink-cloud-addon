@@ -188,6 +188,15 @@ maca_assert(
 );
 
 maca_assert(
+	'已识别：%1$d 张图片；视觉证据：%2$d 条；未纳入识别：%3$d 张。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Recognized: %1$d images; visual evidence: %2$d; not included: %3$d.',
+		'Recognized: %1$d images; visual evidence: %2$d; not included: %3$d.',
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback distinguishes recognized and excluded image counts.'
+);
+
+maca_assert(
 	'识别已完成，但有 %d 张图片因不符合当前图片要求未纳入识别。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Recognition finished. %d images were not included because they did not meet the current image requirements.',
 		'Recognition finished. %d images were not included because they did not meet the current image requirements.',
