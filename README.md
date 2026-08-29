@@ -11,6 +11,10 @@ bounded signed transport.
 
 ## Engineering Decisions and Standards
 
+- [Site media recognition continuation engineering standard](docs/site-media-recognition-continuation-engineering-standard-2026-08-28.md)
+  records the one-click continuation contract, WordPress/Addon/Cloud ownership,
+  progress-count semantics, failure recovery rules, runtime lessons, and
+  release checklist for bounded visual-recognition batches.
 - [Admin simplification and delivery engineering standard](docs/admin-simplification-and-delivery-engineering-standard-2026-08-25.md)
   records the current operator mental model, automatic Site Knowledge behavior,
   Cloud ownership boundary, merge lessons, release-manifest gate, and reusable

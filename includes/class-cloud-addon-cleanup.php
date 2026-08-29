@@ -58,6 +58,9 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 					'npcink_cloud_addon_site_knowledge_change_buffer',
 					'npcink_cloud_addon_site_knowledge_change_status',
 					'npcink_cloud_addon_site_knowledge_maintenance_cursor',
+					'npcink_cloud_addon_media_recognition_plan',
+					'npcink_cloud_addon_media_recognition_plan_lock',
+					'npcink_cloud_addon_runtime_callback_registration',
 				) as $owned_option
 			) {
 				delete_option( $owned_option );
@@ -68,6 +71,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 					'npcink_cloud_addon_flush_observability',
 					'npcink_cloud_addon_flush_site_knowledge_changes',
 					'npcink_cloud_addon_reconcile_site_knowledge_changes',
+					'npcink_cloud_addon_continue_media_recognition',
 				) as $cron_hook
 			) {
 				wp_clear_scheduled_hook( $cron_hook );

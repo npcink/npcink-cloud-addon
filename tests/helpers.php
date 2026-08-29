@@ -208,6 +208,12 @@ if ( ! function_exists( 'home_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'rest_url' ) ) {
+	function rest_url( string $path = '' ): string {
+		return 'https://wordpress.example.test/wp-json/' . ltrim( $path, '/' );
+	}
+}
+
 if ( ! function_exists( 'wp_strip_all_tags' ) ) {
 	function wp_strip_all_tags( $value ): string {
 		return strip_tags( (string) $value );
@@ -306,6 +312,12 @@ if ( ! function_exists( 'add_filter' ) ) {
 	}
 }
 
+if ( ! function_exists( 'has_filter' ) ) {
+	function has_filter( string $hook_name ): bool {
+		return ! empty( $GLOBALS['maca_filters'][ $hook_name ] );
+	}
+}
+
 if ( ! function_exists( 'apply_filters' ) ) {
 	function apply_filters( string $hook_name, $value, ...$args ) {
 		if ( empty( $GLOBALS['maca_filters'][ $hook_name ] ) || ! is_array( $GLOBALS['maca_filters'][ $hook_name ] ) ) {
@@ -328,6 +340,12 @@ if ( ! function_exists( 'apply_filters' ) ) {
 if ( ! function_exists( 'get_current_user_id' ) ) {
 	function get_current_user_id(): int {
 		return 1;
+	}
+}
+
+if ( ! function_exists( 'current_time' ) ) {
+	function current_time( string $type ) {
+		return 'timestamp' === $type ? time() : gmdate( 'Y-m-d H:i:s' );
 	}
 }
 
@@ -493,6 +511,7 @@ function maca_load_addon_classes(): void {
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-cleanup.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-ai-task-contract.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-client.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-client-factory.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-entitlement-summary.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-media-derivative-transport.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-observability-collector.php';
@@ -501,6 +520,7 @@ function maca_load_addon_classes(): void {
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-runtime-bridge.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-admin-projection.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-admin-actions.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-callback.php';
 }
 
 /**

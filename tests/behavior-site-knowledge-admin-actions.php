@@ -195,3 +195,46 @@ maca_assert(
 	&& 'A delivery is already in progress.' === $bridge_error['message'],
 	'Behavior: index action WP_Error preserves the bridge message and source error code.'
 );
+
+maca_reset_site_knowledge_admin_actions();
+$GLOBALS['maca_media_batch_inputs'] = array();
+add_filter(
+	'npcink_toolbox_refresh_site_media_index_batch',
+	static function ( $value, array $input ) {
+		unset( $value );
+		$GLOBALS['maca_media_batch_inputs'][] = $input;
+		return array(
+			'indexed_items' => 10,
+			'visual_evidence_items' => 0,
+			'visual_evidence_reused_items' => 5,
+			'visual_evidence_submitted_items' => 4,
+			'screened_items' => 1,
+			'total' => 42,
+			'has_more' => true,
+			'visual_evidence_run_id' => 'run_media_page_3',
+		);
+	},
+	10,
+	10
+);
+$media_batch = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( 3 );
+maca_assert(
+	! empty( $media_batch['ok'] )
+	&& 3 === $media_batch['page']
+	&& 4 === $media_batch['next_page']
+	&& true === $media_batch['has_more']
+	&& 'run_media_page_3' === $media_batch['run_id']
+	&& 4 === $media_batch['sent_count']
+	&& 10 === $media_batch['page_count']
+	&& 5 === $media_batch['reused_count']
+	&& 1 === $media_batch['screened_count']
+	&& array( array( 'page' => 3, 'per_page' => 10 ) ) === $GLOBALS['maca_media_batch_inputs'],
+	'Behavior: media recognition distinguishes the logical page, reusable evidence, screened items, and newly submitted Cloud work.'
+);
+
+$media_batch_with_plan_size = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( 4, 7 );
+maca_assert(
+	7 === $media_batch_with_plan_size['per_page']
+	&& array( 'page' => 4, 'per_page' => 7 ) === $GLOBALS['maca_media_batch_inputs'][1],
+	'Behavior: an active media plan can preserve its own bounded inventory page size.'
+);

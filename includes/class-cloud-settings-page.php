@@ -27,12 +27,19 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private const ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission';
 		private const ACTION_DISMISS_MONITORING_PROMPT = 'npcink_cloud_addon_dismiss_monitoring_prompt';
 		private const ACTION_REFRESH_SITE_KNOWLEDGE = 'npcink_cloud_addon_refresh_site_knowledge';
+		private const ACTION_REFRESH_SITE_MEDIA_INDEX = 'npcink_cloud_addon_refresh_site_media_index';
+		private const ACTION_REFRESH_SITE_MEDIA_STATUS = 'npcink_cloud_addon_refresh_site_media_status';
+		private const ACTION_POLL_SITE_MEDIA_STATUS = 'npcink_cloud_addon_poll_site_media_status';
 		private const ACTION_REFRESH_SITE_KNOWLEDGE_STATUS = 'npcink_cloud_addon_refresh_site_knowledge_status';
 		private const ACTION_MANAGE_SITE_KNOWLEDGE_INDEX = 'npcink_cloud_addon_manage_site_knowledge_index';
 		private const ACTION_RUN_MANUAL_READINESS_TEST = 'npcink_cloud_addon_run_manual_readiness_test';
 		private const ACTION_REFRESH_ENTITLEMENT = 'npcink_cloud_addon_refresh_entitlement';
 		private const DATETIME_DISPLAY_FORMAT = 'Y-m-d H:i:s';
 		private const AUTH_STATE_TTL_SECONDS = 600;
+		private const MEDIA_STATUS_TRANSIENT = 'npcink_cloud_addon_media_index_status';
+		private const MEDIA_PLAN_OPTION = 'npcink_cloud_addon_media_recognition_plan';
+		private const MEDIA_PLAN_CRON = 'npcink_cloud_addon_continue_media_recognition';
+		private const MEDIA_PLAN_LOCK = 'npcink_cloud_addon_media_recognition_plan_lock';
 
 		/**
 		 * Registers admin hooks.
@@ -50,6 +57,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			add_action( 'admin_post_' . self::ACTION_UPDATE_LOCAL_PERMISSION, array( __CLASS__, 'handle_update_local_permission' ) );
 			add_action( 'admin_post_' . self::ACTION_DISMISS_MONITORING_PROMPT, array( __CLASS__, 'handle_dismiss_monitoring_prompt' ) );
 			add_action( 'admin_post_' . self::ACTION_REFRESH_SITE_KNOWLEDGE, array( __CLASS__, 'handle_refresh_site_knowledge' ) );
+			add_action( 'admin_post_' . self::ACTION_REFRESH_SITE_MEDIA_INDEX, array( __CLASS__, 'handle_refresh_site_media_index' ) );
+			add_action( 'admin_post_' . self::ACTION_REFRESH_SITE_MEDIA_STATUS, array( __CLASS__, 'handle_refresh_site_media_status' ) );
+			add_action( 'wp_ajax_' . self::ACTION_POLL_SITE_MEDIA_STATUS, array( __CLASS__, 'handle_poll_site_media_status' ) );
+			add_action( self::MEDIA_PLAN_CRON, array( __CLASS__, 'process_media_recognition_plan' ) );
 			add_action( 'wp_ajax_' . self::ACTION_REFRESH_SITE_KNOWLEDGE_STATUS, array( __CLASS__, 'handle_refresh_site_knowledge_status' ) );
 			add_action( 'admin_post_' . self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX, array( __CLASS__, 'handle_manage_site_knowledge_index' ) );
 			add_action( 'admin_post_' . self::ACTION_RUN_MANUAL_READINESS_TEST, array( __CLASS__, 'handle_run_manual_readiness_test' ) );
@@ -114,6 +125,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					'nonce' => wp_create_nonce( self::ACTION_REFRESH_SITE_KNOWLEDGE_STATUS ),
 					'failedLabel' => __( 'Site Knowledge usage is temporarily unavailable.', 'npcink-cloud-addon' ),
 					'updateFailedLabel' => __( 'Update failed', 'npcink-cloud-addon' ),
+					'mediaAction' => self::ACTION_POLL_SITE_MEDIA_STATUS,
+					'mediaNonce' => wp_create_nonce( self::ACTION_POLL_SITE_MEDIA_STATUS ),
+					'mediaPollInterval' => 10000,
+					'estimatingLabel' => __( 'Estimating', 'npcink-cloud-addon' ),
+					'processingLabel' => __( 'Processing', 'npcink-cloud-addon' ),
+					'imagesPerMinuteLabel' => __( 'images/minute', 'npcink-cloud-addon' ),
+					'imagesLabel' => __( 'images', 'npcink-cloud-addon' ),
+					'mediaPollFailedLabel' => __( 'Progress could not be refreshed automatically. Use Refresh progress to try again.', 'npcink-cloud-addon' ),
 				)
 			);
 
@@ -559,10 +578,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				wp_die( esc_html__( 'You do not have permission to manage Npcink Cloud settings.', 'npcink-cloud-addon' ) );
 			}
 
-			check_admin_referer( self::ACTION_DISCONNECT );
+				check_admin_referer( self::ACTION_DISCONNECT );
 
-			$settings = Npcink_Cloud_Addon_Settings::get_settings();
-			Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
+				$settings = Npcink_Cloud_Addon_Settings::get_settings();
+				Npcink_Cloud_Runtime_Callback::unregister();
+				Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
 
 			self::set_admin_notice(
 				'success',
@@ -657,6 +677,462 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
 			self::set_admin_notice( ! empty( $result['ok'] ) ? 'success' : 'error', (string) $result['message'] );
 			self::redirect_to_page( 'site_knowledge' );
+		}
+
+		/** Handles the bounded local media recognition refresh. */
+		public static function handle_refresh_site_media_index(): void {
+			if ( ! current_user_can( self::MENU_CAPABILITY ) ) {
+				wp_die( esc_html__( 'You do not have permission to manage Npcink Cloud settings.', 'npcink-cloud-addon' ) );
+			}
+
+			check_admin_referer( self::ACTION_REFRESH_SITE_MEDIA_INDEX );
+			$current = self::get_media_index_status();
+			$current_state = sanitize_key( (string) ( $current['state'] ?? 'not_started' ) );
+			if ( self::resume_active_media_recognition_plan() ) {
+				self::set_admin_notice( 'warning', __( 'Media recognition is already in progress. Please wait for it to finish.', 'npcink-cloud-addon' ) );
+				self::redirect_to_page( 'site_knowledge' );
+				return;
+			}
+
+			$is_continuation = in_array( $current_state, array( 'partial', 'error' ), true );
+			$page = $is_continuation
+				? max( 1, absint( 'error' === $current_state ? ( $current['page'] ?? 1 ) : ( $current['next_page'] ?? 1 ) ) )
+				: 1;
+			$completed_before = $is_continuation ? absint( $current['indexed'] ?? 0 ) : 0;
+			$successful_before = $is_continuation ? absint( $current['successful'] ?? 0 ) : 0;
+			$failed_before = $is_continuation ? absint( $current['failed'] ?? 0 ) : 0;
+			$evidence_before = $is_continuation ? absint( $current['evidence'] ?? 0 ) : 0;
+			$duration_before = $is_continuation ? max( 0, (float) ( $current['duration_seconds'] ?? 0 ) ) : 0;
+			$plan = $is_continuation ? self::get_media_recognition_plan() : array();
+			$per_page = $is_continuation ? self::media_recognition_plan_per_page( $plan, $current ) : 0;
+			// Callback delivery is an optimization; the existing Cron remains the fallback.
+			Npcink_Cloud_Runtime_Callback::ensure_registered();
+			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( $page, $per_page );
+			$result_ok = ! empty( $result['ok'] );
+			$run_id = sanitize_text_field( (string) ( $result['run_id'] ?? '' ) );
+			$batch_size = absint( $result['sent_count'] ?? 0 );
+			$reused_count = '' !== $run_id ? absint( $result['reused_count'] ?? 0 ) : 0;
+			$screened_count = '' !== $run_id ? absint( $result['screened_count'] ?? 0 ) : 0;
+			$per_page = max( 1, absint( $result['per_page'] ?? $per_page ) );
+			$total = absint( $result['total'] ?? ( $current['total'] ?? 0 ) );
+			$has_more = ! empty( $result['has_more'] );
+			$state = ! $result_ok ? 'error' : ( '' !== $run_id ? 'processing' : ( $has_more ? 'partial' : 'complete' ) );
+			$polling_completed_before = min( $total, $completed_before + $reused_count + $screened_count );
+			$polling_successful_before = $successful_before + $reused_count;
+			$polling_evidence_before = $evidence_before + $reused_count;
+			$processed = '' !== $run_id ? $polling_completed_before : min( $total, $completed_before + $batch_size );
+			$status = array(
+				'state' => $state,
+				'indexed' => $processed,
+				'completed_before' => '' !== $run_id ? $polling_completed_before : $completed_before,
+				'successful' => '' !== $run_id ? $polling_successful_before : $successful_before + ( $result_ok ? absint( $result['selected_count'] ?? 0 ) : 0 ),
+				'successful_before' => '' !== $run_id ? $polling_successful_before : $successful_before,
+				'failed' => $failed_before,
+				'failed_before' => $failed_before,
+				'evidence' => '' !== $run_id ? $polling_evidence_before : $evidence_before + ( $result_ok ? absint( $result['selected_count'] ?? 0 ) : 0 ),
+				'evidence_before' => '' !== $run_id ? $polling_evidence_before : $evidence_before,
+				'batch_size' => $batch_size,
+				'reused_count' => $reused_count,
+				'screened_count' => $screened_count,
+				'per_page' => $per_page,
+				'page' => $page,
+				'next_page' => $has_more ? max( $page + 1, absint( $result['next_page'] ?? 0 ) ) : 0,
+				'has_more' => $has_more,
+				'total' => $total,
+				'percent' => $total > 0 ? min( 100, (int) floor( $processed / $total * 100 ) ) : 0,
+				'duration_seconds' => $duration_before + max( 0, (float) ( $result['duration_seconds'] ?? 0 ) ),
+				'duration_before' => $duration_before,
+				'run_id' => $run_id,
+				'error_code' => ! $result_ok ? sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) ) : '',
+				'error' => ! $result_ok ? self::media_recognition_error_message( sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) ), (string) $result['message'] ) : '',
+				'terminal_event_recorded' => false,
+				'updated_at' => current_time( 'mysql' ),
+			);
+			self::set_media_index_status( $status );
+			$plan['active'] = $result_ok;
+			$plan['plan_id'] = (string) ( $plan['plan_id'] ?? 'media_plan_' . wp_generate_uuid4() );
+			$plan['initiated_by'] = absint( $plan['initiated_by'] ?? get_current_user_id() );
+			$plan['started_at'] = (string) ( $plan['started_at'] ?? current_time( 'mysql' ) );
+			$plan['state'] = $state;
+			$plan['current_run_id'] = $run_id;
+			$plan['current_page'] = $page;
+			$plan['next_page'] = $has_more ? max( $page + 1, absint( $result['next_page'] ?? 0 ) ) : 0;
+			$plan['per_page'] = $per_page;
+			unset( $plan['next_eligible_at'] );
+			unset( $plan['pause_reason'] );
+			$plan['total_estimate'] = $total;
+			$plan['processed_count'] = $processed;
+			$plan['updated_at'] = current_time( 'mysql' );
+			$plan = self::merge_media_recognition_plan_progress( $plan, $status );
+			self::set_media_recognition_plan( $plan );
+			if ( 'processing' === $state || 'partial' === $state ) {
+				self::schedule_media_recognition_plan( 30 );
+			}
+			self::record_media_recognition_event(
+				$result_ok ? 'started' : 'failed',
+				$result_ok ? 'accepted' : 'failed',
+				$run_id,
+				$batch_size,
+				$result_ok ? 0 : $batch_size,
+				(int) round( max( 0, (float) ( $result['duration_seconds'] ?? 0 ) ) * 1000 ),
+				$result_ok ? '' : sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) )
+			);
+			$notice_message = $result_ok
+				? (string) $result['message']
+				: self::media_recognition_error_message( sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) ), (string) $result['message'] );
+			self::set_admin_notice( $result_ok ? 'success' : 'error', $notice_message );
+			self::redirect_to_page( 'site_knowledge' );
+		}
+
+		/** Continues one active media plan after the previous Cloud run settles. */
+		public static function process_media_recognition_plan(): void {
+			// WP-Cron can overlap on busy sites; only one callback may advance the cursor.
+			$lock_started = time();
+			if ( ! add_option( self::MEDIA_PLAN_LOCK, $lock_started, '', false ) ) {
+				$existing_lock = absint( get_option( self::MEDIA_PLAN_LOCK, 0 ) );
+				if ( $existing_lock > 0 && $existing_lock + 600 > time() ) {
+					return;
+				}
+				delete_option( self::MEDIA_PLAN_LOCK );
+				if ( ! add_option( self::MEDIA_PLAN_LOCK, $lock_started, '', false ) ) {
+					return;
+				}
+			}
+
+			try {
+				self::advance_media_recognition_plan();
+			} finally {
+				delete_option( self::MEDIA_PLAN_LOCK );
+			}
+		}
+
+		/** Advances a plan while the caller holds the single-site lock. */
+		private static function advance_media_recognition_plan(): void {
+			$plan = self::get_media_recognition_plan();
+			if ( empty( $plan['active'] ) ) {
+				return;
+			}
+			if ( ! empty( $plan['next_eligible_at'] ) && strtotime( (string) $plan['next_eligible_at'] ) > time() ) {
+				self::schedule_media_recognition_plan( max( 60, strtotime( (string) $plan['next_eligible_at'] ) - time() ) );
+				return;
+			}
+			$status = self::get_media_index_status();
+			if ( in_array( (string) ( $status['state'] ?? '' ), array( 'processing', 'waiting_next_day' ), true ) && ! empty( $status['run_id'] ) ) {
+				$refreshed = self::refresh_media_index_status_projection();
+				if ( is_wp_error( $refreshed ) ) {
+					self::schedule_media_recognition_plan( 60 );
+					return;
+				}
+				$status = $refreshed;
+				$plan = self::get_media_recognition_plan();
+				if ( ! empty( $status['next_eligible_at'] ) && strtotime( (string) $status['next_eligible_at'] ) > time() ) {
+					$plan['next_eligible_at'] = (string) $status['next_eligible_at'];
+					$plan['state'] = 'waiting_next_day';
+					self::set_media_recognition_plan( $plan );
+					self::schedule_media_recognition_plan( max( 60, strtotime( (string) $status['next_eligible_at'] ) - time() ) );
+					return;
+				}
+				if ( 'processing' === (string) ( $status['state'] ?? '' ) ) {
+					$plan['state'] = 'processing';
+					unset( $plan['next_eligible_at'], $plan['pause_reason'] );
+					self::set_media_recognition_plan( $plan );
+					self::schedule_media_recognition_plan( 60 );
+					return;
+				}
+			}
+			$state = sanitize_key( (string) ( $status['state'] ?? 'not_started' ) );
+			if ( 'complete' === $state ) {
+				$plan['active'] = false;
+				$plan['state'] = 'complete';
+				self::set_media_recognition_plan( $plan );
+				return;
+			}
+			if ( 'error' === $state ) {
+				$plan['active'] = false;
+				$plan['state'] = 'error';
+				$plan['pause_reason'] = sanitize_key( (string) ( $status['error_code'] ?? 'run_error' ) );
+				self::set_media_recognition_plan( $plan );
+				return;
+			}
+			if ( 'partial' !== $state ) {
+				self::schedule_media_recognition_plan( 60 );
+				return;
+			}
+
+			$page = max( 1, absint( $status['next_page'] ?? $plan['next_page'] ?? 0 ) );
+			$previous_user_id = get_current_user_id();
+			$plan_user_id = absint( $plan['initiated_by'] ?? 0 );
+			if ( $plan_user_id > 0 && function_exists( 'wp_set_current_user' ) ) {
+				wp_set_current_user( $plan_user_id );
+			}
+			try {
+				$per_page = self::media_recognition_plan_per_page( $plan, $status );
+				Npcink_Cloud_Runtime_Callback::ensure_registered();
+				$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( $page, $per_page );
+			} finally {
+				if ( function_exists( 'wp_set_current_user' ) ) {
+					wp_set_current_user( $previous_user_id );
+				}
+			}
+			if ( empty( $result['ok'] ) ) {
+				$reason = sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? 'dispatch_failed' ) );
+				$plan['state'] = 'paused';
+				$plan['active'] = false;
+				$plan['pause_reason'] = $reason;
+				unset( $plan['next_eligible_at'] );
+				$status['state'] = 'error';
+				$status['error_code'] = $reason;
+				$status['error'] = self::media_recognition_error_message( $reason, (string) ( $result['message'] ?? '' ) );
+				$status['updated_at'] = current_time( 'mysql' );
+				self::set_media_index_status( $status );
+				self::set_media_recognition_plan( $plan );
+				return;
+			}
+			$run_id = sanitize_text_field( (string) ( $result['run_id'] ?? '' ) );
+			$total = absint( $result['total'] ?? $status['total'] ?? 0 );
+			$has_more = ! empty( $result['has_more'] );
+			$batch_size = absint( $result['sent_count'] ?? 0 );
+			$reused_count = '' !== $run_id ? absint( $result['reused_count'] ?? 0 ) : 0;
+			$screened_count = '' !== $run_id ? absint( $result['screened_count'] ?? 0 ) : 0;
+			$per_page = max( 1, absint( $result['per_page'] ?? $per_page ) );
+			$previous_indexed = absint( $status['indexed'] ?? 0 );
+			$previous_successful = absint( $status['successful'] ?? 0 );
+			$previous_evidence = absint( $status['evidence'] ?? 0 );
+			$polling_completed_before = min( $total, $previous_indexed + $reused_count + $screened_count );
+			$polling_successful_before = $previous_successful + $reused_count;
+			$polling_evidence_before = $previous_evidence + $reused_count;
+			$processed = '' !== $run_id ? $polling_completed_before : min( $total, $previous_indexed + $batch_size );
+			$status = array_merge( $status, array(
+				'state' => '' !== $run_id ? 'processing' : ( $has_more ? 'partial' : 'complete' ),
+				'indexed' => $processed,
+				'completed_before' => '' !== $run_id ? $polling_completed_before : $previous_indexed,
+				'batch_size' => $batch_size,
+				'reused_count' => $reused_count,
+				'screened_count' => $screened_count,
+				'per_page' => $per_page,
+				'successful' => '' !== $run_id ? $polling_successful_before : $previous_successful + absint( $result['selected_count'] ?? 0 ),
+				'successful_before' => '' !== $run_id ? $polling_successful_before : $previous_successful,
+				'evidence' => '' !== $run_id ? $polling_evidence_before : $previous_evidence + absint( $result['selected_count'] ?? 0 ),
+				'evidence_before' => '' !== $run_id ? $polling_evidence_before : $previous_evidence,
+				'page' => $page,
+				'next_page' => $has_more ? max( $page + 1, absint( $result['next_page'] ?? 0 ) ) : 0,
+				'has_more' => $has_more,
+				'total' => $total,
+				'percent' => $total > 0 ? min( 100, (int) floor( $processed / $total * 100 ) ) : 0,
+				'duration_seconds' => max( 0, (float) ( $status['duration_seconds'] ?? 0 ) ) + max( 0, (float) ( $result['duration_seconds'] ?? 0 ) ),
+				'duration_before' => max( 0, (float) ( $status['duration_seconds'] ?? 0 ) ),
+				'run_id' => $run_id,
+				'error_code' => '',
+				'error' => '',
+				'updated_at' => current_time( 'mysql' ),
+			) );
+			self::set_media_index_status( $status );
+			$plan = self::get_media_recognition_plan();
+			$plan['state'] = '' !== $run_id ? 'processing' : ( $has_more ? 'partial' : 'complete' );
+			$plan['current_run_id'] = $run_id;
+			$plan['current_page'] = $page;
+			$plan['next_page'] = $has_more ? max( $page + 1, absint( $result['next_page'] ?? 0 ) ) : 0;
+			$plan['per_page'] = $per_page;
+			unset( $plan['pause_reason'] );
+			unset( $plan['next_eligible_at'] );
+			$plan['total_estimate'] = $total;
+			$plan['processed_count'] = $processed;
+			$plan['updated_at'] = current_time( 'mysql' );
+			self::set_media_recognition_plan( $plan );
+			if ( 'complete' === $plan['state'] ) {
+				$plan['active'] = false;
+				self::set_media_recognition_plan( $plan );
+			} else {
+				self::schedule_media_recognition_plan( 30 );
+			}
+		}
+
+		/** Reads an existing media recognition Cloud run without creating a task. */
+		public static function handle_refresh_site_media_status(): void {
+			if ( ! current_user_can( self::MENU_CAPABILITY ) ) {
+				wp_die( esc_html__( 'You do not have permission to manage Npcink Cloud settings.', 'npcink-cloud-addon' ) );
+			}
+			check_admin_referer( self::ACTION_REFRESH_SITE_MEDIA_STATUS );
+			$status = self::refresh_media_index_status_projection();
+			if ( is_wp_error( $status ) ) {
+				self::set_admin_notice( 'error', __( 'Media recognition progress could not be refreshed. The current task is unchanged; try again shortly.', 'npcink-cloud-addon' ) );
+				self::redirect_to_page( 'site_knowledge' );
+				return;
+			}
+			if ( 'error' === sanitize_key( (string) ( $status['state'] ?? '' ) ) ) {
+				self::set_admin_notice( 'error', (string) ( $status['error'] ?? __( 'Cloud media recognition did not complete. Retry this batch later.', 'npcink-cloud-addon' ) ) );
+			} else {
+				self::set_admin_notice( 'success', __( 'Media recognition progress refreshed.', 'npcink-cloud-addon' ) );
+			}
+			self::redirect_to_page( 'site_knowledge' );
+		}
+
+		/** Polls an existing media task for the status table. */
+		public static function handle_poll_site_media_status(): void {
+			if ( ! current_user_can( self::MENU_CAPABILITY ) ) {
+				wp_send_json_error( array( 'message' => __( 'You do not have permission to manage Npcink Cloud settings.', 'npcink-cloud-addon' ) ), 403 );
+			}
+			check_ajax_referer( self::ACTION_POLL_SITE_MEDIA_STATUS, 'nonce' );
+			$status = self::refresh_media_index_status_projection();
+			if ( is_wp_error( $status ) ) {
+				wp_send_json_error( array( 'message' => __( 'Progress could not be refreshed automatically. Use Refresh progress to try again.', 'npcink-cloud-addon' ) ), 502 );
+			}
+			wp_send_json_success( $status );
+		}
+
+		/** @return array<string,mixed>|WP_Error */
+		private static function refresh_media_index_status_projection() {
+			$status = self::get_media_index_status();
+			$run_id = sanitize_text_field( (string) ( $status['run_id'] ?? '' ) );
+			if ( '' === $run_id ) {
+				return new WP_Error( 'cloud_media_recognition_run_missing', __( 'There is no active media recognition task to refresh.', 'npcink-cloud-addon' ) );
+			}
+			$client = new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() );
+			$run = $client->get_run( $run_id );
+			if ( is_wp_error( $run ) ) {
+				if ( self::is_terminal_media_run_read_error( $run ) ) {
+					return self::mark_media_index_projection_error( $status, $run );
+				}
+				return $run;
+			}
+			$run_data = is_array( $run['data'] ?? null ) ? $run['data'] : $run;
+			$run_status = sanitize_key( (string) ( $run_data['status'] ?? 'processing' ) );
+			$run_lifecycle = is_array( $run_data['run_lifecycle'] ?? null ) ? $run_data['run_lifecycle'] : array();
+			$run_result = $client->get_run_result( $run_id );
+			$terminal_success = in_array( $run_status, array( 'succeeded', 'success', 'completed' ), true );
+			$terminal_error = in_array( $run_status, array( 'failed', 'error', 'canceled' ), true );
+			if ( $terminal_success && is_wp_error( $run_result ) && self::is_terminal_media_run_read_error( $run_result ) ) {
+				return self::mark_media_index_projection_error( $status, $run_result );
+			}
+			if ( $terminal_success && is_wp_error( $run_result ) ) {
+				return $run_result;
+			}
+			$run_result_data = is_array( $run_result ) && is_array( $run_result['data'] ?? null ) ? $run_result['data'] : ( is_array( $run_result ) ? $run_result : array() );
+			$run_result_payload = is_array( $run_result_data['result'] ?? null ) ? $run_result_data['result'] : array();
+			$progress = is_array( $run_result_payload['progress'] ?? null ) ? $run_result_payload['progress'] : array();
+			$completed_before = absint( $status['completed_before'] ?? $status['indexed'] ?? 0 );
+			$reused_count = absint( $status['reused_count'] ?? 0 );
+			$screened_count = absint( $status['screened_count'] ?? 0 );
+			$committed_before = max( 0, $completed_before - $reused_count - $screened_count );
+			$successful_committed_before = max( 0, absint( $status['successful_before'] ?? 0 ) - $reused_count );
+			$evidence_committed_before = max( 0, absint( $status['evidence_before'] ?? 0 ) - $reused_count );
+			$batch_processed = absint( $progress['processed_items'] ?? $progress['processed_documents'] ?? 0 );
+			$batch_total = max( absint( $status['batch_size'] ?? 0 ), absint( $progress['total_items'] ?? $progress['total_documents'] ?? 0 ) );
+			$total = max( absint( $status['total'] ?? 0 ), $completed_before + absint( $progress['total_items'] ?? $progress['total_documents'] ?? 0 ) );
+			$status['indexed'] = min( $total, $completed_before + $batch_processed );
+			$status['total'] = $total;
+			$status['percent'] = $total > 0 ? min( 100, (int) floor( $status['indexed'] / $total * 100 ) ) : 0;
+			$status['successful'] = absint( $status['successful_before'] ?? 0 ) + absint( $progress['successful_items'] ?? 0 );
+			$status['failed'] = absint( $status['failed_before'] ?? 0 ) + absint( $progress['failed_items'] ?? 0 );
+			$status['items_per_minute'] = max( 0, (float) ( $progress['items_per_minute'] ?? 0 ) );
+			$status['duration_seconds'] = max( 0, (float) ( $status['duration_before'] ?? 0 ) ) + max( 0, (float) ( $progress['duration_seconds'] ?? 0 ) );
+			if ( $status['items_per_minute'] > 0 && $batch_processed < $batch_total ) {
+				$remaining_seconds = (int) ceil( ( $batch_total - $batch_processed ) / $status['items_per_minute'] * 60 );
+				$status['eta_at'] = gmdate( 'c', time() + max( 1, $remaining_seconds ) );
+			} else {
+				$status['eta_at'] = $terminal_success ? sanitize_text_field( (string) ( $progress['eta_at'] ?? '' ) ) : '';
+			}
+			if ( $terminal_success ) {
+				$items = is_array( $run_result_payload['items'] ?? null ) ? $run_result_payload['items'] : array();
+				if ( empty( $progress ) && ! empty( $items ) ) {
+					$batch_processed = count( $items );
+					$status['indexed'] = min( $total, $completed_before + $batch_processed );
+					$status['successful'] = absint( $status['successful_before'] ?? 0 ) + $batch_processed;
+					$status['percent'] = $total > 0 ? min( 100, (int) floor( $status['indexed'] / $total * 100 ) ) : 0;
+				}
+				$batch_evidence = count( array_filter( $items, static function ( $item ): bool { return is_array( $item ) && '' !== trim( (string) ( $item['visual_summary'] ?? $item['alt_text_basis'] ?? '' ) ); } ) );
+				$status['evidence'] = absint( $status['evidence_before'] ?? 0 ) + $batch_evidence;
+				if ( absint( $progress['failed_items'] ?? 0 ) > 0 ) {
+					$status['indexed'] = $committed_before;
+					$status['successful'] = $successful_committed_before;
+					$status['evidence'] = $evidence_committed_before;
+					$status['percent'] = $total > 0 ? min( 100, (int) floor( $status['indexed'] / $total * 100 ) ) : 0;
+					$status['state'] = 'error';
+					$status['error_code'] = 'media_recognition_batch_partial_failure';
+				} else {
+					$status['state'] = ! empty( $status['has_more'] ) && $status['indexed'] < $total ? 'partial' : 'complete';
+				}
+			} elseif ( $terminal_error ) {
+				$status['indexed'] = $committed_before;
+				$status['successful'] = $successful_committed_before;
+				$status['evidence'] = $evidence_committed_before;
+				$status['percent'] = $total > 0 ? min( 100, (int) floor( $status['indexed'] / $total * 100 ) ) : 0;
+				$status['state'] = 'error';
+			} else {
+				$status['state'] = 'processing';
+			}
+			$status['updated_at'] = current_time( 'mysql' );
+			$worker_eligible_at = sanitize_text_field( (string) ( $run_lifecycle['worker_eligible_at'] ?? ( $run_data['worker_eligible_at'] ?? '' ) ) );
+			if ( 'error' !== $status['state'] && '' !== $worker_eligible_at && strtotime( $worker_eligible_at ) > time() ) {
+				$status['next_eligible_at'] = $worker_eligible_at;
+				$status['state'] = 'waiting_next_day';
+			} else {
+				unset( $status['next_eligible_at'] );
+			}
+			if ( 'error' === $status['state'] ) {
+				if ( empty( $status['error_code'] ) ) {
+					$status['error_code'] = sanitize_key( (string) ( $run_data['error_code'] ?? '' ) );
+				}
+				$status['error'] = self::media_recognition_error_message( $status['error_code'] );
+			}
+			if ( in_array( $status['state'], array( 'complete', 'partial', 'error' ), true ) && empty( $status['terminal_event_recorded'] ) ) {
+				self::record_media_recognition_event(
+					'error' === $status['state'] ? 'failed' : 'completed',
+					$status['state'],
+					$run_id,
+					$batch_processed,
+					absint( $progress['failed_items'] ?? ( 'error' === $status['state'] ? ( $status['batch_size'] ?? 0 ) : 0 ) ),
+					(int) round( max( 0, (float) ( $progress['duration_seconds'] ?? 0 ) ) * 1000 ),
+					(string) ( $status['error_code'] ?? '' )
+				);
+				$status['terminal_event_recorded'] = true;
+			}
+			self::set_media_index_status( $status );
+			if ( 'error' === $status['state'] ) {
+				$plan = self::get_media_recognition_plan();
+				if ( ! empty( $plan['active'] ) ) {
+					$plan['active'] = false;
+					$plan['state'] = 'error';
+					$plan['pause_reason'] = sanitize_key( (string) ( $status['error_code'] ?? 'run_error' ) );
+					self::set_media_recognition_plan( $plan );
+				}
+			}
+			return $status;
+		}
+
+		/** Returns whether a Cloud read proves that the saved run can no longer be resumed. */
+		private static function is_terminal_media_run_read_error( WP_Error $error ): bool {
+			$data = $error->get_error_data();
+			$http_status = is_array( $data ) ? absint( $data['cloud_http_status'] ?? $data['status'] ?? 0 ) : 0;
+			$cloud_error_code = is_array( $data ) ? sanitize_key( (string) ( $data['cloud_error_code'] ?? '' ) ) : '';
+			return in_array( $http_status, array( 404, 410 ), true )
+				|| false !== strpos( $cloud_error_code, 'run_not_found' )
+				|| false !== strpos( $cloud_error_code, 'result_expired' );
+		}
+
+		/** Projects an unavailable Cloud run into a retryable local terminal state. */
+		private static function mark_media_index_projection_error( array $status, WP_Error $error ): array {
+			$data = $error->get_error_data();
+			$cloud_error_code = is_array( $data ) ? sanitize_key( (string) ( $data['cloud_error_code'] ?? '' ) ) : '';
+			$error_code = '' !== $cloud_error_code ? $cloud_error_code : sanitize_key( (string) $error->get_error_code() );
+			$status['state'] = 'error';
+			$status['error_code'] = $error_code;
+			$status['error'] = self::media_recognition_error_message( $error_code );
+			$status['updated_at'] = current_time( 'mysql' );
+			if ( empty( $status['terminal_event_recorded'] ) ) {
+				self::record_media_recognition_event(
+					'failed',
+					'error',
+					(string) ( $status['run_id'] ?? '' ),
+					0,
+					absint( $status['batch_size'] ?? 0 ),
+					0,
+					$error_code
+				);
+				$status['terminal_event_recorded'] = true;
+			}
+			self::set_media_index_status( $status );
+			return $status;
 		}
 
 		/**
@@ -1592,6 +2068,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				? self::get_site_knowledge_usage_projection( Npcink_Cloud_Site_Knowledge_Runtime_Bridge::get_cached_status_summary() )
 				: self::get_site_knowledge_usage_projection( array() );
 			$show_site_knowledge_retry = in_array( (string) ( $site_knowledge_usage['state'] ?? '' ), array( 'unavailable', 'refreshing' ), true );
+			$media_overview = self::get_media_index_status();
+			$media_overview_total = absint( $media_overview['total'] ?? 0 );
+			$media_overview_processed = absint( $media_overview['indexed'] ?? 0 );
+			$media_overview_percent = $media_overview_total > 0 ? min( 100, (int) floor( $media_overview_processed / $media_overview_total * 100 ) ) : 0;
+			$media_overview_state = sanitize_key( (string) ( $media_overview['state'] ?? 'not_started' ) );
 			?>
 			<section class="npcink-cloud-section npcink-cloud-tab-panel">
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
@@ -1672,6 +2153,22 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						</td>
 					</tr>
 					<?php endif; ?>
+					<tr data-npcink-site-media-overview>
+						<th scope="row"><?php esc_html_e( 'Site media recognition', 'npcink-cloud-addon' ); ?></th>
+						<td>
+							<div class="npcink-cloud-entitlement-metric">
+								<span class="npcink-cloud-metric-value" data-npcink-site-media-overview-value><?php echo $media_overview_total > 0 ? esc_html( sprintf(
+									/* translators: 1: processed image count, 2: total image count. */
+									__( '%1$d / %2$d images', 'npcink-cloud-addon' ),
+									$media_overview_processed,
+									$media_overview_total
+								) ) : esc_html__( 'Not started', 'npcink-cloud-addon' ); ?></span>
+								<span class="npcink-cloud-metric-status" data-npcink-site-media-overview-status><?php echo $media_overview_total > 0 ? esc_html( $media_overview_percent . '%' ) : ''; ?></span>
+								<span class="npcink-cloud-segmented-progress npcink-cloud-site-media-overview-progress npcink-cloud-site-media-overview-progress--<?php echo esc_attr( $media_overview_state ); ?>" role="progressbar" aria-label="<?php esc_attr_e( 'Site media recognition completion', 'npcink-cloud-addon' ); ?>" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( (string) $media_overview_percent ); ?>" style="--npcink-cloud-progress: <?php echo esc_attr( (string) $media_overview_percent ); ?>%;"></span>
+								<span class="npcink-cloud-metric-actions npcink-cloud-metric-actions--empty" aria-hidden="true"></span>
+							</div>
+						</td>
+					</tr>
 					<tr data-npcink-entitlement-metric="runtime"<?php echo empty( $runtime_metric['available'] ) ? ' hidden' : ''; ?>>
 						<th scope="row"><?php esc_html_e( 'Runtime allowance', 'npcink-cloud-addon' ); ?></th>
 						<td data-npcink-entitlement-metric-label><?php echo esc_html( (string) ( $runtime_metric['label'] ?? '' ) ); ?></td>
@@ -2097,6 +2594,41 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				|| '' !== (string) ( $site_knowledge['last_error_code'] ?? '' );
 			$capacity_needs_attention = $quota_skipped_count > 0;
 			$update_in_progress = $maintenance_active || $waiting_count > 0;
+			$media_status = self::get_media_index_status();
+			$media_plan = self::get_media_recognition_plan();
+			$media_state_labels = array(
+				'not_started' => __( 'Not started', 'npcink-cloud-addon' ),
+				'processing' => __( 'Recognizing images', 'npcink-cloud-addon' ),
+				'complete' => __( 'Completed', 'npcink-cloud-addon' ),
+				'partial' => __( 'Partially completed', 'npcink-cloud-addon' ),
+				'error' => __( 'Recognition incomplete', 'npcink-cloud-addon' ),
+				'waiting_next_day' => __( 'Waiting for background processing', 'npcink-cloud-addon' ),
+			);
+			$media_state = sanitize_key( (string) ( $media_status['state'] ?? 'not_started' ) );
+			if ( 'waiting_next_day' === (string) ( $media_plan['state'] ?? '' ) ) {
+				$media_state = 'waiting_next_day';
+			}
+			$media_state_label = $media_state_labels[ $media_state ] ?? $media_state_labels['not_started'];
+			$media_total = absint( $media_status['total'] ?? 0 );
+			$media_processed = absint( $media_status['indexed'] ?? 0 );
+			$media_evidence = absint( $media_status['evidence'] ?? 0 );
+			$media_percent = absint( $media_status['percent'] ?? 0 );
+			$media_rate = max( 0, (float) ( $media_status['items_per_minute'] ?? 0 ) );
+			$media_eta = sanitize_text_field( (string) ( $media_status['eta_at'] ?? '' ) );
+			$media_entitlement = Npcink_Cloud_Entitlement_Summary::get_cached_summary();
+			$media_runtime_quota = is_array( $media_entitlement['hosted_runtime_quota'] ?? null ) ? $media_entitlement['hosted_runtime_quota'] : array();
+			$media_credit_detail = is_array( $media_entitlement['ai_credit_usage_detail'] ?? null ) ? $media_entitlement['ai_credit_usage_detail'] : array();
+			$media_credit_summary = is_array( $media_credit_detail['summary'] ?? null ) ? $media_credit_detail['summary'] : array();
+			$media_capacity = is_array( $media_entitlement['media_image_capacity'] ?? null ) ? $media_entitlement['media_image_capacity'] : array();
+			$media_active_limit = absint( $media_runtime_quota['max_active_runs'] ?? 0 );
+			$media_batch_limit = absint( $media_runtime_quota['max_batch_items'] ?? 0 );
+			if ( 0 === $media_percent && $media_total > 0 && in_array( $media_state, array( 'complete', 'partial' ), true ) ) {
+				$media_percent = min( 100, (int) round( $media_processed / $media_total * 100 ) );
+			}
+			// The visible progress is always derived from the same cumulative counts.
+			if ( $media_total > 0 ) {
+				$media_percent = min( 100, (int) floor( $media_processed / $media_total * 100 ) );
+			}
 			?>
 					<div class="npcink-cloud-site-knowledge-consent npcink-cloud-site-knowledge-consent--readonly">
 						<div class="npcink-cloud-site-knowledge-consent__control" aria-describedby="npcink-cloud-site-knowledge-delivery-summary npcink-cloud-site-knowledge-delivery-status">
@@ -2148,6 +2680,101 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<?php endif; ?>
 						</div>
 						</section>
+						<section class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-media-index-title">
+							<div class="npcink-cloud-site-knowledge-summary__heading">
+								<h3 id="npcink-cloud-site-media-index-title"><?php esc_html_e( 'Site media recognition', 'npcink-cloud-addon' ); ?></h3>
+								<p class="npcink-cloud-site-knowledge-summary__result" data-npcink-site-media-state-label><?php echo esc_html( $media_state_label ); ?></p>
+								<table class="widefat striped npcink-cloud-site-media-status" aria-label="<?php esc_attr_e( 'Site media recognition status', 'npcink-cloud-addon' ); ?>" data-npcink-site-media-status data-state="<?php echo esc_attr( $media_state ); ?>">
+									<tbody>
+											<tr><th scope="row"><?php esc_html_e( 'Images', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-images><?php echo $media_total > 0 ? esc_html( sprintf(
+												/* translators: 1: processed image count, 2: total image count. */
+												__( '%1$d of %2$d', 'npcink-cloud-addon' ),
+												$media_processed,
+												$media_total
+											) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+											<tr><th scope="row"><?php esc_html_e( 'Plan image capacity', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-capacity><?php echo ! empty( $media_capacity['available'] ) ? esc_html( sprintf(
+												/* translators: 1: used image capacity, 2: image capacity limit, 3: remaining image capacity. */
+												__( '%1$s used / %2$s limit / %3$s remaining', 'npcink-cloud-addon' ),
+												self::format_entitlement_number( $media_capacity['used'] ?? 0 ),
+												self::format_entitlement_number( $media_capacity['limit'] ?? 0 ),
+												self::format_entitlement_number( $media_capacity['remaining'] ?? 0 )
+											) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+											<tr><th scope="row"><?php esc_html_e( 'Progress', 'npcink-cloud-addon' ); ?></th><td>
+												<?php if ( 'error' === $media_state && 0 === $media_total ) : ?>
+													<span data-npcink-site-media-progress-label><?php esc_html_e( 'Not available yet', 'npcink-cloud-addon' ); ?></span>
+												<?php else : ?>
+														<span class="npcink-cloud-segmented-progress npcink-cloud-site-media-progress<?php echo 'processing' === $media_state && 0 === $media_percent ? ' npcink-cloud-progress--indeterminate' : ''; ?>" data-npcink-site-media-progress role="progressbar" aria-label="<?php esc_attr_e( 'Site media recognition completion', 'npcink-cloud-addon' ); ?>" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( (string) $media_percent ); ?>" style="--npcink-cloud-progress: <?php echo esc_attr( (string) $media_percent ); ?>%;"></span>
+													<span data-npcink-site-media-progress-label><?php echo $media_percent > 0 ? esc_html( $media_percent . '%' ) : ( 'processing' === $media_state ? esc_html__( 'Processing', 'npcink-cloud-addon' ) : esc_html__( 'Not started', 'npcink-cloud-addon' ) ); ?></span>
+												<?php endif; ?>
+											</td></tr>
+										</tbody>
+										</table>
+										<details class="npcink-cloud-site-media-details">
+											<summary><?php esc_html_e( 'View recognition details', 'npcink-cloud-addon' ); ?></summary>
+											<table class="widefat striped npcink-cloud-site-media-status npcink-cloud-site-media-status--details" aria-label="<?php esc_attr_e( 'Site media recognition details', 'npcink-cloud-addon' ); ?>">
+												<tbody>
+													<tr><th scope="row"><?php esc_html_e( 'Visual evidence', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-evidence><?php echo $media_evidence > 0 || in_array( $media_state, array( 'complete', 'partial' ), true ) ? esc_html( (string) $media_evidence ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+													<tr><th scope="row"><?php esc_html_e( 'Succeeded / failed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-outcomes><?php echo esc_html( sprintf( '%1$d / %2$d', absint( $media_status['successful'] ?? 0 ), absint( $media_status['failed'] ?? 0 ) ) ); ?></td></tr>
+													<tr><th scope="row"><?php esc_html_e( 'Current speed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-speed><?php echo $media_rate > 0 ? esc_html( sprintf(
+												/* translators: %s: processed images per minute. */
+												__( '%s images/minute', 'npcink-cloud-addon' ),
+												number_format_i18n( $media_rate, 1 )
+											) ) : esc_html__( 'Estimating', 'npcink-cloud-addon' ); ?></td></tr>
+													<tr><th scope="row"><?php esc_html_e( 'Estimated batch completion', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-eta><?php echo in_array( $media_state, array( 'complete', 'partial' ), true ) ? esc_html__( 'This batch is complete', 'npcink-cloud-addon' ) : ( '' !== $media_eta ? esc_html( self::format_compact_datetime_value( $media_eta ) ) : ( 'processing' === $media_state ? esc_html__( 'Estimating', 'npcink-cloud-addon' ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ) ) ); ?></td></tr>
+										<tr><th scope="row"><?php esc_html_e( 'Plan', 'npcink-cloud-addon' ); ?></th><td><?php echo '' !== trim( (string) ( $media_entitlement['package_label'] ?? '' ) ) ? esc_html( (string) $media_entitlement['package_label'] ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+										<tr><th scope="row"><?php esc_html_e( 'Available AI credits', 'npcink-cloud-addon' ); ?></th><td><?php echo isset( $media_credit_summary['remaining'] ) && null !== $media_credit_summary['remaining'] ? esc_html( self::format_entitlement_number( $media_credit_summary['remaining'] ) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+											<tr><th scope="row"><?php esc_html_e( 'Runtime limits', 'npcink-cloud-addon' ); ?></th><td><?php echo $media_active_limit > 0 && $media_batch_limit > 0 ? esc_html( sprintf(
+												/* translators: 1: concurrent Cloud task limit, 2: image limit per batch. */
+												__( '%1$d concurrent task(s); up to %2$d images per batch', 'npcink-cloud-addon' ),
+												$media_active_limit,
+												$media_batch_limit
+											) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+												</tbody>
+											</table>
+										</details>
+								<p class="description npcink-cloud-site-knowledge-summary__result--warning" role="status" data-npcink-site-media-poll-error hidden></p>
+								<p class="description"><?php esc_html_e( 'Recognize local images so the editor can find them by meaning. Existing media and WordPress content are not changed.', 'npcink-cloud-addon' ); ?></p>
+					<?php if ( 'waiting_next_day' === $media_state ) : ?>
+						<p class="description"><?php esc_html_e( 'Recognition will continue automatically during the next eligible processing window.', 'npcink-cloud-addon' ); ?></p>
+					<?php elseif ( ! empty( $media_capacity['available'] ) && 'limited' === (string) ( $media_capacity['status'] ?? '' ) ) : ?>
+						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php esc_html_e( 'Your plan image capacity is full. Existing recognized images can still be refreshed, but new images require available capacity.', 'npcink-cloud-addon' ); ?></p>
+					<?php elseif ( in_array( (string) ( $media_plan['state'] ?? '' ), array( 'paused', 'error' ), true ) && ! empty( $media_status['error'] ) ) : ?>
+						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( (string) $media_status['error'] ); ?></p>
+					<?php elseif ( 'partial' === $media_state && empty( $media_plan['active'] ) ) : ?>
+						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php esc_html_e( 'An earlier batch is complete, but automatic continuation has not been started. Click Continue once to start the background plan; no further clicks are needed after that.', 'npcink-cloud-addon' ); ?></p>
+					<?php elseif ( in_array( $media_state, array( 'complete', 'partial' ), true ) ) : ?>
+						<p class="description"><?php echo esc_html( sprintf(
+							/* translators: 1: recognized image count, 2: image count with visual evidence. */
+							__( 'Recognized: %1$d images; visual evidence: %2$d.', 'npcink-cloud-addon' ),
+							absint( $media_status['indexed'] ?? 0 ),
+							absint( $media_status['evidence'] ?? 0 )
+						) ); ?></p>
+				<?php elseif ( 'processing' === $media_state ) : ?>
+					<p class="description"><?php esc_html_e( 'Statistics will update when recognition finishes.', 'npcink-cloud-addon' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Estimated completion time will appear after Cloud starts processing.', 'npcink-cloud-addon' ); ?></p>
+					<?php elseif ( 'error' === $media_state ) : ?>
+						<p class="description"><?php esc_html_e( 'This batch did not complete. The last confirmed progress is shown above.', 'npcink-cloud-addon' ); ?></p>
+				<?php endif; ?>
+				<?php if ( in_array( $media_state, array( 'complete', 'partial' ), true ) && absint( $media_status['total'] ?? 0 ) > 0 ) : ?>
+						<p class="description"><?php echo esc_html( sprintf(
+							/* translators: 1: processed image count, 2: total image count, 3: elapsed seconds, 4: average images per minute. */
+							__( 'Processed %1$d of %2$d images in %3$s seconds (average %4$d images/minute).', 'npcink-cloud-addon' ),
+							absint( $media_status['indexed'] ?? 0 ),
+							absint( $media_status['total'] ?? 0 ),
+							number_format_i18n( (float) ( $media_status['duration_seconds'] ?? 0 ), 1 ),
+							(int) round( absint( $media_status['indexed'] ?? 0 ) / max( 1, (float) ( $media_status['duration_seconds'] ?? 1 ) ) * 60 )
+						) ); ?></p>
+					<p class="description"><?php echo esc_html( 'partial' === $media_state ? sprintf(
+						/* translators: %d: number of images remaining after this batch. */
+						__( 'This batch is complete. %d images remain.', 'npcink-cloud-addon' ),
+						max( 0, $media_total - $media_processed )
+					) : __( 'All images have been recognized.', 'npcink-cloud-addon' ) ); ?></p>
+				<?php endif; ?>
+								<?php if ( 'error' === $media_state && ! empty( $media_status['error'] ) ) : ?><p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( (string) $media_status['error'] ); ?></p><?php endif; ?>
+								<?php self::render_site_media_index_refresh_form( $media_state ); ?>
+								<?php self::render_site_media_status_refresh_form(); ?>
+							</div>
+						</section>
 						<div class="npcink-cloud-site-knowledge-links">
 							<a href="<?php echo esc_url( self::tab_view_url( 'site_knowledge', 'index' ) ); ?>"><?php esc_html_e( 'Knowledge base maintenance', 'npcink-cloud-addon' ); ?></a>
 							<a href="<?php echo esc_url( $cloud_site_knowledge_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View Cloud details', 'npcink-cloud-addon' ); ?></a>
@@ -2177,6 +2804,241 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				</form>
 			</div>
 			<?php
+		}
+
+		/** Renders the operator-triggered media recognition action. */
+		private static function render_site_media_index_refresh_form( string $state = 'not_started' ): void {
+			$disabled = in_array( $state, array( 'processing', 'waiting_next_day' ), true );
+			$labels = array(
+				'not_started' => __( 'Start media recognition', 'npcink-cloud-addon' ),
+				'processing' => __( 'Recognition in progress', 'npcink-cloud-addon' ),
+				'partial' => __( 'Continue recognizing remaining images', 'npcink-cloud-addon' ),
+				'error' => __( 'Retry this batch', 'npcink-cloud-addon' ),
+				'complete' => __( 'Check for new images', 'npcink-cloud-addon' ),
+				'waiting_next_day' => __( 'Waiting for background processing', 'npcink-cloud-addon' ),
+			);
+			$label = $labels[ $state ] ?? $labels['not_started'];
+			?>
+			<div class="npcink-cloud-site-knowledge-summary__action">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( self::ACTION_REFRESH_SITE_MEDIA_INDEX ); ?>
+					<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_REFRESH_SITE_MEDIA_INDEX ); ?>" />
+					<button type="submit" class="button button-secondary" <?php disabled( $disabled ); ?>><?php echo esc_html( $label ); ?></button>
+				</form>
+			</div>
+			<?php
+		}
+
+		private static function render_site_media_status_refresh_form(): void {
+			$status = self::get_media_index_status();
+			if ( empty( $status['run_id'] ) || 'processing' !== (string) ( $status['state'] ?? '' ) ) {
+				return;
+			}
+			?>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block; margin-left:8px;">
+				<?php wp_nonce_field( self::ACTION_REFRESH_SITE_MEDIA_STATUS ); ?>
+				<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_REFRESH_SITE_MEDIA_STATUS ); ?>" />
+				<button type="submit" class="button-link"><?php esc_html_e( 'Refresh progress', 'npcink-cloud-addon' ); ?></button>
+			</form>
+			<?php
+		}
+
+		/** Maps Cloud media recognition failures to one actionable local message. */
+		private static function media_recognition_error_message( string $error_code, string $fallback = '' ): string {
+			$error_code = strtolower( trim( $error_code ) );
+			if ( false !== strpos( $error_code, 'media_capacity_exhausted' ) ) {
+				return __( 'Your plan image capacity is full. Increase the media image limit or remove no-longer-needed Cloud media evidence before continuing.', 'npcink-cloud-addon' );
+			}
+			if ( false !== strpos( $error_code, 'commercial_quota_exceeded' ) || false !== strpos( $error_code, 'commercial.quota_exceeded' ) ) {
+				return __( 'Available AI credits are insufficient. Review the plan or add credits before continuing.', 'npcink-cloud-addon' );
+			}
+			if ( false !== strpos( $error_code, 'batch_exceeds_daily_limit' ) ) {
+				return __( 'This batch exceeds the platform daily media recognition limit. Reduce the batch or adjust the limit in Cloud administration.', 'npcink-cloud-addon' );
+			}
+			if ( false !== strpos( $error_code, 'background_disabled' ) ) {
+				return __( 'Background media recognition is disabled in Cloud administration.', 'npcink-cloud-addon' );
+			}
+			if ( false !== strpos( $error_code, 'provider_not_configured' ) || false !== strpos( $error_code, 'profile_unavailable' ) ) {
+				return __( 'The configured image recognition model is not available. Verify the image alt-text runtime profile in Cloud administration.', 'npcink-cloud-addon' );
+			}
+			if ( false !== strpos( $error_code, 'provider_quota' ) || false !== strpos( $error_code, 'provider.quota' ) ) {
+				return __( 'The image recognition provider quota is exhausted. Check the provider account before retrying.', 'npcink-cloud-addon' );
+			}
+			if ( false !== strpos( $error_code, 'timeout' ) ) {
+				return __( 'Image recognition timed out. Retry this batch later.', 'npcink-cloud-addon' );
+			}
+			if ( false !== strpos( $error_code, 'site_knowledge_projection_failed' ) ) {
+				return __( 'Images were recognized, but Cloud could not update the media search index. Retry this batch later.', 'npcink-cloud-addon' );
+			}
+			if ( false !== strpos( $error_code, 'run_not_found' ) || false !== strpos( $error_code, 'result_expired' ) ) {
+				return __( 'This recognition task is no longer available. Retry this batch to continue.', 'npcink-cloud-addon' );
+			}
+			if ( false !== strpos( $error_code, 'active_cloud_runs' ) || false !== stripos( $fallback, 'exceeded max active cloud runs' ) ) {
+				return __( 'Another Cloud task is already running. Please wait for it to finish, then try again.', 'npcink-cloud-addon' );
+			}
+
+			return '' !== trim( $fallback ) ? sanitize_text_field( $fallback ) : __( 'Cloud media recognition did not complete. Retry this batch later.', 'npcink-cloud-addon' );
+		}
+
+		/** Records one metadata-only media recognition lifecycle event when monitoring is enabled. */
+		private static function record_media_recognition_event( string $event, string $status, string $run_id, int $processed, int $failed, int $latency_ms, string $error_code = '' ): void {
+			if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
+				return;
+			}
+			Npcink_Cloud_Observability_Collector::capture_event(
+				array(
+					'schema_version' => '2026-08-27',
+					'plugin_slug' => 'npcink-cloud-addon',
+					'plugin_version' => defined( 'NPCINK_CLOUD_ADDON_VERSION' ) ? (string) NPCINK_CLOUD_ADDON_VERSION : '',
+					'source' => 'local',
+					'event_kind' => 'addon.media_recognition.' . sanitize_key( $event ),
+					'status' => sanitize_key( $status ),
+					'error_code' => sanitize_key( $error_code ),
+					'latency_ms' => max( 0, $latency_ms ),
+					'ability_id' => 'npcink-cloud/image-context-evidence',
+					'correlation_id' => sanitize_text_field( $run_id ),
+					'executed_count' => max( 0, $processed ),
+					'failed_count' => max( 0, $failed ),
+					'content_storage' => 'omitted_metadata_only',
+				)
+			);
+		}
+
+		/** Returns the short-lived media recognition status projection. */
+		private static function get_media_index_status(): array {
+			$status = get_transient( self::MEDIA_STATUS_TRANSIENT );
+			if ( is_array( $status ) ) {
+				return $status;
+			}
+
+			$plan = self::get_media_recognition_plan();
+			if ( empty( $plan['plan_id'] ) ) {
+				return array( 'state' => 'not_started', 'indexed' => 0, 'evidence' => 0 );
+			}
+
+			return array(
+				'state' => sanitize_key( (string) ( $plan['state'] ?? 'not_started' ) ),
+				'run_id' => sanitize_text_field( (string) ( $plan['current_run_id'] ?? '' ) ),
+				'page' => max( 1, absint( $plan['current_page'] ?? 1 ) ),
+				'next_page' => absint( $plan['next_page'] ?? 0 ),
+				'per_page' => min( 10, absint( $plan['per_page'] ?? 0 ) ),
+				'batch_size' => min( 10, absint( $plan['batch_size'] ?? $plan['per_page'] ?? 0 ) ),
+				'has_more' => array_key_exists( 'has_more', $plan ) ? ! empty( $plan['has_more'] ) : absint( $plan['next_page'] ?? 0 ) > 0,
+				'total' => absint( $plan['total_estimate'] ?? 0 ),
+				'indexed' => absint( $plan['processed_count'] ?? 0 ),
+				'completed_before' => absint( $plan['completed_before'] ?? $plan['processed_count'] ?? 0 ),
+				'successful' => absint( $plan['successful_count'] ?? 0 ),
+				'successful_before' => absint( $plan['successful_before'] ?? $plan['successful_count'] ?? 0 ),
+				'failed' => absint( $plan['failed_count'] ?? 0 ),
+				'failed_before' => absint( $plan['failed_before'] ?? $plan['failed_count'] ?? 0 ),
+				'evidence' => absint( $plan['evidence_count'] ?? 0 ),
+				'evidence_before' => absint( $plan['evidence_before'] ?? $plan['evidence_count'] ?? 0 ),
+				'duration_seconds' => max( 0, (float) ( $plan['duration_seconds'] ?? 0 ) ),
+				'duration_before' => max( 0, (float) ( $plan['duration_before'] ?? $plan['duration_seconds'] ?? 0 ) ),
+				'percent' => min( 100, absint( $plan['percent'] ?? 0 ) ),
+				'items_per_minute' => max( 0, (float) ( $plan['items_per_minute'] ?? 0 ) ),
+				'eta_at' => sanitize_text_field( (string) ( $plan['eta_at'] ?? '' ) ),
+				'next_eligible_at' => sanitize_text_field( (string) ( $plan['next_eligible_at'] ?? '' ) ),
+				'error_code' => sanitize_key( (string) ( $plan['error_code'] ?? $plan['pause_reason'] ?? '' ) ),
+				'error' => sanitize_text_field( (string) ( $plan['error'] ?? '' ) ),
+				'terminal_event_recorded' => ! empty( $plan['terminal_event_recorded'] ),
+				'updated_at' => sanitize_text_field( (string) ( $plan['updated_at'] ?? '' ) ),
+			);
+		}
+
+		/** @return array<string,mixed> */
+		private static function get_media_recognition_plan(): array {
+			$plan = get_option( self::MEDIA_PLAN_OPTION, array() );
+			return is_array( $plan ) ? $plan : array();
+		}
+
+		/** @param array<string,mixed> $plan */
+		private static function set_media_recognition_plan( array $plan ): void {
+			update_option( self::MEDIA_PLAN_OPTION, $plan, false );
+		}
+
+		/** Keeps a repeated administrator request attached to the existing plan. */
+		private static function resume_active_media_recognition_plan(): bool {
+			$plan = self::get_media_recognition_plan();
+			if ( empty( $plan['active'] ) ) {
+				return false;
+			}
+
+			$delay = 30;
+			$next_eligible_at = strtotime( (string) ( $plan['next_eligible_at'] ?? '' ) );
+			if ( false !== $next_eligible_at && $next_eligible_at > time() ) {
+				$delay = max( 60, $next_eligible_at - time() );
+			}
+			self::schedule_media_recognition_plan( $delay );
+			return true;
+		}
+
+		/** Copies bounded status fields into the existing durable plan option. */
+		private static function merge_media_recognition_plan_progress( array $plan, array $status ): array {
+			$plan['state'] = sanitize_key( (string) ( $status['state'] ?? $plan['state'] ?? 'not_started' ) );
+			$plan['current_run_id'] = sanitize_text_field( (string) ( $status['run_id'] ?? $plan['current_run_id'] ?? '' ) );
+			$plan['current_page'] = max( 1, absint( $status['page'] ?? $plan['current_page'] ?? 1 ) );
+			$plan['next_page'] = absint( $status['next_page'] ?? $plan['next_page'] ?? 0 );
+			$plan['per_page'] = min( 10, absint( $status['per_page'] ?? $plan['per_page'] ?? 0 ) );
+			$plan['batch_size'] = min( 10, absint( $status['batch_size'] ?? $plan['batch_size'] ?? 0 ) );
+			if ( array_key_exists( 'has_more', $status ) ) {
+				$plan['has_more'] = ! empty( $status['has_more'] );
+			}
+			$plan['total_estimate'] = absint( $status['total'] ?? $plan['total_estimate'] ?? 0 );
+			$plan['processed_count'] = absint( $status['indexed'] ?? $plan['processed_count'] ?? 0 );
+			$plan['completed_before'] = absint( $status['completed_before'] ?? $plan['completed_before'] ?? $plan['processed_count'] );
+			$plan['successful_count'] = absint( $status['successful'] ?? $plan['successful_count'] ?? 0 );
+			$plan['successful_before'] = absint( $status['successful_before'] ?? $plan['successful_before'] ?? $plan['successful_count'] );
+			$plan['failed_count'] = absint( $status['failed'] ?? $plan['failed_count'] ?? 0 );
+			$plan['failed_before'] = absint( $status['failed_before'] ?? $plan['failed_before'] ?? $plan['failed_count'] );
+			$plan['evidence_count'] = absint( $status['evidence'] ?? $plan['evidence_count'] ?? 0 );
+			$plan['evidence_before'] = absint( $status['evidence_before'] ?? $plan['evidence_before'] ?? $plan['evidence_count'] );
+			$plan['duration_seconds'] = max( 0, (float) ( $status['duration_seconds'] ?? $plan['duration_seconds'] ?? 0 ) );
+			$plan['duration_before'] = max( 0, (float) ( $status['duration_before'] ?? $plan['duration_before'] ?? $plan['duration_seconds'] ) );
+			$plan['percent'] = min( 100, absint( $status['percent'] ?? $plan['percent'] ?? 0 ) );
+			$plan['items_per_minute'] = max( 0, (float) ( $status['items_per_minute'] ?? $plan['items_per_minute'] ?? 0 ) );
+			$plan['eta_at'] = sanitize_text_field( (string) ( $status['eta_at'] ?? $plan['eta_at'] ?? '' ) );
+			$plan['error_code'] = sanitize_key( (string) ( $status['error_code'] ?? $plan['error_code'] ?? '' ) );
+			$plan['error'] = sanitize_text_field( (string) ( $status['error'] ?? $plan['error'] ?? '' ) );
+			$plan['terminal_event_recorded'] = ! empty( $status['terminal_event_recorded'] );
+			$plan['updated_at'] = sanitize_text_field( (string) ( $status['updated_at'] ?? $plan['updated_at'] ?? current_time( 'mysql' ) ) );
+			if ( ! empty( $status['next_eligible_at'] ) ) {
+				$plan['next_eligible_at'] = sanitize_text_field( (string) $status['next_eligible_at'] );
+			} else {
+				unset( $plan['next_eligible_at'] );
+			}
+
+			return $plan;
+		}
+
+		/** Keeps an active inventory cursor bound to the batch size that created it. */
+		private static function media_recognition_plan_per_page( array $plan, array $status ): int {
+			foreach ( array( $plan['per_page'] ?? 0, $status['per_page'] ?? 0, $status['batch_size'] ?? 0 ) as $candidate ) {
+				$candidate = absint( $candidate );
+				if ( $candidate > 0 ) {
+					return min( 10, $candidate );
+				}
+			}
+
+			return 0;
+		}
+
+		private static function schedule_media_recognition_plan( int $delay ): void {
+			if ( ! function_exists( 'wp_schedule_single_event' ) ) {
+				return;
+			}
+			if ( false === wp_next_scheduled( self::MEDIA_PLAN_CRON ) ) {
+				wp_schedule_single_event( time() + max( 15, $delay ), self::MEDIA_PLAN_CRON );
+			}
+		}
+
+		/** @param array<string,mixed> $status Status projection. */
+		private static function set_media_index_status( array $status ): void {
+			set_transient( self::MEDIA_STATUS_TRANSIENT, $status, DAY_IN_SECONDS );
+			$plan = self::get_media_recognition_plan();
+			if ( ! empty( $plan['plan_id'] ) ) {
+				self::set_media_recognition_plan( self::merge_media_recognition_plan_progress( $plan, $status ) );
+			}
 		}
 
 		/**

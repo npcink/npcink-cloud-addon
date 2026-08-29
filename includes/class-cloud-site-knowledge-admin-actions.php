@@ -16,6 +16,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 	 * Maps administrator intent to the existing Site Knowledge change bridge.
 	 */
 	final class Npcink_Cloud_Site_Knowledge_Admin_Actions {
+		/** Default bounded batch for background media recognition. */
+		private const MEDIA_RECOGNITION_BATCH_SIZE = 10;
 		/**
 		 * Requests one bounded public-content refresh.
 		 *
@@ -54,6 +56,79 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 				'refresh',
 				$sent_count
 			);
+		}
+
+		/**
+		 * Runs the existing Toolbox media-index batches through the local bridge.
+		 *
+		 * @return array<string,mixed>
+		 */
+		public static function request_media_index_refresh( int $page = 1, int $per_page = 0 ): array {
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
+				return self::result( false, 'not_verified', __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'media_refresh' );
+			}
+			if ( ! function_exists( 'apply_filters' ) || ! has_filter( 'npcink_toolbox_refresh_site_media_index_batch' ) ) {
+				return self::result( false, 'toolbox_unavailable', __( 'Please enable Npcink Workflow Toolbox before refreshing the media index.', 'npcink-cloud-addon' ), 'media_refresh' );
+			}
+
+			$page = max( 1, min( 10000, $page ) );
+			$per_page = $per_page > 0 ? max( 1, min( 10, $per_page ) ) : self::MEDIA_RECOGNITION_BATCH_SIZE;
+			$started_at = microtime( true );
+			$batch = apply_filters( 'npcink_toolbox_refresh_site_media_index_batch', null, array( 'page' => $page, 'per_page' => $per_page ) );
+			if ( is_wp_error( $batch ) ) {
+				$message = $batch->get_error_message();
+				if ( false !== stripos( $message, 'exceeded max active cloud runs' ) ) {
+					$message = __( 'Another Cloud task is already running. Please wait for it to finish, then try again.', 'npcink-cloud-addon' );
+				}
+				return self::result( false, 'media_refresh_failed', $message, 'media_refresh', 0, 0, 0, sanitize_key( (string) $batch->get_error_code() ) );
+			}
+			if ( ! is_array( $batch ) ) {
+				return self::result( false, 'toolbox_unavailable', __( 'Npcink Workflow Toolbox could not start media recognition.', 'npcink-cloud-addon' ), 'media_refresh' );
+			}
+
+			$indexed = absint( $batch['indexed_items'] ?? 0 );
+			$evidence = absint( $batch['visual_evidence_items'] ?? 0 );
+			$reused = absint( $batch['visual_evidence_reused_items'] ?? 0 );
+			$submitted = absint( $batch['visual_evidence_submitted_items'] ?? 0 );
+			$screened = absint( $batch['screened_items'] ?? 0 );
+			$total = absint( $batch['total'] ?? 0 );
+			$run_id = sanitize_text_field( (string) ( $batch['visual_evidence_run_id'] ?? '' ) );
+			$has_more = ! empty( $batch['has_more'] );
+			if ( '' === $run_id ) {
+				$submitted = $indexed;
+				$reused = 0;
+			}
+
+			$message = '' !== $run_id
+				? sprintf(
+					/* translators: %d: image count in the accepted Cloud batch. */
+					__( 'Cloud accepted a media recognition batch containing %d images.', 'npcink-cloud-addon' ),
+					$submitted
+				)
+				: sprintf(
+					/* translators: 1: indexed image count, 2: visual evidence count. */
+					__( 'Media index refreshed: %1$d images recognized, %2$d with visual evidence.', 'npcink-cloud-addon' ),
+					$indexed,
+					$evidence
+				);
+			if ( $has_more ) {
+				$message .= ' ' . __( 'More images remain. Background recognition will continue automatically; no further click is needed.', 'npcink-cloud-addon' );
+				if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) {
+					$message .= ' ' . __( 'WordPress scheduled tasks are disabled on this site, so automatic continuation requires a server cron job that runs wp-cron.php.', 'npcink-cloud-addon' );
+				}
+			}
+			$result = self::result( true, 'media_refresh_requested', $message, 'media_refresh', $submitted, $evidence, $has_more ? 1 : 0 );
+			$result['page_count'] = $indexed;
+			$result['reused_count'] = $reused;
+			$result['screened_count'] = $screened;
+			$result['total'] = $total;
+			$result['duration_seconds'] = round( max( 0, microtime( true ) - $started_at ), 1 );
+			$result['run_id'] = $run_id;
+			$result['page'] = $page;
+			$result['per_page'] = $per_page;
+			$result['has_more'] = $has_more;
+			$result['next_page'] = $has_more ? $page + 1 : 0;
+			return $result;
 		}
 
 		/**

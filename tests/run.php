@@ -37,6 +37,12 @@ if ( 0 !== $public_api_status ) {
 	exit( $public_api_status );
 }
 
+$runtime_callback_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-runtime-callback.php' );
+passthru( $runtime_callback_command, $runtime_callback_status );
+if ( 0 !== $runtime_callback_status ) {
+	exit( $runtime_callback_status );
+}
+
 $pr_body_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-pr-body-contract.php' );
 passthru( $pr_body_command, $pr_body_status );
 if ( 0 !== $pr_body_status ) {

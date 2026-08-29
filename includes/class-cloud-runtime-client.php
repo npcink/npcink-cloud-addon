@@ -290,6 +290,23 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		}
 
 		/**
+		 * Registers or disables the current site's signed terminal callback.
+		 *
+		 * @param array<string,mixed> $payload Callback registration contract.
+		 * @param string              $idempotency_key Stable registration identity.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		public function register_terminal_callback( array $payload, string $idempotency_key ) {
+			return $this->request(
+				'POST',
+				'/v1/runtime/callbacks/terminal',
+				$payload,
+				$idempotency_key,
+				'trace_callback_' . wp_generate_uuid4()
+			);
+		}
+
+		/**
 		 * Executes one bounded WordPress AI connector scene request.
 		 *
 		 * This method is intentionally not a generic chat transport. Callers
@@ -517,6 +534,19 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			$response = $this->request( 'POST', '/v1/runtime/execute', $runtime_payload, $idempotency_key, $trace_id );
 			if ( is_wp_error( $response ) ) {
 				return $response;
+			}
+			$run_id = sanitize_text_field( (string) ( $response['data']['run_id'] ?? ( $response['run_id'] ?? '' ) ) );
+			$response_status = sanitize_key( (string) ( $response['data']['status'] ?? ( $response['status'] ?? '' ) ) );
+			if ( '' !== $run_id && in_array( $response_status, array( 'submitted', 'queued', 'running', 'processing', 'pending' ), true ) ) {
+				return array(
+					'contract_version' => 'image_context_evidence.v1',
+					'artifact_type' => 'image_context_evidence',
+					'run_id' => $run_id,
+					'status' => $response_status,
+					'items' => array(),
+					'write_posture' => 'suggestion_only',
+					'direct_wordpress_write' => false,
+				);
 			}
 
 			return $this->normalize_image_context_evidence_response( is_array( $response ) ? $response : array(), $request );
@@ -3536,12 +3566,14 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		private function normalize_image_context_evidence_request( array $request ) {
+			$dispatch_mode = sanitize_key( (string) ( $request['dispatch_mode'] ?? 'interactive' ) );
 			if (
 				'image_context_evidence_request.v1' !== (string) ( $request['contract_version'] ?? '' )
 				|| 'suggestion_only' !== (string) ( $request['write_posture'] ?? '' )
 				|| false !== (bool) ( $request['direct_wordpress_write'] ?? true )
 				|| false === (bool) ( $request['no_local_model'] ?? false )
 				|| false === (bool) ( $request['no_media_write'] ?? false )
+				|| ! in_array( $dispatch_mode, array( 'interactive', 'background_completion' ), true )
 			) {
 				return new WP_Error(
 					'cloud_image_context_evidence_request_invalid',
@@ -3558,6 +3590,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				}
 				$attachment_id = absint( $item['attachment_id'] ?? 0 );
 				$source_artifact_id = trim( (string) ( $item['source_artifact_id'] ?? '' ) );
+				$attachment_url = esc_url_raw( (string) ( $item['attachment_url'] ?? '' ) );
+				$media_fingerprint = sanitize_text_field( (string) ( $item['media_fingerprint'] ?? '' ) );
+				$mime_type = strtolower( sanitize_text_field( (string) ( $item['mime_type'] ?? '' ) ) );
 				$url           = esc_url_raw( (string) ( $item['url'] ?? '' ) );
 				$thumbnail_url = esc_url_raw( (string) ( $item['thumbnail_url'] ?? '' ) );
 				if ( '' !== $source_artifact_id && ( '' !== $url || '' !== $thumbnail_url ) ) {
@@ -3581,16 +3616,35 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				) {
 					continue;
 				}
+				if (
+					'background_completion' === $dispatch_mode
+					&& (
+						'' === $attachment_url
+						|| '' === $media_fingerprint
+						|| 0 !== strpos( $mime_type, 'image/' )
+					)
+				) {
+					return new WP_Error(
+						'cloud_image_context_evidence_background_identity_invalid',
+						__( 'Background image recognition requires an attachment URL, media fingerprint, and image MIME type.', 'npcink-cloud-addon' ),
+						array( 'status' => 400 )
+					);
+				}
 				$normalized_item = array(
 					'attachment_id'            => $attachment_id,
-					'title'                    => $this->bounded_text( (string) ( $item['title'] ?? '' ), 160 ),
-					'filename'                 => sanitize_file_name( (string) ( $item['filename'] ?? '' ) ),
-					'mime_type'                => sanitize_text_field( (string) ( $item['mime_type'] ?? '' ) ),
+					'mime_type'                => $mime_type,
 					'current_alt_status'       => sanitize_key( (string) ( $item['current_alt_status'] ?? '' ) ),
 					'current_caption_status'   => sanitize_key( (string) ( $item['current_caption_status'] ?? '' ) ),
 					'candidate_quality_flags'  => array_slice( $this->sanitize_string_list( $item['candidate_quality_flags'] ?? array() ), 0, 12 ),
 					'filtered_candidate_notes' => array_slice( $this->sanitize_string_list( $item['filtered_candidate_notes'] ?? array() ), 0, 12 ),
 				);
+				if ( 'background_completion' !== $dispatch_mode ) {
+					$normalized_item['title'] = $this->bounded_text( (string) ( $item['title'] ?? '' ), 160 );
+					$normalized_item['filename'] = sanitize_file_name( (string) ( $item['filename'] ?? '' ) );
+				} else {
+					$normalized_item['attachment_url'] = $attachment_url;
+					$normalized_item['media_fingerprint'] = $media_fingerprint;
+				}
 				if ( '' !== $source_artifact_id ) {
 					$normalized_item['source_artifact_id'] = $source_artifact_id;
 				} else {
@@ -3637,6 +3691,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'no_media_write'             => true,
 				'source_policy'              => $source_policy,
 				'expected_response_contract' => 'image_context_evidence.v1',
+				'dispatch_mode'              => $dispatch_mode,
 				'requested_count'            => count( $normalized_items ),
 				'max_items'                  => count( $normalized_items ),
 				'items'                      => $normalized_items,
