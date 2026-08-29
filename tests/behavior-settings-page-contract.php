@@ -931,6 +931,58 @@ maca_assert(
 
 maca_reset_test_state();
 maca_seed_settings( true );
+maca_seed_media_recognition_plan(
+	array( 'state' => 'error', 'error_code' => 'provider_failed', 'page' => 3, 'next_page' => 4 ),
+	array( 'active' => false, 'state' => 'error', 'current_page' => 3, 'next_page' => 4, 'pause_reason' => 'provider_failed' )
+);
+Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 703 );
+$failed_plan_with_pending_rescan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+maca_assert(
+	empty( $failed_plan_with_pending_rescan['active'] )
+	&& 'error' === ( $failed_plan_with_pending_rescan['state'] ?? '' )
+	&& 'provider_failed' === ( $failed_plan_with_pending_rescan['pause_reason'] ?? '' )
+	&& 3 === ( $failed_plan_with_pending_rescan['current_page'] ?? 0 )
+	&& 4 === ( $failed_plan_with_pending_rescan['next_page'] ?? 0 )
+	&& array( 703 ) === ( $failed_plan_with_pending_rescan['pending_rescan_attachment_ids'] ?? array() )
+	&& empty( $GLOBALS['maca_scheduled_events'] ),
+	'Behavior: attachment changes retain an inactive failed plan and queue one pending rescan for explicit recovery.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan( array(), array( 'plan_id' => 'media_plan_local_only_completion' ) );
+add_filter(
+	'npcink_toolbox_refresh_site_media_index_batch',
+	static function () {
+		Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 704 );
+		return array(
+			'indexed_items' => 10,
+			'visual_evidence_items' => 10,
+			'visual_evidence_reused_items' => 10,
+			'visual_evidence_submitted_items' => 0,
+			'screened_items' => 0,
+			'total' => 10,
+			'has_more' => false,
+			'visual_evidence_run_id' => '',
+		);
+	},
+	10,
+	2
+);
+Npcink_Cloud_Settings_Page::process_media_recognition_plan();
+$local_only_restarted_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+maca_assert(
+	! empty( $local_only_restarted_plan['active'] )
+	&& 'partial' === ( $local_only_restarted_plan['state'] ?? '' )
+	&& 'media_plan_local_only_completion' !== ( $local_only_restarted_plan['plan_id'] ?? '' )
+	&& array( 704 ) === ( $local_only_restarted_plan['rescan_attachment_ids'] ?? array() )
+	&& array() === ( $local_only_restarted_plan['pending_rescan_attachment_ids'] ?? null )
+	&& isset( $GLOBALS['maca_scheduled_events']['npcink_cloud_addon_continue_media_recognition'] ),
+	'Behavior: a pending attachment change starts a new pass after a local-only final page without requiring a Cloud run callback.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
 maca_seed_media_recognition_plan( array() );
 maca_assert(
 	true === $resume_media_plan->invoke( null )
