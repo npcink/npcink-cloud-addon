@@ -1206,6 +1206,39 @@ maca_seed_media_recognition_plan( array() );
 add_filter(
 	'npcink_toolbox_refresh_site_media_index_batch',
 	static function () {
+		return new WP_Error( 'cloud_runtime_request_failed', 'The Cloud response timed out.' );
+	},
+	10,
+	2
+);
+$transport_retry_started_at = time();
+Npcink_Cloud_Settings_Page::process_media_recognition_plan();
+$transport_retry_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+$transport_retry_status = get_transient( 'npcink_cloud_addon_media_index_status' );
+$transport_retry_scheduled_at = absint( $GLOBALS['maca_scheduled_events']['npcink_cloud_addon_continue_media_recognition'] ?? 0 );
+maca_assert(
+	! empty( $transport_retry_plan['active'] )
+	&& 'partial' === ( $transport_retry_plan['state'] ?? '' )
+	&& 1 === ( $transport_retry_plan['transport_retry_count'] ?? 0 )
+	&& 'cloud_runtime_request_failed' === ( $transport_retry_plan['last_transport_error_code'] ?? '' )
+	&& 1 === ( $transport_retry_plan['current_page'] ?? 0 )
+	&& 2 === ( $transport_retry_plan['next_page'] ?? 0 )
+	&& 10 === ( $transport_retry_plan['processed_count'] ?? 0 )
+	&& 'partial' === ( $transport_retry_status['state'] ?? '' )
+	&& '' === ( $transport_retry_status['run_id'] ?? '' )
+	&& 10 === ( $transport_retry_status['indexed'] ?? 0 )
+	&& empty( $transport_retry_status['error_code'] )
+	&& $transport_retry_scheduled_at >= $transport_retry_started_at + MINUTE_IN_SECONDS
+	&& $transport_retry_scheduled_at <= time() + MINUTE_IN_SECONDS + 2,
+	'Behavior: an uncertain Cloud transport timeout keeps the current cursor active and schedules one idempotent Cron replay.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan( array() );
+add_filter(
+	'npcink_toolbox_refresh_site_media_index_batch',
+	static function () {
 		return new WP_Error(
 			'cloud_media_recognition_batch_exceeds_daily_limit',
 			'The recognition batch is larger than the configured daily limit.'

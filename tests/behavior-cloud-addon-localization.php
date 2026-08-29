@@ -164,6 +164,16 @@ maca_assert(
 		'Retry this batch',
 		'Retry this batch',
 		'npcink-cloud-addon'
+	)
+	&& 'Cloud 响应超时，后台会安全重试当前批次，无需再次点击。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed.',
+		'The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed.',
+		'npcink-cloud-addon'
+	)
+	&& 'Npcink Cloud 尚未通过验证。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Npcink Cloud is not verified.',
+		'Npcink Cloud is not verified.',
+		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers the complete Site media recognition summary and actions.'
 );

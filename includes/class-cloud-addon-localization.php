@@ -140,6 +140,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Background image recognition requires an attachment URL, media fingerprint, and image MIME type.' => '后台图片识别需要附件链接、媒体指纹和图片 MIME 类型。',
 				'All images have been recognized.' => '全部图片已完成识别。',
 				'More images remain. Background recognition will continue automatically; no further click is needed.' => '仍有图片未处理，后台会自动继续识别，无需再次点击。',
+				'The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed.' => 'Cloud 响应超时，后台会安全重试当前批次，无需再次点击。',
+				'Npcink Cloud is not verified.' => 'Npcink Cloud 尚未通过验证。',
 				'WordPress scheduled tasks are disabled on this site, so automatic continuation requires a server cron job that runs wp-cron.php.' => '此站点已禁用 WordPress 定时任务，自动续批需要配置服务器定时任务执行 wp-cron.php。',
 				'%d images remain.' => '还剩 %d 张图片。',
 				'Runtime limits' => '运行限制',
