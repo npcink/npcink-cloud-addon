@@ -149,6 +149,21 @@ maca_assert(
 		'Check for new images',
 		'Check for new images',
 		'npcink-cloud-addon'
+	)
+	&& '开始识别媒体图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Start media recognition',
+		'Start media recognition',
+		'npcink-cloud-addon'
+	)
+	&& '继续识别剩余图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Continue recognizing remaining images',
+		'Continue recognizing remaining images',
+		'npcink-cloud-addon'
+	)
+	&& '重试本批' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Retry this batch',
+		'Retry this batch',
+		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers the complete Site media recognition summary and actions.'
 );
