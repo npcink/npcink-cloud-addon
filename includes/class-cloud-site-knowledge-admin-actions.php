@@ -63,7 +63,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 		 *
 		 * @return array<string,mixed>
 		 */
-		public static function request_media_index_refresh( int $page = 1, int $per_page = 0 ): array {
+		public static function request_media_index_refresh( int $page = 1, int $per_page = 0, string $upload_scope = '' ): array {
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
 				return self::result( false, 'not_verified', __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'media_refresh' );
 			}
@@ -74,7 +74,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			$page = max( 1, min( 10000, $page ) );
 			$per_page = $per_page > 0 ? max( 1, min( 10, $per_page ) ) : self::MEDIA_RECOGNITION_BATCH_SIZE;
 			$started_at = microtime( true );
-			$batch = apply_filters( 'npcink_toolbox_refresh_site_media_index_batch', null, array( 'page' => $page, 'per_page' => $per_page ) );
+			$batch_input = array( 'page' => $page, 'per_page' => $per_page );
+			$upload_scope = preg_replace( '/[^A-Za-z0-9._:-]/', '', $upload_scope );
+			if ( is_string( $upload_scope ) && '' !== $upload_scope ) {
+				$batch_input['upload_scope'] = substr( $upload_scope, 0, 96 );
+			}
+			$batch = apply_filters( 'npcink_toolbox_refresh_site_media_index_batch', null, $batch_input );
 			if ( is_wp_error( $batch ) ) {
 				$message = $batch->get_error_message();
 				if ( false !== stripos( $message, 'exceeded max active cloud runs' ) ) {

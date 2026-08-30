@@ -232,9 +232,9 @@ maca_assert(
 	'Behavior: media recognition distinguishes the logical page, reusable evidence, screened items, and newly submitted Cloud work.'
 );
 
-$media_batch_with_plan_size = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( 4, 7 );
+$media_batch_with_plan_size = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( 4, 7, 'media_plan_retry-123' );
 maca_assert(
 	7 === $media_batch_with_plan_size['per_page']
-	&& array( 'page' => 4, 'per_page' => 7 ) === $GLOBALS['maca_media_batch_inputs'][1],
-	'Behavior: an active media plan can preserve its own bounded inventory page size.'
+	&& array( 'page' => 4, 'per_page' => 7, 'upload_scope' => 'media_plan_retry-123' ) === $GLOBALS['maca_media_batch_inputs'][1],
+	'Behavior: an active media plan preserves its bounded page size and passes only its stable upload-attempt scope to Toolbox.'
 );

@@ -755,108 +755,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			$is_continuation = in_array( $current_state, array( 'partial', 'error' ), true );
-			$page = $is_continuation
-				? max( 1, absint( 'error' === $current_state ? ( $current['page'] ?? 1 ) : ( $current['next_page'] ?? 1 ) ) )
-				: 1;
-			$completed_before = $is_continuation ? absint( $current['indexed'] ?? 0 ) : 0;
-			$successful_before = $is_continuation ? absint( $current['successful'] ?? 0 ) : 0;
-			$failed_before = $is_continuation ? absint( $current['failed'] ?? 0 ) : 0;
-			$evidence_before = $is_continuation ? absint( $current['evidence'] ?? 0 ) : 0;
-			$duration_before = $is_continuation ? max( 0, (float) ( $current['duration_seconds'] ?? 0 ) ) : 0;
-			$plan = $is_continuation ? self::get_media_recognition_plan() : array();
-			$plan['initiated_by'] = $current_user_id;
-			$per_page = $is_continuation ? self::media_recognition_plan_per_page( $plan, $current ) : 0;
-			// Callback delivery is an optimization; the existing Cron remains the fallback.
-			Npcink_Cloud_Runtime_Callback::ensure_registered();
-			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( $page, $per_page );
-			$result_ok = ! empty( $result['ok'] );
-			$run_id = sanitize_text_field( (string) ( $result['run_id'] ?? '' ) );
-			$error_code = ! $result_ok ? sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) ) : '';
-			$retryable_transport_failure = ! $result_ok && self::is_retryable_media_recognition_transport_failure( $error_code );
-			$batch_size = absint( $result['sent_count'] ?? 0 );
-			$reused_count = '' !== $run_id ? absint( $result['reused_count'] ?? 0 ) : 0;
-			$screened_count = '' !== $run_id ? absint( $result['screened_count'] ?? 0 ) : 0;
-			$per_page = max( 1, absint( $result['per_page'] ?? self::media_recognition_plan_per_page( $plan, $current ) ) );
-			$total = absint( $result['total'] ?? ( $current['total'] ?? 0 ) );
-			$has_more = ! empty( $result['has_more'] );
-			$state = ! $result_ok ? ( $retryable_transport_failure ? 'partial' : 'error' ) : ( '' !== $run_id ? 'processing' : ( $has_more ? 'partial' : 'complete' ) );
-			$polling_completed_before = min( $total, $completed_before + $reused_count + $screened_count );
-			$polling_successful_before = $successful_before + $reused_count;
-			$polling_evidence_before = $evidence_before + $reused_count;
-			$processed = '' !== $run_id ? $polling_completed_before : min( $total, $completed_before + $batch_size );
-			$status = array(
-				'state' => $state,
-				'indexed' => $processed,
-				'completed_before' => '' !== $run_id ? $polling_completed_before : $completed_before,
-				'successful' => '' !== $run_id ? $polling_successful_before : $successful_before + ( $result_ok ? absint( $result['selected_count'] ?? 0 ) : 0 ),
-				'successful_before' => '' !== $run_id ? $polling_successful_before : $successful_before,
-				'failed' => $failed_before,
-				'failed_before' => $failed_before,
-				'evidence' => '' !== $run_id ? $polling_evidence_before : $evidence_before + ( $result_ok ? absint( $result['selected_count'] ?? 0 ) : 0 ),
-				'evidence_before' => '' !== $run_id ? $polling_evidence_before : $evidence_before,
-				'batch_size' => $batch_size,
-				'reused_count' => $reused_count,
-				'screened_count' => $screened_count,
-				'per_page' => $per_page,
-				'page' => $page,
-				'next_page' => $has_more ? max( $page + 1, absint( $result['next_page'] ?? 0 ) ) : 0,
-				'has_more' => $has_more,
-				'total' => $total,
-				'percent' => $total > 0 ? min( 100, (int) floor( $processed / $total * 100 ) ) : 0,
-				'duration_seconds' => $duration_before + max( 0, (float) ( $result['duration_seconds'] ?? 0 ) ),
-				'duration_before' => $duration_before,
-				'run_id' => $run_id,
-				'error_code' => ! $result_ok && ! $retryable_transport_failure ? $error_code : '',
-				'error' => ! $result_ok ? self::media_recognition_error_message( sanitize_key( (string) ( $result['source_error_code'] ?? $result['code'] ?? '' ) ), (string) $result['message'] ) : '',
-				'terminal_event_recorded' => false,
-				'updated_at' => current_time( 'mysql' ),
-			);
-			$plan['active'] = $result_ok || $retryable_transport_failure;
-			$plan['plan_id'] = (string) ( $plan['plan_id'] ?? 'media_plan_' . wp_generate_uuid4() );
-			$plan['initiated_by'] = absint( $plan['initiated_by'] ?? get_current_user_id() );
-			$plan['started_at'] = (string) ( $plan['started_at'] ?? current_time( 'mysql' ) );
-			$plan['state'] = $state;
-			$plan['current_run_id'] = $run_id;
-			$plan['current_page'] = $page;
-			$plan['next_page'] = $has_more ? max( $page + 1, absint( $result['next_page'] ?? 0 ) ) : 0;
-			$plan['per_page'] = $per_page;
-			unset( $plan['next_eligible_at'] );
-			unset( $plan['pause_reason'] );
-			$plan['total_estimate'] = $total;
-			$plan['processed_count'] = $processed;
-			$plan['updated_at'] = current_time( 'mysql' );
-			$plan = self::merge_media_recognition_plan_progress( $plan, $status );
-			$retry_delay = 30;
-			$retry_exhausted = false;
-			if ( $retryable_transport_failure ) {
-				$retry = self::media_recognition_transport_retry_state( $plan, $status, $error_code );
-				$plan = $retry['plan'];
-				$status = $retry['status'];
-				$retry_delay = $retry['delay'];
-				$retry_exhausted = ! empty( $retry['exhausted'] );
-			} elseif ( $result_ok ) {
-				unset( $plan['transport_retry_count'], $plan['last_transport_error_code'] );
+			$plan = self::get_media_recognition_plan();
+			if ( $is_continuation || in_array( sanitize_key( (string) ( $plan['state'] ?? '' ) ), array( 'paused', 'error' ), true ) ) {
+				self::resume_paused_media_recognition_plan( $plan, $current, $current_user_id );
+				self::set_admin_notice( 'success', __( 'Media recognition retry is scheduled. Background processing will continue automatically; no further click is needed.', 'npcink-cloud-addon' ) );
+			} else {
+				self::start_media_recognition_rescan( $plan, array(), $current_user_id, true );
+				self::set_admin_notice( 'success', __( 'Media recognition is scheduled. Background processing will start automatically; no further click is needed.', 'npcink-cloud-addon' ) );
 			}
-			self::set_media_index_status( $status );
-			self::set_media_recognition_plan( $plan );
-			if ( ! $retry_exhausted && ( 'processing' === $state || 'partial' === $state ) ) {
-				self::schedule_media_recognition_plan( $retry_delay );
-			}
-			self::record_media_recognition_event(
-				$result_ok ? 'started' : ( $retryable_transport_failure && ! $retry_exhausted ? 'retry_scheduled' : 'failed' ),
-				$result_ok ? 'accepted' : ( $retryable_transport_failure && ! $retry_exhausted ? 'retrying' : 'failed' ),
-				$run_id,
-				$batch_size,
-				$result_ok ? 0 : $batch_size,
-				(int) round( max( 0, (float) ( $result['duration_seconds'] ?? 0 ) ) * 1000 ),
-				$result_ok ? '' : $error_code
-			);
-			$notice_message = $retryable_transport_failure && ! $retry_exhausted
-				? __( 'The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed.', 'npcink-cloud-addon' )
-				: ( $result_ok
-				? (string) $result['message']
-				: self::media_recognition_error_message( $error_code, (string) $result['message'] ) );
-			self::set_admin_notice( $result_ok ? 'success' : ( $retryable_transport_failure ? 'warning' : 'error' ), $notice_message );
 			self::redirect_to_page( 'site_knowledge' );
 		}
 
@@ -951,7 +857,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			try {
 				$per_page = self::media_recognition_plan_per_page( $plan, $status );
 				Npcink_Cloud_Runtime_Callback::ensure_registered();
-				$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( $page, $per_page );
+				$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( $page, $per_page, (string) ( $plan['upload_attempt_id'] ?? $plan['plan_id'] ?? '' ) );
 			} finally {
 				if ( function_exists( 'wp_set_current_user' ) ) {
 					wp_set_current_user( $previous_user_id );
@@ -3179,9 +3085,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param int                 $initiated_by WordPress user id captured at the hook.
 		 * @return void
 		 */
-		private static function start_media_recognition_rescan( array $previous_plan, array $attachment_ids, int $initiated_by ): void {
+		private static function start_media_recognition_rescan( array $previous_plan, array $attachment_ids, int $initiated_by, bool $allow_full_inventory = false ): void {
 			$attachment_ids = self::normalize_media_rescan_attachment_ids( $attachment_ids );
-			if ( empty( $attachment_ids ) ) {
+			if ( empty( $attachment_ids ) && ! $allow_full_inventory ) {
 				return;
 			}
 
@@ -3190,6 +3096,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$plan = array(
 				'active' => true,
 				'plan_id' => 'media_plan_' . wp_generate_uuid4(),
+				'upload_attempt_id' => 'media_upload_attempt_' . wp_generate_uuid4(),
 				'initiated_by' => max( 0, $initiated_by ),
 				'started_at' => $now,
 				'updated_at' => $now,
@@ -3283,6 +3190,37 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 			self::schedule_media_recognition_plan( $delay );
 			return true;
+		}
+
+		/** Restores an inactive failed plan at the same cursor for one Cron-owned retry. */
+		private static function resume_paused_media_recognition_plan( array $plan, array $status, int $initiated_by ): void {
+			$page = max( 1, absint( $status['page'] ?? $plan['current_page'] ?? 1 ) );
+			$per_page = self::media_recognition_plan_per_page( $plan, $status );
+			$per_page = $per_page > 0 ? $per_page : 10;
+			$now = current_time( 'mysql' );
+			$plan['active'] = true;
+			$plan['initiated_by'] = max( 0, $initiated_by );
+			$plan['state'] = 'partial';
+			$plan['current_run_id'] = '';
+			$plan['upload_attempt_id'] = 'media_upload_attempt_' . wp_generate_uuid4();
+			$plan['current_page'] = $page;
+			$plan['next_page'] = $page;
+			$plan['per_page'] = $per_page;
+			$plan['updated_at'] = $now;
+			unset( $plan['transport_retry_count'], $plan['last_transport_error_code'], $plan['pause_reason'], $plan['next_eligible_at'], $plan['error_code'], $plan['error'] );
+			$status['state'] = 'partial';
+			$status['page'] = $page;
+			$status['next_page'] = $page;
+			$status['per_page'] = $per_page;
+			$status['has_more'] = true;
+			$status['run_id'] = '';
+			$status['error_code'] = '';
+			$status['error'] = '';
+			$status['updated_at'] = $now;
+			unset( $status['transport_retry_count'], $status['retry_reason'], $status['next_eligible_at'] );
+			self::set_media_recognition_plan( $plan );
+			self::set_media_index_status( $status );
+			self::schedule_media_recognition_plan( 15 );
 		}
 
 		/** Copies bounded status fields into the existing durable plan option. */

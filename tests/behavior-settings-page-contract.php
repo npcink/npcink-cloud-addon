@@ -683,9 +683,10 @@ maca_assert(
 	&& false !== strpos( $settings_page_source, '$client->get_run_result( $run_id )' )
 	&& false !== strpos( $settings_page_source, 'is_array( $run[\'data\'] ?? null )' )
 	&& false !== strpos( $settings_page_source, 'self::resume_active_media_recognition_plan( $current_user_id )' )
-	&& strpos( $settings_page_source, 'self::resume_active_media_recognition_plan( $current_user_id )' ) < strpos( $settings_page_source, 'Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( $page, $per_page )' )
+	&& strpos( $settings_page_source, 'self::resume_active_media_recognition_plan( $current_user_id )' ) < strpos( $settings_page_source, "Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( \$page, \$per_page, (string) ( \$plan['upload_attempt_id'] ?? \$plan['plan_id'] ?? '' ) )" )
+	&& false !== strpos( $settings_page_source, 'self::start_media_recognition_rescan( $plan, array(), $current_user_id, true )' )
 	&& false === strpos( $settings_page_source, 'handle_poll_site_media_status(): void {\n\t\t\tself::handle_refresh_site_media_index' ),
-	'Behavior: media progress polling is read-only, while repeated starts resume the durable plan before any new batch dispatch.'
+	'Behavior: media progress polling is read-only, while start and retry actions only schedule the durable plan before Cron dispatches a plan-scoped batch.'
 );
 
 $site_knowledge_processing = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
@@ -864,8 +865,10 @@ function maca_seed_media_recognition_plan( array $status, array $plan = array() 
 }
 
 $resume_media_plan = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'resume_active_media_recognition_plan' );
+$resume_paused_media_plan = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'resume_paused_media_recognition_plan' );
 if ( PHP_VERSION_ID < 80100 ) {
 	$resume_media_plan->setAccessible( true );
+	$resume_paused_media_plan->setAccessible( true );
 }
 
 maca_reset_test_state();
@@ -1029,6 +1032,33 @@ maca_assert(
 maca_reset_test_state();
 maca_seed_settings( true );
 maca_seed_media_recognition_plan(
+	array( 'state' => 'error', 'indexed' => 10, 'page' => 2, 'next_page' => 0, 'error_code' => 'cloud_runtime_request_failed', 'transport_retry_count' => 3 ),
+	array( 'active' => false, 'state' => 'paused', 'current_page' => 2, 'next_page' => 0, 'transport_retry_count' => 3, 'last_transport_error_code' => 'cloud_runtime_request_failed', 'pause_reason' => 'cloud_runtime_request_failed' )
+);
+$paused_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+$paused_status = get_transient( 'npcink_cloud_addon_media_index_status' );
+$resume_paused_media_plan->invoke( null, $paused_plan, $paused_status, 23 );
+$retried_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+$retried_media_status = get_transient( 'npcink_cloud_addon_media_index_status' );
+maca_assert(
+	! empty( $retried_media_plan['active'] )
+	&& 'partial' === ( $retried_media_plan['state'] ?? '' )
+	&& 23 === ( $retried_media_plan['initiated_by'] ?? 0 )
+	&& 2 === ( $retried_media_plan['current_page'] ?? 0 )
+	&& 2 === ( $retried_media_plan['next_page'] ?? 0 )
+	&& 0 === strpos( (string) ( $retried_media_plan['upload_attempt_id'] ?? '' ), 'media_upload_attempt_' )
+	&& ! isset( $retried_media_plan['transport_retry_count'], $retried_media_plan['pause_reason'] )
+	&& 'partial' === ( $retried_media_status['state'] ?? '' )
+	&& 10 === ( $retried_media_status['indexed'] ?? 0 )
+	&& 2 === ( $retried_media_status['next_page'] ?? 0 )
+	&& '' === ( $retried_media_status['run_id'] ?? '' )
+	&& isset( $GLOBALS['maca_scheduled_events']['npcink_cloud_addon_continue_media_recognition'] ),
+	'Behavior: one explicit retry reactivates the same plan and cursor, clears exhausted transport retries, and schedules Cron without inline Cloud traffic.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan(
 	array( 'state' => 'partial', 'indexed' => 0, 'total' => 0, 'evidence' => 0, 'next_page' => 1 ),
 	array( 'active' => true, 'state' => 'partial', 'current_page' => 1, 'next_page' => 2 )
 );
@@ -1046,7 +1076,8 @@ maca_assert(
 	'Behavior: an active partial plan explains automatic continuation without rendering another start action.'
 );
 maca_assert(
-	false !== strpos( $settings_page_source, '$plan[\'initiated_by\'] = $current_user_id;' ),
+	false !== strpos( $settings_page_source, "self::resume_paused_media_recognition_plan( \$plan, \$current, \$current_user_id )" )
+	&& false !== strpos( $settings_page_source, "\$plan['initiated_by'] = max( 0, \$initiated_by );" ),
 	'Behavior: an inactive explicit recovery also binds its future Cron work to the authorized administrator.'
 );
 
@@ -1215,7 +1246,7 @@ Npcink_Cloud_Settings_Page::process_media_recognition_plan();
 $advanced_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
 $advanced_media_status = get_transient( 'npcink_cloud_addon_media_index_status' );
 maca_assert(
-	array( array( 'page' => 2, 'per_page' => 10 ) ) === $GLOBALS['maca_media_plan_inputs']
+	array( array( 'page' => 2, 'per_page' => 10, 'upload_scope' => 'media_plan_test' ) ) === $GLOBALS['maca_media_plan_inputs']
 	&& 'processing' === ( $advanced_media_plan['state'] ?? '' )
 	&& 'run_media_page_2' === ( $advanced_media_plan['current_run_id'] ?? '' )
 	&& 2 === ( $advanced_media_plan['current_page'] ?? 0 )
