@@ -48,6 +48,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @return void
 		 */
 		public static function register(): void {
+			add_action( 'init', array( __CLASS__, 'ensure_media_recognition_plan_schedule' ) );
 			add_action( 'add_attachment', array( __CLASS__, 'handle_media_attachment_changed' ) );
 			add_action( 'edit_attachment', array( __CLASS__, 'handle_media_attachment_changed' ) );
 			add_action( 'admin_menu', array( __CLASS__, 'add_menu_page' ), 50 );
@@ -782,11 +783,33 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				}
 			}
 			register_shutdown_function( static function () use ( $lock_token ): void { self::release_media_recognition_plan_lock( $lock_token, true ); } );
+			$advanced_normally = false;
 			try {
 				self::advance_media_recognition_plan();
+				$advanced_normally = true;
 			} finally {
-				self::release_media_recognition_plan_lock( $lock_token, false );
+				self::release_media_recognition_plan_lock( $lock_token, ! $advanced_normally );
 			}
+		}
+
+		/** Restores the single continuation event for an active orphaned plan. */
+		public static function ensure_media_recognition_plan_schedule(): void {
+			$plan = self::get_media_recognition_plan();
+			if ( empty( $plan['active'] ) || false !== wp_next_scheduled( self::MEDIA_PLAN_CRON ) ) {
+				return;
+			}
+
+			$lock_started = self::media_recognition_plan_lock_started_at( get_option( self::MEDIA_PLAN_LOCK, 0 ) );
+			if ( $lock_started > 0 && $lock_started + 600 > time() ) {
+				return;
+			}
+
+			$delay = 60;
+			$next_eligible_at = strtotime( (string) ( $plan['next_eligible_at'] ?? '' ) );
+			if ( false !== $next_eligible_at && $next_eligible_at > time() ) {
+				$delay = max( 60, $next_eligible_at - time() );
+			}
+			self::schedule_media_recognition_plan( $delay );
 		}
 
 		/** Advances a plan while the caller holds the single-site lock. */
