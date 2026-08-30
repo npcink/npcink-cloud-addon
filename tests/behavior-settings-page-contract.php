@@ -1064,6 +1064,36 @@ maca_assert(
 	'Behavior: the site-scoped media-plan lock prevents overlapping Cron callbacks from advancing or rescheduling the same cursor.'
 );
 
+$release_media_plan_lock = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'release_media_recognition_plan_lock' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$release_media_plan_lock->setAccessible( true );
+}
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan( array() );
+$owned_lock_started = time() - 30;
+$owned_lock_token = $owned_lock_started . ':owner-a';
+$GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan_lock'] = $owned_lock_token;
+$release_media_plan_lock->invoke( null, $owned_lock_token, true );
+maca_assert(
+	! isset( $GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan_lock'] )
+	&& isset( $GLOBALS['maca_scheduled_events']['npcink_cloud_addon_continue_media_recognition'] ),
+	'Behavior: shutdown recovery releases its own media-plan lock and schedules one continuation for an active plan.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan( array() );
+$newer_lock_token = $owned_lock_started . ':owner-b';
+$GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan_lock'] = $newer_lock_token;
+$release_media_plan_lock->invoke( null, $owned_lock_token, true );
+maca_assert(
+	$newer_lock_token === $GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan_lock']
+	&& empty( $GLOBALS['maca_scheduled_events'] ),
+	'Behavior: shutdown recovery cannot release or reschedule a newer media-plan callback lock acquired in the same second.'
+);
+
 maca_reset_test_state();
 maca_seed_settings( true );
 $already_deferred_until = gmdate( 'c', time() + HOUR_IN_SECONDS );
@@ -1262,6 +1292,67 @@ maca_assert(
 
 maca_reset_test_state();
 maca_seed_settings( true );
+maca_seed_media_recognition_plan(
+	array( 'total' => 0, 'indexed' => 0 ),
+	array(
+		'transport_retry_count' => 3,
+		'last_transport_error_code' => 'cloud_runtime_request_failed',
+	)
+);
+$GLOBALS['maca_media_plan_dispatches'] = 0;
+add_filter(
+	'npcink_toolbox_refresh_site_media_index_batch',
+	static function () {
+		$GLOBALS['maca_media_plan_dispatches']++;
+		return array();
+	},
+	10,
+	2
+);
+Npcink_Cloud_Settings_Page::process_media_recognition_plan();
+$exhausted_transport_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+$exhausted_transport_status = get_transient( 'npcink_cloud_addon_media_index_status' );
+maca_assert(
+	0 === $GLOBALS['maca_media_plan_dispatches']
+	&& empty( $exhausted_transport_plan['active'] )
+	&& 'paused' === ( $exhausted_transport_plan['state'] ?? '' )
+	&& 'cloud_runtime_request_failed' === ( $exhausted_transport_plan['pause_reason'] ?? '' )
+	&& 3 === ( $exhausted_transport_plan['transport_retry_count'] ?? 0 )
+	&& 'error' === ( $exhausted_transport_status['state'] ?? '' )
+	&& 'cloud_runtime_request_failed' === ( $exhausted_transport_status['error_code'] ?? '' )
+	&& '' === ( $exhausted_transport_status['error'] ?? '' )
+	&& empty( $GLOBALS['maca_scheduled_events'] ),
+	'Behavior: a plan that reached the transport retry limit pauses before another Cloud request, persists only its stable error code, and does not advance its cursor.'
+);
+
+$media_status_reader = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'get_media_index_status' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$media_status_reader->setAccessible( true );
+}
+$GLOBALS['maca_transients']['npcink_cloud_addon_media_index_status']['error'] = 'Persisted in a background-worker locale.';
+$localized_transport_status = $media_status_reader->invoke( null );
+maca_assert(
+	'Cloud media recognition did not complete. Retry this batch later.' === ( $localized_transport_status['error'] ?? '' ),
+	'Behavior: a persisted media error code is resolved again in the current request locale instead of reusing a background-worker message.'
+);
+
+ob_start();
+$site_knowledge_renderer->invoke(
+	null,
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot(),
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	true
+);
+$paused_media_rendered = (string) ob_get_clean();
+maca_assert(
+	1 === substr_count( $paused_media_rendered, 'Cloud media recognition did not complete. Retry this batch later.' )
+	&& false !== strpos( $paused_media_rendered, 'Waiting to retry' )
+	&& false === strpos( $paused_media_rendered, 'Persisted in a background-worker locale.' ),
+	'Behavior: the paused media surface renders one current-locale error and a waiting-to-retry progress state.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
 maca_seed_media_recognition_plan( array() );
 add_filter(
 	'npcink_toolbox_refresh_site_media_index_batch',
@@ -1277,13 +1368,15 @@ add_filter(
 Npcink_Cloud_Settings_Page::process_media_recognition_plan();
 $oversized_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
 $oversized_media_status = get_transient( 'npcink_cloud_addon_media_index_status' );
+$oversized_media_display = $media_status_reader->invoke( null );
 maca_assert(
 	empty( $oversized_media_plan['active'] )
 	&& 'paused' === ( $oversized_media_plan['state'] ?? '' )
 	&& 'cloud_media_recognition_batch_exceeds_daily_limit' === ( $oversized_media_plan['pause_reason'] ?? '' )
 	&& ! isset( $oversized_media_plan['next_eligible_at'] )
 	&& 'error' === ( $oversized_media_status['state'] ?? '' )
-	&& false !== strpos( (string) ( $oversized_media_status['error'] ?? '' ), 'Reduce the batch or adjust the limit' )
+	&& '' === ( $oversized_media_status['error'] ?? '' )
+	&& false !== strpos( (string) ( $oversized_media_display['error'] ?? '' ), 'Reduce the batch or adjust the limit' )
 	&& empty( $GLOBALS['maca_scheduled_events'] ),
 	'Behavior: a batch permanently larger than the daily limit pauses for administrator action instead of retrying every day.'
 );
@@ -1302,12 +1395,14 @@ add_filter(
 Npcink_Cloud_Settings_Page::process_media_recognition_plan();
 $provider_paused_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
 $provider_paused_status = get_transient( 'npcink_cloud_addon_media_index_status' );
+$provider_paused_display = $media_status_reader->invoke( null );
 maca_assert(
 	empty( $provider_paused_plan['active'] )
 	&& 'paused' === ( $provider_paused_plan['state'] ?? '' )
 	&& 'cloud_provider_quota_exhausted' === ( $provider_paused_plan['pause_reason'] ?? '' )
 	&& 'error' === ( $provider_paused_status['state'] ?? '' )
-	&& false !== strpos( (string) ( $provider_paused_status['error'] ?? '' ), 'provider quota is exhausted' )
+	&& '' === ( $provider_paused_status['error'] ?? '' )
+	&& false !== strpos( (string) ( $provider_paused_display['error'] ?? '' ), 'provider quota is exhausted' )
 	&& empty( $GLOBALS['maca_scheduled_events'] ),
 	'Behavior: a non-daily dispatch failure pauses the plan at the current cursor and requires administrator recovery.'
 );
@@ -1326,11 +1421,13 @@ add_filter(
 Npcink_Cloud_Settings_Page::process_media_recognition_plan();
 $capacity_paused_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
 $capacity_paused_status = get_transient( 'npcink_cloud_addon_media_index_status' );
+$capacity_paused_display = $media_status_reader->invoke( null );
 maca_assert(
 	empty( $capacity_paused_plan['active'] )
 	&& 'paused' === ( $capacity_paused_plan['state'] ?? '' )
 	&& false !== strpos( (string) ( $capacity_paused_plan['pause_reason'] ?? '' ), 'media_capacity_exhausted' )
-	&& false !== strpos( (string) ( $capacity_paused_status['error'] ?? '' ), 'plan image capacity is full' )
+	&& '' === ( $capacity_paused_status['error'] ?? '' )
+	&& false !== strpos( (string) ( $capacity_paused_display['error'] ?? '' ), 'plan image capacity is full' )
 	&& empty( $GLOBALS['maca_scheduled_events'] ),
 	'Behavior: Cloud media-capacity exhaustion pauses the current cursor and returns one actionable local message.'
 );
