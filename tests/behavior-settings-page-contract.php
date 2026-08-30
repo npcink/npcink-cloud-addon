@@ -181,6 +181,7 @@ maca_reset_test_state();
 Npcink_Cloud_Settings_Page::register();
 
 $expected_hooks = array(
+	'init' => array( 'ensure_media_recognition_plan_schedule', 10 ),
 	'add_attachment' => array( 'handle_media_attachment_changed', 10 ),
 	'edit_attachment' => array( 'handle_media_attachment_changed', 10 ),
 	'admin_menu' => array( 'add_menu_page', 50 ),
@@ -1123,6 +1124,63 @@ maca_assert(
 	$newer_lock_token === $GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan_lock']
 	&& empty( $GLOBALS['maca_scheduled_events'] ),
 	'Behavior: shutdown recovery cannot release or reschedule a newer media-plan callback lock acquired in the same second.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan( array() );
+add_filter(
+	'npcink_toolbox_refresh_site_media_index_batch',
+	static function () {
+		throw new RuntimeException( 'Simulated interrupted media batch.' );
+	},
+	10,
+	2
+);
+$interrupted_media_batch_thrown = false;
+try {
+	Npcink_Cloud_Settings_Page::process_media_recognition_plan();
+} catch ( RuntimeException $error ) {
+	$interrupted_media_batch_thrown = 'Simulated interrupted media batch.' === $error->getMessage();
+}
+maca_assert(
+	$interrupted_media_batch_thrown
+	&& ! isset( $GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan_lock'] )
+	&& 1 === ( $GLOBALS['maca_schedule_call_counts']['npcink_cloud_addon_continue_media_recognition'] ?? 0 ),
+	'Behavior: an exceptional media-plan callback releases its own lock and schedules exactly one durable recovery.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan( array() );
+Npcink_Cloud_Settings_Page::ensure_media_recognition_plan_schedule();
+maca_assert(
+	isset( $GLOBALS['maca_scheduled_events']['npcink_cloud_addon_continue_media_recognition'] )
+	&& 1 === ( $GLOBALS['maca_schedule_call_counts']['npcink_cloud_addon_continue_media_recognition'] ?? 0 ),
+	'Behavior: normal WordPress bootstrap restores one missing continuation event for an active orphaned media plan.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan( array() );
+$GLOBALS['maca_options']['npcink_cloud_addon_media_recognition_plan_lock'] = time() . ':active-owner';
+Npcink_Cloud_Settings_Page::ensure_media_recognition_plan_schedule();
+maca_assert(
+	empty( $GLOBALS['maca_scheduled_events'] ),
+	'Behavior: normal WordPress bootstrap does not overlap a media-plan callback that still owns a valid lock.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$orphan_eligible_at = gmdate( 'c', time() + HOUR_IN_SECONDS );
+maca_seed_media_recognition_plan(
+	array(),
+	array( 'state' => 'waiting_next_day', 'next_eligible_at' => $orphan_eligible_at )
+);
+Npcink_Cloud_Settings_Page::ensure_media_recognition_plan_schedule();
+maca_assert(
+	abs( absint( $GLOBALS['maca_scheduled_events']['npcink_cloud_addon_continue_media_recognition'] ?? 0 ) - strtotime( $orphan_eligible_at ) ) <= 2,
+	'Behavior: orphan-plan recovery preserves a future Cloud eligibility time instead of scheduling early work.'
 );
 
 maca_reset_test_state();

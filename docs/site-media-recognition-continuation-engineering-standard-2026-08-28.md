@@ -107,6 +107,7 @@ hook 不得同步调用 Cloud，也不得建立按附件执行的第二套队列
 - 仅将 Cloud 视觉运行明确支持的 JPEG、PNG、WebP、AVIF 提交识别；GIF 等不支持格式在 WordPress 本地筛除。
 - 本地站点不可从 Cloud 访问时，使用现有短时 Artifact 上传，不退化为发送内网站点 URL。
 - 识图上传优先选择 WordPress 已生成、文件不超过 256 KiB 且像素面积最大的派生图；语义缓存和变更检测仍使用原图字节指纹。没有合格派生图的本地附件在本地筛除，不能退化为不可访问 URL。
+- 读取本地文件前必须验证派生图描述中的 `uploadable`、`path`、可读性、文件名和 MIME。描述字段缺失的附件必须在本地筛除，不能让一次 `file_get_contents` 异常终止整个 Cron 批次。
 - Artifact 文件名使用有界合成名称，例如 `site-media-{attachment_id}.jpg`；不得把过长中文文件名或不必要的原始路径带入上传。
 - 埋点只记录生命周期、数量、延迟、速度、错误代码和版本，不记录图片内容、图片 URL、Prompt、完整模型输出、附件 ID、文章 ID、用户 ID、凭据或原始 Provider 错误。
 
@@ -135,6 +136,8 @@ WP-Cron hook 退避重放同一指纹批次。Addon 为当前传输尝试保存�
 盲目的第二次同步上传，重试统一交给持久计划和 WP-Cron。
 
 不得通过提高并发、扩大批次或增加另一套队列掩盖边界、幂等或计数错误。
+
+Cron 回调的锁必须区分正常返回与异常退出：正常返回只释放当前 token；异常退出在释放当前 token 后安排一次恢复。若 PHP 进程在 shutdown recovery 完成前中止，后续正常 WordPress `init` 必须为仍活动、无有效锁且无 continuation event 的孤儿计划补回唯一一个 Cron。该自愈只恢复调度，不创建计划、不调用 Cloud，也不推进游标。
 
 ## 9. WP-Cron 的限制
 
