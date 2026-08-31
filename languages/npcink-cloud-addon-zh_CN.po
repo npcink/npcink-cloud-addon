@@ -2343,7 +2343,9 @@ msgstr "尚未开始"
 msgid "Recognizing images"
 msgstr "正在识别图片"
 
+#: includes/class-cloud-settings-page.php:2221
 #: includes/class-cloud-settings-page.php:2657
+#: includes/class-cloud-settings-page.php:2762
 msgid "Completed"
 msgstr "已完成"
 

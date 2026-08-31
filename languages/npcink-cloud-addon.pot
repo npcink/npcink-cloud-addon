@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-31T01:36:48+00:00\n"
+"POT-Creation-Date: 2026-08-31T02:02:28+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -1506,6 +1506,12 @@ msgstr ""
 msgid "Not started"
 msgstr ""
 
+#: includes/class-cloud-settings-page.php:2221
+#: includes/class-cloud-settings-page.php:2657
+#: includes/class-cloud-settings-page.php:2762
+msgid "Completed"
+msgstr ""
+
 #: includes/class-cloud-settings-page.php:2222
 #: includes/class-cloud-settings-page.php:2761
 msgid "Site media recognition completion"
@@ -1757,10 +1763,6 @@ msgstr ""
 
 #: includes/class-cloud-settings-page.php:2656
 msgid "Recognizing images"
-msgstr ""
-
-#: includes/class-cloud-settings-page.php:2657
-msgid "Completed"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:2658

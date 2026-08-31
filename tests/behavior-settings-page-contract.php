@@ -180,6 +180,18 @@ $fully_screened_media_metrics = $media_display_metrics->invoke(
 		'count_breakdown_version' => 'v1',
 	)
 );
+$empty_media_metrics = $media_display_metrics->invoke(
+	null,
+	array(
+		'state' => 'complete',
+		'total' => 0,
+		'indexed' => 0,
+		'evidence' => 0,
+		'failed' => 0,
+		'screened_count' => 0,
+		'count_breakdown_version' => 'v1',
+	)
+);
 maca_assert(
 	70 === $legacy_media_metrics['eligible_total']
 	&& 70 === $legacy_media_metrics['eligible_processed']
@@ -197,7 +209,11 @@ maca_assert(
 	&& 0 === $fully_screened_media_metrics['eligible_total']
 	&& 0 === $fully_screened_media_metrics['eligible_processed']
 	&& 100 === $fully_screened_media_metrics['display_percent']
-	&& 3 === $fully_screened_media_metrics['excluded_count'],
+	&& 3 === $fully_screened_media_metrics['excluded_count']
+	&& 0 === $empty_media_metrics['eligible_total']
+	&& 0 === $empty_media_metrics['eligible_processed']
+	&& 0 === $empty_media_metrics['display_percent']
+	&& 0 === $empty_media_metrics['excluded_count'],
 	'Behavior: completed media recognition separates inventory, eligible progress, local exclusions, and missing evidence without fabricating legacy count breakdowns.'
 );
 
@@ -962,6 +978,60 @@ function maca_seed_media_recognition_plan( array $status, array $plan = array() 
 		false
 	);
 }
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan(
+	array(
+		'state' => 'complete',
+		'total' => 0,
+		'indexed' => 0,
+		'evidence' => 0,
+		'failed' => 0,
+		'has_more' => false,
+		'next_page' => 0,
+		'screened_count' => 0,
+		'count_breakdown_version' => 'v1',
+	),
+	array(
+		'active' => false,
+		'state' => 'complete',
+		'processed_count' => 0,
+	)
+);
+
+$overview_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_overview_page' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$overview_renderer->setAccessible( true );
+}
+ob_start();
+$overview_renderer->invoke(
+	null,
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	Npcink_Cloud_Addon_Settings::get_credential_state(),
+	array(),
+	Npcink_Cloud_Observability_Collector::get_status(),
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot(),
+	true
+);
+$empty_media_overview_rendered = (string) ob_get_clean();
+
+ob_start();
+$site_knowledge_renderer->invoke(
+	null,
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot(),
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	true
+);
+$empty_media_detail_rendered = (string) ob_get_clean();
+
+maca_assert(
+	false !== strpos( $empty_media_overview_rendered, 'data-npcink-site-media-overview-value>0 / 0 images' )
+	&& false !== strpos( $empty_media_overview_rendered, 'data-npcink-site-media-overview-status>Completed' )
+	&& false !== strpos( $empty_media_detail_rendered, 'data-npcink-site-media-images>0 of 0' )
+	&& false !== strpos( $empty_media_detail_rendered, 'data-npcink-site-media-progress-label>Completed' ),
+	'Behavior: a completed empty media inventory is rendered as an empty completed result instead of a scan that has not started.'
+);
 
 $resume_media_plan = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'resume_active_media_recognition_plan' );
 $resume_paused_media_plan = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'resume_paused_media_recognition_plan' );

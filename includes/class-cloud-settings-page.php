@@ -2212,13 +2212,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<th scope="row"><?php esc_html_e( 'Site media recognition', 'npcink-cloud-addon' ); ?></th>
 						<td>
 							<div class="npcink-cloud-entitlement-metric">
-								<span class="npcink-cloud-metric-value" data-npcink-site-media-overview-value><?php echo $media_overview_total > 0 ? esc_html( sprintf(
+								<span class="npcink-cloud-metric-value" data-npcink-site-media-overview-value><?php echo $media_overview_total > 0 || 'complete' === $media_overview_state ? esc_html( sprintf(
 									/* translators: 1: processed image count, 2: total image count. */
 									__( '%1$d / %2$d images', 'npcink-cloud-addon' ),
 									$media_overview_processed,
 									$media_overview_total
 								) ) : esc_html__( 'Not started', 'npcink-cloud-addon' ); ?></span>
-								<span class="npcink-cloud-metric-status" data-npcink-site-media-overview-status><?php echo $media_overview_total > 0 ? esc_html( $media_overview_percent . '%' ) : ''; ?></span>
+								<span class="npcink-cloud-metric-status" data-npcink-site-media-overview-status><?php echo $media_overview_percent > 0 ? esc_html( $media_overview_percent . '%' ) : ( 'complete' === $media_overview_state ? esc_html__( 'Completed', 'npcink-cloud-addon' ) : '' ); ?></span>
 								<span class="npcink-cloud-segmented-progress npcink-cloud-site-media-overview-progress npcink-cloud-site-media-overview-progress--<?php echo esc_attr( $media_overview_state ); ?>" role="progressbar" aria-label="<?php esc_attr_e( 'Site media recognition completion', 'npcink-cloud-addon' ); ?>" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( (string) $media_overview_percent ); ?>" style="--npcink-cloud-progress: <?php echo esc_attr( (string) $media_overview_percent ); ?>%;"></span>
 								<span class="npcink-cloud-metric-actions npcink-cloud-metric-actions--empty" aria-hidden="true"></span>
 							</div>
@@ -2741,7 +2741,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 								<p class="npcink-cloud-site-knowledge-summary__result" data-npcink-site-media-state-label><?php echo esc_html( $media_state_label ); ?></p>
 								<table class="widefat striped npcink-cloud-site-media-status" aria-label="<?php esc_attr_e( 'Site media recognition status', 'npcink-cloud-addon' ); ?>" data-npcink-site-media-status data-state="<?php echo esc_attr( $media_state ); ?>">
 									<tbody>
-											<tr><th scope="row"><?php esc_html_e( 'Images', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-images><?php echo $media_total > 0 ? esc_html( sprintf(
+										<tr><th scope="row"><?php esc_html_e( 'Images', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-images><?php echo $media_total > 0 || 'complete' === $media_state ? esc_html( sprintf(
 												/* translators: 1: processed image count, 2: total image count. */
 												__( '%1$d of %2$d', 'npcink-cloud-addon' ),
 												$media_processed,
@@ -2759,7 +2759,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 													<span data-npcink-site-media-progress-label><?php esc_html_e( 'Waiting to retry', 'npcink-cloud-addon' ); ?></span>
 												<?php else : ?>
 														<span class="npcink-cloud-segmented-progress npcink-cloud-site-media-progress<?php echo 'processing' === $media_state && 0 === $media_percent ? ' npcink-cloud-progress--indeterminate' : ''; ?>" data-npcink-site-media-progress role="progressbar" aria-label="<?php esc_attr_e( 'Site media recognition completion', 'npcink-cloud-addon' ); ?>" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( (string) $media_percent ); ?>" style="--npcink-cloud-progress: <?php echo esc_attr( (string) $media_percent ); ?>%;"></span>
-													<span data-npcink-site-media-progress-label><?php echo $media_percent > 0 ? esc_html( $media_percent . '%' ) : ( 'processing' === $media_state ? esc_html__( 'Processing', 'npcink-cloud-addon' ) : esc_html__( 'Not started', 'npcink-cloud-addon' ) ); ?></span>
+												<span data-npcink-site-media-progress-label><?php echo $media_percent > 0 ? esc_html( $media_percent . '%' ) : ( 'complete' === $media_state ? esc_html__( 'Completed', 'npcink-cloud-addon' ) : ( 'processing' === $media_state ? esc_html__( 'Processing', 'npcink-cloud-addon' ) : esc_html__( 'Not started', 'npcink-cloud-addon' ) ) ); ?></span>
 												<?php endif; ?>
 											</td></tr>
 										</tbody>
@@ -2947,7 +2947,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$status['eligible_processed'] = $eligible_processed;
 			$status['excluded_count'] = $screened;
 			$status['without_evidence_count'] = max( 0, $eligible_processed - $evidence - absint( $status['failed'] ?? 0 ) );
-			$status['display_percent'] = $eligible_total > 0 ? min( 100, (int) floor( $eligible_processed / $eligible_total * 100 ) ) : ( 'complete' === $state ? 100 : 0 );
+			$status['display_percent'] = $eligible_total > 0 ? min( 100, (int) floor( $eligible_processed / $eligible_total * 100 ) ) : ( 'complete' === $state && $inventory_total > 0 ? 100 : 0 );
 			$status['count_breakdown_available'] = $has_breakdown;
 
 			return $status;
