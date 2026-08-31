@@ -180,6 +180,18 @@ $fully_screened_media_metrics = $media_display_metrics->invoke(
 		'count_breakdown_version' => 'v1',
 	)
 );
+$empty_media_metrics = $media_display_metrics->invoke(
+	null,
+	array(
+		'state' => 'complete',
+		'total' => 0,
+		'indexed' => 0,
+		'evidence' => 0,
+		'failed' => 0,
+		'screened_count' => 0,
+		'count_breakdown_version' => 'v1',
+	)
+);
 maca_assert(
 	70 === $legacy_media_metrics['eligible_total']
 	&& 70 === $legacy_media_metrics['eligible_processed']
@@ -197,7 +209,11 @@ maca_assert(
 	&& 0 === $fully_screened_media_metrics['eligible_total']
 	&& 0 === $fully_screened_media_metrics['eligible_processed']
 	&& 100 === $fully_screened_media_metrics['display_percent']
-	&& 3 === $fully_screened_media_metrics['excluded_count'],
+	&& 3 === $fully_screened_media_metrics['excluded_count']
+	&& 0 === $empty_media_metrics['eligible_total']
+	&& 0 === $empty_media_metrics['eligible_processed']
+	&& 0 === $empty_media_metrics['display_percent']
+	&& 0 === $empty_media_metrics['excluded_count'],
 	'Behavior: completed media recognition separates inventory, eligible progress, local exclusions, and missing evidence without fabricating legacy count breakdowns.'
 );
 
