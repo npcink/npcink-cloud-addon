@@ -2947,11 +2947,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$status['eligible_processed'] = $eligible_processed;
 			$status['excluded_count'] = $screened;
 			$status['without_evidence_count'] = max( 0, $eligible_processed - $evidence - absint( $status['failed'] ?? 0 ) );
-			if ( 'complete' === $state && 0 === $eligible_total ) {
-				$status['display_percent'] = 100;
-			} else {
-				$status['display_percent'] = $eligible_total > 0 ? min( 100, (int) floor( $eligible_processed / $eligible_total * 100 ) ) : 0;
-			}
+			$status['display_percent'] = $eligible_total > 0 ? min( 100, (int) floor( $eligible_processed / $eligible_total * 100 ) ) : ( 'complete' === $state ? 100 : 0 );
 			$status['count_breakdown_available'] = $has_breakdown;
 
 			return $status;
