@@ -203,6 +203,19 @@ add_filter(
 	static function ( $value, array $input ) {
 		unset( $value );
 		$GLOBALS['maca_media_batch_inputs'][] = $input;
+		if ( 5 === (int) ( $input['page'] ?? 0 ) ) {
+			return array(
+				'indexed_items' => 6,
+				'visual_evidence_items' => 5,
+				'visual_evidence_reused_items' => 3,
+				'visual_evidence_recognized_items' => 2,
+				'visual_evidence_submitted_items' => 0,
+				'screened_items' => 1,
+				'total' => 42,
+				'has_more' => false,
+				'visual_evidence_run_id' => '',
+			);
+		}
 		return array(
 			'indexed_items' => 10,
 			'visual_evidence_items' => 0,
@@ -237,4 +250,15 @@ maca_assert(
 	7 === $media_batch_with_plan_size['per_page']
 	&& array( 'page' => 4, 'per_page' => 7, 'upload_scope' => 'media_plan_retry-123' ) === $GLOBALS['maca_media_batch_inputs'][1],
 	'Behavior: an active media plan preserves its bounded page size and passes only its stable upload-attempt scope to Toolbox.'
+);
+
+$media_batch_without_run = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_media_index_refresh( 5 );
+maca_assert(
+	'' === $media_batch_without_run['run_id']
+	&& 0 === $media_batch_without_run['sent_count']
+	&& 6 === $media_batch_without_run['page_count']
+	&& 3 === $media_batch_without_run['reused_count']
+	&& 2 === $media_batch_without_run['recognized_count']
+	&& 1 === $media_batch_without_run['screened_count'],
+	'Behavior: a local-only media page preserves Toolbox recognition, reuse, and screening counts without inventing a Cloud submission.'
 );

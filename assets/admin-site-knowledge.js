@@ -184,10 +184,9 @@
 	};
 
 	const update = ( status ) => {
-		const processed = Math.max( 0, Number( status.indexed ) || 0 );
-		const total = Math.max( 0, Number( status.total ) || 0 );
-		// Keep this aligned with the server-rendered overview: cumulative processed / total.
-		const percent = total > 0 ? Math.max( 0, Math.min( 100, Math.floor( processed / total * 100 ) ) ) : 0;
+		const processed = Math.max( 0, Number( status.eligible_processed ) || 0 );
+		const total = Math.max( 0, Number( status.eligible_total ) || 0 );
+		const percent = Math.max( 0, Math.min( 100, Number( status.display_percent ) || 0 ) );
 		const rate = Math.max( 0, Number( status.items_per_minute ) || 0 );
 
 		table.dataset.state = status.state || 'processing';
@@ -215,7 +214,9 @@
 			outcomes.textContent = Math.max( 0, Number( status.successful ) || 0 ) + ' / ' + Math.max( 0, Number( status.failed ) || 0 );
 		}
 		if ( speed ) {
-			speed.textContent = rate > 0 ? rate.toFixed( 1 ) + ' ' + ( config.imagesPerMinuteLabel || '' ) : ( config.estimatingLabel || '' );
+			speed.textContent = 'complete' === status.state || 'partial' === status.state
+				? ( config.completedSpeedLabel || '' )
+				: ( rate > 0 ? rate.toFixed( 1 ) + ' ' + ( config.imagesPerMinuteLabel || '' ) : ( config.estimatingLabel || '' ) );
 		}
 		if ( eta ) {
 			eta.textContent = formatEta( status.eta_at );

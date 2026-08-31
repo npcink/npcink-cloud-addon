@@ -137,31 +137,52 @@ maca_load_addon_classes();
 require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-change-bridge.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php';
 
-$media_excluded_count = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'media_recognition_excluded_count' );
+$media_display_metrics = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'decorate_media_recognition_display_metrics' );
 if ( PHP_VERSION_ID < 80100 ) {
-	$media_excluded_count->setAccessible( true );
+	$media_display_metrics->setAccessible( true );
 }
 
-maca_assert(
-	1 === $media_excluded_count->invoke(
-		null,
-		array(
-			'total'      => 71,
-			'indexed'    => 71,
-			'successful' => 70,
-			'failed'     => 0,
-		)
+$legacy_media_metrics = $media_display_metrics->invoke(
+	null,
+	array(
+		'state' => 'complete',
+		'total' => 71,
+		'indexed' => 70,
+		'successful' => 62,
+		'evidence' => 62,
+		'failed' => 0,
 	)
-	&& 1 === $media_excluded_count->invoke(
-		null,
-		array(
-			'total'      => 71,
-			'indexed'    => 70,
-			'successful' => 69,
-			'failed'     => 1,
-		)
-	),
-	'Behavior: completed media recognition derives excluded images from successful and failed outcomes, not processed inventory count.'
+);
+$current_media_metrics = $media_display_metrics->invoke(
+	null,
+	array(
+		'state' => 'complete',
+		'total' => 71,
+		'indexed' => 71,
+		'successful' => 62,
+		'evidence' => 62,
+		'failed' => 0,
+		'recognized_count' => 58,
+		'reused_count' => 4,
+		'screened_count' => 1,
+		'count_breakdown_version' => 'v1',
+	)
+);
+maca_assert(
+	70 === $legacy_media_metrics['eligible_total']
+	&& 70 === $legacy_media_metrics['eligible_processed']
+	&& 100 === $legacy_media_metrics['display_percent']
+	&& 1 === $legacy_media_metrics['excluded_count']
+	&& 8 === $legacy_media_metrics['without_evidence_count']
+	&& empty( $legacy_media_metrics['count_breakdown_available'] )
+	&& 71 === $current_media_metrics['inventory_total']
+	&& 70 === $current_media_metrics['eligible_total']
+	&& 70 === $current_media_metrics['eligible_processed']
+	&& 100 === $current_media_metrics['display_percent']
+	&& 1 === $current_media_metrics['excluded_count']
+	&& 8 === $current_media_metrics['without_evidence_count']
+	&& ! empty( $current_media_metrics['count_breakdown_available'] ),
+	'Behavior: completed media recognition separates inventory, eligible progress, local exclusions, and missing evidence without fabricating legacy count breakdowns.'
 );
 
 $readiness_token_formatter = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'format_readiness_token' );
@@ -815,6 +836,67 @@ maca_assert(
 	&& 10 === ( $media_partial_failure_plan['processed_count'] ?? 0 )
 	&& 2 === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: a terminal Cloud batch with failed items rolls back reusable and screened polling baselines to the committed page cursor.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_seed_media_recognition_plan(
+	array(
+		'state' => 'processing',
+		'run_id' => 'run_media_idempotent',
+		'total' => 20,
+		'indexed' => 12,
+		'completed_before' => 12,
+		'successful' => 10,
+		'successful_before' => 10,
+		'failed' => 0,
+		'failed_before' => 0,
+		'evidence' => 10,
+		'evidence_before' => 10,
+		'recognized_count' => 7,
+		'reused_count' => 3,
+		'screened_count' => 2,
+		'batch_reused_count' => 1,
+		'batch_screened_count' => 1,
+		'batch_size' => 2,
+		'has_more' => true,
+	),
+	array( 'current_run_id' => 'run_media_idempotent' )
+);
+$GLOBALS['maca_http_response_queue'] = array(
+	array(
+		'response' => array( 'code' => 200 ),
+		'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'run_id' => 'run_media_idempotent', 'status' => 'succeeded' ) ) ),
+	),
+	array(
+		'response' => array( 'code' => 200 ),
+		'body' => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data' => array(
+					'run_id' => 'run_media_idempotent',
+					'status' => 'succeeded',
+					'result' => array(
+						'progress' => array( 'processed_items' => 2, 'successful_items' => 2, 'failed_items' => 0, 'total_items' => 2, 'duration_seconds' => 10 ),
+						'items' => array_fill( 0, 2, array( 'visual_summary' => 'visual evidence' ) ),
+					),
+				),
+			)
+		),
+	),
+);
+$first_idempotent_projection = $media_status_refresher->invoke( null );
+$second_idempotent_projection = $media_status_refresher->invoke( null );
+maca_assert(
+	'partial' === $first_idempotent_projection['state']
+	&& 9 === $first_idempotent_projection['recognized_count']
+	&& 'run_media_idempotent' === $first_idempotent_projection['projected_run_id']
+	&& 0 === $first_idempotent_projection['batch_reused_count']
+	&& 0 === $first_idempotent_projection['batch_screened_count']
+	&& 9 === $second_idempotent_projection['recognized_count']
+	&& 14 === $second_idempotent_projection['indexed']
+	&& 2 === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: repeated polling of one terminal Cloud run reuses its committed projection without double-counting or another Cloud read.'
 );
 
 $media_plan_per_page = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'media_recognition_plan_per_page' );
