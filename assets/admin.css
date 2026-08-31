@@ -904,9 +904,64 @@
 	margin-top: 12px;
 }
 
+.npcink-cloud-site-media-summary {
+	max-width: 980px;
+}
+
+.npcink-cloud-site-media-heading,
+.npcink-cloud-site-media-progress-head {
+	align-items: center;
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+}
+
+.npcink-cloud-site-media-heading h3 {
+	margin: 0;
+}
+
+.npcink-cloud-site-media-status {
+	border-bottom: 1px solid #dcdcde;
+	border-top: 1px solid #dcdcde;
+	margin-top: 12px;
+	padding: 14px 0 16px;
+}
+
+.npcink-cloud-site-media-progress-head {
+	font-variant-numeric: tabular-nums;
+	margin-bottom: 10px;
+}
+
+.npcink-cloud-site-media-progress-head strong {
+	font-size: 16px;
+}
+
+.npcink-cloud-site-media-progress-head span {
+	color: #50575e;
+	font-weight: 600;
+}
+
+.npcink-cloud-site-media-result {
+	margin: 10px 0 0;
+}
+
+.npcink-cloud-site-media-summary .npcink-cloud-site-knowledge-summary__action {
+	display: inline-block;
+	margin-right: 10px;
+}
+
 .npcink-cloud-site-media-details {
 	margin-top: 12px;
-	max-width: 860px;
+	max-width: 980px;
+}
+
+.npcink-cloud-site-media-summary .npcink-cloud-site-media-details {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.npcink-cloud-site-media-summary .npcink-cloud-site-media-details[open] {
+	display: block;
 }
 
 .npcink-cloud-site-media-details > summary {
@@ -1025,6 +1080,14 @@
 		gap: 10px;
 	}
 
+	.npcink-cloud-site-media-heading {
+		align-items: flex-start;
+	}
+
+	.npcink-cloud-site-media-progress-head {
+		align-items: baseline;
+	}
+
 	.npcink-cloud-overview-status th {
 		width: auto;
 	}
@@ -1041,6 +1104,10 @@
 	.npcink-cloud-segmented-progress {
 		grid-column: 1 / -1;
 		width: min(180px, 100%);
+	}
+
+	.npcink-cloud-site-media-progress {
+		width: 100%;
 	}
 
 	.npcink-cloud-metric-actions {

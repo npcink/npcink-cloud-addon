@@ -81,6 +81,36 @@ maca_assert(
 		'Available AI credits',
 		'npcink-cloud-addon'
 	)
+	&& '可用图片数' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Available images',
+		'Available images',
+		'npcink-cloud-addon'
+	)
+	&& '无限制' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Unlimited',
+		'Unlimited',
+		'npcink-cloud-addon'
+	)
+	&& '剩余图片识别额度占比' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Remaining image recognition capacity percentage',
+		'Remaining image recognition capacity percentage',
+		'npcink-cloud-addon'
+	)
+	&& '%1$d / %2$d 张图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'%1$d / %2$d images',
+		'%1$d / %2$d images',
+		'npcink-cloud-addon'
+	)
+	&& '当前套餐还可识别 %s 张图片。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Your plan has %s image recognition slots remaining.',
+		'Your plan has %s image recognition slots remaining.',
+		'npcink-cloud-addon'
+	)
+	&& '当前批次正在识别，剩余图片会自动继续处理。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'The current batch is running. Remaining images will continue automatically.',
+		'The current batch is running. Remaining images will continue automatically.',
+		'npcink-cloud-addon'
+	)
 	&& '此处显示的 AI 积分属于当前连接的 Cloud 账户。断开、移除或更换此 WordPress 站点不会转移这些 AI 积分。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.',
 		'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.',

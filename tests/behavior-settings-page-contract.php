@@ -534,7 +534,8 @@ maca_assert(
 	&& false !== strpos( $overview_rendered, 'Send anonymous diagnostics' )
 	&& false === strpos( $overview_rendered, '>WordPress AI connector<' )
 	&& false === strpos( $overview_rendered, '>Reference site content during generation<' )
-	&& false !== strpos( $overview_rendered, 'AI credits shown here belong to the connected Cloud account' )
+	&& false === strpos( $overview_rendered, 'AI credits shown here belong to the connected Cloud account' )
+	&& false === strpos( $overview_rendered, 'Monitoring needs attention' )
 	&& $http_before_overview === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: the verified Overview owns the compact healthy connection summary and usage without a duplicate global card or Cloud HTTP.'
 );
@@ -688,8 +689,9 @@ maca_assert(
 		&& false !== strpos( $site_knowledge_rendered, 'Start media recognition' )
 		&& false !== strpos( $site_knowledge_rendered, 'data-npcink-site-media-status' )
 		&& false !== strpos( $site_knowledge_rendered, 'data-npcink-site-media-progress' )
-		&& false !== strpos( $site_knowledge_rendered, 'data-npcink-site-media-capacity' )
-		&& false !== strpos( $site_knowledge_rendered, '320 used / 5,000 limit / 4,680 remaining' )
+		&& false === strpos( $site_knowledge_rendered, 'data-npcink-site-media-capacity' )
+		&& false === strpos( $site_knowledge_rendered, '320 used / 5,000 limit / 4,680 remaining' )
+		&& false !== strpos( $site_knowledge_rendered, 'npcink-cloud-site-media-progress-head' )
 		&& false !== strpos( $site_knowledge_rendered, 'data-npcink-site-media-eta' )
 		&& false !== strpos( $site_knowledge_rendered, 'View recognition details' )
 		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-inline-info' )
@@ -726,7 +728,7 @@ $site_knowledge_renderer->invoke(
 );
 $media_capacity_full_rendered = (string) ob_get_clean();
 maca_assert(
-	false !== strpos( $media_capacity_full_rendered, '100 used / 100 limit / 0 remaining' )
+	false === strpos( $media_capacity_full_rendered, '100 used / 100 limit / 0 remaining' )
 	&& false !== strpos( $media_capacity_full_rendered, 'Your plan image capacity is full.' ),
 	'Behavior: a Cloud-reported full media capacity is shown as one actionable read-only warning without local quota calculation.'
 );
@@ -1009,7 +1011,16 @@ $overview_renderer->invoke(
 	null,
 	Npcink_Cloud_Addon_Settings::get_settings(),
 	Npcink_Cloud_Addon_Settings::get_credential_state(),
-	array(),
+	array(
+		'media_image_capacity' => array(
+			'available' => true,
+			'used' => 64,
+			'limit' => 100,
+			'remaining' => 36,
+			'status' => 'ok',
+			'unit' => 'image',
+		),
+	),
 	Npcink_Cloud_Observability_Collector::get_status(),
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot(),
 	true
@@ -1026,11 +1037,43 @@ $site_knowledge_renderer->invoke(
 $empty_media_detail_rendered = (string) ob_get_clean();
 
 maca_assert(
-	false !== strpos( $empty_media_overview_rendered, 'data-npcink-site-media-overview-value>0 / 0 images' )
-	&& false !== strpos( $empty_media_overview_rendered, 'data-npcink-site-media-overview-status>Completed' )
-	&& false !== strpos( $empty_media_detail_rendered, 'data-npcink-site-media-images>0 of 0' )
+	false !== strpos( $empty_media_overview_rendered, 'data-npcink-media-image-capacity' )
+	&& false !== strpos( $empty_media_overview_rendered, 'Available images' )
+	&& false !== strpos( $empty_media_overview_rendered, '>36 / 100</span>' )
+	&& false !== strpos( $empty_media_overview_rendered, '>36% remaining</span>' )
+	&& false !== strpos( $empty_media_overview_rendered, 'aria-label="Remaining image recognition capacity percentage"' )
+	&& false === strpos( $empty_media_overview_rendered, 'data-npcink-site-media-overview-value' )
+	&& false !== strpos( $empty_media_detail_rendered, 'data-npcink-site-media-images>0 / 0 images' )
 	&& false !== strpos( $empty_media_detail_rendered, 'data-npcink-site-media-progress-label>Completed' ),
-	'Behavior: a completed empty media inventory is rendered as an empty completed result instead of a scan that has not started.'
+	'Behavior: Overview shows Cloud-owned image capacity while Site Knowledge keeps media-recognition completion detail.'
+);
+
+ob_start();
+$overview_renderer->invoke(
+	null,
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	Npcink_Cloud_Addon_Settings::get_credential_state(),
+	array(
+		'media_image_capacity' => array(
+			'available' => true,
+			'used' => 64,
+			'limit' => 0,
+			'remaining' => 0,
+			'status' => 'ok',
+			'unit' => 'image',
+		),
+	),
+	Npcink_Cloud_Observability_Collector::get_status(),
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot(),
+	true
+);
+$unlimited_media_overview_rendered = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $unlimited_media_overview_rendered, 'data-npcink-media-image-capacity' )
+	&& false !== strpos( $unlimited_media_overview_rendered, '>Unlimited</span>' )
+	&& false === strpos( $unlimited_media_overview_rendered, '>0 / 0</span>' )
+	&& false === strpos( $unlimited_media_overview_rendered, 'aria-label="Remaining image recognition capacity percentage"' ),
+	'Behavior: a Cloud zero limit keeps its unlimited meaning without a false empty-capacity progress bar.'
 );
 
 $resume_media_plan = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'resume_active_media_recognition_plan' );
