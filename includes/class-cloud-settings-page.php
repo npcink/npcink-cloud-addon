@@ -189,6 +189,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					'mediaNonce' => wp_create_nonce( self::ACTION_POLL_SITE_MEDIA_STATUS ),
 					'mediaPollInterval' => 10000,
 					'estimatingLabel' => __( 'Estimating', 'npcink-cloud-addon' ),
+					'completedSpeedLabel' => __( 'Not applicable after completion', 'npcink-cloud-addon' ),
 					'processingLabel' => __( 'Processing', 'npcink-cloud-addon' ),
 					'imagesPerMinuteLabel' => __( 'images/minute', 'npcink-cloud-addon' ),
 					'imagesLabel' => __( 'images', 'npcink-cloud-addon' ),
@@ -916,27 +917,36 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$total = absint( $result['total'] ?? $status['total'] ?? 0 );
 			$has_more = ! empty( $result['has_more'] );
 			$batch_size = absint( $result['sent_count'] ?? 0 );
-			$reused_count = '' !== $run_id ? absint( $result['reused_count'] ?? 0 ) : 0;
-			$screened_count = '' !== $run_id ? absint( $result['screened_count'] ?? 0 ) : 0;
+			$batch_reused_count = absint( $result['reused_count'] ?? 0 );
+			$batch_screened_count = absint( $result['screened_count'] ?? 0 );
+			$batch_recognized_count = absint( $result['recognized_count'] ?? 0 );
+			$batch_evidence_count = absint( $result['selected_count'] ?? 0 );
 			$per_page = max( 1, absint( $result['per_page'] ?? $per_page ) );
 			$previous_indexed = absint( $status['indexed'] ?? 0 );
 			$previous_successful = absint( $status['successful'] ?? 0 );
 			$previous_evidence = absint( $status['evidence'] ?? 0 );
-			$polling_completed_before = min( $total, $previous_indexed + $reused_count + $screened_count );
-			$polling_successful_before = $previous_successful + $reused_count;
-			$polling_evidence_before = $previous_evidence + $reused_count;
-			$processed = '' !== $run_id ? $polling_completed_before : min( $total, $previous_indexed + $batch_size );
+			$previous_reused_count = absint( $status['reused_count'] ?? 0 );
+			$previous_recognized_count = absint( $status['recognized_count'] ?? 0 );
+			$previous_screened_count = absint( $status['screened_count'] ?? 0 );
+			$polling_completed_before = min( $total, $previous_indexed + $batch_reused_count + $batch_screened_count );
+			$polling_successful_before = $previous_successful + $batch_reused_count;
+			$polling_evidence_before = $previous_evidence + $batch_reused_count;
+			$page_count = absint( $result['page_count'] ?? 0 );
+			$processed = '' !== $run_id ? $polling_completed_before : min( $total, $previous_indexed + $page_count );
 			$status = array_merge( $status, array(
 				'state' => '' !== $run_id ? 'processing' : ( $has_more ? 'partial' : 'complete' ),
 				'indexed' => $processed,
 				'completed_before' => '' !== $run_id ? $polling_completed_before : $previous_indexed,
 				'batch_size' => $batch_size,
-				'reused_count' => $reused_count,
-				'screened_count' => $screened_count,
+				'reused_count' => $previous_reused_count + $batch_reused_count,
+				'recognized_count' => $previous_recognized_count + ( '' === $run_id ? $batch_recognized_count : 0 ),
+				'screened_count' => $previous_screened_count + $batch_screened_count,
+				'batch_reused_count' => '' !== $run_id ? $batch_reused_count : 0,
+				'batch_screened_count' => '' !== $run_id ? $batch_screened_count : 0,
 				'per_page' => $per_page,
-				'successful' => '' !== $run_id ? $polling_successful_before : $previous_successful + absint( $result['selected_count'] ?? 0 ),
+				'successful' => '' !== $run_id ? $polling_successful_before : $previous_successful + $batch_reused_count + $batch_recognized_count,
 				'successful_before' => '' !== $run_id ? $polling_successful_before : $previous_successful,
-				'evidence' => '' !== $run_id ? $polling_evidence_before : $previous_evidence + absint( $result['selected_count'] ?? 0 ),
+				'evidence' => '' !== $run_id ? $polling_evidence_before : $previous_evidence + $batch_evidence_count,
 				'evidence_before' => '' !== $run_id ? $polling_evidence_before : $previous_evidence,
 				'page' => $page,
 				'next_page' => $has_more ? max( $page + 1, absint( $result['next_page'] ?? 0 ) ) : 0,
@@ -946,6 +956,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'duration_seconds' => max( 0, (float) ( $status['duration_seconds'] ?? 0 ) ) + max( 0, (float) ( $result['duration_seconds'] ?? 0 ) ),
 				'duration_before' => max( 0, (float) ( $status['duration_seconds'] ?? 0 ) ),
 				'run_id' => $run_id,
+				'projected_run_id' => '',
+				'terminal_event_recorded' => false,
 				'error_code' => '',
 				'error' => '',
 				'updated_at' => current_time( 'mysql' ),
@@ -1015,6 +1027,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			if ( '' === $run_id ) {
 				return new WP_Error( 'cloud_media_recognition_run_missing', __( 'There is no active media recognition task to refresh.', 'npcink-cloud-addon' ) );
 			}
+			if ( $run_id === sanitize_text_field( (string) ( $status['projected_run_id'] ?? '' ) ) ) {
+				return $status;
+			}
 			$client = new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() );
 			$run = $client->get_run( $run_id );
 			if ( is_wp_error( $run ) ) {
@@ -1039,11 +1054,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$run_result_payload = is_array( $run_result_data['result'] ?? null ) ? $run_result_data['result'] : array();
 			$progress = is_array( $run_result_payload['progress'] ?? null ) ? $run_result_payload['progress'] : array();
 			$completed_before = absint( $status['completed_before'] ?? $status['indexed'] ?? 0 );
-			$reused_count = absint( $status['reused_count'] ?? 0 );
-			$screened_count = absint( $status['screened_count'] ?? 0 );
-			$committed_before = max( 0, $completed_before - $reused_count - $screened_count );
-			$successful_committed_before = max( 0, absint( $status['successful_before'] ?? 0 ) - $reused_count );
-			$evidence_committed_before = max( 0, absint( $status['evidence_before'] ?? 0 ) - $reused_count );
+			$batch_reused_count = absint( $status['batch_reused_count'] ?? $status['reused_count'] ?? 0 );
+			$batch_screened_count = absint( $status['batch_screened_count'] ?? $status['screened_count'] ?? 0 );
+			$committed_before = max( 0, $completed_before - $batch_reused_count - $batch_screened_count );
+			$successful_committed_before = max( 0, absint( $status['successful_before'] ?? 0 ) - $batch_reused_count );
+			$evidence_committed_before = max( 0, absint( $status['evidence_before'] ?? 0 ) - $batch_reused_count );
 			$batch_processed = absint( $progress['processed_items'] ?? $progress['processed_documents'] ?? 0 );
 			$batch_total = max( absint( $status['batch_size'] ?? 0 ), absint( $progress['total_items'] ?? $progress['total_documents'] ?? 0 ) );
 			$total = max( absint( $status['total'] ?? 0 ), $completed_before + absint( $progress['total_items'] ?? $progress['total_documents'] ?? 0 ) );
@@ -1074,16 +1089,25 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					$status['indexed'] = $committed_before;
 					$status['successful'] = $successful_committed_before;
 					$status['evidence'] = $evidence_committed_before;
+					$status['reused_count'] = max( 0, absint( $status['reused_count'] ?? 0 ) - $batch_reused_count );
+					$status['screened_count'] = max( 0, absint( $status['screened_count'] ?? 0 ) - $batch_screened_count );
 					$status['percent'] = $total > 0 ? min( 100, (int) floor( $status['indexed'] / $total * 100 ) ) : 0;
 					$status['state'] = 'error';
 					$status['error_code'] = 'media_recognition_batch_partial_failure';
 				} else {
+					$status['recognized_count'] = absint( $status['recognized_count'] ?? 0 ) + absint( $progress['successful_items'] ?? $batch_processed );
 					$status['state'] = ! empty( $status['has_more'] ) && $status['indexed'] < $total ? 'partial' : 'complete';
 				}
+				$status['batch_reused_count'] = 0;
+				$status['batch_screened_count'] = 0;
 			} elseif ( $terminal_error ) {
 				$status['indexed'] = $committed_before;
 				$status['successful'] = $successful_committed_before;
 				$status['evidence'] = $evidence_committed_before;
+				$status['reused_count'] = max( 0, absint( $status['reused_count'] ?? 0 ) - $batch_reused_count );
+				$status['screened_count'] = max( 0, absint( $status['screened_count'] ?? 0 ) - $batch_screened_count );
+				$status['batch_reused_count'] = 0;
+				$status['batch_screened_count'] = 0;
 				$status['percent'] = $total > 0 ? min( 100, (int) floor( $status['indexed'] / $total * 100 ) ) : 0;
 				$status['state'] = 'error';
 			} else {
@@ -1114,6 +1138,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					(string) ( $status['error_code'] ?? '' )
 				);
 				$status['terminal_event_recorded'] = true;
+			}
+			if ( in_array( $status['state'], array( 'complete', 'partial', 'error' ), true ) ) {
+				$status['projected_run_id'] = $run_id;
 			}
 			self::set_media_index_status( $status );
 			if ( 'error' === $status['state'] ) {
@@ -2097,9 +2124,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				: self::get_site_knowledge_usage_projection( array() );
 			$show_site_knowledge_retry = in_array( (string) ( $site_knowledge_usage['state'] ?? '' ), array( 'unavailable', 'refreshing' ), true );
 			$media_overview = self::get_media_index_status();
-			$media_overview_total = absint( $media_overview['total'] ?? 0 );
-			$media_overview_processed = absint( $media_overview['indexed'] ?? 0 );
-			$media_overview_percent = $media_overview_total > 0 ? min( 100, (int) floor( $media_overview_processed / $media_overview_total * 100 ) ) : 0;
+			$media_overview_total = absint( $media_overview['eligible_total'] ?? 0 );
+			$media_overview_processed = absint( $media_overview['eligible_processed'] ?? 0 );
+			$media_overview_percent = absint( $media_overview['display_percent'] ?? 0 );
 			$media_overview_state = sanitize_key( (string) ( $media_overview['state'] ?? 'not_started' ) );
 			?>
 			<section class="npcink-cloud-section npcink-cloud-tab-panel">
@@ -2637,13 +2664,16 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				$media_state = 'waiting_next_day';
 			}
 			$media_state_label = $media_state_labels[ $media_state ] ?? $media_state_labels['not_started'];
-			$media_total = absint( $media_status['total'] ?? 0 );
-			$media_processed = absint( $media_status['indexed'] ?? 0 );
-			$media_successful = absint( $media_status['successful'] ?? 0 );
-			$media_skipped = max( 0, $media_total - $media_processed );
-			$media_excluded = self::media_recognition_excluded_count( $media_status );
+			$media_inventory_total = absint( $media_status['inventory_total'] ?? $media_status['total'] ?? 0 );
+			$media_total = absint( $media_status['eligible_total'] ?? 0 );
+			$media_processed = absint( $media_status['eligible_processed'] ?? 0 );
+			$media_excluded = absint( $media_status['excluded_count'] ?? 0 );
+			$media_without_evidence = absint( $media_status['without_evidence_count'] ?? 0 );
+			$media_breakdown_available = ! empty( $media_status['count_breakdown_available'] );
+			$media_recognized = absint( $media_status['recognized_count'] ?? 0 );
+			$media_reused = absint( $media_status['reused_count'] ?? 0 );
 			$media_evidence = absint( $media_status['evidence'] ?? 0 );
-			$media_percent = absint( $media_status['percent'] ?? 0 );
+			$media_percent = absint( $media_status['display_percent'] ?? 0 );
 			$media_rate = max( 0, (float) ( $media_status['items_per_minute'] ?? 0 ) );
 			$media_eta = sanitize_text_field( (string) ( $media_status['eta_at'] ?? '' ) );
 			$media_error = sanitize_text_field( (string) ( $media_status['error'] ?? '' ) );
@@ -2654,13 +2684,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$media_capacity = is_array( $media_entitlement['media_image_capacity'] ?? null ) ? $media_entitlement['media_image_capacity'] : array();
 			$media_active_limit = absint( $media_runtime_quota['max_active_runs'] ?? 0 );
 			$media_batch_limit = absint( $media_runtime_quota['max_batch_items'] ?? 0 );
-			if ( 0 === $media_percent && $media_total > 0 && in_array( $media_state, array( 'complete', 'partial' ), true ) ) {
-				$media_percent = min( 100, (int) round( $media_processed / $media_total * 100 ) );
-			}
-			// The visible progress is always derived from the same cumulative counts.
-			if ( $media_total > 0 ) {
-				$media_percent = min( 100, (int) floor( $media_processed / $media_total * 100 ) );
-			}
 			?>
 					<div class="npcink-cloud-site-knowledge-consent npcink-cloud-site-knowledge-consent--readonly">
 						<div class="npcink-cloud-site-knowledge-consent__control" aria-describedby="npcink-cloud-site-knowledge-delivery-summary npcink-cloud-site-knowledge-delivery-status">
@@ -2746,12 +2769,16 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 											<table class="widefat striped npcink-cloud-site-media-status npcink-cloud-site-media-status--details" aria-label="<?php esc_attr_e( 'Site media recognition details', 'npcink-cloud-addon' ); ?>">
 												<tbody>
 													<tr><th scope="row"><?php esc_html_e( 'Visual evidence', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-evidence><?php echo $media_evidence > 0 || in_array( $media_state, array( 'complete', 'partial' ), true ) ? esc_html( (string) $media_evidence ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
-													<tr><th scope="row"><?php esc_html_e( 'Succeeded / failed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-outcomes><?php echo esc_html( sprintf( '%1$d / %2$d', absint( $media_status['successful'] ?? 0 ), absint( $media_status['failed'] ?? 0 ) ) ); ?></td></tr>
-													<tr><th scope="row"><?php esc_html_e( 'Current speed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-speed><?php echo $media_rate > 0 ? esc_html( sprintf(
+											<tr><th scope="row"><?php esc_html_e( 'Succeeded / failed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-outcomes><?php echo esc_html( sprintf( '%1$d / %2$d', absint( $media_status['successful'] ?? 0 ), absint( $media_status['failed'] ?? 0 ) ) ); ?></td></tr>
+											<tr><th scope="row"><?php esc_html_e( 'Newly recognized / reused', 'npcink-cloud-addon' ); ?></th><td><?php echo $media_breakdown_available ? esc_html( sprintf( '%1$d / %2$d', $media_recognized, $media_reused ) ) : esc_html__( 'Not available for an earlier plan', 'npcink-cloud-addon' ); ?></td></tr>
+											<tr><th scope="row"><?php esc_html_e( 'Excluded locally', 'npcink-cloud-addon' ); ?></th><td><?php echo esc_html( (string) $media_excluded ); ?></td></tr>
+											<tr><th scope="row"><?php esc_html_e( 'Processed without visual evidence', 'npcink-cloud-addon' ); ?></th><td><?php echo esc_html( (string) $media_without_evidence ); ?></td></tr>
+											<tr><th scope="row"><?php esc_html_e( 'Media library inventory', 'npcink-cloud-addon' ); ?></th><td><?php echo esc_html( sprintf( /* translators: %d: image attachment count. */ __( '%d image attachments', 'npcink-cloud-addon' ), $media_inventory_total ) ); ?></td></tr>
+											<tr><th scope="row"><?php esc_html_e( 'Current speed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-speed><?php echo in_array( $media_state, array( 'processing', 'waiting_next_day' ), true ) && $media_rate > 0 ? esc_html( sprintf(
 												/* translators: %s: processed images per minute. */
 												__( '%s images/minute', 'npcink-cloud-addon' ),
 												number_format_i18n( $media_rate, 1 )
-											) ) : esc_html__( 'Estimating', 'npcink-cloud-addon' ); ?></td></tr>
+											) ) : esc_html( in_array( $media_state, array( 'complete', 'partial' ), true ) ? __( 'Not applicable after completion', 'npcink-cloud-addon' ) : __( 'Estimating', 'npcink-cloud-addon' ) ); ?></td></tr>
 													<tr><th scope="row"><?php esc_html_e( 'Estimated batch completion', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-eta><?php echo in_array( $media_state, array( 'complete', 'partial' ), true ) ? esc_html__( 'This batch is complete', 'npcink-cloud-addon' ) : ( '' !== $media_eta ? esc_html( self::format_compact_datetime_value( $media_eta ) ) : ( 'processing' === $media_state ? esc_html__( 'Estimating', 'npcink-cloud-addon' ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ) ) ); ?></td></tr>
 										<tr><th scope="row"><?php esc_html_e( 'Plan', 'npcink-cloud-addon' ); ?></th><td><?php echo '' !== trim( (string) ( $media_entitlement['package_label'] ?? '' ) ) ? esc_html( (string) $media_entitlement['package_label'] ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
 										<tr><th scope="row"><?php esc_html_e( 'Available AI credits', 'npcink-cloud-addon' ); ?></th><td><?php echo isset( $media_credit_summary['remaining'] ) && null !== $media_credit_summary['remaining'] ? esc_html( self::format_entitlement_number( $media_credit_summary['remaining'] ) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
@@ -2777,13 +2804,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php elseif ( 'partial' === $media_state && ! empty( $media_plan['active'] ) ) : ?>
 						<p class="description"><?php esc_html_e( 'More images remain. Background recognition will continue automatically; no further click is needed.', 'npcink-cloud-addon' ); ?></p>
 					<?php elseif ( in_array( $media_state, array( 'complete', 'partial' ), true ) ) : ?>
-						<?php if ( $media_excluded > 0 && 'complete' === $media_state ) : ?>
+						<?php if ( ( $media_excluded > 0 || $media_without_evidence > 0 ) && 'complete' === $media_state ) : ?>
 							<p class="description"><?php echo esc_html( sprintf(
-				/* translators: 1: recognized image count, 2: image count with visual evidence, 3: images not included in recognition. */
-				__( 'Recognized: %1$d images; visual evidence: %2$d; not included: %3$d.', 'npcink-cloud-addon' ),
-								$media_successful,
+		/* translators: 1: eligible image count processed, 2: image count with visual evidence, 3: locally excluded image count, 4: processed images without visual evidence. */
+		__( 'Processed: %1$d eligible images; visual evidence: %2$d; excluded locally: %3$d; without visual evidence: %4$d.', 'npcink-cloud-addon' ),
+								$media_processed,
 								absint( $media_status['evidence'] ?? 0 ),
-								$media_excluded
+								$media_excluded,
+								$media_without_evidence
 							) ); ?></p>
 						<?php else : ?>
 							<p class="description"><?php echo esc_html( sprintf(
@@ -2799,14 +2827,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php elseif ( 'error' === $media_state ) : ?>
 						<p class="description"><?php esc_html_e( 'This batch did not complete. The last confirmed progress is shown above.', 'npcink-cloud-addon' ); ?></p>
 				<?php endif; ?>
-				<?php if ( in_array( $media_state, array( 'complete', 'partial' ), true ) && absint( $media_status['total'] ?? 0 ) > 0 ) : ?>
+				<?php if ( in_array( $media_state, array( 'complete', 'partial' ), true ) && $media_total > 0 ) : ?>
 						<p class="description"><?php echo esc_html( sprintf(
-							/* translators: 1: processed image count, 2: total image count, 3: elapsed seconds, 4: average images per minute. */
-							__( 'Processed %1$d of %2$d images in %3$s seconds (average %4$d images/minute).', 'npcink-cloud-addon' ),
-							absint( $media_status['indexed'] ?? 0 ),
-							absint( $media_status['total'] ?? 0 ),
-							number_format_i18n( (float) ( $media_status['duration_seconds'] ?? 0 ), 1 ),
-							(int) round( absint( $media_status['indexed'] ?? 0 ) / max( 1, (float) ( $media_status['duration_seconds'] ?? 1 ) ) * 60 )
+							/* translators: 1: processed eligible image count, 2: eligible image count, 3: elapsed Cloud processing seconds. */
+							__( 'Processed %1$d of %2$d eligible images. Cloud processing time: %3$s seconds.', 'npcink-cloud-addon' ),
+							$media_processed,
+							$media_total,
+							number_format_i18n( (float) ( $media_status['duration_seconds'] ?? 0 ), 1 )
 						) ); ?></p>
 					<p class="description"><?php echo esc_html( 'partial' === $media_state ? sprintf(
 						/* translators: %d: number of images remaining after this batch. */
@@ -2897,13 +2924,33 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			return 'cloud_runtime_request_failed' === sanitize_key( $error_code );
 		}
 
-		/** Returns inventory items screened out after processing completes. */
-		private static function media_recognition_excluded_count( array $status ): int {
-			$total = absint( $status['total'] ?? 0 );
-			$successful = absint( $status['successful'] ?? 0 );
-			$failed = absint( $status['failed'] ?? 0 );
+		/** Adds stable user-facing counts without changing persisted execution truth. */
+		private static function decorate_media_recognition_display_metrics( array $status ): array {
+			$state = sanitize_key( (string) ( $status['state'] ?? 'not_started' ) );
+			$inventory_total = absint( $status['total'] ?? 0 );
+			$indexed = min( $inventory_total, absint( $status['indexed'] ?? 0 ) );
+			$has_breakdown = 'v1' === sanitize_key( (string) ( $status['count_breakdown_version'] ?? '' ) );
+			$screened = absint( $status['screened_count'] ?? 0 );
+			if ( 'complete' === $state && $inventory_total > $indexed ) {
+				$screened = max( $screened, $inventory_total - $indexed );
+			}
+			$screened = min( $inventory_total, $screened );
+			$eligible_total = max( 0, $inventory_total - $screened );
+			$eligible_processed = max( 0, min( $eligible_total, $indexed - min( $indexed, $screened ) ) );
+			if ( 'complete' === $state ) {
+				$eligible_processed = $eligible_total;
+			}
+			$evidence = min( $eligible_processed, absint( $status['evidence'] ?? 0 ) );
 
-			return max( 0, $total - $successful - $failed );
+			$status['inventory_total'] = $inventory_total;
+			$status['eligible_total'] = $eligible_total;
+			$status['eligible_processed'] = $eligible_processed;
+			$status['excluded_count'] = $screened;
+			$status['without_evidence_count'] = max( 0, $eligible_processed - $evidence - absint( $status['failed'] ?? 0 ) );
+			$status['display_percent'] = $eligible_total > 0 ? min( 100, (int) floor( $eligible_processed / $eligible_total * 100 ) ) : 0;
+			$status['count_breakdown_available'] = $has_breakdown;
+
+			return $status;
 		}
 
 		/** Stops an older active plan that already reached the transport retry limit. */
@@ -3035,15 +3082,15 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private static function get_media_index_status(): array {
 			$status = get_transient( self::MEDIA_STATUS_TRANSIENT );
 			if ( is_array( $status ) ) {
-				return self::localize_media_recognition_status_error( $status );
+				return self::decorate_media_recognition_display_metrics( self::localize_media_recognition_status_error( $status ) );
 			}
 
 			$plan = self::get_media_recognition_plan();
 			if ( empty( $plan['plan_id'] ) ) {
-				return array( 'state' => 'not_started', 'indexed' => 0, 'evidence' => 0 );
+				return self::decorate_media_recognition_display_metrics( array( 'state' => 'not_started', 'indexed' => 0, 'evidence' => 0 ) );
 			}
 
-			return self::localize_media_recognition_status_error( array(
+			return self::decorate_media_recognition_display_metrics( self::localize_media_recognition_status_error( array(
 				'state' => sanitize_key( (string) ( $plan['state'] ?? 'not_started' ) ),
 				'run_id' => sanitize_text_field( (string) ( $plan['current_run_id'] ?? '' ) ),
 				'page' => max( 1, absint( $plan['current_page'] ?? 1 ) ),
@@ -3060,6 +3107,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'failed_before' => absint( $plan['failed_before'] ?? $plan['failed_count'] ?? 0 ),
 				'evidence' => absint( $plan['evidence_count'] ?? 0 ),
 				'evidence_before' => absint( $plan['evidence_before'] ?? $plan['evidence_count'] ?? 0 ),
+				'recognized_count' => absint( $plan['recognized_count'] ?? 0 ),
+				'reused_count' => absint( $plan['reused_count'] ?? 0 ),
+				'screened_count' => absint( $plan['screened_count'] ?? 0 ),
+				'count_breakdown_version' => sanitize_key( (string) ( $plan['count_breakdown_version'] ?? '' ) ),
+				'batch_reused_count' => absint( $plan['batch_reused_count'] ?? 0 ),
+				'batch_screened_count' => absint( $plan['batch_screened_count'] ?? 0 ),
 				'duration_seconds' => max( 0, (float) ( $plan['duration_seconds'] ?? 0 ) ),
 				'duration_before' => max( 0, (float) ( $plan['duration_before'] ?? $plan['duration_seconds'] ?? 0 ) ),
 				'percent' => min( 100, absint( $plan['percent'] ?? 0 ) ),
@@ -3069,8 +3122,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'error_code' => sanitize_key( (string) ( $plan['error_code'] ?? $plan['pause_reason'] ?? '' ) ),
 				'error' => sanitize_text_field( (string) ( $plan['error'] ?? '' ) ),
 				'terminal_event_recorded' => ! empty( $plan['terminal_event_recorded'] ),
+				'projected_run_id' => sanitize_text_field( (string) ( $plan['projected_run_id'] ?? '' ) ),
 				'updated_at' => sanitize_text_field( (string) ( $plan['updated_at'] ?? '' ) ),
-			) );
+			) ) );
 		}
 
 		/** Resolves persisted media error codes in the current request locale. */
@@ -3132,6 +3186,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'successful_count' => 0,
 				'failed_count' => 0,
 				'evidence_count' => 0,
+				'recognized_count' => 0,
+				'reused_count' => 0,
+				'screened_count' => 0,
+				'count_breakdown_version' => 'v1',
 				'duration_seconds' => 0,
 				'percent' => 0,
 				'rescan_attachment_ids' => $attachment_ids,
@@ -3149,6 +3207,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					'failed_before' => 0,
 					'evidence' => 0,
 					'evidence_before' => 0,
+					'recognized_count' => 0,
+					'reused_count' => 0,
+					'screened_count' => 0,
+					'count_breakdown_version' => 'v1',
+					'batch_reused_count' => 0,
+					'batch_screened_count' => 0,
 					'batch_size' => 0,
 					'per_page' => $per_page,
 					'page' => 0,
@@ -3266,6 +3330,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$plan['failed_before'] = absint( $status['failed_before'] ?? $plan['failed_before'] ?? $plan['failed_count'] );
 			$plan['evidence_count'] = absint( $status['evidence'] ?? $plan['evidence_count'] ?? 0 );
 			$plan['evidence_before'] = absint( $status['evidence_before'] ?? $plan['evidence_before'] ?? $plan['evidence_count'] );
+			$plan['recognized_count'] = absint( $status['recognized_count'] ?? $plan['recognized_count'] ?? 0 );
+			$plan['reused_count'] = absint( $status['reused_count'] ?? $plan['reused_count'] ?? 0 );
+			$plan['screened_count'] = absint( $status['screened_count'] ?? $plan['screened_count'] ?? 0 );
+			$plan['count_breakdown_version'] = sanitize_key( (string) ( $status['count_breakdown_version'] ?? $plan['count_breakdown_version'] ?? '' ) );
+			$plan['batch_reused_count'] = absint( $status['batch_reused_count'] ?? $plan['batch_reused_count'] ?? 0 );
+			$plan['batch_screened_count'] = absint( $status['batch_screened_count'] ?? $plan['batch_screened_count'] ?? 0 );
 			$plan['duration_seconds'] = max( 0, (float) ( $status['duration_seconds'] ?? $plan['duration_seconds'] ?? 0 ) );
 			$plan['duration_before'] = max( 0, (float) ( $status['duration_before'] ?? $plan['duration_before'] ?? $plan['duration_seconds'] ) );
 			$plan['percent'] = min( 100, absint( $status['percent'] ?? $plan['percent'] ?? 0 ) );
@@ -3274,6 +3344,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$plan['error_code'] = sanitize_key( (string) ( $status['error_code'] ?? $plan['error_code'] ?? '' ) );
 			$plan['error'] = sanitize_text_field( (string) ( $status['error'] ?? $plan['error'] ?? '' ) );
 			$plan['terminal_event_recorded'] = ! empty( $status['terminal_event_recorded'] );
+			$plan['projected_run_id'] = sanitize_text_field( (string) ( $status['projected_run_id'] ?? $plan['projected_run_id'] ?? '' ) );
 			$plan['updated_at'] = sanitize_text_field( (string) ( $status['updated_at'] ?? $plan['updated_at'] ?? current_time( 'mysql' ) ) );
 			if ( ! empty( $status['next_eligible_at'] ) ) {
 				$plan['next_eligible_at'] = sanitize_text_field( (string) $status['next_eligible_at'] );

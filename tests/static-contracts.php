@@ -1869,7 +1869,9 @@ maca_assert(
 	&& false !== strpos( $admin_site_knowledge_js, "'processing' !== payload.data.state" )
 	&& false !== strpos( $admin_site_knowledge_js, 'action: config.mediaAction' )
 	&& false !== strpos( $admin_site_knowledge_js, 'requestInFlight' )
-	&& false !== strpos( $admin_site_knowledge_js, 'Math.floor( processed / total * 100 )' )
+	&& false !== strpos( $admin_site_knowledge_js, 'status.eligible_processed' )
+	&& false !== strpos( $admin_site_knowledge_js, 'status.eligible_total' )
+	&& false !== strpos( $admin_site_knowledge_js, 'status.display_percent' )
 	&& false !== strpos( $settings_page, 'This batch is complete' )
 	&& false === strpos( $admin_site_knowledge_js, 'npcink_cloud_addon_refresh_site_media_index' ),
 	'Media recognition uses one read-only, non-overlapping status poll and leaves task creation to the explicit administrator action.'

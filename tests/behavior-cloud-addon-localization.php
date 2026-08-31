@@ -145,6 +145,21 @@ maca_assert(
 		'images/minute',
 		'npcink-cloud-addon'
 	)
+	&& '完成后不再适用' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Not applicable after completion',
+		'Not applicable after completion',
+		'npcink-cloud-addon'
+	)
+	&& '套餐' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Plan',
+		'Plan',
+		'npcink-cloud-addon'
+	)
+	&& '%1$d 个并发任务；每批最多 %2$d 张图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'%1$d concurrent task(s); up to %2$d images per batch',
+		'%1$d concurrent task(s); up to %2$d images per batch',
+		'npcink-cloud-addon'
+	)
 	&& '检查新增图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Check for new images',
 		'Check for new images',

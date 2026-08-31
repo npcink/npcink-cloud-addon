@@ -95,15 +95,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			$evidence = absint( $batch['visual_evidence_items'] ?? 0 );
 			$reused = absint( $batch['visual_evidence_reused_items'] ?? 0 );
 			$submitted = absint( $batch['visual_evidence_submitted_items'] ?? 0 );
+			$recognized = absint( $batch['visual_evidence_recognized_items'] ?? 0 );
 			$screened = absint( $batch['screened_items'] ?? 0 );
 			$total = absint( $batch['total'] ?? 0 );
 			$run_id = sanitize_text_field( (string) ( $batch['visual_evidence_run_id'] ?? '' ) );
 			$has_more = ! empty( $batch['has_more'] );
-			if ( '' === $run_id ) {
-				$submitted = $indexed;
-				$reused = 0;
-			}
-
 			$message = '' !== $run_id
 				? sprintf(
 					/* translators: %d: image count in the accepted Cloud batch. */
@@ -125,6 +121,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			$result = self::result( true, 'media_refresh_requested', $message, 'media_refresh', $submitted, $evidence, $has_more ? 1 : 0 );
 			$result['page_count'] = $indexed;
 			$result['reused_count'] = $reused;
+			$result['recognized_count'] = $recognized;
 			$result['screened_count'] = $screened;
 			$result['total'] = $total;
 			$result['duration_seconds'] = round( max( 0, microtime( true ) - $started_at ), 1 );
