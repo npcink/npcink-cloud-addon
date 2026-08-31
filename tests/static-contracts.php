@@ -1215,13 +1215,15 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'Entitlement details' )
 	&& false !== strpos( $settings_page, 'AI credit period' )
 	&& false !== strpos( $settings_page, 'Active run limit' )
-	&& 1 === substr_count( $settings_page, 'Plan image capacity' )
-	&& 1 === substr_count( $settings_page, '%1$s used / %2$s limit / %3$s remaining' )
+	&& 0 === substr_count( $settings_page, 'Plan image capacity' )
+	&& 0 === substr_count( $settings_page, '%1$s used / %2$s limit / %3$s remaining' )
+	&& false !== strpos( $settings_page, 'Available images' )
+	&& false !== strpos( $settings_page, 'npcink-cloud-site-media-progress-head' )
 	&& false === strpos( $settings_page, 'render_credit_usage_summary' )
 	&& false === strpos( $settings_page, '<h3><?php esc_html_e( \'AI Credit Usage\'' )
 	&& false === strpos( $settings_page, "esc_html_e( 'Used credits'" )
 	&& false === strpos( $settings_page, "'recent_items'" ),
-	'Cloud Addon puts common credit and runtime allowance metrics on Overview, keeps one read-only media capacity summary with recognition status, moves low-frequency parameters to service detail, and avoids duplicate summaries.'
+	'Cloud Addon keeps account capacity on Overview, recognition completion on Site Knowledge, and low-frequency parameters in service or recognition detail without duplicate summaries.'
 );
 
 maca_assert(

@@ -2123,11 +2123,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				? self::get_site_knowledge_usage_projection( Npcink_Cloud_Site_Knowledge_Runtime_Bridge::get_cached_status_summary() )
 				: self::get_site_knowledge_usage_projection( array() );
 			$show_site_knowledge_retry = in_array( (string) ( $site_knowledge_usage['state'] ?? '' ), array( 'unavailable', 'refreshing' ), true );
-			$media_overview = self::get_media_index_status();
-			$media_overview_total = absint( $media_overview['eligible_total'] ?? 0 );
-			$media_overview_processed = absint( $media_overview['eligible_processed'] ?? 0 );
-			$media_overview_percent = absint( $media_overview['display_percent'] ?? 0 );
-			$media_overview_state = sanitize_key( (string) ( $media_overview['state'] ?? 'not_started' ) );
+			$media_capacity = is_array( $entitlement['media_image_capacity'] ?? null ) ? $entitlement['media_image_capacity'] : array();
+			$media_capacity_available = ! empty( $media_capacity['available'] );
+			$media_capacity_limit = max( 0, (float) ( $media_capacity['limit'] ?? 0 ) );
+			$media_capacity_remaining = max( 0, (float) ( $media_capacity['remaining'] ?? 0 ) );
+			$media_capacity_unlimited = $media_capacity_available && $media_capacity_limit <= 0;
+			$media_capacity_percent = $media_capacity_available && ! $media_capacity_unlimited
+				? (int) round( min( 100, ( $media_capacity_remaining / $media_capacity_limit ) * 100 ) )
+				: 0;
 			?>
 			<section class="npcink-cloud-section npcink-cloud-tab-panel">
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
@@ -2208,18 +2211,24 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						</td>
 					</tr>
 					<?php endif; ?>
-					<tr data-npcink-site-media-overview>
-						<th scope="row"><?php esc_html_e( 'Site media recognition', 'npcink-cloud-addon' ); ?></th>
+					<tr data-npcink-media-image-capacity>
+						<th scope="row"><?php esc_html_e( 'Available images', 'npcink-cloud-addon' ); ?></th>
 						<td>
 							<div class="npcink-cloud-entitlement-metric">
-								<span class="npcink-cloud-metric-value" data-npcink-site-media-overview-value><?php echo $media_overview_total > 0 || 'complete' === $media_overview_state ? esc_html( sprintf(
-									/* translators: 1: processed image count, 2: total image count. */
-									__( '%1$d / %2$d images', 'npcink-cloud-addon' ),
-									$media_overview_processed,
-									$media_overview_total
-								) ) : esc_html__( 'Not started', 'npcink-cloud-addon' ); ?></span>
-								<span class="npcink-cloud-metric-status" data-npcink-site-media-overview-status><?php echo $media_overview_percent > 0 ? esc_html( $media_overview_percent . '%' ) : ( 'complete' === $media_overview_state ? esc_html__( 'Completed', 'npcink-cloud-addon' ) : '' ); ?></span>
-								<span class="npcink-cloud-segmented-progress npcink-cloud-site-media-overview-progress npcink-cloud-site-media-overview-progress--<?php echo esc_attr( $media_overview_state ); ?>" role="progressbar" aria-label="<?php esc_attr_e( 'Site media recognition completion', 'npcink-cloud-addon' ); ?>" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( (string) $media_overview_percent ); ?>" style="--npcink-cloud-progress: <?php echo esc_attr( (string) $media_overview_percent ); ?>%;"></span>
+								<span class="npcink-cloud-metric-value"><?php echo $media_capacity_unlimited ? esc_html__( 'Unlimited', 'npcink-cloud-addon' ) : ( $media_capacity_available ? esc_html( sprintf(
+									/* translators: 1: remaining image capacity, 2: image capacity limit. */
+									__( '%1$s / %2$s', 'npcink-cloud-addon' ),
+									self::format_entitlement_number( $media_capacity_remaining ),
+									self::format_entitlement_number( $media_capacity_limit )
+								) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ) ); ?></span>
+								<span class="npcink-cloud-metric-status"<?php echo $media_capacity_available && ! $media_capacity_unlimited ? '' : ' hidden'; ?>><?php echo $media_capacity_available && ! $media_capacity_unlimited ? esc_html( sprintf(
+									/* translators: %d: remaining image capacity percentage. */
+									__( '%d%% remaining', 'npcink-cloud-addon' ),
+									$media_capacity_percent
+								) ) : ''; ?></span>
+								<?php if ( $media_capacity_available && ! $media_capacity_unlimited ) : ?>
+									<span class="npcink-cloud-segmented-progress npcink-cloud-entitlement-progress" role="progressbar" aria-label="<?php esc_attr_e( 'Remaining image recognition capacity percentage', 'npcink-cloud-addon' ); ?>" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( (string) $media_capacity_percent ); ?>" style="--npcink-cloud-progress: <?php echo esc_attr( (string) $media_capacity_percent ); ?>%;"></span>
+								<?php endif; ?>
 								<span class="npcink-cloud-metric-actions npcink-cloud-metric-actions--empty" aria-hidden="true"></span>
 							</div>
 						</td>
@@ -2242,7 +2251,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php endif; ?>
 				</tbody>
 				</table>
-				<p class="description"><?php esc_html_e( 'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.', 'npcink-cloud-addon' ); ?></p>
 			</section>
 			<?php self::render_monitoring_consent_prompt( $settings, $is_verified ); ?>
 			<?php self::render_local_permissions( $settings, $is_verified ); ?>
@@ -2682,6 +2690,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$media_credit_detail = is_array( $media_entitlement['ai_credit_usage_detail'] ?? null ) ? $media_entitlement['ai_credit_usage_detail'] : array();
 			$media_credit_summary = is_array( $media_credit_detail['summary'] ?? null ) ? $media_credit_detail['summary'] : array();
 			$media_capacity = is_array( $media_entitlement['media_image_capacity'] ?? null ) ? $media_entitlement['media_image_capacity'] : array();
+			$media_capacity_limit = max( 0, (float) ( $media_capacity['limit'] ?? 0 ) );
+			$media_capacity_remaining = max( 0, (float) ( $media_capacity['remaining'] ?? 0 ) );
+			$media_capacity_remaining_percent = $media_capacity_limit > 0
+				? (int) floor( min( 100, ( $media_capacity_remaining / $media_capacity_limit ) * 100 ) )
+				: 0;
+			$media_capacity_near_limit = ! empty( $media_capacity['available'] )
+				&& $media_capacity_remaining > 0
+				&& $media_capacity_remaining_percent <= 20;
 			$media_active_limit = absint( $media_runtime_quota['max_active_runs'] ?? 0 );
 			$media_batch_limit = absint( $media_runtime_quota['max_batch_items'] ?? 0 );
 			?>
@@ -2735,120 +2751,89 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<?php endif; ?>
 						</div>
 						</section>
-						<section class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-media-index-title">
+						<section class="npcink-cloud-site-knowledge-summary npcink-cloud-site-media-summary" aria-labelledby="npcink-cloud-site-media-index-title">
 							<div class="npcink-cloud-site-knowledge-summary__heading">
-								<h3 id="npcink-cloud-site-media-index-title"><?php esc_html_e( 'Site media recognition', 'npcink-cloud-addon' ); ?></h3>
-								<p class="npcink-cloud-site-knowledge-summary__result" data-npcink-site-media-state-label><?php echo esc_html( $media_state_label ); ?></p>
-								<table class="widefat striped npcink-cloud-site-media-status" aria-label="<?php esc_attr_e( 'Site media recognition status', 'npcink-cloud-addon' ); ?>" data-npcink-site-media-status data-state="<?php echo esc_attr( $media_state ); ?>">
-									<tbody>
-										<tr><th scope="row"><?php esc_html_e( 'Images', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-images><?php echo $media_total > 0 || 'complete' === $media_state ? esc_html( sprintf(
-												/* translators: 1: processed image count, 2: total image count. */
-												__( '%1$d of %2$d', 'npcink-cloud-addon' ),
-												$media_processed,
-												$media_total
-											) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
-											<tr><th scope="row"><?php esc_html_e( 'Plan image capacity', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-capacity><?php echo ! empty( $media_capacity['available'] ) ? esc_html( sprintf(
-												/* translators: 1: used image capacity, 2: image capacity limit, 3: remaining image capacity. */
-												__( '%1$s used / %2$s limit / %3$s remaining', 'npcink-cloud-addon' ),
-												self::format_entitlement_number( $media_capacity['used'] ?? 0 ),
-												self::format_entitlement_number( $media_capacity['limit'] ?? 0 ),
-												self::format_entitlement_number( $media_capacity['remaining'] ?? 0 )
-											) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
-											<tr><th scope="row"><?php esc_html_e( 'Progress', 'npcink-cloud-addon' ); ?></th><td>
-												<?php if ( 'error' === $media_state && 0 === $media_total ) : ?>
-													<span data-npcink-site-media-progress-label><?php esc_html_e( 'Waiting to retry', 'npcink-cloud-addon' ); ?></span>
-												<?php else : ?>
-														<span class="npcink-cloud-segmented-progress npcink-cloud-site-media-progress<?php echo 'processing' === $media_state && 0 === $media_percent ? ' npcink-cloud-progress--indeterminate' : ''; ?>" data-npcink-site-media-progress role="progressbar" aria-label="<?php esc_attr_e( 'Site media recognition completion', 'npcink-cloud-addon' ); ?>" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( (string) $media_percent ); ?>" style="--npcink-cloud-progress: <?php echo esc_attr( (string) $media_percent ); ?>%;"></span>
-												<span data-npcink-site-media-progress-label><?php echo $media_percent > 0 ? esc_html( $media_percent . '%' ) : ( 'complete' === $media_state ? esc_html__( 'Completed', 'npcink-cloud-addon' ) : ( 'processing' === $media_state ? esc_html__( 'Processing', 'npcink-cloud-addon' ) : esc_html__( 'Not started', 'npcink-cloud-addon' ) ) ); ?></span>
-												<?php endif; ?>
-											</td></tr>
-										</tbody>
-										</table>
-										<details class="npcink-cloud-site-media-details">
-											<summary><?php esc_html_e( 'View recognition details', 'npcink-cloud-addon' ); ?></summary>
-											<table class="widefat striped npcink-cloud-site-media-status npcink-cloud-site-media-status--details" aria-label="<?php esc_attr_e( 'Site media recognition details', 'npcink-cloud-addon' ); ?>">
-												<tbody>
-													<tr><th scope="row"><?php esc_html_e( 'Visual evidence', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-evidence><?php echo $media_evidence > 0 || in_array( $media_state, array( 'complete', 'partial' ), true ) ? esc_html( (string) $media_evidence ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
-											<tr><th scope="row"><?php esc_html_e( 'Succeeded / failed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-outcomes><?php echo esc_html( sprintf( '%1$d / %2$d', absint( $media_status['successful'] ?? 0 ), absint( $media_status['failed'] ?? 0 ) ) ); ?></td></tr>
-											<tr><th scope="row"><?php esc_html_e( 'Newly recognized / reused', 'npcink-cloud-addon' ); ?></th><td><?php echo $media_breakdown_available ? esc_html( sprintf( '%1$d / %2$d', $media_recognized, $media_reused ) ) : esc_html__( 'Not available for an earlier plan', 'npcink-cloud-addon' ); ?></td></tr>
-											<tr><th scope="row"><?php esc_html_e( 'Excluded locally', 'npcink-cloud-addon' ); ?></th><td><?php echo esc_html( (string) $media_excluded ); ?></td></tr>
-											<tr><th scope="row"><?php esc_html_e( 'Processed without visual evidence', 'npcink-cloud-addon' ); ?></th><td><?php echo esc_html( (string) $media_without_evidence ); ?></td></tr>
-											<tr><th scope="row"><?php esc_html_e( 'Media library inventory', 'npcink-cloud-addon' ); ?></th><td><?php echo esc_html( sprintf( /* translators: %d: image attachment count. */ __( '%d image attachments', 'npcink-cloud-addon' ), $media_inventory_total ) ); ?></td></tr>
-											<tr><th scope="row"><?php esc_html_e( 'Current speed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-speed><?php echo in_array( $media_state, array( 'processing', 'waiting_next_day' ), true ) && $media_rate > 0 ? esc_html( sprintf(
-												/* translators: %s: processed images per minute. */
-												__( '%s images/minute', 'npcink-cloud-addon' ),
-												number_format_i18n( $media_rate, 1 )
-											) ) : esc_html( in_array( $media_state, array( 'complete', 'partial' ), true ) ? __( 'Not applicable after completion', 'npcink-cloud-addon' ) : __( 'Estimating', 'npcink-cloud-addon' ) ); ?></td></tr>
-													<tr><th scope="row"><?php esc_html_e( 'Estimated batch completion', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-eta><?php echo in_array( $media_state, array( 'complete', 'partial' ), true ) ? esc_html__( 'This batch is complete', 'npcink-cloud-addon' ) : ( '' !== $media_eta ? esc_html( self::format_compact_datetime_value( $media_eta ) ) : ( 'processing' === $media_state ? esc_html__( 'Estimating', 'npcink-cloud-addon' ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ) ) ); ?></td></tr>
-										<tr><th scope="row"><?php esc_html_e( 'Plan', 'npcink-cloud-addon' ); ?></th><td><?php echo '' !== trim( (string) ( $media_entitlement['package_label'] ?? '' ) ) ? esc_html( (string) $media_entitlement['package_label'] ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
-										<tr><th scope="row"><?php esc_html_e( 'Available AI credits', 'npcink-cloud-addon' ); ?></th><td><?php echo isset( $media_credit_summary['remaining'] ) && null !== $media_credit_summary['remaining'] ? esc_html( self::format_entitlement_number( $media_credit_summary['remaining'] ) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
-											<tr><th scope="row"><?php esc_html_e( 'Runtime limits', 'npcink-cloud-addon' ); ?></th><td><?php echo $media_active_limit > 0 && $media_batch_limit > 0 ? esc_html( sprintf(
-												/* translators: 1: concurrent Cloud task limit, 2: image limit per batch. */
-												__( '%1$d concurrent task(s); up to %2$d images per batch', 'npcink-cloud-addon' ),
-												$media_active_limit,
-												$media_batch_limit
-											) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
-												</tbody>
-											</table>
-										</details>
-								<p class="description npcink-cloud-site-knowledge-summary__result--warning" role="status" data-npcink-site-media-poll-error hidden></p>
-								<p class="description"><?php esc_html_e( 'Recognize local images so the editor can find them by meaning. Existing media and WordPress content are not changed.', 'npcink-cloud-addon' ); ?></p>
-					<?php if ( 'waiting_next_day' === $media_state ) : ?>
-						<p class="description"><?php esc_html_e( 'Recognition will continue automatically during the next eligible processing window.', 'npcink-cloud-addon' ); ?></p>
+								<div class="npcink-cloud-site-media-heading">
+									<h3 id="npcink-cloud-site-media-index-title"><?php esc_html_e( 'Site media recognition', 'npcink-cloud-addon' ); ?></h3>
+									<span class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( in_array( $media_state, array( 'complete', 'partial' ), true ) ? 'ok' : ( 'error' === $media_state ? 'error' : 'pending' ) ); ?>" data-npcink-site-media-state-label><?php echo esc_html( $media_state_label ); ?></span>
+								</div>
+								<div class="npcink-cloud-site-media-status" aria-label="<?php esc_attr_e( 'Site media recognition status', 'npcink-cloud-addon' ); ?>" data-npcink-site-media-status data-state="<?php echo esc_attr( $media_state ); ?>">
+									<div class="npcink-cloud-site-media-progress-head">
+										<strong data-npcink-site-media-images><?php echo $media_total > 0 || 'complete' === $media_state ? esc_html( sprintf(
+											/* translators: 1: processed image count, 2: total image count. */
+											__( '%1$d / %2$d images', 'npcink-cloud-addon' ),
+											$media_processed,
+											$media_total
+										) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></strong>
+										<span data-npcink-site-media-progress-label><?php echo 'error' === $media_state && 0 === $media_total ? esc_html__( 'Waiting to retry', 'npcink-cloud-addon' ) : ( $media_percent > 0 ? esc_html( $media_percent . '%' ) : ( 'complete' === $media_state ? esc_html__( 'Completed', 'npcink-cloud-addon' ) : ( 'processing' === $media_state ? esc_html__( 'Processing', 'npcink-cloud-addon' ) : esc_html__( 'Not started', 'npcink-cloud-addon' ) ) ) ); ?></span>
+									</div>
+									<?php if ( ! ( 'error' === $media_state && 0 === $media_total ) ) : ?>
+										<span class="npcink-cloud-segmented-progress npcink-cloud-site-media-progress<?php echo 'processing' === $media_state && 0 === $media_percent ? ' npcink-cloud-progress--indeterminate' : ''; ?>" data-npcink-site-media-progress role="progressbar" aria-label="<?php esc_attr_e( 'Site media recognition completion', 'npcink-cloud-addon' ); ?>" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( (string) $media_percent ); ?>" style="--npcink-cloud-progress: <?php echo esc_attr( (string) $media_percent ); ?>%;"></span>
+									<?php endif; ?>
+								</div>
+									<p class="description npcink-cloud-site-knowledge-summary__result--warning" role="status" data-npcink-site-media-poll-error hidden></p>
+					<?php if ( in_array( (string) ( $media_plan['state'] ?? '' ), array( 'paused', 'error' ), true ) && '' !== $media_error ) : ?>
+						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( $media_error ); ?></p>
 					<?php elseif ( ! empty( $media_capacity['available'] ) && 'limited' === (string) ( $media_capacity['status'] ?? '' ) ) : ?>
 						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php esc_html_e( 'Your plan image capacity is full. Existing recognized images can still be refreshed, but new images require available capacity.', 'npcink-cloud-addon' ); ?></p>
-					<?php elseif ( in_array( (string) ( $media_plan['state'] ?? '' ), array( 'paused', 'error' ), true ) && '' !== $media_error ) : ?>
-						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( $media_error ); ?></p>
+					<?php elseif ( 'waiting_next_day' === $media_state ) : ?>
+						<p class="description npcink-cloud-site-media-result"><?php esc_html_e( 'Recognition will continue automatically during the next eligible processing window.', 'npcink-cloud-addon' ); ?></p>
 					<?php elseif ( 'partial' === $media_state && empty( $media_plan['active'] ) ) : ?>
 						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php esc_html_e( 'An earlier batch is complete, but automatic continuation has not been started. Click Continue once to start the background plan; no further clicks are needed after that.', 'npcink-cloud-addon' ); ?></p>
 					<?php elseif ( 'partial' === $media_state && ! empty( $media_plan['active'] ) ) : ?>
-						<p class="description"><?php esc_html_e( 'More images remain. Background recognition will continue automatically; no further click is needed.', 'npcink-cloud-addon' ); ?></p>
+						<p class="description npcink-cloud-site-media-result"><?php esc_html_e( 'More images remain. Background recognition will continue automatically; no further click is needed.', 'npcink-cloud-addon' ); ?></p>
 					<?php elseif ( in_array( $media_state, array( 'complete', 'partial' ), true ) ) : ?>
-						<?php if ( ( $media_excluded > 0 || $media_without_evidence > 0 ) && 'complete' === $media_state ) : ?>
-							<p class="description"><?php echo esc_html( sprintf(
-		/* translators: 1: eligible image count processed, 2: image count with visual evidence, 3: locally excluded image count, 4: processed images without visual evidence. */
-		__( 'Processed: %1$d eligible images; visual evidence: %2$d; excluded locally: %3$d; without visual evidence: %4$d.', 'npcink-cloud-addon' ),
-								$media_processed,
-								absint( $media_status['evidence'] ?? 0 ),
-								$media_excluded,
-								$media_without_evidence
-							) ); ?></p>
-						<?php else : ?>
-							<p class="description"><?php echo esc_html( sprintf(
-								/* translators: 1: recognized image count, 2: image count with visual evidence. */
-								__( 'Recognized: %1$d images; visual evidence: %2$d.', 'npcink-cloud-addon' ),
-								absint( $media_status['indexed'] ?? 0 ),
-								absint( $media_status['evidence'] ?? 0 )
-							) ); ?></p>
-						<?php endif; ?>
-				<?php elseif ( 'processing' === $media_state ) : ?>
-					<p class="description"><?php esc_html_e( 'Statistics will update when recognition finishes.', 'npcink-cloud-addon' ); ?></p>
-					<p class="description"><?php esc_html_e( 'Estimated completion time will appear after Cloud starts processing.', 'npcink-cloud-addon' ); ?></p>
-					<?php elseif ( 'error' === $media_state ) : ?>
-						<p class="description"><?php esc_html_e( 'This batch did not complete. The last confirmed progress is shown above.', 'npcink-cloud-addon' ); ?></p>
-				<?php endif; ?>
-				<?php if ( in_array( $media_state, array( 'complete', 'partial' ), true ) && $media_total > 0 ) : ?>
-						<p class="description"><?php echo esc_html( sprintf(
-							/* translators: 1: processed eligible image count, 2: eligible image count, 3: elapsed Cloud processing seconds. */
-							__( 'Processed %1$d of %2$d eligible images. Cloud processing time: %3$s seconds.', 'npcink-cloud-addon' ),
+						<p class="description npcink-cloud-site-media-result"><?php echo esc_html( sprintf(
+							/* translators: 1: eligible image count processed, 2: image count with visual evidence, 3: locally excluded image count, 4: processed images without visual evidence. */
+							__( 'Processed: %1$d eligible images; visual evidence: %2$d; excluded locally: %3$d; without visual evidence: %4$d.', 'npcink-cloud-addon' ),
 							$media_processed,
-							$media_total,
-							number_format_i18n( (float) ( $media_status['duration_seconds'] ?? 0 ), 1 )
+							$media_evidence,
+							$media_excluded,
+							$media_without_evidence
 						) ); ?></p>
-					<p class="description"><?php echo esc_html( 'partial' === $media_state ? sprintf(
-						/* translators: %d: number of images remaining after this batch. */
-						__( 'This batch is complete. %d images remain.', 'npcink-cloud-addon' ),
-						max( 0, $media_total - $media_processed )
-					) : ( $media_excluded > 0 ? sprintf(
-						/* translators: %d: number of images not included in recognition. */
-						__( 'Recognition finished. %d images were not included because they did not meet the current image requirements.', 'npcink-cloud-addon' ),
-						$media_excluded
-					) : __( 'All images have been recognized.', 'npcink-cloud-addon' ) ) ); ?></p>
-				<?php endif; ?>
+					<?php elseif ( 'processing' === $media_state ) : ?>
+						<p class="description npcink-cloud-site-media-result"><?php esc_html_e( 'The current batch is running. Remaining images will continue automatically.', 'npcink-cloud-addon' ); ?></p>
+					<?php elseif ( 'error' === $media_state ) : ?>
+						<p class="description npcink-cloud-site-media-result"><?php esc_html_e( 'This batch did not complete. The last confirmed progress is shown above.', 'npcink-cloud-addon' ); ?></p>
+					<?php endif; ?>
+					<?php if ( $media_capacity_near_limit ) : ?>
+						<p class="description npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( sprintf(
+							/* translators: %s: remaining image capacity. */
+							__( 'Your plan has %s image recognition slots remaining.', 'npcink-cloud-addon' ),
+							self::format_entitlement_number( $media_capacity_remaining )
+						) ); ?></p>
+					<?php endif; ?>
 								<?php if ( empty( $media_plan['active'] ) ) : ?>
 									<?php self::render_site_media_index_refresh_form( $media_state ); ?>
 								<?php endif; ?>
 								<?php self::render_site_media_status_refresh_form(); ?>
+									<details class="npcink-cloud-site-media-details">
+										<summary><?php esc_html_e( 'View recognition details', 'npcink-cloud-addon' ); ?></summary>
+										<table class="widefat striped npcink-cloud-site-media-status npcink-cloud-site-media-status--details" aria-label="<?php esc_attr_e( 'Site media recognition details', 'npcink-cloud-addon' ); ?>">
+											<tbody>
+												<tr><th scope="row"><?php esc_html_e( 'Visual evidence', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-evidence><?php echo $media_evidence > 0 || in_array( $media_state, array( 'complete', 'partial' ), true ) ? esc_html( (string) $media_evidence ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Succeeded / failed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-outcomes><?php echo esc_html( sprintf( '%1$d / %2$d', absint( $media_status['successful'] ?? 0 ), absint( $media_status['failed'] ?? 0 ) ) ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Newly recognized / reused', 'npcink-cloud-addon' ); ?></th><td><?php echo $media_breakdown_available ? esc_html( sprintf( '%1$d / %2$d', $media_recognized, $media_reused ) ) : esc_html__( 'Not available for an earlier plan', 'npcink-cloud-addon' ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Excluded locally', 'npcink-cloud-addon' ); ?></th><td><?php echo esc_html( (string) $media_excluded ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Processed without visual evidence', 'npcink-cloud-addon' ); ?></th><td><?php echo esc_html( (string) $media_without_evidence ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Media library inventory', 'npcink-cloud-addon' ); ?></th><td><?php echo esc_html( sprintf( /* translators: %d: image attachment count. */ __( '%d image attachments', 'npcink-cloud-addon' ), $media_inventory_total ) ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Current speed', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-speed><?php echo in_array( $media_state, array( 'processing', 'waiting_next_day' ), true ) && $media_rate > 0 ? esc_html( sprintf(
+													/* translators: %s: processed images per minute. */
+													__( '%s images/minute', 'npcink-cloud-addon' ),
+													number_format_i18n( $media_rate, 1 )
+												) ) : esc_html( in_array( $media_state, array( 'complete', 'partial' ), true ) ? __( 'Not applicable after completion', 'npcink-cloud-addon' ) : __( 'Estimating', 'npcink-cloud-addon' ) ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Estimated batch completion', 'npcink-cloud-addon' ); ?></th><td data-npcink-site-media-eta><?php echo in_array( $media_state, array( 'complete', 'partial' ), true ) ? esc_html__( 'This batch is complete', 'npcink-cloud-addon' ) : ( '' !== $media_eta ? esc_html( self::format_compact_datetime_value( $media_eta ) ) : ( 'processing' === $media_state ? esc_html__( 'Estimating', 'npcink-cloud-addon' ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ) ) ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Plan', 'npcink-cloud-addon' ); ?></th><td><?php echo '' !== trim( (string) ( $media_entitlement['package_label'] ?? '' ) ) ? esc_html( (string) $media_entitlement['package_label'] ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Available AI credits', 'npcink-cloud-addon' ); ?></th><td><?php echo isset( $media_credit_summary['remaining'] ) && null !== $media_credit_summary['remaining'] ? esc_html( self::format_entitlement_number( $media_credit_summary['remaining'] ) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+												<tr><th scope="row"><?php esc_html_e( 'Runtime limits', 'npcink-cloud-addon' ); ?></th><td><?php echo $media_active_limit > 0 && $media_batch_limit > 0 ? esc_html( sprintf(
+													/* translators: 1: concurrent Cloud task limit, 2: image limit per batch. */
+													__( '%1$d concurrent task(s); up to %2$d images per batch', 'npcink-cloud-addon' ),
+													$media_active_limit,
+													$media_batch_limit
+												) ) : esc_html__( 'Not available yet', 'npcink-cloud-addon' ); ?></td></tr>
+											</tbody>
+										</table>
+									</details>
 							</div>
 						</section>
 						<div class="npcink-cloud-site-knowledge-links">
@@ -2899,7 +2884,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<?php wp_nonce_field( self::ACTION_REFRESH_SITE_MEDIA_INDEX ); ?>
 					<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_REFRESH_SITE_MEDIA_INDEX ); ?>" />
-					<button type="submit" class="button button-secondary" <?php disabled( $disabled ); ?>><?php echo esc_html( $label ); ?></button>
+					<button type="submit" class="button button-primary" <?php disabled( $disabled ); ?>><?php echo esc_html( $label ); ?></button>
 				</form>
 			</div>
 			<?php
@@ -3645,6 +3630,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					</tbody>
 				</table>
 			<?php endif; ?>
+			<p class="description"><?php esc_html_e( 'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.', 'npcink-cloud-addon' ); ?></p>
 			<?php
 		}
 

@@ -161,9 +161,6 @@
 	const speed = document.querySelector( '[data-npcink-site-media-speed]' );
 	const eta = document.querySelector( '[data-npcink-site-media-eta]' );
 	const stateLabel = document.querySelector( '[data-npcink-site-media-state-label]' );
-	const overviewValue = document.querySelector( '[data-npcink-site-media-overview-value]' );
-	const overviewStatus = document.querySelector( '[data-npcink-site-media-overview-status]' );
-	const overviewProgress = document.querySelector( '[data-npcink-site-media-overview-progress]' );
 	const pollError = document.querySelector( '[data-npcink-site-media-poll-error]' );
 	const pollInterval = Math.max( 5000, Number( config.mediaPollInterval ) || 10000 );
 	let requestInFlight = false;
@@ -191,7 +188,7 @@
 
 		table.dataset.state = status.state || 'processing';
 		if ( images && total > 0 ) {
-			images.textContent = processed + ' / ' + total;
+			images.textContent = processed + ' / ' + total + ' ' + ( config.imagesLabel || 'images' );
 		}
 		if ( progress ) {
 			if ( percent > 0 ) {
@@ -223,16 +220,6 @@
 		}
 		if ( stateLabel ) {
 			stateLabel.textContent = config.processingLabel || stateLabel.textContent;
-		}
-		if ( overviewValue && total > 0 ) {
-			overviewValue.textContent = processed + ' / ' + total + ' ' + ( config.imagesLabel || 'images' );
-		}
-		if ( overviewStatus ) {
-			overviewStatus.textContent = total > 0 ? percent + '%' : '';
-		}
-		if ( overviewProgress ) {
-			overviewProgress.style.setProperty( '--npcink-cloud-progress', percent + '%' );
-			overviewProgress.setAttribute( 'aria-valuenow', String( percent ) );
 		}
 	};
 
