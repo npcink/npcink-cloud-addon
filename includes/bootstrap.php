@@ -413,6 +413,29 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_site_ops_cloud_analy
 	}
 }
 
+if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_media_governance_audit_runtime' ) ) {
+	/**
+	 * Executes a bounded metadata-only media governance audit.
+	 *
+	 * @param array<string,mixed> $request Exact audit request.
+	 * @param string              $trace_id Optional trace id.
+	 * @param string              $idempotency_key Optional idempotency key.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	function npcink_cloud_addon_execute_toolbox_media_governance_audit_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
+		if ( ! $client ) {
+			return new WP_Error(
+				'cloud_runtime_unconfigured',
+				__( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		return $client->execute_toolbox_media_governance_audit_runtime( $request, $trace_id, $idempotency_key );
+	}
+}
+
 if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_web_search_runtime' ) ) {
 	/**
 	 * Executes a bounded Toolbox managed web search runtime request.

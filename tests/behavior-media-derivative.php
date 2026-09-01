@@ -74,6 +74,85 @@ function maca_cloud_run_result_response( array $artifact ): array {
 }
 
 /**
+ * Returns one exact media governance canary run-result response.
+ *
+ * @param string              $status Canary result status.
+ * @param array<string,mixed> $artifact Qualified derivative artifact.
+ * @param array<int,string>   $reasons Skip reasons.
+ * @return array<string,mixed>
+ */
+function maca_governance_canary_run_result_response( string $status, array $artifact = array(), array $reasons = array() ): array {
+	$source_sha256 = str_repeat( 'a', 64 );
+	$source_bytes = 1000000;
+	$output_bytes = 'ready' === $status ? (int) ( $artifact['filesize_bytes'] ?? 700000 ) : 900000;
+	$savings_bytes = max( 0, $source_bytes - $output_bytes );
+	$qualified = 'ready' === $status;
+	$derivative = null;
+	if ( $qualified ) {
+		$derivative = array(
+			'artifact_type'    => 'media_derivative_artifact',
+			'contract_version' => 'media_derivative_result.v1',
+			'workflow_metadata' => array( 'operation' => 'image.transform.v1' ),
+			'artifact'         => $artifact,
+		);
+	}
+
+	return array(
+		'response' => array( 'code' => 200 ),
+		'headers'  => array( 'Content-Type' => 'application/json' ),
+		'body'     => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data'   => array(
+					'run_id'     => 'run_media_governance_1',
+					'status'     => 'succeeded',
+					'job_type'   => 'generate_optimized_media_derivative',
+					'created_at' => '2026-08-31T00:00:00+00:00',
+					'updated_at' => '2026-08-31T00:00:01+00:00',
+					'result'     => array(
+						'contract_version'      => 'media_governance_canary_result.v1',
+						'artifact_type'         => 'media_governance_canary_preview',
+						'status'                => $status,
+						'candidate'             => array(
+							'candidate_id'      => 'mgc_0123456789abcdef01234567',
+							'snapshot_id'       => 'scan_20260831',
+							'source_sha256'     => 'sha256:' . $source_sha256,
+							'evidence_revision' => 'refs_20260831',
+						),
+						'source'                => array(
+							'artifact_id'    => 'art_' . str_repeat( '1', 32 ),
+							'format'         => 'jpeg',
+							'mime_type'      => 'image/jpeg',
+							'width'          => 800,
+							'height'         => 600,
+							'filesize_bytes' => $source_bytes,
+							'checksum'       => 'sha256:' . $source_sha256,
+						),
+						'validation'            => array(
+							'source_checksum_matches'      => true,
+							'dimensions_unchanged'         => true,
+							'output_smaller'               => true,
+							'source_bytes'                 => $source_bytes,
+							'output_bytes'                 => $output_bytes,
+							'savings_bytes'                => $savings_bytes,
+							'savings_basis_points'         => intdiv( $savings_bytes * 10000, $source_bytes ),
+							'minimum_savings_basis_points' => 1500,
+							'qualified'                    => $qualified,
+							'reasons'                      => $reasons,
+						),
+						'derivative'            => $derivative,
+						'preview_only'          => true,
+						'retain_originals'      => true,
+						'write_posture'         => $qualified ? 'artifact_only' : 'no_artifact',
+						'direct_wordpress_write' => false,
+					),
+				),
+			)
+		),
+	);
+}
+
+/**
  * Returns one exact raw status HTTP response without a result field.
  *
  * @param string              $run_id Run id.
@@ -311,6 +390,94 @@ maca_assert(
 	&& ! isset( $job_body['source'], $job_body['cloud_job_payload'], $job_body['ttl_minutes'] ),
 	'Behavior: exact11 available image upload and artifact-referenced media job use the exact new resources.'
 );
+
+$governance_ability = maca_ability_fixture();
+$governance_ability['cloud_job_payload']['governance'] = array(
+	'contract_version'               => 'media_governance_canary.v1',
+	'candidate_id'                   => 'mgc_0123456789abcdef01234567',
+	'snapshot_id'                    => 'scan_20260831',
+	'source_sha256'                  => 'sha256:' . str_repeat( 'a', 64 ),
+	'evidence_revision'              => 'refs_20260831',
+	'minimum_savings_basis_points'   => 1500,
+	'require_dimensions_unchanged'   => true,
+	'skip_if_not_beneficial'         => true,
+	'retain_originals'               => true,
+);
+$governance_ability['cloud_job_payload']['batch_context'] = array(
+	'batch_id'   => 'media-governance-canary',
+	'item_index' => 1,
+	'item_count' => 10,
+	'chunk_size' => 10,
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'headers'  => array( 'Content-Type' => 'application/json' ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array(
+				'run_id'            => 'run_media_governance_dispatch',
+				'status'            => 'queued',
+				'trace_id'          => 'trace-governance-dispatch',
+				'idempotent_replay' => false,
+				'result'            => array(),
+			),
+		)
+	),
+);
+$governance_dispatch = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+	$governance_ability,
+	array(
+		'artifact_id' => 'art_' . str_repeat( '1', 32 ),
+		'expires_at'  => maca_future_expiry(),
+	),
+	'trace-governance-dispatch',
+	'governance-dispatch'
+);
+$governance_job_request = $GLOBALS['maca_http_requests'][0] ?? array();
+$governance_job_body = json_decode( (string) ( $governance_job_request['args']['body'] ?? '' ), true );
+maca_assert(
+	is_array( $governance_dispatch )
+	&& 1 === count( $GLOBALS['maca_http_requests'] )
+	&& array( 'request_contract_version', 'operation', 'source_artifact_id', 'params', 'batch_context', 'governance', 'result_ttl_minutes' ) === array_keys( $governance_job_body )
+	&& 'webp' === ( $governance_job_body['params']['target_format'] ?? null )
+	&& 'preserve' === ( $governance_job_body['params']['resize_mode'] ?? null )
+	&& 10 === ( $governance_job_body['batch_context']['item_count'] ?? null )
+	&& 1500 === ( $governance_job_body['governance']['minimum_savings_basis_points'] ?? null )
+	&& ! isset( $governance_job_body['params']['crop'], $governance_job_body['params']['watermark'], $governance_job_body['watermark_artifact_id'] ),
+	'Behavior: governance canary dispatch adds only the strict preserve-WebP batch and evidence extensions.'
+);
+
+foreach ( array( 'item_count', 'crop', 'watermark', 'format', 'unknown_governance_field' ) as $invalid_governance_case ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$invalid_governance_ability = $governance_ability;
+	if ( 'item_count' === $invalid_governance_case ) {
+		$invalid_governance_ability['cloud_job_payload']['batch_context']['item_count'] = 11;
+	} elseif ( 'crop' === $invalid_governance_case ) {
+		$invalid_governance_ability['cloud_job_payload']['crop'] = array( 'aspect_ratio' => '1:1' );
+	} elseif ( 'watermark' === $invalid_governance_case ) {
+		$invalid_governance_ability['cloud_job_payload']['watermark'] = array( 'type' => 'text', 'text' => 'preview' );
+	} elseif ( 'format' === $invalid_governance_case ) {
+		$invalid_governance_ability['cloud_job_payload']['target_format'] = 'jpeg';
+	} else {
+		$invalid_governance_ability['cloud_job_payload']['governance']['unknown'] = true;
+	}
+	$invalid_governance_dispatch = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+		$invalid_governance_ability,
+		array(
+			'artifact_id' => 'art_' . str_repeat( '1', 32 ),
+			'expires_at'  => maca_future_expiry(),
+		)
+	);
+	maca_assert(
+		is_wp_error( $invalid_governance_dispatch ) && array() === $GLOBALS['maca_http_requests'],
+		'Behavior: invalid governance canary ' . $invalid_governance_case . ' fails before Cloud transport.'
+	);
+}
 
 $legacy_upload_descriptor_cases = array(
 	'file_path' => array(
@@ -671,6 +838,83 @@ maca_assert(
 	&& 'local_wordpress_host' === ( $proposal['final_write_owner'] ?? null ),
 	'Behavior: exact Addon projection builds an exact 11-field local proposal artifact without Cloud-only fields.'
 );
+
+$canary_cloud_artifact = maca_cloud_derivative_artifact(
+	'art_' . str_repeat( 'c', 32 ),
+	str_repeat( 'w', 700000 ),
+	maca_future_expiry()
+);
+$canary_cloud_artifact['suggested_filename'] = 'media-governance-canary.webp';
+$canary_cloud_artifact['mime_type'] = 'image/webp';
+$canary_cloud_artifact['format'] = 'webp';
+$canary_cloud_artifact['width'] = 800;
+$canary_cloud_artifact['height'] = 600;
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = maca_governance_canary_run_result_response( 'ready', $canary_cloud_artifact );
+$ready_canary_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_governance_1', 'trace-governance-ready' );
+$ready_canary_proposal = is_array( $ready_canary_result )
+	? Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
+		maca_ability_fixture(),
+		$ready_canary_result,
+		$ready_canary_result['artifact']
+	)
+	: $ready_canary_result;
+maca_assert(
+	is_array( $ready_canary_result )
+	&& array( 'run_id', 'status', 'job_type', 'created_at', 'updated_at', 'artifact', 'warnings', 'error', 'governance_canary' ) === array_keys( $ready_canary_result )
+	&& 'ready' === ( $ready_canary_result['governance_canary']['status'] ?? null )
+	&& true === ( $ready_canary_result['governance_canary']['validation']['qualified'] ?? null )
+	&& $canary_cloud_artifact === ( $ready_canary_result['artifact'] ?? null )
+	&& is_array( $ready_canary_proposal )
+	&& 'local_wordpress_host' === ( $ready_canary_proposal['final_write_owner'] ?? null )
+	&& true === ( $ready_canary_proposal['approval_required'] ?? null ),
+	'Behavior: qualified governance wrapper is strictly unwrapped into the existing local proposal handoff.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = maca_governance_canary_run_result_response( 'skipped', array(), array( 'minimum_savings_not_met' ) );
+$skipped_canary_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_governance_1', 'trace-governance-skipped' );
+maca_assert(
+	is_array( $skipped_canary_result )
+	&& array() === ( $skipped_canary_result['artifact'] ?? null )
+	&& 'skipped' === ( $skipped_canary_result['governance_canary']['status'] ?? null )
+	&& array( 'minimum_savings_not_met' ) === ( $skipped_canary_result['governance_canary']['validation']['reasons'] ?? null )
+	&& 1 === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: skipped governance wrapper exposes bounded reasons and never exposes or pulls an artifact.'
+);
+
+$skipped_canary_raw = json_decode( (string) maca_governance_canary_run_result_response( 'skipped', array(), array( 'minimum_savings_not_met' ) )['body'], true );
+$skipped_canary_artifact = Npcink_Cloud_Media_Derivative_Transport::artifact_from_cloud_result( $skipped_canary_raw );
+maca_assert(
+	is_wp_error( $skipped_canary_artifact )
+	&& 'cloud_media_governance_canary_has_no_artifact' === $skipped_canary_artifact->get_error_code(),
+	'Behavior: skipped governance canaries cannot enter artifact receive, ACK, or proposal paths.'
+);
+
+foreach ( array( 'candidate_checksum', 'unknown_wrapper_field', 'qualified_without_derivative' ) as $invalid_canary_case ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$invalid_canary_response = maca_governance_canary_run_result_response( 'ready', $canary_cloud_artifact );
+	$invalid_canary_body = json_decode( (string) $invalid_canary_response['body'], true );
+	if ( 'candidate_checksum' === $invalid_canary_case ) {
+		$invalid_canary_body['data']['result']['candidate']['source_sha256'] = 'sha256:' . str_repeat( 'b', 64 );
+	} elseif ( 'unknown_wrapper_field' === $invalid_canary_case ) {
+		$invalid_canary_body['data']['result']['unknown'] = true;
+	} else {
+		$invalid_canary_body['data']['result']['derivative'] = null;
+	}
+	$invalid_canary_response['body'] = wp_json_encode( $invalid_canary_body );
+	$GLOBALS['maca_http_response_queue'][] = $invalid_canary_response;
+	$invalid_canary_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_governance_1', 'trace-invalid-canary' );
+	maca_assert(
+		is_wp_error( $invalid_canary_result )
+		&& 'cloud_media_governance_canary_result_invalid' === $invalid_canary_result->get_error_code(),
+		'Behavior: malformed governance canary ' . $invalid_canary_case . ' fails closed.'
+	);
+}
 
 maca_reset_test_state();
 maca_seed_settings( true );
