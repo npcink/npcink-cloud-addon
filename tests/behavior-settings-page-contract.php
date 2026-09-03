@@ -237,6 +237,7 @@ $expected_hooks = array(
 	'init' => array( 'ensure_media_recognition_plan_schedule', 10 ),
 	'add_attachment' => array( 'handle_media_attachment_changed', 10 ),
 	'edit_attachment' => array( 'handle_media_attachment_changed', 10 ),
+	'npcink_abilities_toolkit_media_file_version_changed' => array( 'handle_media_version_changed', 10 ),
 	'admin_menu' => array( 'add_menu_page', 50 ),
 	'admin_enqueue_scripts' => array( 'enqueue_admin_assets', 10 ),
 	'admin_post_npcink_cloud_addon_save' => array( 'handle_save', 10 ),
@@ -265,6 +266,16 @@ sort( $expected_hook_names );
 maca_assert(
 	$expected_hook_names === $registered_hook_names,
 	'Behavior: settings facade registers the complete, stable admin hook and action-name contract.'
+);
+
+$settings_page_source = (string) file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php' );
+maca_assert(
+	false !== strpos( $settings_page_source, 'handle_media_version_changed' )
+	&& false !== strpos( $settings_page_source, 'handle_media_attachment_changed( absint( $attachment_id ) )' )
+	&& false !== strpos( $settings_page_source, 'set_media_recognition_plan' )
+	&& false !== strpos( $settings_page_source, 'MEDIA_PLAN_LOCK' )
+	&& false !== strpos( $settings_page_source, 'if ( ! add_option( self::MEDIA_PLAN_LOCK' ),
+	'Behavior: Toolkit version-change events merge into the existing media recognition plan and the single-site lock keeps duplicate delivery idempotent.'
 );
 
 foreach ( $expected_hooks as $hook_name => $hook_contract ) {
@@ -1128,6 +1139,16 @@ maca_assert(
 	array( 701 ) === ( $deduplicated_media_plan['rescan_attachment_ids'] ?? array() )
 	&& array() === ( $deduplicated_media_plan['pending_rescan_attachment_ids'] ?? null ),
 	'Behavior: repeated add/edit attachment hooks for the same image do not queue a second rescan.'
+);
+
+$version_event_plan_id = (string) ( $deduplicated_media_plan['plan_id'] ?? '' );
+Npcink_Cloud_Settings_Page::handle_media_version_changed( 701, array( 'new_media_fingerprint' => 'sha256:' . str_repeat( 'a', 64 ) ) );
+$version_event_media_plan = get_option( 'npcink_cloud_addon_media_recognition_plan', array() );
+maca_assert(
+	$version_event_plan_id === (string) ( $version_event_media_plan['plan_id'] ?? '' )
+	&& array( 701 ) === ( $version_event_media_plan['rescan_attachment_ids'] ?? array() )
+	&& array() === ( $version_event_media_plan['pending_rescan_attachment_ids'] ?? null ),
+	'Behavior: a Toolkit media-version event for an already queued attachment is idempotent and reuses the existing recognition plan.'
 );
 
 Npcink_Cloud_Settings_Page::handle_media_attachment_changed( 702 );
