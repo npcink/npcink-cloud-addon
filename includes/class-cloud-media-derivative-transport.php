@@ -403,13 +403,13 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				|| array() !== array_diff( $expected_result_keys, array_keys( $result ) )
 				|| array() !== array_diff( array_keys( $result ), $expected_result_keys )
 				|| 'media_derivative_artifact' !== (string) ( $result['artifact_type'] ?? '' )
-				|| 'media_derivative_result.v1' !== (string) ( $result['contract_version'] ?? '' )
+				|| 'media_derivative_result.v2' !== (string) ( $result['contract_version'] ?? '' )
 				|| ! is_array( $result['workflow_metadata'] ?? null )
 				|| ! is_array( $result['artifact'] ?? null )
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_result_contract_invalid',
-					__( 'Cloud media derivative results require the exact media_derivative_result.v1 artifact envelope.', 'npcink-cloud-addon' ),
+					__( 'Cloud media derivative results require the exact media_derivative_result.v2 artifact envelope.', 'npcink-cloud-addon' ),
 					array( 'status' => 502 )
 				);
 			}
@@ -538,7 +538,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				if (
 					! self::has_exact_keys( $derivative, $expected_derivative_keys )
 					|| 'media_derivative_artifact' !== (string) $derivative['artifact_type']
-					|| 'media_derivative_result.v1' !== (string) $derivative['contract_version']
+					|| 'media_derivative_result.v2' !== (string) $derivative['contract_version']
 					|| ! is_array( $derivative['workflow_metadata'] )
 					|| ! is_array( $derivative['artifact'] )
 				) {
@@ -1888,6 +1888,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'filesize_bytes',
 				'checksum',
 				'processing_warnings',
+				'transform_facts',
 			);
 			if (
 				count( $expected_keys ) !== count( $artifact )
@@ -1896,7 +1897,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_artifact_contract_invalid',
-					__( 'Media derivative artifacts require the exact 12-field Cloud descriptor.', 'npcink-cloud-addon' ),
+				__( 'Media derivative artifacts require the exact 13-field Cloud descriptor.', 'npcink-cloud-addon' ),
 					array( 'status' => 502 )
 				);
 			}
@@ -1978,6 +1979,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			$filesize_bytes = $artifact['filesize_bytes'] ?? null;
 			$checksum = (string) ( $artifact['checksum'] ?? '' );
 			$warnings = $artifact['processing_warnings'] ?? null;
+			$transform_facts = $artifact['transform_facts'] ?? null;
 			if (
 				! is_int( $width ) || $width <= 0 || $width > self::MAX_IMAGE_DIMENSION
 				|| ! is_int( $height ) || $height <= 0 || $height > self::MAX_IMAGE_DIMENSION
@@ -1985,6 +1987,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				|| ! is_int( $filesize_bytes ) || $filesize_bytes <= 0 || $filesize_bytes > self::MAX_UPLOAD_BYTES
 				|| 1 !== preg_match( '/^sha256:[0-9a-f]{64}$/', $checksum )
 				|| ! is_array( $warnings ) || count( $warnings ) > self::MAX_PROCESSING_WARNINGS
+				|| ! is_array( $transform_facts )
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_artifact_facts_invalid',
@@ -2015,6 +2018,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'filesize_bytes' => $filesize_bytes,
 				'checksum'       => $checksum,
 				'processing_warnings' => array_values( array_map( 'sanitize_text_field', $warnings ) ),
+				'transform_facts' => $transform_facts,
 			);
 		}
 
@@ -2037,11 +2041,12 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'suggested_filename' => (string) $artifact['suggested_filename'],
 				'filename_basis' => $artifact['filename_basis'],
 				'processing_warnings' => $artifact['processing_warnings'],
+				'transform_facts' => $artifact['transform_facts'],
 			);
 		}
 
 		/**
-		 * Validates the exact local 11-field artifact passed through Core/Toolkit.
+		 * Validates the exact local 12-field artifact passed through Core/Toolkit.
 		 *
 		 * @param array<string,mixed> $artifact Local proposal artifact.
 		 * @return array<string,mixed>|WP_Error
@@ -2059,6 +2064,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'suggested_filename',
 				'filename_basis',
 				'processing_warnings',
+				'transform_facts',
 			);
 			if (
 				count( $expected_keys ) !== count( $artifact )
@@ -2067,7 +2073,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_local_artifact_contract_invalid',
-					__( 'Local media derivative artifacts require the exact 11-field proposal contract.', 'npcink-cloud-addon' ),
+					__( 'Local media derivative artifacts require the exact 12-field proposal contract.', 'npcink-cloud-addon' ),
 					array( 'status' => 400 )
 				);
 			}
@@ -2104,6 +2110,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			$suggested_filename = (string) $artifact['suggested_filename'];
 			$filename_basis = $artifact['filename_basis'];
 			$warnings = $artifact['processing_warnings'];
+			$transform_facts = $artifact['transform_facts'];
 			if (
 				'' === $suggested_filename
 				|| sanitize_file_name( $suggested_filename ) !== $suggested_filename
@@ -2116,6 +2123,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				|| 'format_checksum' !== ( $filename_basis['strategy'] ?? null )
 				|| true !== ( $filename_basis['final_sanitize_unique_required'] ?? null )
 				|| ! is_array( $warnings ) || count( $warnings ) > self::MAX_PROCESSING_WARNINGS
+				|| ! is_array( $transform_facts )
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_local_artifact_metadata_invalid',
@@ -2145,6 +2153,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'suggested_filename' => $suggested_filename,
 				'filename_basis' => $filename_basis,
 				'processing_warnings' => array_values( array_map( 'sanitize_text_field', $warnings ) ),
+				'transform_facts' => $transform_facts,
 			);
 		}
 

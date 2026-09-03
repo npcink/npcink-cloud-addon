@@ -51,6 +51,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			add_action( 'init', array( __CLASS__, 'ensure_media_recognition_plan_schedule' ) );
 			add_action( 'add_attachment', array( __CLASS__, 'handle_media_attachment_changed' ) );
 			add_action( 'edit_attachment', array( __CLASS__, 'handle_media_attachment_changed' ) );
+			add_action( 'npcink_abilities_toolkit_media_file_version_changed', array( __CLASS__, 'handle_media_version_changed' ) );
 			add_action( 'admin_menu', array( __CLASS__, 'add_menu_page' ), 50 );
 			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_assets' ) );
 			add_action( 'admin_post_' . self::ACTION_SAVE, array( __CLASS__, 'handle_save' ) );
@@ -125,6 +126,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			self::start_media_recognition_rescan( $plan, array( $attachment_id ), $user_id );
+		}
+
+		/** Queues the same durable recognition plan after a Toolkit file commit. */
+		public static function handle_media_version_changed( $attachment_id, $record = array() ): void {
+			self::handle_media_attachment_changed( absint( $attachment_id ) );
 		}
 
 		/**
