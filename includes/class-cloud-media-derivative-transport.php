@@ -22,7 +22,8 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		private const GOVERNANCE_RESULT_CONTRACT_VERSION = 'media_governance_canary_result.v1';
 		private const GOVERNANCE_MINIMUM_SAVINGS_BASIS_POINTS = 1500;
 		private const GOVERNANCE_MAX_ITEMS = 10;
-		private const GOVERNANCE_MINIMUM_SOURCE_BYTES = 512000;
+			private const GOVERNANCE_MINIMUM_SOURCE_BYTES = 512000;
+			private const AUTO_SAFE_PROFILE = 'auto_safe.v1';
 		private const MAX_UPLOAD_BYTES = 26214400;
 		private const MAX_IMAGE_DIMENSION = 8192;
 		private const MAX_IMAGE_PIXELS = 16777216;
@@ -219,10 +220,18 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			if ( is_wp_error( $canary ) ) {
 				return $canary;
 			}
-			if ( is_array( $canary ) && 'skipped' === $canary['status'] ) {
-				$projection['governance_canary'] = self::governance_canary_projection( $canary );
-				return $projection;
-			}
+				if ( is_array( $canary ) && 'skipped' === $canary['status'] ) {
+					$projection['governance_canary'] = self::governance_canary_projection( $canary );
+					return $projection;
+				}
+				$auto_safe_skip = self::auto_safe_skip_from_cloud_result( $result );
+				if ( is_wp_error( $auto_safe_skip ) ) {
+					return $auto_safe_skip;
+				}
+				if ( is_array( $auto_safe_skip ) ) {
+					$projection['optimization'] = $auto_safe_skip;
+					return $projection;
+				}
 
 			$artifact = self::artifact_from_cloud_result( $result );
 			if ( is_wp_error( $artifact ) ) {
@@ -349,7 +358,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				if ( ! is_string( $warning ) ) {
 					continue;
 				}
-				$value = self::bounded_projection_text( $warning, self::MAX_PROCESSING_WARNING_BYTES );
+					$value = self::bounded_projection_text( $warning, self::MAX_PROCESSING_WARNING_BYTES );
 				if ( '' !== $value ) {
 					$projection[] = $value;
 				}
@@ -397,19 +406,21 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				}
 				$result = $canary['derivative'];
 			}
-			$expected_result_keys = array( 'artifact_type', 'contract_version', 'workflow_metadata', 'artifact' );
+				$expected_result_keys = array( 'artifact_type', 'contract_version', 'workflow_metadata', 'artifact' );
+				$expected_result_keys[] = 'status';
 			if (
 				count( $expected_result_keys ) !== count( $result )
 				|| array() !== array_diff( $expected_result_keys, array_keys( $result ) )
 				|| array() !== array_diff( array_keys( $result ), $expected_result_keys )
 				|| 'media_derivative_artifact' !== (string) ( $result['artifact_type'] ?? '' )
-				|| 'media_derivative_result.v2' !== (string) ( $result['contract_version'] ?? '' )
+					|| 'media_derivative_result.v3' !== (string) ( $result['contract_version'] ?? '' )
+					|| 'qualified' !== (string) ( $result['status'] ?? '' )
 				|| ! is_array( $result['workflow_metadata'] ?? null )
 				|| ! is_array( $result['artifact'] ?? null )
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_result_contract_invalid',
-					__( 'Cloud media derivative results require the exact media_derivative_result.v2 artifact envelope.', 'npcink-cloud-addon' ),
+						__( 'Cloud media derivative results require the exact qualified media_derivative_result.v3 artifact envelope.', 'npcink-cloud-addon' ),
 					array( 'status' => 502 )
 				);
 			}
@@ -423,12 +434,46 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		 * @param array<string,mixed> $cloud_result Cloud run result envelope.
 		 * @return array<string,mixed>|null|WP_Error
 		 */
-		private static function governance_canary_from_cloud_result( array $cloud_result ) {
+			private static function governance_canary_from_cloud_result( array $cloud_result ) {
 			$data = is_array( $cloud_result['data'] ?? null ) ? $cloud_result['data'] : array();
 			$result = is_array( $data['result'] ?? null ) ? $data['result'] : array();
 
-			return self::normalize_governance_canary_result( $result );
-		}
+				return self::normalize_governance_canary_result( $result );
+			}
+
+			/**
+			 * Returns a bounded auto-safe skip decision when Cloud intentionally publishes no artifact.
+			 *
+			 * @param array<string,mixed> $cloud_result Cloud run result envelope.
+			 * @return array<string,mixed>|null|WP_Error
+			 */
+			private static function auto_safe_skip_from_cloud_result( array $cloud_result ) {
+				$data = is_array( $cloud_result['data'] ?? null ) ? $cloud_result['data'] : array();
+				$result = is_array( $data['result'] ?? null ) ? $data['result'] : array();
+				if ( 'media_derivative_result.v3' !== (string) ( $result['contract_version'] ?? '' ) || 'skipped' !== (string) ( $result['status'] ?? '' ) ) {
+					return null;
+				}
+				if (
+					! self::has_exact_keys( $result, array( 'artifact_type', 'contract_version', 'status', 'workflow_metadata', 'artifact', 'decision' ) )
+					|| 'media_derivative_artifact' !== (string) ( $result['artifact_type'] ?? '' )
+					|| null !== ( $result['artifact'] ?? null )
+					|| ! is_array( $result['workflow_metadata'] ?? null )
+					|| ! is_array( $result['decision'] ?? null )
+				) {
+					return new WP_Error( 'cloud_media_derivative_skip_contract_invalid', __( 'Skipped automatic optimization results require the exact media_derivative_result.v3 decision envelope.', 'npcink-cloud-addon' ), array( 'status' => 502 ) );
+				}
+				$decision = $result['decision'];
+				if ( true === ( $decision['qualified'] ?? null ) || ! is_array( $decision['decision_reasons'] ?? null ) || ! is_array( $decision['transform_facts'] ?? null ) ) {
+					return new WP_Error( 'cloud_media_derivative_skip_decision_invalid', __( 'Skipped automatic optimization results require bounded decision facts.', 'npcink-cloud-addon' ), array( 'status' => 502 ) );
+				}
+
+				return array(
+					'status'            => 'skipped',
+					'qualified'         => false,
+					'decision_reasons'  => self::sanitize_string_list( $decision['decision_reasons'] ),
+					'transform_facts'   => self::sanitize_projection_value( $decision['transform_facts'] ),
+				);
+			}
 
 		/**
 		 * Validates the additive governance result without changing ordinary results.
@@ -534,11 +579,12 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			}
 			if ( $ready ) {
 				$derivative = $result['derivative'];
-				$expected_derivative_keys = array( 'artifact_type', 'contract_version', 'workflow_metadata', 'artifact' );
+					$expected_derivative_keys = array( 'artifact_type', 'contract_version', 'status', 'workflow_metadata', 'artifact' );
 				if (
 					! self::has_exact_keys( $derivative, $expected_derivative_keys )
 					|| 'media_derivative_artifact' !== (string) $derivative['artifact_type']
-					|| 'media_derivative_result.v2' !== (string) $derivative['contract_version']
+						|| 'media_derivative_result.v3' !== (string) $derivative['contract_version']
+						|| 'qualified' !== (string) $derivative['status']
 					|| ! is_array( $derivative['workflow_metadata'] )
 					|| ! is_array( $derivative['artifact'] )
 				) {
@@ -1274,11 +1320,20 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		 * @param bool                $has_watermark_source Whether the host supplied a watermark artifact/upload.
 		 * @return array<string,mixed>|WP_Error
 		 */
-		private static function build_media_job_params( array $contract, bool $has_watermark_source ) {
+			private static function build_media_job_params( array $contract, bool $has_watermark_source ) {
 			$job_payload = is_array( $contract['cloud_job_payload'] ?? null ) ? $contract['cloud_job_payload'] : array();
 			$requested = is_array( $job_payload['requested_derivative'] ?? null ) ? $job_payload['requested_derivative'] : array();
 			$watermark = is_array( $job_payload['watermark'] ?? null ) ? $job_payload['watermark'] : array();
-			$watermark_type = sanitize_key( (string) ( $watermark['type'] ?? 'image' ) );
+				$watermark_type = sanitize_key( (string) ( $watermark['type'] ?? 'image' ) );
+				$optimization_mode = sanitize_key( (string) ( $job_payload['optimization_mode'] ?? 'manual' ) );
+				if ( ! in_array( $optimization_mode, array( 'manual', 'auto_safe' ), true ) ) {
+					return new WP_Error( 'cloud_media_derivative_optimization_mode_invalid', __( 'Media derivative optimization mode is invalid.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$auto_safe = 'auto_safe' === $optimization_mode;
+				$optimization_profile = sanitize_text_field( (string) ( $job_payload['optimization_profile'] ?? '' ) );
+				if ( $auto_safe && self::AUTO_SAFE_PROFILE !== $optimization_profile ) {
+					return new WP_Error( 'cloud_media_derivative_auto_safe_profile_invalid', __( 'Automatic safe optimization requires the current fixed policy version.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
 			if ( ! in_array( $watermark_type, array( 'image', 'text' ), true ) ) {
 				$watermark_type = 'image';
 			}
@@ -1305,7 +1360,10 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				);
 			}
 
-			$target_format = sanitize_key( (string) ( $job_payload['target_format'] ?? $requested['format'] ?? '' ) );
+				$target_format = sanitize_key( (string) ( $job_payload['target_format'] ?? $requested['format'] ?? '' ) );
+				if ( $auto_safe && 'webp' !== $target_format ) {
+					return new WP_Error( 'cloud_media_derivative_auto_safe_format_invalid', __( 'Automatic safe optimization requires WebP output.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
 			if ( ! in_array( $target_format, array( 'webp', 'avif', 'jpeg', 'png', 'original' ), true ) ) {
 				return new WP_Error(
 					'cloud_media_derivative_target_format_missing',
@@ -1323,8 +1381,8 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				);
 			}
 
-			$quality = absint( $job_payload['quality'] ?? $requested['quality'] ?? 0 );
-			if ( $quality <= 0 ) {
+				$quality = absint( $job_payload['quality'] ?? $requested['quality'] ?? 0 );
+				if ( ! $auto_safe && $quality <= 0 ) {
 				return new WP_Error(
 					'cloud_media_derivative_quality_missing',
 					__( 'Media derivative request must include quality from the ability response.', 'npcink-cloud-addon' ),
@@ -1332,14 +1390,27 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				);
 			}
 
-			$params = array(
-				'target_format'     => $target_format,
-				'max_width'         => max( 1, min( 10000, $max_width ) ),
-				'quality'           => max( 1, min( 100, $quality ) ),
-				'source_media_type' => 'image',
-			);
-			if ( is_array( $job_payload['governance'] ?? null ) ) {
-				$params['resize_mode'] = 'preserve';
+				$params = array(
+					'mode'              => $optimization_mode,
+					'target_format'     => $target_format,
+					'max_width'         => max( 1, min( 10000, $max_width ) ),
+					'source_media_type' => 'image',
+				);
+				$resize_mode = sanitize_key( (string) ( $job_payload['resize_mode'] ?? $requested['resize_mode'] ?? ( $auto_safe ? 'preserve' : 'fit' ) ) );
+				if ( ! in_array( $resize_mode, array( 'fit', 'preserve' ), true ) ) {
+					return new WP_Error( 'cloud_media_derivative_resize_mode_invalid', __( 'Media derivative resize mode is invalid.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$params['resize_mode'] = $resize_mode;
+				if ( $auto_safe ) {
+					if ( 1920 !== $max_width || array_key_exists( 'quality', $job_payload ) || array_key_exists( 'quality', $requested ) || ! empty( $watermark ) || $has_watermark_source || ! empty( $job_payload['crop'] ) ) {
+						return new WP_Error( 'cloud_media_derivative_auto_safe_contract_invalid', __( 'Automatic safe optimization does not accept quality, crop, watermark, or custom width parameters.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+					}
+					$params['optimization_profile'] = self::AUTO_SAFE_PROFILE;
+				} else {
+					$params['quality'] = max( 1, min( 100, $quality ) );
+				}
+				if ( is_array( $job_payload['governance'] ?? null ) ) {
+					$params['resize_mode'] = 'preserve';
 			}
 			$raw_source_media_type = (string) ( $job_payload['source_media_type'] ?? '' );
 			$source_media_type = self::normalize_media_type( $raw_source_media_type, true );

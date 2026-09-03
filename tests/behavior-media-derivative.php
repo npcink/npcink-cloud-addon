@@ -73,7 +73,8 @@ function maca_cloud_run_result_response( array $artifact ): array {
 					'updated_at' => '2026-07-16T00:00:01+00:00',
 					'result'     => array(
 						'artifact_type'    => 'media_derivative_artifact',
-						'contract_version' => 'media_derivative_result.v2',
+						'contract_version' => 'media_derivative_result.v3',
+						'status'           => 'qualified',
 						'workflow_metadata' => array( 'operation' => 'image.transform.v1' ),
 						'artifact'         => $artifact,
 					),
@@ -101,7 +102,8 @@ function maca_governance_canary_run_result_response( string $status, array $arti
 	if ( $qualified ) {
 		$derivative = array(
 			'artifact_type'    => 'media_derivative_artifact',
-			'contract_version' => 'media_derivative_result.v2',
+			'contract_version' => 'media_derivative_result.v3',
+			'status'           => 'qualified',
 			'workflow_metadata' => array( 'operation' => 'image.transform.v1' ),
 			'artifact'         => $artifact,
 		);
@@ -400,6 +402,57 @@ maca_assert(
 	&& ! isset( $job_body['source'], $job_body['cloud_job_payload'], $job_body['ttl_minutes'] ),
 	'Behavior: exact11 available image upload and artifact-referenced media job use the exact new resources.'
 );
+
+$auto_safe_ability = maca_ability_fixture();
+$auto_safe_ability['cloud_job_payload']['optimization_mode'] = 'auto_safe';
+$auto_safe_ability['cloud_job_payload']['optimization_profile'] = 'auto_safe.v1';
+$auto_safe_ability['cloud_job_payload']['target_format'] = 'webp';
+$auto_safe_ability['cloud_job_payload']['max_width'] = 1920;
+$auto_safe_ability['cloud_job_payload']['resize_mode'] = 'fit';
+unset( $auto_safe_ability['cloud_job_payload']['quality'] );
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'headers'  => array( 'Content-Type' => 'application/json' ),
+	'body'     => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'run_id' => 'run_auto_safe', 'status' => 'queued', 'trace_id' => 'trace-auto-safe', 'idempotent_replay' => false, 'result' => array() ) ) ),
+);
+$auto_safe_dispatch = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+	$auto_safe_ability,
+	array( 'artifact_id' => $source_artifact_id, 'expires_at' => maca_future_expiry() ),
+	'trace-auto-safe',
+	'auto-safe'
+);
+$auto_safe_body = json_decode( (string) ( $GLOBALS['maca_http_requests'][0]['args']['body'] ?? '' ), true );
+maca_assert(
+	is_array( $auto_safe_dispatch )
+	&& array( 'mode', 'target_format', 'max_width', 'source_media_type', 'resize_mode', 'optimization_profile' ) === array_keys( $auto_safe_body['params'] ?? array() )
+	&& 'auto_safe' === ( $auto_safe_body['params']['mode'] ?? null )
+	&& 'auto_safe.v1' === ( $auto_safe_body['params']['optimization_profile'] ?? null )
+	&& 'fit' === ( $auto_safe_body['params']['resize_mode'] ?? null )
+	&& ! isset( $auto_safe_body['params']['quality'], $auto_safe_body['params']['crop'], $auto_safe_body['params']['watermark'] ),
+	'Behavior: auto-safe dispatch emits only the fixed WebP policy and optional 1920 fit choice.'
+);
+
+foreach ( array( 'quality', 'profile' ) as $auto_safe_invalid_case ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$invalid_auto_safe = $auto_safe_ability;
+	if ( 'quality' === $auto_safe_invalid_case ) {
+		$invalid_auto_safe['cloud_job_payload']['quality'] = 82;
+	} else {
+		$invalid_auto_safe['cloud_job_payload']['optimization_profile'] = 'auto_safe.v2';
+	}
+	$invalid_auto_safe_result = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+		$invalid_auto_safe,
+		array( 'artifact_id' => $source_artifact_id, 'expires_at' => maca_future_expiry() )
+	);
+	maca_assert(
+		is_wp_error( $invalid_auto_safe_result ) && array() === $GLOBALS['maca_http_requests'],
+		'Behavior: auto-safe ' . $auto_safe_invalid_case . ' injection fails before Cloud transport.'
+	);
+}
 
 $governance_ability = maca_ability_fixture();
 $governance_ability['cloud_job_payload']['governance'] = array(
@@ -831,7 +884,7 @@ maca_assert(
 	&& array( 'run_id', 'status', 'job_type', 'created_at', 'updated_at', 'artifact', 'warnings', 'error' ) === array_keys( $projection )
 	&& $cloud_artifact === $projection['artifact']
 	&& ! isset( $projection['derivative'] ),
-	'Behavior: raw data.result is accepted only as exact media_derivative_result.v2 and projected once.'
+	'Behavior: raw data.result is accepted only as exact qualified media_derivative_result.v3 and projected once.'
 );
 
 $proposal = Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
