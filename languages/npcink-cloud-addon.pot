@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-03T03:07:59+00:00\n"
+"POT-Creation-Date: 2026-09-03T09:06:34+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -183,265 +183,293 @@ msgstr ""
 msgid "Entitlement summary synced."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:67
+#: includes/class-cloud-media-derivative-transport.php:68
 msgid "Source upload and source artifact id cannot be sent together."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:95
+#: includes/class-cloud-media-derivative-transport.php:96
 msgid "Watermark upload and watermark artifact id cannot be sent together."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:266
+#: includes/class-cloud-media-derivative-transport.php:275
 msgid "Cloud media derivative statuses require a data envelope."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:277
+#: includes/class-cloud-media-derivative-transport.php:286
 msgid "Cloud media derivative statuses require a run id and canonical lifecycle status."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:394
+#: includes/class-cloud-media-derivative-transport.php:403
 msgid "Skipped media governance canaries do not publish derivative artifacts."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:412
-msgid "Cloud media derivative results require the exact media_derivative_result.v2 artifact envelope."
+#: includes/class-cloud-media-derivative-transport.php:423
+msgid "Cloud media derivative results require the exact qualified media_derivative_result.v3 artifact envelope."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:599
+#: includes/class-cloud-media-derivative-transport.php:463
+msgid "Skipped automatic optimization results require the exact media_derivative_result.v3 decision envelope."
+msgstr ""
+
+#: includes/class-cloud-media-derivative-transport.php:467
+msgid "Skipped automatic optimization results require bounded decision facts."
+msgstr ""
+
+#: includes/class-cloud-media-derivative-transport.php:645
 msgid "Cloud media governance canary evidence failed strict validation."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:763
+#: includes/class-cloud-media-derivative-transport.php:809
 msgid "Cloud derivative artifact download returned no bytes."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:773
+#: includes/class-cloud-media-derivative-transport.php:819
 msgid "Cloud derivative artifact mime type does not match the descriptor."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:782
+#: includes/class-cloud-media-derivative-transport.php:828
 msgid "Derivative artifact byte size does not match the descriptor and signed response."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:792
+#: includes/class-cloud-media-derivative-transport.php:838
 msgid "Derivative artifact checksum does not match the downloaded bytes."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:802
+#: includes/class-cloud-media-derivative-transport.php:848
 msgid "Signed media response headers do not match the requested artifact."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:818
+#: includes/class-cloud-media-derivative-transport.php:864
 msgid "Cloud media delivery headers are missing or invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:835
+#: includes/class-cloud-media-derivative-transport.php:881
 msgid "Derivative artifact decode facts do not match the Cloud descriptor."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:875
+#: includes/class-cloud-media-derivative-transport.php:921
 msgid "Cloud media delivery acknowledgement does not bind to the verified transfer."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1150
+#: includes/class-cloud-media-derivative-transport.php:1196
 msgid "Npcink Cloud credentials must verify before dispatching media derivative jobs."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1193
+#: includes/class-cloud-media-derivative-transport.php:1239
 msgid "Local media derivative proposal building requires the exact Addon run-result projection."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1218
+#: includes/class-cloud-media-derivative-transport.php:1264
 msgid "Media derivative request contract version is invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1225
+#: includes/class-cloud-media-derivative-transport.php:1271
 msgid "Media derivative request must be read-only and proposal-only."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1232
+#: includes/class-cloud-media-derivative-transport.php:1278
 msgid "Media derivative final write owner must remain the local WordPress host."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1239
+#: includes/class-cloud-media-derivative-transport.php:1285
 msgid "Media derivative request must not include WordPress writes."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1246
+#: includes/class-cloud-media-derivative-transport.php:1292
 msgid "Media derivative ability payload must not include credentials or signed headers."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1255
+#: includes/class-cloud-media-derivative-transport.php:1301
 msgid "Cloud media derivative job type is invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1262
+#: includes/class-cloud-media-derivative-transport.php:1308
 msgid "Media derivative jobs must not request original file replacement."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1289
+#: includes/class-cloud-media-derivative-transport.php:1330
+msgid "Media derivative optimization mode is invalid."
+msgstr ""
+
+#: includes/class-cloud-media-derivative-transport.php:1335
+msgid "Automatic safe optimization requires the current fixed policy version."
+msgstr ""
+
+#: includes/class-cloud-media-derivative-transport.php:1344
 msgid "Watermark artifact transport requires a watermark plan in the ability response."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1296
+#: includes/class-cloud-media-derivative-transport.php:1351
 msgid "Text watermark plans must not include a watermark upload or artifact id."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1303
+#: includes/class-cloud-media-derivative-transport.php:1358
 msgid "Watermark plans require a watermark upload or artifact id before Cloud dispatch."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1312
+#: includes/class-cloud-media-derivative-transport.php:1365
+msgid "Automatic safe optimization requires WebP output."
+msgstr ""
+
+#: includes/class-cloud-media-derivative-transport.php:1370
 msgid "Media derivative request must include a bounded target format from the ability response."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1321
+#: includes/class-cloud-media-derivative-transport.php:1379
 msgid "Media derivative request must include max_width from the ability response."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1330
+#: includes/class-cloud-media-derivative-transport.php:1388
 msgid "Media derivative request must include quality from the ability response."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1349
+#: includes/class-cloud-media-derivative-transport.php:1401
+msgid "Media derivative resize mode is invalid."
+msgstr ""
+
+#: includes/class-cloud-media-derivative-transport.php:1406
+msgid "Automatic safe optimization does not accept quality, crop, watermark, or custom width parameters."
+msgstr ""
+
+#: includes/class-cloud-media-derivative-transport.php:1420
 msgid "Media derivative source media type must be a supported image type."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1387
+#: includes/class-cloud-media-derivative-transport.php:1458
 msgid "Media governance canaries require exact governance and batch context fields."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1427
+#: includes/class-cloud-media-derivative-transport.php:1498
 msgid "Media governance canaries require WebP preserve previews, no crop or watermark, and at most ten items."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1479
+#: includes/class-cloud-media-derivative-transport.php:1550
 msgid "Media derivative jobs require a canonical source artifact id."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1494
+#: includes/class-cloud-media-derivative-transport.php:1565
 msgid "Media derivative image watermarks require a canonical artifact id."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1638
+#: includes/class-cloud-media-derivative-transport.php:1709
 msgid "Media upload descriptors contain an unknown field."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1649
+#: includes/class-cloud-media-derivative-transport.php:1720
 msgid "Media upload descriptors require exactly one byte source."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1671
-#: includes/class-cloud-media-derivative-transport.php:1679
+#: includes/class-cloud-media-derivative-transport.php:1742
+#: includes/class-cloud-media-derivative-transport.php:1750
 msgid "Media derivative upload file is not readable."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1686
+#: includes/class-cloud-media-derivative-transport.php:1757
 msgid "Media derivative upload files must come from the WordPress uploads directory or a local temporary directory."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1694
-#: includes/class-cloud-media-derivative-transport.php:1712
+#: includes/class-cloud-media-derivative-transport.php:1765
+#: includes/class-cloud-media-derivative-transport.php:1783
 msgid "Media derivative upload file exceeds the Cloud size limit."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1705
+#: includes/class-cloud-media-derivative-transport.php:1776
 msgid "Media derivative upload file is empty."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1721
+#: includes/class-cloud-media-derivative-transport.php:1792
 msgid "Media derivative uploads require an allowed image mime type."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1733
+#: includes/class-cloud-media-derivative-transport.php:1804
 msgid "Media derivative upload bytes do not match the declared image mime type."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1746
+#: includes/class-cloud-media-derivative-transport.php:1817
 msgid "Media derivative upload dimensions exceed the local image limits."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1815
+#: includes/class-cloud-media-derivative-transport.php:1886
 msgid "Legacy media upload descriptor fields are not accepted."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1850
+#: includes/class-cloud-media-derivative-transport.php:1921
 msgid "Media derivative runtime artifacts require a canonical artifact id."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1857
+#: includes/class-cloud-media-derivative-transport.php:1928
 msgid "Media derivative runtime artifacts require a valid future expiry."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1900
+#: includes/class-cloud-media-derivative-transport.php:1971
 msgid "Media derivative artifacts require the exact 13-field Cloud descriptor."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1909
+#: includes/class-cloud-media-derivative-transport.php:1980
 msgid "Media derivative artifact expiry must be a strict ISO-8601 timestamp."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1916
+#: includes/class-cloud-media-derivative-transport.php:1987
 msgid "Expired Cloud artifacts cannot be adopted."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1925
+#: includes/class-cloud-media-derivative-transport.php:1996
 msgid "Derivative Cloud artifacts require a canonical artifact id."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1933
+#: includes/class-cloud-media-derivative-transport.php:2004
 msgid "Media derivative artifact reference must bind to the canonical artifact id."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1949
+#: includes/class-cloud-media-derivative-transport.php:2020
 msgid "Media derivative filename basis is invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1957
+#: includes/class-cloud-media-derivative-transport.php:2028
 msgid "Media derivative suggested filename is invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1973
+#: includes/class-cloud-media-derivative-transport.php:2044
 msgid "Media derivative artifact MIME and format must agree."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:1994
+#: includes/class-cloud-media-derivative-transport.php:2065
 msgid "Media derivative artifact facts are invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:2002
+#: includes/class-cloud-media-derivative-transport.php:2073
 msgid "Media derivative processing warnings are invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:2076
+#: includes/class-cloud-media-derivative-transport.php:2147
 msgid "Local media derivative artifacts require the exact 12-field proposal contract."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:2106
+#: includes/class-cloud-media-derivative-transport.php:2177
 msgid "Local media derivative artifact facts are invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:2130
+#: includes/class-cloud-media-derivative-transport.php:2201
 msgid "Local media derivative artifact metadata is invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:2138
+#: includes/class-cloud-media-derivative-transport.php:2209
 msgid "Local media derivative processing warnings are invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:2288
+#: includes/class-cloud-media-derivative-transport.php:2359
 msgid "Derivative artifact facts do not match the Cloud result."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:2296
+#: includes/class-cloud-media-derivative-transport.php:2367
 msgid "Derivative artifact checksum does not match the Cloud result."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:2314
+#: includes/class-cloud-media-derivative-transport.php:2385
 msgid "Original media metrics are incomplete."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:2317
+#: includes/class-cloud-media-derivative-transport.php:2388
 msgid "Derivative media metrics are incomplete."
 msgstr ""
 
