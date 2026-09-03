@@ -12,7 +12,7 @@ require_once __DIR__ . '/helpers.php';
 maca_load_addon_classes();
 
 /**
- * Returns one exact Cloud 12-field media derivative descriptor.
+ * Returns one exact Cloud 13-field media derivative descriptor.
  *
  * @param string $artifact_id Artifact id.
  * @param string $contents Image bytes.
@@ -39,6 +39,16 @@ function maca_cloud_derivative_artifact( string $artifact_id, string $contents, 
 		'filesize_bytes'     => strlen( $contents ),
 		'checksum'           => 'sha256:' . $checksum,
 		'processing_warnings' => array(),
+		'transform_facts'    => array(
+			'source_checksum' => 'sha256:' . str_repeat( 'b', 64 ),
+			'output_checksum' => 'sha256:' . $checksum,
+			'source_width' => 1,
+			'source_height' => 1,
+			'output_width' => 1,
+			'output_height' => 1,
+			'encoding_mode' => 'lossless',
+			'alpha_preserved' => true,
+		),
 	);
 }
 
@@ -63,7 +73,7 @@ function maca_cloud_run_result_response( array $artifact ): array {
 					'updated_at' => '2026-07-16T00:00:01+00:00',
 					'result'     => array(
 						'artifact_type'    => 'media_derivative_artifact',
-						'contract_version' => 'media_derivative_result.v1',
+						'contract_version' => 'media_derivative_result.v2',
 						'workflow_metadata' => array( 'operation' => 'image.transform.v1' ),
 						'artifact'         => $artifact,
 					),
@@ -91,7 +101,7 @@ function maca_governance_canary_run_result_response( string $status, array $arti
 	if ( $qualified ) {
 		$derivative = array(
 			'artifact_type'    => 'media_derivative_artifact',
-			'contract_version' => 'media_derivative_result.v1',
+			'contract_version' => 'media_derivative_result.v2',
 			'workflow_metadata' => array( 'operation' => 'image.transform.v1' ),
 			'artifact'         => $artifact,
 		);
@@ -821,7 +831,7 @@ maca_assert(
 	&& array( 'run_id', 'status', 'job_type', 'created_at', 'updated_at', 'artifact', 'warnings', 'error' ) === array_keys( $projection )
 	&& $cloud_artifact === $projection['artifact']
 	&& ! isset( $projection['derivative'] ),
-	'Behavior: raw data.result is accepted only as exact media_derivative_result.v1 and projected once.'
+	'Behavior: raw data.result is accepted only as exact media_derivative_result.v2 and projected once.'
 );
 
 $proposal = Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
@@ -832,7 +842,7 @@ $proposal = Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payloa
 $proposal_artifact = is_array( $proposal ) ? ( $proposal['artifact'] ?? array() ) : array();
 maca_assert(
 	is_array( $proposal )
-	&& array( 'artifact_id', 'expires_at', 'mime_type', 'format', 'width', 'height', 'filesize_bytes', 'sha256', 'suggested_filename', 'filename_basis', 'processing_warnings' ) === array_keys( $proposal_artifact )
+	&& array( 'artifact_id', 'expires_at', 'mime_type', 'format', 'width', 'height', 'filesize_bytes', 'sha256', 'suggested_filename', 'filename_basis', 'processing_warnings', 'transform_facts' ) === array_keys( $proposal_artifact )
 	&& hash( 'sha256', $png ) === ( $proposal_artifact['sha256'] ?? null )
 	&& ! isset( $proposal_artifact['checksum'], $proposal_artifact['artifact_reference'] )
 	&& 'local_wordpress_host' === ( $proposal['final_write_owner'] ?? null ),
