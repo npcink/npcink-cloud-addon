@@ -1415,6 +1415,14 @@ maca_assert(
 	'Behavior: orphan-plan recovery preserves a future Cloud eligibility time instead of scheduling early work.'
 );
 
+$future_schedule_calls = $GLOBALS['maca_schedule_call_counts']['npcink_cloud_addon_continue_media_recognition'] ?? 0;
+Npcink_Cloud_Settings_Page::ensure_media_recognition_plan_schedule();
+maca_assert(
+	1 === ( $GLOBALS['maca_schedule_call_counts']['npcink_cloud_addon_continue_media_recognition'] ?? 0 )
+	&& $future_schedule_calls === ( $GLOBALS['maca_schedule_call_counts']['npcink_cloud_addon_continue_media_recognition'] ?? 0 ),
+	'Behavior: repeated orphan-plan recovery with a future eligibility time remains idempotent and keeps one scheduled event.'
+);
+
 maca_reset_test_state();
 maca_seed_settings( true );
 $already_deferred_until = gmdate( 'c', time() + HOUR_IN_SECONDS );
