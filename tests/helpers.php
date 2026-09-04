@@ -526,7 +526,6 @@ function maca_load_addon_classes(): void {
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-runtime-bridge.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-admin-projection.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-admin-actions.php';
-	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-callback.php';
 }
 
 /**

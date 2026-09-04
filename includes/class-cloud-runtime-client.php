@@ -293,23 +293,6 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		}
 
 		/**
-		 * Registers or disables the current site's signed terminal callback.
-		 *
-		 * @param array<string,mixed> $payload Callback registration contract.
-		 * @param string              $idempotency_key Stable registration identity.
-		 * @return array<string,mixed>|WP_Error
-		 */
-		public function register_terminal_callback( array $payload, string $idempotency_key ) {
-			return $this->request(
-				'POST',
-				'/v1/runtime/callbacks/terminal',
-				$payload,
-				$idempotency_key,
-				'trace_callback_' . wp_generate_uuid4()
-			);
-		}
-
-		/**
 		 * Executes one bounded WordPress AI connector scene request.
 		 *
 		 * This method is intentionally not a generic chat transport. Callers

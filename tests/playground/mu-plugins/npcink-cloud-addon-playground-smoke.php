@@ -40,7 +40,8 @@ function npcink_cloud_addon_playground_smoke_response() {
 	$active = is_plugin_active( 'npcink-cloud-addon/npcink-cloud-addon.php' );
 	$public_api_present = function_exists( 'npcink_cloud_addon_is_configured' )
 		&& function_exists( 'npcink_cloud_addon_get_connection_state' )
-		&& function_exists( 'npcink_cloud_addon_verified_runtime_client' );
+		&& function_exists( 'npcink_cloud_addon_pull_media_artifact' )
+		&& function_exists( 'npcink_cloud_addon_acknowledge_media_artifact_delivery' );
 	$concrete_client_seam_removed = ! function_exists( 'npcink_cloud_addon_runtime_client' );
 	$connection_state = $public_api_present ? npcink_cloud_addon_get_connection_state() : array();
 	$connection_state_safe = is_array( $connection_state )
@@ -48,7 +49,7 @@ function npcink_cloud_addon_playground_smoke_response() {
 		&& ! array_key_exists( 'site_id', $connection_state )
 		&& ! array_key_exists( 'key_id', $connection_state );
 	$configured = $public_api_present && npcink_cloud_addon_is_configured();
-	$verified_runtime_client_available = $public_api_present && null !== npcink_cloud_addon_verified_runtime_client();
+	$verified_runtime_client_available = false;
 	$connector_marker_present = '' !== (string) get_option( 'npcink_cloud_addon_wp_ai_connector_connected', '' );
 
 	if ( ! $active || ! $public_api_present || ! $concrete_client_seam_removed || ! $connection_state_safe || $configured || $verified_runtime_client_available || $connector_marker_present ) {

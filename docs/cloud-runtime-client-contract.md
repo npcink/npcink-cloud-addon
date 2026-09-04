@@ -70,14 +70,14 @@ connection. WordPress safe HTTP validation and HTTPS certificate verification
 remain mandatory, but trusted Cloud DNS is still an operational requirement
 and sub-second DNS rebinding is a residual risk rather than a solved guarantee.
 
-For Cloud jobs that move local media bytes or downloadable artifacts, host code
-should use the verified helper:
+For Cloud jobs that download artifacts, host code should use the bounded,
+verification-gated facade:
 
 ```php
-npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
+npcink_cloud_addon_pull_media_artifact(): bounded artifact download facade
 ```
 
-It returns `null` until the addon settings have passed Save and Verify.
+It returns a `WP_Error` until the addon settings have passed Save and Verify.
 
 ## Endpoint Mapping
 

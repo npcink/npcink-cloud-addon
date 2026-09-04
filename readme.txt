@@ -2,9 +2,9 @@
 Contributors: muze233
 Tags: magick ai, cloud, hosted runtime
 Requires at least: 7.0
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.1.9
+Stable tag: 0.2.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -158,6 +158,11 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 4. Advanced troubleshooting with service detail, runtime runs, and connection recovery.
 
 == Changelog ==
+
+= 0.2.0 =
+* Narrowed the addon to bounded Cloud connector and artifact transport facades.
+* Moved media recognition continuation ownership to Workflow Toolbox.
+* Removed terminal callback delivery and cleared legacy media recognition state.
 
 = 0.1.9 =
 

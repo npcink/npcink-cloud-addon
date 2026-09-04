@@ -246,12 +246,9 @@ function readAiCreditSummary(label) {
 		try {
 			const output = wpCli([
 				'eval',
-				`$client = npcink_cloud_addon_verified_runtime_client();
-if ( ! $client ) {
-	echo wp_json_encode( array( 'error' => 'verified_runtime_client_unavailable' ) );
-	return;
-}
-$response = $client->get_current_entitlement( 'trace_credit_assertion_' . wp_generate_uuid4() );
+				`$response = function_exists( 'npcink_cloud_addon_get_toolbox_runtime_entitlement' )
+	? npcink_cloud_addon_get_toolbox_runtime_entitlement( 'trace_credit_assertion_' . wp_generate_uuid4() )
+	: new WP_Error( 'runtime_facade_unavailable' );
 $summary = is_array( $response )
 	? ( $response['data']['quota_summary']['ai_credit_usage_detail']['summary'] ?? array() )
 	: array();
