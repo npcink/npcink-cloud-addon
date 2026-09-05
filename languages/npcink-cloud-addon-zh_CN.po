@@ -55,7 +55,7 @@ msgstr "Npcink"
 #: includes/bootstrap.php:702
 #: includes/class-cloud-runtime-client.php:1170
 #: includes/class-cloud-runtime-client.php:1276
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:132
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr "Npcink Cloud 尚未配置。"
 
@@ -2351,31 +2351,31 @@ msgstr "Cloud Site Knowledge 维护运行失败。"
 msgid "Site Knowledge sync mode must be refresh, rebuild, or delete."
 msgstr "站点知识库同步模式必须是 refresh、rebuild 或 delete。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:536
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:548
 msgid "Site Knowledge runtime requests require a supported ability and contract pair."
 msgstr "站点知识库运行时请求需要受支持的 ability 与 contract 组合。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:545
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:557
 msgid "Site Knowledge runtime requests require the expected execution pattern."
 msgstr "站点知识库运行时请求需要符合预期的执行模式。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:558
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:570
 msgid "Site Knowledge runtime requests must be suggestion-only and no-write."
 msgstr "站点知识库运行时请求必须是 suggestion-only 且不写入。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:569
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:581
 msgid "Site Knowledge sync transport only accepts public refresh requests. Rebuild, delete, and collection lifecycle operations belong in Cloud Site Knowledge."
 msgstr "站点知识库同步传输只接受公开刷新请求。重建、删除和集合生命周期操作属于 Cloud 站点知识库。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:578
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:590
 msgid "Site Knowledge runtime requests must not include credentials or signing fields."
 msgstr "站点知识库运行时请求不得包含凭据或签名字段。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:596
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:608
 msgid "Site Knowledge runtime payload could not be encoded."
 msgstr "无法编码站点知识库运行时 payload。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:603
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:615
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr "站点知识库运行时 payload 超过传输大小限制。"
 
