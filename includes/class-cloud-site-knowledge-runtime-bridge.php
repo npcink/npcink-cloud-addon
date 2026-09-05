@@ -54,6 +54,18 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		public static function register(): void {
 			add_filter( 'npcink_toolbox_site_knowledge_cloud_request', array( __CLASS__, 'handle_toolbox_request' ), 10, 4 );
 			add_filter( 'npcink_toolbox_media_fingerprint_scan_evidence_attachment_ids', array( __CLASS__, 'media_fingerprint_scan_evidence_attachment_ids' ), 10, 2 );
+			add_filter( 'npcink_toolbox_cloud_addon_verified', array( __CLASS__, 'toolbox_cloud_verified' ) );
+			add_filter( 'npcink_toolbox_site_knowledge_transport_enabled', array( __CLASS__, 'toolbox_site_knowledge_transport_enabled' ) );
+		}
+
+		/** Projects connection readiness without owning Toolbox scheduling. */
+		public static function toolbox_cloud_verified(): bool {
+			return Npcink_Cloud_Addon_Settings::is_verified();
+		}
+
+		/** Projects explicit Site Knowledge transport readiness only. */
+		public static function toolbox_site_knowledge_transport_enabled(): bool {
+			return Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled();
 		}
 
 		/**

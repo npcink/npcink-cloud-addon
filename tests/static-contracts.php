@@ -1374,6 +1374,10 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $site_knowledge_runtime_bridge, 'npcink_toolbox_site_knowledge_cloud_request' )
+	&& false !== strpos( $site_knowledge_runtime_bridge, 'npcink_toolbox_cloud_addon_verified' )
+	&& false !== strpos( $site_knowledge_runtime_bridge, 'npcink_toolbox_site_knowledge_transport_enabled' )
+	&& false !== strpos( $site_knowledge_runtime_bridge, 'toolbox_cloud_verified' )
+	&& false !== strpos( $site_knowledge_runtime_bridge, 'toolbox_site_knowledge_transport_enabled' )
 	&& false !== strpos( $site_knowledge_runtime_bridge, 'npcink-cloud/site-knowledge-search' )
 	&& false !== strpos( $site_knowledge_runtime_bridge, 'npcink-cloud/site-knowledge-status' )
 	&& false !== strpos( $site_knowledge_runtime_bridge, 'npcink-cloud/site-knowledge-sync' )
