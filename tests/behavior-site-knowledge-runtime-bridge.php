@@ -103,6 +103,38 @@ maca_assert(
 	'Behavior: Site Knowledge runtime bridge registers the Toolbox Cloud request filter.'
 );
 
+maca_assert(
+	isset( $GLOBALS['maca_filters']['npcink_toolbox_cloud_addon_verified'] )
+	&& isset( $GLOBALS['maca_filters']['npcink_toolbox_site_knowledge_transport_enabled'] ),
+	'Behavior: Addon registers read-only Toolbox readiness projections without continuation ownership.'
+);
+
+maca_reset_test_state();
+Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
+maca_assert(
+	false === apply_filters( 'npcink_toolbox_cloud_addon_verified', false )
+	&& false === apply_filters( 'npcink_toolbox_site_knowledge_transport_enabled', false )
+	&& array() === $GLOBALS['maca_http_requests'],
+	'Behavior: unverified settings project disabled scan readiness without Cloud traffic.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_site_knowledge_delivery_enabled( false );
+Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
+maca_assert(
+	true === apply_filters( 'npcink_toolbox_cloud_addon_verified', false )
+	&& false === apply_filters( 'npcink_toolbox_site_knowledge_transport_enabled', false ),
+	'Behavior: verified connection alone does not enable Site Knowledge scan readiness.'
+);
+
+maca_set_site_knowledge_delivery_enabled( true );
+maca_assert(
+	true === apply_filters( 'npcink_toolbox_site_knowledge_transport_enabled', false )
+	&& array() === $GLOBALS['maca_http_requests'],
+	'Behavior: explicit Site Knowledge delivery projects readiness without owning or starting a scan.'
+);
+
 maca_reset_test_state();
 Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
 $unconfigured = apply_filters(
