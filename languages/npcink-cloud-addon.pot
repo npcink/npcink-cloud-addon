@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-05T04:40:31+00:00\n"
+"POT-Creation-Date: 2026-09-05T08:35:24+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -56,7 +56,7 @@ msgstr ""
 #: includes/bootstrap.php:702
 #: includes/class-cloud-runtime-client.php:1170
 #: includes/class-cloud-runtime-client.php:1276
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:132
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr ""
 
@@ -2352,31 +2352,31 @@ msgstr ""
 msgid "Site Knowledge sync mode must be refresh, rebuild, or delete."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:536
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:548
 msgid "Site Knowledge runtime requests require a supported ability and contract pair."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:545
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:557
 msgid "Site Knowledge runtime requests require the expected execution pattern."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:558
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:570
 msgid "Site Knowledge runtime requests must be suggestion-only and no-write."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:569
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:581
 msgid "Site Knowledge sync transport only accepts public refresh requests. Rebuild, delete, and collection lifecycle operations belong in Cloud Site Knowledge."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:578
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:590
 msgid "Site Knowledge runtime requests must not include credentials or signing fields."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:596
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:608
 msgid "Site Knowledge runtime payload could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:603
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:615
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr ""
 
