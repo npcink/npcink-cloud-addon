@@ -221,265 +221,265 @@ msgstr "Cloud 媒体衍生结果需要精确且合格的 media_derivative_result
 msgid "Skipped automatic optimization results require the exact media_derivative_result.v3 decision envelope."
 msgstr "已跳过的自动优化结果需要精确的 media_derivative_result.v3 决策信封。"
 
-#: includes/class-cloud-media-derivative-transport.php:467
+#: includes/class-cloud-media-derivative-transport.php:494
 msgid "Skipped automatic optimization results require bounded decision facts."
 msgstr "已跳过的自动优化结果需要受限的决策事实。"
 
-#: includes/class-cloud-media-derivative-transport.php:645
+#: includes/class-cloud-media-derivative-transport.php:672
 msgid "Cloud media governance canary evidence failed strict validation."
 msgstr "Cloud 媒体治理金丝雀测试证据未通过严格验证。"
 
-#: includes/class-cloud-media-derivative-transport.php:809
+#: includes/class-cloud-media-derivative-transport.php:836
 msgid "Cloud derivative artifact download returned no bytes."
 msgstr "Cloud 衍生 artifact 下载未返回内容。"
 
-#: includes/class-cloud-media-derivative-transport.php:819
+#: includes/class-cloud-media-derivative-transport.php:846
 msgid "Cloud derivative artifact mime type does not match the descriptor."
 msgstr "Cloud 衍生 artifact 的 MIME 类型与描述不匹配。"
 
-#: includes/class-cloud-media-derivative-transport.php:828
+#: includes/class-cloud-media-derivative-transport.php:855
 msgid "Derivative artifact byte size does not match the descriptor and signed response."
 msgstr "衍生工件的字节大小与描述符和签名响应不一致。"
 
-#: includes/class-cloud-media-derivative-transport.php:838
+#: includes/class-cloud-media-derivative-transport.php:865
 msgid "Derivative artifact checksum does not match the downloaded bytes."
 msgstr "衍生 artifact 校验和与下载内容不匹配。"
 
-#: includes/class-cloud-media-derivative-transport.php:848
+#: includes/class-cloud-media-derivative-transport.php:875
 msgid "Signed media response headers do not match the requested artifact."
 msgstr "已签名的媒体响应头与请求的工件不一致。"
 
-#: includes/class-cloud-media-derivative-transport.php:864
+#: includes/class-cloud-media-derivative-transport.php:891
 msgid "Cloud media delivery headers are missing or invalid."
 msgstr "Cloud 媒体投递响应头缺失或无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:881
+#: includes/class-cloud-media-derivative-transport.php:908
 msgid "Derivative artifact decode facts do not match the Cloud descriptor."
 msgstr "衍生工件的解码信息与 Cloud 描述符不一致。"
 
-#: includes/class-cloud-media-derivative-transport.php:921
+#: includes/class-cloud-media-derivative-transport.php:948
 msgid "Cloud media delivery acknowledgement does not bind to the verified transfer."
 msgstr "Cloud 媒体投递确认未绑定到已验证的传输。"
 
-#: includes/class-cloud-media-derivative-transport.php:1196
+#: includes/class-cloud-media-derivative-transport.php:1223
 msgid "Npcink Cloud credentials must verify before dispatching media derivative jobs."
 msgstr "派发媒体衍生任务前，Npcink Cloud 凭据必须先通过验证。"
 
-#: includes/class-cloud-media-derivative-transport.php:1239
+#: includes/class-cloud-media-derivative-transport.php:1266
 msgid "Local media derivative proposal building requires the exact Addon run-result projection."
 msgstr "构建本地媒体衍生提案需要精确的 Addon 运行结果投影。"
 
-#: includes/class-cloud-media-derivative-transport.php:1264
+#: includes/class-cloud-media-derivative-transport.php:1291
 msgid "Media derivative request contract version is invalid."
 msgstr "媒体衍生请求的合同版本无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:1271
+#: includes/class-cloud-media-derivative-transport.php:1298
 msgid "Media derivative request must be read-only and proposal-only."
 msgstr "媒体衍生请求必须是只读且仅生成提案。"
 
-#: includes/class-cloud-media-derivative-transport.php:1278
+#: includes/class-cloud-media-derivative-transport.php:1305
 msgid "Media derivative final write owner must remain the local WordPress host."
 msgstr "媒体衍生的最终写入所有者必须保留为本地 WordPress 主机。"
 
-#: includes/class-cloud-media-derivative-transport.php:1285
+#: includes/class-cloud-media-derivative-transport.php:1312
 msgid "Media derivative request must not include WordPress writes."
 msgstr "媒体衍生请求不得包含 WordPress 写入。"
 
-#: includes/class-cloud-media-derivative-transport.php:1292
+#: includes/class-cloud-media-derivative-transport.php:1319
 msgid "Media derivative ability payload must not include credentials or signed headers."
 msgstr "媒体衍生 ability payload 不得包含凭据或签名请求头。"
 
-#: includes/class-cloud-media-derivative-transport.php:1301
+#: includes/class-cloud-media-derivative-transport.php:1328
 msgid "Cloud media derivative job type is invalid."
 msgstr "Cloud 媒体衍生任务类型无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:1308
+#: includes/class-cloud-media-derivative-transport.php:1335
 msgid "Media derivative jobs must not request original file replacement."
 msgstr "媒体衍生任务不得请求替换原始文件。"
 
-#: includes/class-cloud-media-derivative-transport.php:1330
+#: includes/class-cloud-media-derivative-transport.php:1357
 msgid "Media derivative optimization mode is invalid."
 msgstr "媒体衍生优化模式无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:1335
+#: includes/class-cloud-media-derivative-transport.php:1362
 msgid "Automatic safe optimization requires the current fixed policy version."
 msgstr "自动安全优化需要使用当前固定策略版本。"
 
-#: includes/class-cloud-media-derivative-transport.php:1344
+#: includes/class-cloud-media-derivative-transport.php:1371
 msgid "Watermark artifact transport requires a watermark plan in the ability response."
 msgstr "水印 artifact 传输要求 ability response 中包含水印计划。"
 
-#: includes/class-cloud-media-derivative-transport.php:1351
+#: includes/class-cloud-media-derivative-transport.php:1378
 msgid "Text watermark plans must not include a watermark upload or artifact id."
 msgstr "文本水印计划不得包含水印上传或 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:1358
+#: includes/class-cloud-media-derivative-transport.php:1385
 msgid "Watermark plans require a watermark upload or artifact id before Cloud dispatch."
 msgstr "派发到 Cloud 前，水印计划需要水印上传或 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:1365
+#: includes/class-cloud-media-derivative-transport.php:1392
 msgid "Automatic safe optimization requires WebP output."
 msgstr "自动安全优化需要输出 WebP。"
 
-#: includes/class-cloud-media-derivative-transport.php:1370
+#: includes/class-cloud-media-derivative-transport.php:1397
 msgid "Media derivative request must include a bounded target format from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 提供的受限目标格式。"
 
-#: includes/class-cloud-media-derivative-transport.php:1379
+#: includes/class-cloud-media-derivative-transport.php:1406
 msgid "Media derivative request must include max_width from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 中的 max_width。"
 
-#: includes/class-cloud-media-derivative-transport.php:1388
+#: includes/class-cloud-media-derivative-transport.php:1415
 msgid "Media derivative request must include quality from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 中的 quality。"
 
-#: includes/class-cloud-media-derivative-transport.php:1401
+#: includes/class-cloud-media-derivative-transport.php:1428
 msgid "Media derivative resize mode is invalid."
 msgstr "媒体衍生缩放模式无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:1406
+#: includes/class-cloud-media-derivative-transport.php:1433
 msgid "Automatic safe optimization does not accept quality, crop, watermark, or custom width parameters."
 msgstr "自动安全优化不接受质量、裁剪、水印或自定义宽度参数。"
 
-#: includes/class-cloud-media-derivative-transport.php:1420
+#: includes/class-cloud-media-derivative-transport.php:1447
 msgid "Media derivative source media type must be a supported image type."
 msgstr "媒体衍生源媒体类型必须是受支持的图片类型。"
 
-#: includes/class-cloud-media-derivative-transport.php:1458
+#: includes/class-cloud-media-derivative-transport.php:1485
 msgid "Media governance canaries require exact governance and batch context fields."
 msgstr "媒体治理金丝雀测试需要准确的治理和批次上下文字段。"
 
-#: includes/class-cloud-media-derivative-transport.php:1498
+#: includes/class-cloud-media-derivative-transport.php:1525
 msgid "Media governance canaries require WebP preserve previews, no crop or watermark, and at most ten items."
 msgstr "媒体治理金丝雀测试要求生成保留原尺寸的 WebP 预览，不得裁剪或添加水印，且最多包含十项。"
 
-#: includes/class-cloud-media-derivative-transport.php:1550
+#: includes/class-cloud-media-derivative-transport.php:1577
 msgid "Media derivative jobs require a canonical source artifact id."
 msgstr "媒体衍生任务需要规范的源工件 ID。"
 
-#: includes/class-cloud-media-derivative-transport.php:1565
+#: includes/class-cloud-media-derivative-transport.php:1592
 msgid "Media derivative image watermarks require a canonical artifact id."
 msgstr "媒体衍生图像水印需要规范的工件 ID。"
 
-#: includes/class-cloud-media-derivative-transport.php:1709
+#: includes/class-cloud-media-derivative-transport.php:1736
 msgid "Media upload descriptors contain an unknown field."
 msgstr "媒体上传描述符包含未知字段。"
 
-#: includes/class-cloud-media-derivative-transport.php:1720
+#: includes/class-cloud-media-derivative-transport.php:1747
 msgid "Media upload descriptors require exactly one byte source."
 msgstr "媒体上传描述符必须且只能包含一个字节来源。"
 
-#: includes/class-cloud-media-derivative-transport.php:1742
-#: includes/class-cloud-media-derivative-transport.php:1750
+#: includes/class-cloud-media-derivative-transport.php:1769
+#: includes/class-cloud-media-derivative-transport.php:1777
 msgid "Media derivative upload file is not readable."
 msgstr "媒体衍生上传文件不可读。"
 
-#: includes/class-cloud-media-derivative-transport.php:1757
+#: includes/class-cloud-media-derivative-transport.php:1784
 msgid "Media derivative upload files must come from the WordPress uploads directory or a local temporary directory."
 msgstr "Media derivative 上传文件必须来自 WordPress uploads 目录或本地临时目录。"
 
-#: includes/class-cloud-media-derivative-transport.php:1765
-#: includes/class-cloud-media-derivative-transport.php:1783
+#: includes/class-cloud-media-derivative-transport.php:1792
+#: includes/class-cloud-media-derivative-transport.php:1810
 msgid "Media derivative upload file exceeds the Cloud size limit."
 msgstr "媒体衍生上传文件超过 Cloud 大小限制。"
 
-#: includes/class-cloud-media-derivative-transport.php:1776
+#: includes/class-cloud-media-derivative-transport.php:1803
 msgid "Media derivative upload file is empty."
 msgstr "媒体衍生上传文件为空。"
 
-#: includes/class-cloud-media-derivative-transport.php:1792
+#: includes/class-cloud-media-derivative-transport.php:1819
 msgid "Media derivative uploads require an allowed image mime type."
 msgstr "媒体衍生上传需要允许的图像 MIME 类型。"
 
-#: includes/class-cloud-media-derivative-transport.php:1804
+#: includes/class-cloud-media-derivative-transport.php:1831
 msgid "Media derivative upload bytes do not match the declared image mime type."
 msgstr "媒体衍生上传字节与声明的图像 MIME 类型不一致。"
 
-#: includes/class-cloud-media-derivative-transport.php:1817
+#: includes/class-cloud-media-derivative-transport.php:1844
 msgid "Media derivative upload dimensions exceed the local image limits."
 msgstr "媒体衍生上传尺寸超出本地图像限制。"
 
-#: includes/class-cloud-media-derivative-transport.php:1886
+#: includes/class-cloud-media-derivative-transport.php:1913
 msgid "Legacy media upload descriptor fields are not accepted."
 msgstr "不接受旧版媒体上传描述符字段。"
 
-#: includes/class-cloud-media-derivative-transport.php:1921
+#: includes/class-cloud-media-derivative-transport.php:1948
 msgid "Media derivative runtime artifacts require a canonical artifact id."
 msgstr "媒体衍生运行时工件需要规范的工件 ID。"
 
-#: includes/class-cloud-media-derivative-transport.php:1928
+#: includes/class-cloud-media-derivative-transport.php:1955
 msgid "Media derivative runtime artifacts require a valid future expiry."
 msgstr "媒体衍生运行时工件需要有效的未来过期时间。"
 
-#: includes/class-cloud-media-derivative-transport.php:1971
+#: includes/class-cloud-media-derivative-transport.php:1998
 msgid "Media derivative artifacts require the exact 13-field Cloud descriptor."
 msgstr "媒体衍生工件需要精确的 13 字段 Cloud 描述符。"
 
-#: includes/class-cloud-media-derivative-transport.php:1980
+#: includes/class-cloud-media-derivative-transport.php:2007
 msgid "Media derivative artifact expiry must be a strict ISO-8601 timestamp."
 msgstr "媒体衍生工件过期时间必须是严格的 ISO-8601 时间戳。"
 
-#: includes/class-cloud-media-derivative-transport.php:1987
+#: includes/class-cloud-media-derivative-transport.php:2014
 msgid "Expired Cloud artifacts cannot be adopted."
 msgstr "已过期的 Cloud artifact 不能被采用。"
 
-#: includes/class-cloud-media-derivative-transport.php:1996
+#: includes/class-cloud-media-derivative-transport.php:2023
 msgid "Derivative Cloud artifacts require a canonical artifact id."
 msgstr "Cloud 衍生工件需要规范的工件 ID。"
 
-#: includes/class-cloud-media-derivative-transport.php:2004
+#: includes/class-cloud-media-derivative-transport.php:2031
 msgid "Media derivative artifact reference must bind to the canonical artifact id."
 msgstr "媒体衍生工件引用必须绑定到规范的工件 ID。"
 
-#: includes/class-cloud-media-derivative-transport.php:2020
+#: includes/class-cloud-media-derivative-transport.php:2047
 msgid "Media derivative filename basis is invalid."
 msgstr "媒体衍生文件名依据无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:2028
+#: includes/class-cloud-media-derivative-transport.php:2055
 msgid "Media derivative suggested filename is invalid."
 msgstr "媒体衍生建议文件名无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:2044
+#: includes/class-cloud-media-derivative-transport.php:2071
 msgid "Media derivative artifact MIME and format must agree."
 msgstr "媒体衍生工件的 MIME 类型与格式必须一致。"
 
-#: includes/class-cloud-media-derivative-transport.php:2065
+#: includes/class-cloud-media-derivative-transport.php:2092
 msgid "Media derivative artifact facts are invalid."
 msgstr "媒体衍生工件信息无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:2073
+#: includes/class-cloud-media-derivative-transport.php:2100
 msgid "Media derivative processing warnings are invalid."
 msgstr "媒体衍生处理警告无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:2147
+#: includes/class-cloud-media-derivative-transport.php:2174
 msgid "Local media derivative artifacts require the exact 12-field proposal contract."
 msgstr "本地媒体衍生工件需要精确的 12 字段提案契约。"
 
-#: includes/class-cloud-media-derivative-transport.php:2177
+#: includes/class-cloud-media-derivative-transport.php:2204
 msgid "Local media derivative artifact facts are invalid."
 msgstr "本地媒体衍生工件信息无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:2201
+#: includes/class-cloud-media-derivative-transport.php:2228
 msgid "Local media derivative artifact metadata is invalid."
 msgstr "本地媒体衍生工件元数据无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:2209
+#: includes/class-cloud-media-derivative-transport.php:2236
 msgid "Local media derivative processing warnings are invalid."
 msgstr "本地媒体衍生处理警告无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:2359
+#: includes/class-cloud-media-derivative-transport.php:2386
 msgid "Derivative artifact facts do not match the Cloud result."
 msgstr "衍生工件信息与 Cloud 结果不一致。"
 
-#: includes/class-cloud-media-derivative-transport.php:2367
+#: includes/class-cloud-media-derivative-transport.php:2394
 msgid "Derivative artifact checksum does not match the Cloud result."
 msgstr "衍生 artifact 校验和与 Cloud 结果不匹配。"
 
-#: includes/class-cloud-media-derivative-transport.php:2385
+#: includes/class-cloud-media-derivative-transport.php:2412
 msgid "Original media metrics are incomplete."
 msgstr "原始媒体指标不完整。"
 
-#: includes/class-cloud-media-derivative-transport.php:2388
+#: includes/class-cloud-media-derivative-transport.php:2415
 msgid "Derivative media metrics are incomplete."
 msgstr "衍生媒体指标不完整。"
 

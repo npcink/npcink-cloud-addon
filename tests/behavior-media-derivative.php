@@ -84,6 +84,56 @@ function maca_cloud_run_result_response( array $artifact ): array {
 	);
 }
 
+/** Returns one exact direct v3 skipped result response. */
+function maca_cloud_skipped_result_response(): array {
+	$reasons = array( 'minimum_savings_not_met', 'output_not_smaller' );
+	$facts = array_fill_keys(
+		array(
+			'source_checksum', 'output_checksum', 'source_format', 'output_format', 'source_mime_type',
+			'output_mime_type', 'source_width', 'source_height', 'output_width', 'output_height',
+			'source_filesize_bytes', 'output_filesize_bytes', 'source_frame_count', 'output_frame_count',
+			'source_has_alpha', 'output_has_alpha', 'alpha_preserved', 'decodable', 'crop_applied',
+			'watermark_applied', 'resize_applied', 'encoding_mode', 'savings_basis_points',
+			'optimization_profile', 'source_class', 'effective_quality', 'quality_metric', 'quality_score',
+			'quality_threshold', 'color_profile_normalized', 'qualified', 'decision_reasons',
+		),
+		false
+	);
+	$facts = array_merge(
+		$facts,
+		array(
+			'source_checksum' => 'sha256:' . str_repeat( 'd', 64 ), 'output_checksum' => 'sha256:' . str_repeat( 'c', 64 ),
+			'source_format' => 'webp', 'output_format' => 'webp', 'source_mime_type' => 'image/webp',
+			'output_mime_type' => 'image/webp', 'source_width' => 800, 'source_height' => 450,
+			'output_width' => 800, 'output_height' => 450, 'source_filesize_bytes' => 1040,
+			'output_filesize_bytes' => 1120, 'source_frame_count' => 1, 'output_frame_count' => 1,
+			'alpha_preserved' => true, 'decodable' => true, 'encoding_mode' => 'lossy',
+			'savings_basis_points' => 0, 'optimization_profile' => 'auto_safe.v1', 'source_class' => 'opaque',
+			'effective_quality' => 82, 'quality_metric' => 'ssim', 'quality_score' => 0.99,
+			'quality_threshold' => 0.985, 'decision_reasons' => $reasons,
+		)
+	);
+
+	return array(
+		'response' => array( 'code' => 200 ),
+		'headers'  => array( 'Content-Type' => 'application/json' ),
+		'body'     => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data'   => array(
+					'run_id' => 'run_media_skipped', 'status' => 'succeeded', 'job_type' => 'generate_optimized_media_derivative',
+					'created_at' => '2026-09-05T00:00:00Z', 'updated_at' => '2026-09-05T00:00:01Z',
+					'result' => array(
+						'artifact_type' => 'media_derivative_artifact', 'contract_version' => 'media_derivative_result.v3',
+						'status' => 'skipped', 'workflow_metadata' => array( 'operation' => 'image.transform.v1' ), 'artifact' => null,
+						'decision' => array( 'qualified' => false, 'decision_reasons' => $reasons, 'transform_facts' => $facts ),
+					),
+				),
+			)
+		),
+	);
+}
+
 /**
  * Returns one exact media governance canary run-result response.
  *
@@ -886,6 +936,42 @@ maca_assert(
 	&& ! isset( $projection['derivative'] ),
 	'Behavior: raw data.result is accepted only as exact qualified media_derivative_result.v3 and projected once.'
 );
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = maca_cloud_skipped_result_response();
+$skipped_projection = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_skipped', 'trace-result-skipped' );
+maca_assert(
+	is_array( $skipped_projection )
+	&& array() === ( $skipped_projection['artifact'] ?? null )
+	&& 'skipped' === ( $skipped_projection['optimization']['status'] ?? null )
+	&& false === ( $skipped_projection['optimization']['qualified'] ?? null )
+	&& array( 'minimum_savings_not_met', 'output_not_smaller' ) === ( $skipped_projection['optimization']['decision_reasons'] ?? null ),
+	'Behavior: direct v3 skipped results expose a bounded decision and never expose an artifact.'
+);
+
+foreach ( array( 'missing_qualified', 'unknown_decision_field', 'unknown_transform_field', 'reason_mismatch' ) as $invalid_skip_case ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$invalid_skip_response = maca_cloud_skipped_result_response();
+	$invalid_skip_body = json_decode( (string) $invalid_skip_response['body'], true );
+	if ( 'missing_qualified' === $invalid_skip_case ) {
+		unset( $invalid_skip_body['data']['result']['decision']['qualified'] );
+	} elseif ( 'unknown_decision_field' === $invalid_skip_case ) {
+		$invalid_skip_body['data']['result']['decision']['unknown'] = true;
+	} elseif ( 'unknown_transform_field' === $invalid_skip_case ) {
+		$invalid_skip_body['data']['result']['decision']['transform_facts']['unknown'] = true;
+	} else {
+		$invalid_skip_body['data']['result']['decision']['transform_facts']['decision_reasons'] = array( 'output_not_smaller' );
+	}
+	$invalid_skip_response['body'] = wp_json_encode( $invalid_skip_body );
+	$GLOBALS['maca_http_response_queue'][] = $invalid_skip_response;
+	$invalid_skip_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_skipped', 'trace-invalid-skip' );
+	maca_assert(
+		is_wp_error( $invalid_skip_result ) && 'cloud_media_derivative_skip_decision_invalid' === $invalid_skip_result->get_error_code(),
+		'Behavior: malformed direct skipped result ' . $invalid_skip_case . ' fails closed.'
+	);
+}
 
 $proposal = Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
 	maca_ability_fixture(),

@@ -447,33 +447,60 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			 * @param array<string,mixed> $cloud_result Cloud run result envelope.
 			 * @return array<string,mixed>|null|WP_Error
 			 */
-			private static function auto_safe_skip_from_cloud_result( array $cloud_result ) {
-				$data = is_array( $cloud_result['data'] ?? null ) ? $cloud_result['data'] : array();
-				$result = is_array( $data['result'] ?? null ) ? $data['result'] : array();
-				if ( 'media_derivative_result.v3' !== (string) ( $result['contract_version'] ?? '' ) || 'skipped' !== (string) ( $result['status'] ?? '' ) ) {
-					return null;
-				}
-				if (
-					! self::has_exact_keys( $result, array( 'artifact_type', 'contract_version', 'status', 'workflow_metadata', 'artifact', 'decision' ) )
-					|| 'media_derivative_artifact' !== (string) ( $result['artifact_type'] ?? '' )
-					|| null !== ( $result['artifact'] ?? null )
-					|| ! is_array( $result['workflow_metadata'] ?? null )
-					|| ! is_array( $result['decision'] ?? null )
-				) {
-					return new WP_Error( 'cloud_media_derivative_skip_contract_invalid', __( 'Skipped automatic optimization results require the exact media_derivative_result.v3 decision envelope.', 'npcink-cloud-addon' ), array( 'status' => 502 ) );
-				}
-				$decision = $result['decision'];
-				if ( true === ( $decision['qualified'] ?? null ) || ! is_array( $decision['decision_reasons'] ?? null ) || ! is_array( $decision['transform_facts'] ?? null ) ) {
-					return new WP_Error( 'cloud_media_derivative_skip_decision_invalid', __( 'Skipped automatic optimization results require bounded decision facts.', 'npcink-cloud-addon' ), array( 'status' => 502 ) );
-				}
-
-				return array(
-					'status'            => 'skipped',
-					'qualified'         => false,
-					'decision_reasons'  => self::sanitize_string_list( $decision['decision_reasons'] ),
-					'transform_facts'   => self::sanitize_projection_value( $decision['transform_facts'] ),
-				);
+		private static function auto_safe_skip_from_cloud_result( array $cloud_result ) {
+			$data = is_array( $cloud_result['data'] ?? null ) ? $cloud_result['data'] : array();
+			$result = is_array( $data['result'] ?? null ) ? $data['result'] : array();
+			if ( 'media_derivative_result.v3' !== (string) ( $result['contract_version'] ?? '' ) || 'skipped' !== (string) ( $result['status'] ?? '' ) ) {
+				return null;
 			}
+			if (
+				! self::has_exact_keys( $result, array( 'artifact_type', 'contract_version', 'status', 'workflow_metadata', 'artifact', 'decision' ) )
+				|| 'media_derivative_artifact' !== (string) ( $result['artifact_type'] ?? '' )
+				|| null !== ( $result['artifact'] ?? null )
+				|| ! is_array( $result['workflow_metadata'] ?? null )
+				|| ! is_array( $result['decision'] ?? null )
+			) {
+				return new WP_Error( 'cloud_media_derivative_skip_contract_invalid', __( 'Skipped automatic optimization results require the exact media_derivative_result.v3 decision envelope.', 'npcink-cloud-addon' ), array( 'status' => 502 ) );
+			}
+
+			$decision = $result['decision'];
+			$facts    = is_array( $decision['transform_facts'] ?? null ) ? $decision['transform_facts'] : array();
+			$fact_keys = array(
+				'source_checksum', 'output_checksum', 'source_format', 'output_format', 'source_mime_type',
+				'output_mime_type', 'source_width', 'source_height', 'output_width', 'output_height',
+				'source_filesize_bytes', 'output_filesize_bytes', 'source_frame_count', 'output_frame_count',
+				'source_has_alpha', 'output_has_alpha', 'alpha_preserved', 'decodable', 'crop_applied',
+				'watermark_applied', 'resize_applied', 'encoding_mode', 'savings_basis_points',
+				'optimization_profile', 'source_class', 'effective_quality', 'quality_metric', 'quality_score',
+				'quality_threshold', 'color_profile_normalized', 'qualified', 'decision_reasons',
+			);
+			$reasons = self::bounded_projection_warnings( $decision['decision_reasons'] ?? array() );
+			$fact_reasons = self::bounded_projection_warnings( $facts['decision_reasons'] ?? array() );
+			$allowed_reasons = array( 'transparent_pixels_changed', 'quality_threshold_not_met', 'minimum_savings_not_met', 'output_not_smaller', 'color_profile_normalization_failed' );
+			if (
+				! self::has_exact_keys( $decision, array( 'qualified', 'decision_reasons', 'transform_facts' ) )
+				|| false !== $decision['qualified']
+				|| ! self::has_exact_keys( $facts, $fact_keys )
+				|| false !== ( $facts['qualified'] ?? null )
+				|| 'auto_safe.v1' !== (string) ( $facts['optimization_profile'] ?? '' )
+				|| empty( $reasons )
+				|| $reasons !== $fact_reasons
+				|| array() !== array_diff( $reasons, $allowed_reasons )
+				|| (int) ( $facts['source_filesize_bytes'] ?? 0 ) <= 0
+				|| (int) ( $facts['output_filesize_bytes'] ?? 0 ) <= 0
+				|| (int) ( $facts['savings_basis_points'] ?? -1 ) < 0
+				|| (int) ( $facts['savings_basis_points'] ?? 10001 ) > 10000
+			) {
+				return new WP_Error( 'cloud_media_derivative_skip_decision_invalid', __( 'Skipped automatic optimization results require bounded decision facts.', 'npcink-cloud-addon' ), array( 'status' => 502 ) );
+			}
+
+			return array(
+				'status'           => 'skipped',
+				'qualified'        => false,
+				'decision_reasons' => $reasons,
+				'transform_facts'  => self::sanitize_projection_value( $facts ),
+			);
+		}
 
 		/**
 		 * Validates the additive governance result without changing ordinary results.
