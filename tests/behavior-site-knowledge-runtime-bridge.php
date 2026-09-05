@@ -415,3 +415,56 @@ maca_assert(
 	&& array() === $GLOBALS['maca_http_requests'],
 	'Behavior: Site Knowledge runtime bridge rejects rebuild and delete sync modes before transport.'
 );
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data' => array(
+				'result' => array(
+					'contract_version' => 'site_knowledge_status.v1',
+					'media_evidence_items' => array(
+						array( 'attachment_id' => 501, 'visual_evidence' => array( 'visual_summary' => 'must not be cached' ) ),
+						array( 'attachment_id' => '502' ),
+						array( 'attachment_id' => 501 ),
+						array( 'attachment_id' => 0 ),
+					),
+				),
+			),
+		)
+	),
+);
+$media_status_payload = maca_site_knowledge_runtime_payload();
+$media_status_payload['ability_name'] = 'npcink-cloud/site-knowledge-status';
+$media_status_payload['contract_version'] = 'site_knowledge_status.v1';
+$media_status_payload['input']['contract_version'] = 'site_knowledge_status.v1';
+$media_status_result = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::dispatch_runtime(
+	$media_status_payload,
+	'npcink-cloud/site-knowledge-status',
+	'site_knowledge_status.v1'
+);
+Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
+$projected_media_ids = apply_filters(
+	'npcink_toolbox_media_fingerprint_scan_evidence_attachment_ids',
+	array( 503, 501 ),
+	3
+);
+$media_cache_keys = array_values(
+	array_filter(
+		array_keys( $GLOBALS['maca_transients'] ),
+		static fn( $key ): bool => false !== strpos( (string) $key, '_media_evidence_ids' )
+	)
+);
+$media_cache = ! empty( $media_cache_keys ) ? $GLOBALS['maca_transients'][ $media_cache_keys[0] ] : array();
+maca_assert(
+	is_array( $media_status_result )
+	&& array( 503, 501, 502 ) === $projected_media_ids
+	&& 1 === count( $media_cache_keys )
+	&& array( 501, 502 ) === (array) $media_cache
+	&& false === in_array( 'must not be cached', (array) $media_cache, true )
+	&& 1 === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: Site Knowledge status responses retain only bounded, credential-scoped media evidence attachment IDs for Toolbox scans without caching visual evidence or issuing a read request.'
+);

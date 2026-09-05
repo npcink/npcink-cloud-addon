@@ -11,10 +11,6 @@ bounded signed transport.
 
 ## Engineering Decisions and Standards
 
-- [Site media recognition continuation engineering standard](docs/site-media-recognition-continuation-engineering-standard-2026-08-28.md)
-  records the one-click continuation contract, WordPress/Addon/Cloud ownership,
-  progress-count semantics, failure recovery rules, runtime lessons, and
-  release checklist for bounded visual-recognition batches.
 - [Admin simplification and delivery engineering standard](docs/admin-simplification-and-delivery-engineering-standard-2026-08-25.md)
   records the current operator mental model, automatic Site Knowledge behavior,
   Cloud ownership boundary, merge lessons, release-manifest gate, and reusable
@@ -109,7 +105,8 @@ WordPress write path.
 ```php
 npcink_cloud_addon_is_configured(): bool
 npcink_cloud_addon_get_connection_state(): array
-npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
+npcink_cloud_addon_pull_media_artifact( $artifact_id, $trace_id )
+npcink_cloud_addon_acknowledge_media_artifact_delivery( $artifact_id, $payload, $trace_id )
 npcink_cloud_addon_get_manual_readiness_result(): array
 npcink_cloud_addon_get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '')
 npcink_cloud_addon_dispatch_media_derivative_cloud_request(array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '')

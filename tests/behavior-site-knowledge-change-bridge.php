@@ -162,6 +162,7 @@ function maca_add_public_post_fixture( int $post_id, string $type = 'post' ): vo
 		'ID'                => $post_id,
 		'post_type'         => $type,
 		'post_status'       => 'publish',
+		'post_password'     => '',
 		'post_title'        => 'Public fixture ' . $post_id,
 		'post_excerpt'      => 'Excerpt ' . $post_id,
 		'post_content'      => 'Public content for Site Knowledge ' . $post_id,
@@ -323,6 +324,83 @@ maca_assert(
 	is_array( $buffer )
 	&& array( 705 ) === array_map( 'absint', (array) ( $buffer['post_ids'] ?? array() ) ),
 	'Behavior: comment approval transition buffers the parent post.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+$GLOBALS['maca_comments'][105] = (object) array(
+	'comment_ID'       => 105,
+	'comment_post_ID'  => 715,
+	'comment_approved' => '0',
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_edited_comment( 105, array( 'comment_post_ID' => 715 ) );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_edited_comment( 999, array( 'comment_post_ID' => 799 ) );
+maca_assert(
+	array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() ),
+	'Behavior: unapproved or unavailable comments cannot trigger an edited-comment refresh.'
+);
+
+$GLOBALS['maca_comments'][106] = (object) array(
+	'comment_ID'       => 106,
+	'comment_post_ID'  => 716,
+	'comment_approved' => '1',
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_edited_comment( 106, null );
+$buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert(
+	array( 716 ) === array_map( 'absint', (array) ( $buffer['post_ids'] ?? array() ) ),
+	'Behavior: approved comment edits refresh their public parent post.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+$GLOBALS['maca_comments'][107] = (object) array(
+	'comment_ID'       => 107,
+	'comment_post_ID'  => 717,
+	'comment_approved' => '1',
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::capture_comment_removal_context( 107 );
+unset( $GLOBALS['maca_comments'][107] );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_comment( 107 );
+$buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert(
+	array( 717 ) === array_map( 'absint', (array) ( $buffer['post_ids'] ?? array() ) ),
+	'Behavior: approved comment deletion uses the captured pre-delete parent and approval state.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+$GLOBALS['maca_comments'][108] = (object) array(
+	'comment_ID'       => 108,
+	'comment_post_ID'  => 718,
+	'comment_approved' => 'spam',
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::capture_comment_removal_context( 108 );
+unset( $GLOBALS['maca_comments'][108] );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_comment( 108 );
+maca_assert(
+	array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() ),
+	'Behavior: deleting a non-public comment does not refresh Site Knowledge.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 719 );
+$GLOBALS['maca_posts'][720] = (object) array(
+	'ID'            => 720,
+	'post_type'     => 'post',
+	'post_status'   => 'draft',
+	'post_password' => '',
+);
+maca_add_public_post_fixture( 721 );
+$GLOBALS['maca_posts'][721]->post_password = 'protected';
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_post( 720 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_post( 721 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_post( 719 );
+$buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert(
+	array( 719 ) === array_map( 'absint', (array) ( $buffer['post_ids'] ?? array() ) ),
+	'Behavior: only previously public allowed posts emit removal hints; drafts and password-protected posts are ignored.'
 );
 
 maca_reset_site_knowledge_bridge_state();

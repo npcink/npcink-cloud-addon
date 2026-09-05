@@ -19,6 +19,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		private const MAX_RUNTIME_PAYLOAD_BYTES = 900000;
 		private const STATUS_FRESHNESS_TTL_SECONDS = 300;
 		private const STATUS_CACHE_TTL_SECONDS = 86400;
+		private const MEDIA_EVIDENCE_IDS_CACHE_TTL_SECONDS = 604800;
+		private const MAX_MEDIA_EVIDENCE_IDS = 1000;
 		private const STATUS_REFRESH_LOCK_TTL_SECONDS = 15;
 		private const MAX_STATUS_POST_IDS = 1000;
 		private const ALLOWED_CONTRACTS = array(
@@ -51,6 +53,33 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		 */
 		public static function register(): void {
 			add_filter( 'npcink_toolbox_site_knowledge_cloud_request', array( __CLASS__, 'handle_toolbox_request' ), 10, 4 );
+			add_filter( 'npcink_toolbox_media_fingerprint_scan_evidence_attachment_ids', array( __CLASS__, 'media_fingerprint_scan_evidence_attachment_ids' ), 10, 2 );
+		}
+
+		/**
+		 * Returns bounded attachment IDs observed in Cloud visual-evidence
+		 * projections. This is a read-only cache and never dispatches Cloud.
+		 *
+		 * @param mixed $ids Existing filter value.
+		 * @param mixed $limit Requested maximum IDs.
+		 * @return array<int,int>
+		 */
+		public static function media_fingerprint_scan_evidence_attachment_ids( $ids, $limit = 100 ): array {
+			$limit = max( 1, min( self::MAX_MEDIA_EVIDENCE_IDS, absint( $limit ) ) );
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() || ! Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled() ) {
+				return array_values( array_unique( array_filter( array_map( 'absint', (array) $ids ) ) ) );
+			}
+			$cached = get_transient( self::media_evidence_ids_cache_key() );
+			$values = array_merge( (array) $ids, is_array( $cached ) ? $cached : array() );
+			$normalized = array();
+			foreach ( $values as $value ) {
+				$attachment_id = absint( $value );
+				if ( $attachment_id > 0 && ! in_array( $attachment_id, $normalized, true ) ) {
+					$normalized[] = $attachment_id;
+				}
+			}
+
+			return array_slice( $normalized, 0, $limit );
 		}
 
 		/**
@@ -114,7 +143,54 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				return $result;
 			}
 
-			return self::attach_cloud_boundary_projection( $result, $contract_version );
+			$result = self::attach_cloud_boundary_projection( $result, $contract_version );
+			if ( 'site_knowledge_status.v1' === $contract_version ) {
+				self::remember_media_evidence_attachment_ids( self::runtime_result_payload( $result ) );
+			}
+
+			return $result;
+		}
+
+		/**
+		 * Retains only bounded attachment identities from a status response.
+		 *
+		 * @param array<string,mixed> $source Site Knowledge status payload.
+		 * @return void
+		 */
+		private static function remember_media_evidence_attachment_ids( array $source ): void {
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() || ! Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled() ) {
+				return;
+			}
+			$items = is_array( $source['media_evidence_items'] ?? null ) ? $source['media_evidence_items'] : array();
+			$observed = array();
+			foreach ( $items as $item ) {
+				if ( ! is_array( $item ) ) {
+					continue;
+				}
+				$attachment_id = absint( $item['attachment_id'] ?? 0 );
+				if ( $attachment_id > 0 && ! in_array( $attachment_id, $observed, true ) ) {
+					$observed[] = $attachment_id;
+				}
+			}
+			if ( empty( $observed ) ) {
+				return;
+			}
+
+			$existing = get_transient( self::media_evidence_ids_cache_key() );
+			$values = array_merge( is_array( $existing ) ? $existing : array(), $observed );
+			$normalized = array();
+			foreach ( $values as $value ) {
+				$attachment_id = absint( $value );
+				if ( $attachment_id > 0 && ! in_array( $attachment_id, $normalized, true ) ) {
+					$normalized[] = $attachment_id;
+				}
+			}
+
+			set_transient(
+				self::media_evidence_ids_cache_key(),
+				array_slice( $normalized, 0, self::MAX_MEDIA_EVIDENCE_IDS ),
+				self::MEDIA_EVIDENCE_IDS_CACHE_TTL_SECONDS
+			);
 		}
 
 		/**
@@ -422,6 +498,15 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 			);
 
 			return 'npcink_cloud_site_knowledge_status_' . md5( $seed );
+		}
+
+		/**
+		 * Builds the credential-scoped media evidence ID projection key.
+		 *
+		 * @return string
+		 */
+		private static function media_evidence_ids_cache_key(): string {
+			return self::status_cache_key() . '_media_evidence_ids';
 		}
 
 		/**

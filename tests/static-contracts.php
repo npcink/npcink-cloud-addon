@@ -46,7 +46,6 @@ $runtime_endpoint_policy = maca_read( $root . '/includes/class-cloud-runtime-end
 $transport = maca_read( $root . '/includes/class-cloud-media-derivative-transport.php' );
 $runtime_client = maca_read( $root . '/includes/class-cloud-runtime-client.php' );
 $runtime_client_factory = maca_read( $root . '/includes/class-cloud-runtime-client-factory.php' );
-$runtime_callback = maca_read( $root . '/includes/class-cloud-runtime-callback.php' );
 $ai_task_contract = maca_read( $root . '/includes/class-cloud-ai-task-contract.php' );
 $wordpress_ai_connector = maca_read( $root . '/includes/class-cloud-wordpress-ai-connector.php' );
 $cloud_addon_localization = maca_read( $root . '/includes/class-cloud-addon-localization.php' );
@@ -559,7 +558,7 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $bootstrap, 'class-cloud-media-derivative-transport.php' )
-	&& false !== strpos( $bootstrap, 'npcink_cloud_addon_verified_runtime_client' )
+	&& false !== strpos( $bootstrap, 'npcink_cloud_addon_pull_media_artifact' )
 	&& false !== strpos( $bootstrap, 'npcink_cloud_addon_dispatch_media_derivative_cloud_request' )
 	&& false !== strpos( $bootstrap, 'npcink_cloud_addon_request_image_context_evidence' )
 	&& false !== strpos( $bootstrap, 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime' )
@@ -571,7 +570,7 @@ maca_assert(
 	&& false !== strpos( $bootstrap, 'npcink_cloud_addon_build_media_derivative_optimization_payload' )
 	&& false !== strpos( $bootstrap, 'npcink_cloud_addon_receive_media_derivative_artifact' )
 	&& false === strpos( $bootstrap, 'npcink_cloud_addon_download_media_derivative_artifact' ),
-	'Bootstrap exposes verified runtime and exact media delivery helpers without the legacy preview download seam.'
+	'Bootstrap exposes bounded artifact facades without the legacy preview download seam.'
 );
 
 maca_assert(
@@ -827,8 +826,7 @@ maca_assert(
 	&& false !== strpos( $wordpress_ai_connector, 'Npcink Cloud AI connector only accepts known WordPress AI ability scene calls' )
 	&& false !== strpos( $wordpress_ai_connector, 'does not support chat history' )
 	&& false !== strpos( $wordpress_ai_connector, 'does not support tools or web search' )
-	&& false !== strpos( $wordpress_ai_connector, "method_exists( \$client, 'execute_wordpress_ai_connector_runtime' )" )
-	&& false !== strpos( $wordpress_ai_connector, '$client->execute_wordpress_ai_connector_runtime(' )
+	&& false !== strpos( $wordpress_ai_connector, 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime(' )
 	&& false !== strpos( $wordpress_ai_connector, "\$scene_input['source_text'] = \$text" )
 	&& false !== strpos( $wordpress_ai_connector, "'cloud_connector_result.v1'" )
 	&& false !== strpos( $wordpress_ai_connector, "\$response['data']['result']" )
@@ -1056,7 +1054,7 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $runtime_client, "'POST', '/v1/runtime/execute'" )
-	&& false !== strpos( $runtime_client, "'/v1/runtime/callbacks/terminal'" )
+	&& false === strpos( $runtime_client, "'/v1/runtime/callbacks/terminal'" )
 	&& false !== strpos( $runtime_client, "'/v1/runtime/media/uploads'" )
 	&& false !== strpos( $runtime_client, "'/v1/runtime/media/jobs'" )
 	&& false !== strpos( $runtime_client, "'/v1/runtime/media/artifacts/'" )
@@ -1095,22 +1093,12 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-runtime-callback.php'" )
-	&& false !== strpos( $bootstrap, 'Npcink_Cloud_Runtime_Callback::register();' )
-	&& false !== strpos( $runtime_endpoint_policy, "'/v1/runtime/callbacks/terminal'" )
-	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-runtime-callback.php' )
-	&& false !== strpos( $test_runner, 'behavior-runtime-callback.php' )
-	&& false !== strpos( $runtime_callback, "private const MEDIA_PLAN_CRON = 'npcink_cloud_addon_continue_media_recognition'" )
-	&& false !== strpos( $runtime_callback, 'wp_schedule_single_event' )
-	&& false !== strpos( $runtime_callback, 'hash_equals' )
-	&& false !== strpos( $runtime_callback, 'get_transient' )
-	&& false === strpos( $runtime_callback, 'get_runtime_run_result' )
-	&& false === strpos( $runtime_callback, 'set_media_recognition_plan' )
-	&& false === strpos( $runtime_callback, 'wp_insert_post' )
-	&& false === strpos( $runtime_callback, 'wp_update_post' )
-	&& false === strpos( $runtime_callback, 'update_post_meta' )
-	&& false === strpos( $runtime_callback, 'set_post_thumbnail' ),
-	'Runtime callback remains a packaged, allowlisted, signature-verified wake-up signal without result, cursor, or WordPress write ownership.'
+	false === strpos( $bootstrap, 'class-cloud-runtime-callback.php' )
+	&& false === strpos( $bootstrap, 'Npcink_Cloud_Runtime_Callback::register();' )
+	&& false === strpos( $runtime_endpoint_policy, "'/v1/runtime/callbacks/terminal'" )
+	&& false === strpos( $release_source_manifest, 'includes/class-cloud-runtime-callback.php' )
+	&& false === strpos( $test_runner, 'behavior-runtime-callback.php' ),
+	'Runtime callback is retired and absent from the packaged Cloud Addon contract.'
 );
 
 maca_assert(
@@ -1218,12 +1206,12 @@ maca_assert(
 	&& 0 === substr_count( $settings_page, 'Plan image capacity' )
 	&& 0 === substr_count( $settings_page, '%1$s used / %2$s limit / %3$s remaining' )
 	&& false !== strpos( $settings_page, 'Available images' )
-	&& false !== strpos( $settings_page, 'npcink-cloud-site-media-progress-head' )
+	&& false === strpos( $settings_page, 'npcink-cloud-site-media-progress-head' )
 	&& false === strpos( $settings_page, 'render_credit_usage_summary' )
 	&& false === strpos( $settings_page, '<h3><?php esc_html_e( \'AI Credit Usage\'' )
 	&& false === strpos( $settings_page, "esc_html_e( 'Used credits'" )
 	&& false === strpos( $settings_page, "'recent_items'" ),
-	'Cloud Addon keeps account capacity on Overview, recognition completion on Site Knowledge, and low-frequency parameters in service or recognition detail without duplicate summaries.'
+	'Cloud Addon keeps account capacity on Overview while leaving media recognition progress and controls to Workflow Toolbox.'
 );
 
 maca_assert(
@@ -1415,6 +1403,9 @@ maca_assert(
 	&& false !== strpos( $site_knowledge_runtime_bridge, 'STATUS_FRESHNESS_TTL_SECONDS' )
 	&& false !== strpos( $site_knowledge_runtime_bridge, 'get_transient' )
 	&& false !== strpos( $site_knowledge_runtime_bridge, 'set_transient' )
+	&& false !== strpos( $site_knowledge_runtime_bridge, 'npcink_toolbox_media_fingerprint_scan_evidence_attachment_ids' )
+	&& false !== strpos( $site_knowledge_runtime_bridge, 'MAX_MEDIA_EVIDENCE_IDS' )
+	&& false !== strpos( $site_knowledge_runtime_bridge, 'media_evidence_ids_cache_key' )
 	&& false === strpos( $site_knowledge_runtime_bridge, '/v1/site-knowledge' ),
 	'Site Knowledge usage reuses the existing status contract and retains only a bounded read-only cache without adding an addon-owned API.'
 );
@@ -1476,6 +1467,8 @@ maca_assert(
 	&& false !== strpos( $site_knowledge_bridge, 'transition_comment_status' )
 	&& false !== strpos( $site_knowledge_bridge, 'comment_post' )
 	&& false !== strpos( $site_knowledge_bridge, 'edit_comment' )
+	&& false !== strpos( $site_knowledge_bridge, "add_action( 'trash_comment', array( __CLASS__, 'capture_comment_removal_context' )" )
+	&& false !== strpos( $site_knowledge_bridge, "add_action( 'delete_comment', array( __CLASS__, 'capture_comment_removal_context' )" )
 	&& false !== strpos( $site_knowledge_bridge, 'trashed_comment' ),
 	'Site Knowledge change bridge watches public post/page and approved comment changes.'
 );
@@ -1864,19 +1857,13 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $settings_page, "ACTION_POLL_SITE_MEDIA_STATUS = 'npcink_cloud_addon_poll_site_media_status'" )
-	&& false !== strpos( $settings_page, 'data-npcink-site-media-status' )
-	&& false !== strpos( $settings_page, 'data-npcink-site-media-progress-label' )
-	&& false !== strpos( $settings_page, 'Continue recognizing remaining images' )
-	&& false !== strpos( $admin_site_knowledge_js, "'processing' !== payload.data.state" )
-	&& false !== strpos( $admin_site_knowledge_js, 'action: config.mediaAction' )
-	&& false !== strpos( $admin_site_knowledge_js, 'requestInFlight' )
-	&& false !== strpos( $admin_site_knowledge_js, 'status.eligible_processed' )
-	&& false !== strpos( $admin_site_knowledge_js, 'status.eligible_total' )
-	&& false !== strpos( $admin_site_knowledge_js, 'status.display_percent' )
-	&& false !== strpos( $settings_page, 'This batch is complete' )
-	&& false === strpos( $admin_site_knowledge_js, 'npcink_cloud_addon_refresh_site_media_index' ),
-	'Media recognition uses one read-only, non-overlapping status poll and leaves task creation to the explicit administrator action.'
+	false === strpos( $settings_page, 'npcink_cloud_addon_poll_site_media_status' )
+	&& false === strpos( $settings_page, 'data-npcink-site-media-status' )
+	&& false === strpos( $settings_page, 'Continue recognizing remaining images' )
+	&& false === strpos( $admin_site_knowledge_js, 'config.mediaAction' )
+	&& false === strpos( $admin_site_knowledge_js, 'data-npcink-site-media-' )
+	&& false === strpos( $admin_site_knowledge_js, 'status.eligible_processed' ),
+	'Cloud Addon removes its media recognition polling and operator surface after Workflow Toolbox assumes continuation ownership.'
 );
 
 maca_assert(
@@ -2020,9 +2007,9 @@ maca_assert(
 	&& false !== strpos( $cloud_addon_localization, "'Advanced and troubleshooting' => '高级与排查'" )
 	&& false !== strpos( $cloud_addon_localization, "'Technical delivery details' => '技术投递详情'" )
 	&& false !== strpos( $cloud_addon_localization, "'Site Knowledge' => '站点知识库'" )
-	&& false !== strpos( $cloud_addon_localization, "'Waiting to retry' => '等待重试'" )
-	&& false !== strpos( $cloud_addon_localization, "'Cloud media recognition did not complete. Retry this batch later.' => 'Cloud 媒体识别未完成。请稍后重试本批。'" )
-	&& false !== strpos( $cloud_addon_localization, "'The configured image recognition model is not available. Verify the vision.ai runtime profile in Cloud administration.' => '配置的识图模型当前不可用。请在 Cloud 管理后台验证“视觉理解”运行配置。'" )
+	&& false === strpos( $cloud_addon_localization, "'Waiting to retry' =>" )
+	&& false === strpos( $cloud_addon_localization, "'Cloud media recognition did not complete. Retry this batch later.' =>" )
+	&& false === strpos( $cloud_addon_localization, "'The configured image recognition model is not available." )
 	&& false !== strpos( $cloud_addon_localization, "'Enable Site Knowledge' => '启用站点知识库'" )
 	&& false !== strpos( $cloud_addon_localization, "'Privacy settings' => '隐私设置'" )
 		&& false !== strpos( $cloud_addon_localization, "'Knowledge base delivery' => '知识库投递'" )

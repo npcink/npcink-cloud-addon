@@ -36,7 +36,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			private const MANUAL_INDEX_POSTS = 200;
 			private const MANUAL_MAX_POSTS = 10000;
 			private const MAX_DOCUMENT_CHARS = 1800;
-			private const MAX_TAXONOMY_TERMS = 10;
+		private const MAX_TAXONOMY_TERMS = 10;
+		/** @var array<int,array{post_id:int,approved:bool}> */
+		private static array $removed_comment_context = array();
+		/** @var array<int,bool> */
+		private static array $public_posts_pending_removal = array();
 
 		/**
 		 * Registers content change hooks and delivery cron hooks.
@@ -51,6 +55,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			add_action( 'transition_comment_status', array( __CLASS__, 'handle_comment_status_transition' ), 10, 3 );
 			add_action( 'comment_post', array( __CLASS__, 'handle_comment_posted' ), 20, 3 );
 			add_action( 'edit_comment', array( __CLASS__, 'handle_edited_comment' ), 20, 2 );
+			add_action( 'trash_comment', array( __CLASS__, 'capture_comment_removal_context' ), 5, 1 );
+			add_action( 'delete_comment', array( __CLASS__, 'capture_comment_removal_context' ), 5, 1 );
 			add_action( 'trashed_comment', array( __CLASS__, 'handle_removed_comment' ), 10, 1 );
 			add_action( 'deleted_comment', array( __CLASS__, 'handle_removed_comment' ), 10, 1 );
 			add_action( self::FLUSH_HOOK, array( __CLASS__, 'flush_buffer' ) );
@@ -201,11 +207,18 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 */
 		public static function handle_post_status_transition( string $new_status, string $old_status, $post ): void {
 			$post_id = self::post_id_from_value( $post );
+			$post_type = is_object( $post ) ? (string) ( $post->post_type ?? '' ) : '';
+			$post_password = is_object( $post ) ? (string) ( $post->post_password ?? '' ) : '';
+			$was_public = self::is_public_post( (object) array( 'ID' => $post_id, 'post_type' => $post_type, 'post_status' => $old_status, 'post_password' => $post_password ) );
+			$is_public = self::is_public_post( (object) array( 'ID' => $post_id, 'post_type' => $post_type, 'post_status' => $new_status, 'post_password' => $post_password ) );
+			if ( $was_public && ! $is_public ) {
+				self::$public_posts_pending_removal[ $post_id ] = true;
+			}
 			if ( $post_id <= 0 ) {
 				return;
 			}
 
-			if ( 'publish' === $new_status || 'publish' === $old_status ) {
+			if ( $was_public || $is_public ) {
 				self::buffer_post_ids( array( $post_id ) );
 			}
 		}
@@ -230,9 +243,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @return void
 		 */
 		public static function handle_removed_post( int $post_id ): void {
-			if ( $post_id > 0 ) {
+			$post = function_exists( 'get_post' ) ? get_post( $post_id ) : null;
+			if ( self::is_public_post( $post ) || ! empty( self::$public_posts_pending_removal[ $post_id ] ) ) {
 				self::buffer_post_ids( array( $post_id ) );
 			}
+			unset( self::$public_posts_pending_removal[ $post_id ] );
 		}
 
 		/**
@@ -285,9 +300,13 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @return void
 		 */
 		public static function handle_edited_comment( int $comment_id, $data = null ): void {
+			$comment = function_exists( 'get_comment' ) ? get_comment( $comment_id ) : null;
+			if ( ! is_object( $comment ) || ! in_array( (string) ( $comment->comment_approved ?? '' ), array( '1', 'approved' ), true ) ) {
+				return;
+			}
 			$post_id = is_array( $data ) ? absint( $data['comment_post_ID'] ?? 0 ) : 0;
-			if ( $post_id <= 0 && function_exists( 'get_comment' ) ) {
-				$post_id = self::post_id_from_comment( get_comment( $comment_id ) );
+			if ( $post_id <= 0 ) {
+				$post_id = self::post_id_from_comment( $comment );
 			}
 
 			if ( $post_id > 0 ) {
@@ -296,20 +315,33 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		/**
-		 * Handles removed comments.
+		 * Captures a comment's public state before trash or permanent deletion.
+		 *
+		 * @param int $comment_id Comment id.
+		 * @return void
+		 */
+		public static function capture_comment_removal_context( int $comment_id ): void {
+			$comment = function_exists( 'get_comment' ) ? get_comment( $comment_id ) : null;
+			if ( is_object( $comment ) ) {
+				self::$removed_comment_context[ $comment_id ] = array(
+					'post_id' => self::post_id_from_comment( $comment ),
+					'approved' => in_array( (string) ( $comment->comment_approved ?? '' ), array( '1', 'approved' ), true ),
+				);
+			}
+		}
+
+		/**
+		 * Handles a removed comment using its pre-removal context.
 		 *
 		 * @param int $comment_id Comment id.
 		 * @return void
 		 */
 		public static function handle_removed_comment( int $comment_id ): void {
-			if ( ! function_exists( 'get_comment' ) ) {
-				return;
+			$context = self::$removed_comment_context[ $comment_id ] ?? array();
+			if ( ! empty( $context['approved'] ) && absint( $context['post_id'] ?? 0 ) > 0 ) {
+				self::buffer_post_ids( array( absint( $context['post_id'] ) ) );
 			}
-
-			$post_id = self::post_id_from_comment( get_comment( $comment_id ) );
-			if ( $post_id > 0 ) {
-				self::buffer_post_ids( array( $post_id ) );
-			}
+			unset( self::$removed_comment_context[ $comment_id ] );
 		}
 
 		/**
@@ -989,8 +1021,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 
 			if ( isset( $wpdb ) && is_object( $wpdb ) && method_exists( $wpdb, 'prepare' ) && method_exists( $wpdb, 'get_results' ) && ! empty( $post_types ) ) {
 				$type_placeholders = implode( ', ', array_fill( 0, count( $post_types ), '%s' ) );
-				$sql = "SELECT ID, post_modified_gmt FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type IN ({$type_placeholders}) AND (post_modified_gmt > %s OR (post_modified_gmt = %s AND ID > %d)) ORDER BY post_modified_gmt ASC, ID ASC LIMIT %d";
-				$prepared = $wpdb->prepare( $sql, array_merge( $post_types, array( $modified_gmt, $modified_gmt, $post_id, self::RECONCILE_POSTS ) ) );
+				$sql = "SELECT ID, post_modified_gmt FROM {$wpdb->posts} WHERE post_status = %s AND post_type IN ({$type_placeholders}) AND (post_modified_gmt > %s OR (post_modified_gmt = %s AND ID > %d)) ORDER BY post_modified_gmt ASC, ID ASC LIMIT %d";
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- placeholders and values are assembled immediately above.
+				$prepared = $wpdb->prepare( $sql, array_merge( array( 'publish' ), $post_types, array( $modified_gmt, $modified_gmt, $post_id, self::RECONCILE_POSTS ) ) );
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- bounded reconciliation read uses the prepared cursor query above.
 				$results = $wpdb->get_results( $prepared );
 
 				return is_array( $results ) ? $results : array();
@@ -1668,9 +1702,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$post_id = self::post_id_from_value( $post );
 			$post_type = sanitize_key( (string) ( $post->post_type ?? '' ) );
 			$post_status = sanitize_key( (string) ( $post->post_status ?? '' ) );
+			$post_password = (string) ( $post->post_password ?? '' );
 
 			return $post_id > 0
 				&& 'publish' === $post_status
+				&& '' === $post_password
 				&& 'attachment' !== $post_type
 				&& in_array( $post_type, self::post_types(), true );
 		}

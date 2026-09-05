@@ -78,8 +78,18 @@ namespace {
 		return 'en_US';
 	}
 
-	function npcink_cloud_addon_verified_runtime_client() {
-		return $GLOBALS['maca_alt_text_client'];
+	function npcink_cloud_addon_upload_wordpress_ai_alt_text_source( array $file, string $trace_id = '', string $idempotency_key = '' ) {
+		if ( ! is_object( $GLOBALS['maca_alt_text_client'] ) ) {
+			return new WP_Error( 'cloud_wp_ai_alt_text_verified_client_required' );
+		}
+		return $GLOBALS['maca_alt_text_client']->upload_wordpress_ai_alt_text_source( $file, $trace_id, $idempotency_key );
+	}
+
+	function npcink_cloud_addon_execute_wordpress_ai_connector_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
+		if ( ! is_object( $GLOBALS['maca_alt_text_client'] ) ) {
+			return new WP_Error( 'cloud_wp_ai_alt_text_verified_client_required' );
+		}
+		return $GLOBALS['maca_alt_text_client']->execute_wordpress_ai_connector_runtime( $request, $trace_id, $idempotency_key );
 	}
 
 	final class Maca_Alt_Text_Client_Stub {

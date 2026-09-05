@@ -569,25 +569,6 @@
 	width: 100%;
 }
 
-.npcink-cloud-site-media-progress,
-.npcink-cloud-site-media-overview-progress {
-	--npcink-cloud-progress-color: #3858e9;
-}
-
-.npcink-cloud-site-media-overview-progress--complete,
-.npcink-cloud-site-media-overview-progress--partial {
-	--npcink-cloud-progress-color: #3858e9;
-}
-
-.npcink-cloud-site-media-overview-progress--not_started,
-.npcink-cloud-site-media-overview-progress--error {
-	--npcink-cloud-progress-color: #8c8f94;
-}
-
-.npcink-cloud-progress--indeterminate {
-	background: repeating-linear-gradient(to right, #c3c4c7 0 calc(10% - 3px), transparent calc(10% - 3px) 10%);
-}
-
 .npcink-cloud-metric-actions {
 	align-items: center;
 	display: flex;
@@ -904,78 +885,6 @@
 	margin-top: 12px;
 }
 
-.npcink-cloud-site-media-summary {
-	max-width: 980px;
-}
-
-.npcink-cloud-site-media-heading,
-.npcink-cloud-site-media-progress-head {
-	align-items: center;
-	display: flex;
-	gap: 12px;
-	justify-content: space-between;
-}
-
-.npcink-cloud-site-media-heading h3 {
-	margin: 0;
-}
-
-.npcink-cloud-site-media-status {
-	border-bottom: 1px solid #dcdcde;
-	border-top: 1px solid #dcdcde;
-	margin-top: 12px;
-	padding: 14px 0 16px;
-}
-
-.npcink-cloud-site-media-progress-head {
-	font-variant-numeric: tabular-nums;
-	margin-bottom: 10px;
-}
-
-.npcink-cloud-site-media-progress-head strong {
-	font-size: 16px;
-}
-
-.npcink-cloud-site-media-progress-head span {
-	color: #50575e;
-	font-weight: 600;
-}
-
-.npcink-cloud-site-media-result {
-	margin: 10px 0 0;
-}
-
-.npcink-cloud-site-media-summary .npcink-cloud-site-knowledge-summary__action {
-	display: inline-block;
-	margin-right: 10px;
-}
-
-.npcink-cloud-site-media-details {
-	margin-top: 12px;
-	max-width: 980px;
-}
-
-.npcink-cloud-site-media-summary .npcink-cloud-site-media-details {
-	display: inline-block;
-	vertical-align: top;
-}
-
-.npcink-cloud-site-media-summary .npcink-cloud-site-media-details[open] {
-	display: block;
-}
-
-.npcink-cloud-site-media-details > summary {
-	color: #2271b1;
-	cursor: pointer;
-	display: inline-block;
-	font-weight: 600;
-	padding: 4px 0;
-}
-
-.npcink-cloud-site-media-status--details {
-	margin-top: 8px;
-}
-
 .npcink-cloud-site-knowledge-links {
 	display: flex;
 	gap: 16px;
@@ -1080,14 +989,6 @@
 		gap: 10px;
 	}
 
-	.npcink-cloud-site-media-heading {
-		align-items: flex-start;
-	}
-
-	.npcink-cloud-site-media-progress-head {
-		align-items: baseline;
-	}
-
 	.npcink-cloud-overview-status th {
 		width: auto;
 	}
@@ -1104,10 +1005,6 @@
 	.npcink-cloud-segmented-progress {
 		grid-column: 1 / -1;
 		width: min(180px, 100%);
-	}
-
-	.npcink-cloud-site-media-progress {
-		width: 100%;
 	}
 
 	.npcink-cloud-metric-actions {

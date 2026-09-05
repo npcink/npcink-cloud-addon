@@ -11,7 +11,7 @@ Adapter code should call this addon through scenario-specific public PHP functio
 ```php
 npcink_cloud_addon_is_configured(): bool
 npcink_cloud_addon_get_connection_state(): array
-npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
+npcink_cloud_addon_pull_media_artifact(): bounded artifact download facade
 npcink_cloud_addon_execute_wordpress_ai_connector_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_dispatch_media_derivative_cloud_request(array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '', array $watermark_artifact = array())
 npcink_cloud_addon_build_media_derivative_proposal_payload(array $ability_response, array $cloud_result, array $derivative_artifact)

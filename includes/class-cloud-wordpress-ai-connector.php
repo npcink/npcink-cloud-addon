@@ -1247,28 +1247,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		public static function dispatch( int $attachment_id, string $prompt ) {
-			$client = function_exists( 'npcink_cloud_addon_verified_runtime_client' )
-				? npcink_cloud_addon_verified_runtime_client()
-				: null;
-			if (
-				! is_object( $client )
-				|| ! method_exists( $client, 'upload_wordpress_ai_alt_text_source' )
-				|| ! method_exists( $client, 'execute_wordpress_ai_connector_runtime' )
-			) {
-				return new WP_Error(
-					'cloud_wp_ai_alt_text_verified_client_required',
-					__( 'WordPress AI alt text generation requires verified Npcink Cloud settings.', 'npcink-cloud-addon' ),
-					array( 'status' => 503 )
-				);
-			}
-
 			$source = self::local_source( $attachment_id, $prompt );
 			if ( is_wp_error( $source ) ) {
 				return $source;
 			}
 
 			$trace_id = 'trace_wp_ai_vision_' . wp_generate_uuid4();
-			$artifact = $client->upload_wordpress_ai_alt_text_source(
+			if ( ! function_exists( 'npcink_cloud_addon_upload_wordpress_ai_alt_text_source' ) || ! function_exists( 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime' ) ) {
+				return new WP_Error( 'cloud_wp_ai_alt_text_verified_client_required', __( 'WordPress AI alt text generation requires verified Npcink Cloud settings.', 'npcink-cloud-addon' ), array( 'status' => 503 ) );
+			}
+			$artifact = npcink_cloud_addon_upload_wordpress_ai_alt_text_source(
 				$source['file'],
 				$trace_id,
 				'wp_ai_vision_upload_' . wp_generate_uuid4()
@@ -1308,7 +1296,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'retry_max'          => 0,
 			);
 
-			return $client->execute_wordpress_ai_connector_runtime(
+			return npcink_cloud_addon_execute_wordpress_ai_connector_runtime(
 				$request,
 				$trace_id,
 				'wp_ai_vision_execute_' . wp_generate_uuid4()

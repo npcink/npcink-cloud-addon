@@ -96,21 +96,6 @@ maca_assert(
 		'Remaining image recognition capacity percentage',
 		'npcink-cloud-addon'
 	)
-	&& '%1$d / %2$d 张图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'%1$d / %2$d images',
-		'%1$d / %2$d images',
-		'npcink-cloud-addon'
-	)
-	&& '当前套餐还可识别 %s 张图片。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Your plan has %s image recognition slots remaining.',
-		'Your plan has %s image recognition slots remaining.',
-		'npcink-cloud-addon'
-	)
-	&& '当前批次正在识别，剩余图片会自动继续处理。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'The current batch is running. Remaining images will continue automatically.',
-		'The current batch is running. Remaining images will continue automatically.',
-		'npcink-cloud-addon'
-	)
 	&& '此处显示的 AI 积分属于当前连接的 Cloud 账户。断开、移除或更换此 WordPress 站点不会转移这些 AI 积分。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.',
 		'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.',
@@ -144,111 +129,6 @@ maca_assert(
 	'Addon localization fallback translates fixed npcink-cloud-addon strings in zh_CN admin.'
 );
 
-maca_assert(
-	'%1$d / %2$d' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'%1$d of %2$d',
-		'%1$d of %2$d',
-		'npcink-cloud-addon'
-	)
-	&& '识别站内图片，便于编辑器按含义搜索。不会修改已有媒体或 WordPress 内容。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Recognize local images so the editor can find them by meaning. Existing media and WordPress content are not changed.',
-		'Recognize local images so the editor can find them by meaning. Existing media and WordPress content are not changed.',
-		'npcink-cloud-addon'
-	)
-	&& '已识别：%1$d 张图片；视觉证据：%2$d 条。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Recognized: %1$d images; visual evidence: %2$d.',
-		'Recognized: %1$d images; visual evidence: %2$d.',
-		'npcink-cloud-addon'
-	)
-	&& '已处理 %2$d 张中的 %1$d 张，用时 %3$s 秒（平均每分钟 %4$d 张）。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Processed %1$d of %2$d images in %3$s seconds (average %4$d images/minute).',
-		'Processed %1$d of %2$d images in %3$s seconds (average %4$d images/minute).',
-		'npcink-cloud-addon'
-	)
-	&& '每分钟 %s 张' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'%s images/minute',
-		'%s images/minute',
-		'npcink-cloud-addon'
-	)
-	&& '张图片/分钟' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'images/minute',
-		'images/minute',
-		'npcink-cloud-addon'
-	)
-	&& '完成后不再适用' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Not applicable after completion',
-		'Not applicable after completion',
-		'npcink-cloud-addon'
-	)
-	&& '套餐' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Plan',
-		'Plan',
-		'npcink-cloud-addon'
-	)
-	&& '%1$d 个并发任务；每批最多 %2$d 张图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'%1$d concurrent task(s); up to %2$d images per batch',
-		'%1$d concurrent task(s); up to %2$d images per batch',
-		'npcink-cloud-addon'
-	)
-	&& '检查新增图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Check for new images',
-		'Check for new images',
-		'npcink-cloud-addon'
-	)
-	&& '开始识别媒体图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Start media recognition',
-		'Start media recognition',
-		'npcink-cloud-addon'
-	)
-	&& '继续识别剩余图片' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Continue recognizing remaining images',
-		'Continue recognizing remaining images',
-		'npcink-cloud-addon'
-	)
-	&& '重试本批' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Retry this batch',
-		'Retry this batch',
-		'npcink-cloud-addon'
-	)
-	&& 'Cloud 响应超时，后台会安全重试当前批次，无需再次点击。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed.',
-		'The Cloud response timed out. Background recognition will safely retry this batch; no further click is needed.',
-		'npcink-cloud-addon'
-	)
-	&& 'Npcink Cloud 尚未通过验证。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Npcink Cloud is not verified.',
-		'Npcink Cloud is not verified.',
-		'npcink-cloud-addon'
-	),
-	'Addon localization fallback covers the complete Site media recognition summary and actions.'
-);
-
-maca_assert(
-	'已处理：%1$d 张图片；视觉证据：%2$d 条；未纳入识别：%3$d 张。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.',
-		'Processed: %1$d images; visual evidence: %2$d; not included: %3$d.',
-		'npcink-cloud-addon'
-	),
-	'Addon localization fallback explains processed, evidence, and excluded image counts.'
-);
-
-maca_assert(
-	'已识别：%1$d 张图片；视觉证据：%2$d 条；未纳入识别：%3$d 张。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Recognized: %1$d images; visual evidence: %2$d; not included: %3$d.',
-		'Recognized: %1$d images; visual evidence: %2$d; not included: %3$d.',
-		'npcink-cloud-addon'
-	),
-	'Addon localization fallback distinguishes recognized and excluded image counts.'
-);
-
-maca_assert(
-	'识别已完成，但有 %d 张图片因不符合当前图片要求未纳入识别。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Recognition finished. %d images were not included because they did not meet the current image requirements.',
-		'Recognition finished. %d images were not included because they did not meet the current image requirements.',
-		'npcink-cloud-addon'
-	),
-	'Addon localization fallback explains why completed image recognition can exclude images.'
-);
 
 maca_assert(
 		'检查' === Npcink_Cloud_Addon_Localization::filter_gettext(
