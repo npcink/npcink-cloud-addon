@@ -3,6 +3,10 @@
 Date: 2026-09-08. Scope: Local WordPress acceptance and Addon documentation.
 This is dated evidence, not current runtime or production authority.
 
+Latest follow-up: image generation, native media import, and featured-image
+adoption into the test draft passed later on the same date. See the final
+section; earlier disabled-feature observations below remain historical facts.
+
 ## Baseline and Verified Evidence
 
 - Local site: `http://magick-ai.local`, single site; official AI plugin 1.3.0.
@@ -106,3 +110,57 @@ Cloud contract to be deployed first. Before a production proposal:
 This handoff does not claim complete production readiness. It preserves a
 verified text path and an explicit image limitation without adding a second
 test console, control plane, or WordPress writer.
+
+## Continued Acceptance: Image and Connection Recovery
+
+On the next acceptance pass, the authoring Mac had no listener at
+`127.0.0.1:18010`. A signed entitlement read returned
+`cloud_runtime_request_failed` with cURL error 7. The real WordPress AI settings
+page showed a disabled global toggle and the valid-connector warning.
+
+The existing `pnpm run m4:preview:auto` command, run from the stable operations
+worktree, selected Pgy after LAN was unavailable and reported
+`tunnel_ready=true`. No Cloud deployment or configuration change was needed.
+The signed snapshot at `2026-09-08T15:21:24.786715Z` confirmed all three
+capabilities. Reloading the same browser page removed the connector warning
+and showed the previously enabled global AI toggle correctly. This validates
+the actual browser disconnect/recovery path. Other denial/outage browser paths
+remain covered only by deterministic behavior checks.
+
+The official image-generation toggle was then enabled through its settings UI.
+The native Media > Generate Image page accepted one prompt for a blue/green
+editor-module illustration for the existing plugin-series draft. The returned
+image was visually inspected, then saved with the native media-import action.
+
+- Official log: `d95aab82-0db3-4c2f-a8f7-744c00aa0f67`, `ai_client`, success,
+  7434 ms, configured provider ID `openai`, model `grok-imagine-image-quality`.
+  The provider ID is connector evidence, not a claim about the model vendor.
+- Cloud run: `run_7859b9d0f7eb4e6bb727cb94e351e110`; signed read confirmed
+  `succeeded`, `fallback_used=false`, `provider_call_count=1`.
+- Native media import displayed success and created attachment `281073`:
+  JPEG, 1152 x 864, 89844 bytes.
+- In the normal editor media picker, the attachment title was shortened to
+  `WordPress AI 插件系列配图`; ALT was reviewed and replaced with
+  `蓝绿色编辑器模块围绕文档图标的插画`. No additional ALT model call was made.
+- The image was selected as the featured image for draft `281071`; the editor
+  displayed the image and confirmed the draft was saved. A database read
+  verified `_thumbnail_id=281073`, status `draft`, and body equality with
+  original article `280982`. The original published article was not edited.
+
+One image generation was executed; this does not test image editing, inline
+image insertion, or a separate automated image-adoption telemetry contract.
+The host image feature remains enabled. To reverse this acceptance setup, use
+the host settings toggle and remove the featured image from the test draft;
+the media attachment can be retained without publishing the article.
+
+The existing observability Cron hook is registered as `hourly`,
+`DISABLE_WP_CRON=false`, and the journey buffer was empty. This proves
+configuration only, not an observed natural Cron delivery. No fake event was
+inserted to manufacture that evidence.
+
+The M4 owner reported PR #928 accepted on clean master
+`e19afb17dafc1b17fbc9f650860365b9571561ed`; its auxiliary worktree was removed.
+This task used the existing backend through a tunnel, with no sync or deploy.
+The Cloud admin page required login in this browser, so the historical text
+run's explicit context-injection evidence remains pending authorized admin
+inspection. Do not infer it from the successful image run or embedding calls.
