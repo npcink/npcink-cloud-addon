@@ -41,49 +41,50 @@ msgstr "Npcink"
 #: includes/bootstrap.php:402
 #: includes/bootstrap.php:429
 #: includes/bootstrap.php:456
-#: includes/bootstrap.php:487
-#: includes/bootstrap.php:574
-#: includes/bootstrap.php:598
-#: includes/bootstrap.php:622
-#: includes/bootstrap.php:630
-#: includes/bootstrap.php:638
-#: includes/bootstrap.php:646
-#: includes/bootstrap.php:654
-#: includes/bootstrap.php:662
-#: includes/bootstrap.php:670
-#: includes/bootstrap.php:694
-#: includes/bootstrap.php:702
-#: includes/class-cloud-runtime-client.php:1170
-#: includes/class-cloud-runtime-client.php:1276
+#: includes/bootstrap.php:479
+#: includes/bootstrap.php:501
+#: includes/bootstrap.php:588
+#: includes/bootstrap.php:612
+#: includes/bootstrap.php:636
+#: includes/bootstrap.php:644
+#: includes/bootstrap.php:652
+#: includes/bootstrap.php:660
+#: includes/bootstrap.php:668
+#: includes/bootstrap.php:676
+#: includes/bootstrap.php:684
+#: includes/bootstrap.php:708
+#: includes/bootstrap.php:716
+#: includes/class-cloud-runtime-client.php:1200
+#: includes/class-cloud-runtime-client.php:1306
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr "Npcink Cloud 尚未配置。"
 
-#: includes/bootstrap.php:526
+#: includes/bootstrap.php:540
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr "Toolbox 运行请求超过固定大小限制。"
 
-#: includes/bootstrap.php:540
+#: includes/bootstrap.php:554
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr "Toolbox 运行请求包含固定合同之外的字段。"
 
-#: includes/bootstrap.php:548
+#: includes/bootstrap.php:562
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr "Toolbox 运行限制超出连接器固定策略。"
 
-#: includes/bootstrap.php:570
+#: includes/bootstrap.php:584
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr "Toolbox 内容支持需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:594
+#: includes/bootstrap.php:608
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr "Toolbox 站点助手需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:618
+#: includes/bootstrap.php:632
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr "夜间检查需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:886
+#: includes/bootstrap.php:900
 msgid "Settings"
 msgstr "设置"
 
@@ -545,538 +546,538 @@ msgstr "Cloud 凭据不完整。"
 msgid "Signed Cloud request verified."
 msgstr "签名 Cloud 请求已验证。"
 
-#: includes/class-cloud-runtime-client.php:577
+#: includes/class-cloud-runtime-client.php:607
 msgid "Media uploads require exact contents, filename, and mime_type fields."
 msgstr "媒体上传需要精确的 contents、filename 和 mime_type 字段。"
 
-#: includes/class-cloud-runtime-client.php:586
+#: includes/class-cloud-runtime-client.php:616
 msgid "Media upload contents must be a nonempty byte string."
 msgstr "媒体上传内容必须是非空字节字符串。"
 
-#: includes/class-cloud-runtime-client.php:593
+#: includes/class-cloud-runtime-client.php:623
 msgid "Media upload contents exceed the 25 MiB connector limit."
 msgstr "媒体上传内容超出连接器的 25 MiB 限制。"
 
-#: includes/class-cloud-runtime-client.php:602
+#: includes/class-cloud-runtime-client.php:632
 msgid "Media upload filename must be a nonempty safe filename of at most 160 characters."
 msgstr "媒体上传文件名必须是非空且安全的文件名，最多 160 个字符。"
 
-#: includes/class-cloud-runtime-client.php:611
+#: includes/class-cloud-runtime-client.php:641
 msgid "Media uploads allow only AVIF, JPEG, PNG, or WebP images."
 msgstr "媒体上传仅允许 AVIF、JPEG、PNG 或 WebP 图像。"
 
-#: includes/class-cloud-runtime-client.php:675
+#: includes/class-cloud-runtime-client.php:705
 msgid "Media jobs require the exact artifact-referenced media_job_request.v1 contract."
 msgstr "媒体任务需要精确的工件引用型 media_job_request.v1 契约。"
 
-#: includes/class-cloud-runtime-client.php:705
+#: includes/class-cloud-runtime-client.php:735
 msgid "Media governance canary jobs require the exact bounded preserve-WebP contract."
 msgstr "媒体治理金丝雀任务需要严格遵循受限的保留原尺寸 WebP 契约。"
 
-#: includes/class-cloud-runtime-client.php:733
+#: includes/class-cloud-runtime-client.php:763
 msgid "Verify Npcink Cloud settings before uploading a WordPress AI alt-text source."
 msgstr "上传 WordPress AI 替代文本源之前，请先验证 Npcink Cloud 设置。"
 
-#: includes/class-cloud-runtime-client.php:745
+#: includes/class-cloud-runtime-client.php:775
 msgid "WordPress AI alt-text uploads require exact contents, filename, and mime_type fields."
 msgstr "WordPress AI 替代文本上传需要精确的 contents、filename 和 mime_type 字段。"
 
-#: includes/class-cloud-runtime-client.php:754
+#: includes/class-cloud-runtime-client.php:784
 msgid "WordPress AI alt-text upload contents must be a nonempty byte string."
 msgstr "WordPress AI 替代文本上传内容必须是非空字节字符串。"
 
-#: includes/class-cloud-runtime-client.php:761
+#: includes/class-cloud-runtime-client.php:791
 msgid "WordPress AI alt-text upload contents exceed the 8 MiB limit."
 msgstr "WordPress AI 替代文本上传内容超出 8 MiB 限制。"
 
-#: includes/class-cloud-runtime-client.php:769
+#: includes/class-cloud-runtime-client.php:799
 msgid "WordPress AI alt-text upload filename must be a nonempty safe filename."
 msgstr "WordPress AI 替代文本上传文件名必须是非空且安全的文件名。"
 
-#: includes/class-cloud-runtime-client.php:777
+#: includes/class-cloud-runtime-client.php:807
 msgid "WordPress AI alt-text upload filename must be a nonempty safe filename of at most 160 characters."
 msgstr "WordPress AI 替代文本上传文件名必须是非空且安全的文件名，最多 160 个字符。"
 
-#: includes/class-cloud-runtime-client.php:786
+#: includes/class-cloud-runtime-client.php:816
 msgid "WordPress AI alt-text uploads allow only JPEG, PNG, or WebP images."
 msgstr "WordPress AI 替代文本上传仅允许 JPEG、PNG 或 WebP 图像。"
 
-#: includes/class-cloud-runtime-client.php:840
-#: includes/class-cloud-runtime-client.php:859
-#: includes/class-cloud-runtime-client.php:893
+#: includes/class-cloud-runtime-client.php:870
+#: includes/class-cloud-runtime-client.php:889
+#: includes/class-cloud-runtime-client.php:923
 msgid "Cloud run_id is required."
 msgstr "Cloud run_id 为必填项。"
 
-#: includes/class-cloud-runtime-client.php:923
+#: includes/class-cloud-runtime-client.php:953
 msgid "Cloud media artifact_id must use the canonical art_<32 lowercase hex> shape."
 msgstr "Cloud 媒体 artifact_id 必须使用规范的 art_<32 位小写十六进制> 格式。"
 
-#: includes/class-cloud-runtime-client.php:961
+#: includes/class-cloud-runtime-client.php:991
 msgid "Media delivery acknowledgement requires the exact verified-transfer contract."
 msgstr "媒体投递确认需要精确的已验证传输契约。"
 
-#: includes/class-cloud-runtime-client.php:994
+#: includes/class-cloud-runtime-client.php:1024
 msgid "Cloud site_id is required."
 msgstr "Cloud site_id 为必填项。"
 
-#: includes/class-cloud-runtime-client.php:1015
+#: includes/class-cloud-runtime-client.php:1045
 msgid "No observability events are ready to upload."
 msgstr "没有可上传的 observability 事件。"
 
-#: includes/class-cloud-runtime-client.php:1048
+#: includes/class-cloud-runtime-client.php:1078
 msgid "Customer journey upload requires between 1 and 100 metadata-only events."
 msgstr "客户旅程上传需要包含 1 到 100 条仅元数据事件。"
 
-#: includes/class-cloud-runtime-client.php:1085
+#: includes/class-cloud-runtime-client.php:1115
 msgid "Agent feedback requires a valid cloud_agent_feedback.v1 payload."
 msgstr "Agent 反馈需要有效的 cloud_agent_feedback.v1 载荷。"
 
-#: includes/class-cloud-runtime-client.php:1143
+#: includes/class-cloud-runtime-client.php:1173
 msgid "Customer journey cohort id is invalid."
 msgstr "客户旅程分组 ID 无效。"
 
-#: includes/class-cloud-runtime-client.php:1179
-#: includes/class-cloud-runtime-client.php:1285
+#: includes/class-cloud-runtime-client.php:1209
+#: includes/class-cloud-runtime-client.php:1315
 msgid "This Cloud endpoint is not allowed by the Cloud Addon runtime contract."
 msgstr "Cloud Addon 运行时合同不允许此 Cloud 端点。"
 
-#: includes/class-cloud-runtime-client.php:1204
+#: includes/class-cloud-runtime-client.php:1234
 msgid "Cloud runtime request payload could not be encoded."
 msgstr "无法编码 Cloud runtime 请求 payload。"
 
-#: includes/class-cloud-runtime-client.php:1241
-#: includes/class-cloud-runtime-client.php:1763
-#: includes/class-cloud-runtime-client.php:1774
+#: includes/class-cloud-runtime-client.php:1271
+#: includes/class-cloud-runtime-client.php:1793
+#: includes/class-cloud-runtime-client.php:1804
 msgid "Cloud runtime response exceeds the local size limit."
 msgstr "Cloud runtime 响应超过本地大小限制。"
 
-#: includes/class-cloud-runtime-client.php:1248
-#: includes/class-cloud-runtime-client.php:1775
+#: includes/class-cloud-runtime-client.php:1278
+#: includes/class-cloud-runtime-client.php:1805
 msgid "Cloud runtime response was not valid JSON."
 msgstr "Cloud runtime 响应不是有效 JSON。"
 
-#: includes/class-cloud-runtime-client.php:1319
-#: includes/class-cloud-runtime-client.php:1877
+#: includes/class-cloud-runtime-client.php:1349
+#: includes/class-cloud-runtime-client.php:1907
 msgid "Cloud artifact download exceeds the local preview size limit."
 msgstr "Cloud artifact 下载超过本地预览大小限制。"
 
-#: includes/class-cloud-runtime-client.php:1343
+#: includes/class-cloud-runtime-client.php:1373
 msgid "Cloud Base URL is required."
 msgstr "Cloud 基础 URL 为必填项。"
 
-#: includes/class-cloud-runtime-client.php:1373
+#: includes/class-cloud-runtime-client.php:1403
 msgid "Cloud liveness response exceeds the local size limit."
 msgstr "Cloud 存活检查响应超过本地大小限制。"
 
-#: includes/class-cloud-runtime-client.php:1383
+#: includes/class-cloud-runtime-client.php:1413
 msgid "Cloud liveness check failed."
 msgstr "Cloud 存活检查失败。"
 
-#: includes/class-cloud-runtime-client.php:1389
+#: includes/class-cloud-runtime-client.php:1419
 msgid "Cloud service is live."
 msgstr "Cloud 服务在线。"
 
-#: includes/class-cloud-runtime-client.php:1437
-#: includes/class-cloud-runtime-client.php:1528
+#: includes/class-cloud-runtime-client.php:1467
+#: includes/class-cloud-runtime-client.php:1558
 msgid "Cloud settings are incomplete."
 msgstr "Cloud 设置不完整。"
 
-#: includes/class-cloud-runtime-client.php:1457
-#: includes/class-cloud-runtime-client.php:1623
+#: includes/class-cloud-runtime-client.php:1487
+#: includes/class-cloud-runtime-client.php:1653
 msgid "Connector readiness could not be verified."
 msgstr "无法验证连接器就绪状态。"
 
-#: includes/class-cloud-runtime-client.php:1788
-#: includes/class-cloud-runtime-client.php:1826
+#: includes/class-cloud-runtime-client.php:1818
+#: includes/class-cloud-runtime-client.php:1856
 msgid "Cloud runtime request failed."
 msgstr "Cloud runtime 请求失败。"
 
-#: includes/class-cloud-runtime-client.php:1860
+#: includes/class-cloud-runtime-client.php:1890
 msgid "Cloud runtime artifact download failed."
 msgstr "Cloud runtime artifact 下载失败。"
 
-#: includes/class-cloud-runtime-client.php:2096
+#: includes/class-cloud-runtime-client.php:2126
 msgid "Cloud media upload request could not be encoded."
 msgstr "无法编码 Cloud 媒体上传请求。"
 
-#: includes/class-cloud-runtime-client.php:2168
+#: includes/class-cloud-runtime-client.php:2198
 msgid "Cloud returned an invalid media upload artifact."
 msgstr "Cloud 返回了无效的媒体上传工件。"
 
-#: includes/class-cloud-runtime-client.php:2222
+#: includes/class-cloud-runtime-client.php:2252
 msgid "Cloud returned an invalid media delivery acknowledgement."
 msgstr "Cloud 返回了无效的媒体投递确认。"
 
-#: includes/class-cloud-runtime-client.php:2305
+#: includes/class-cloud-runtime-client.php:2335
 msgid "Cloud returned an invalid WordPress AI alt-text source artifact."
 msgstr "Cloud 返回了无效的 WordPress AI 替代文本源工件。"
 
-#: includes/class-cloud-runtime-client.php:2335
+#: includes/class-cloud-runtime-client.php:2365
 msgid "WordPress AI connector requests require the cloud_connector_runtime.v1 contract."
 msgstr "WordPress AI 连接器请求需要 cloud_connector_runtime.v1 合同。"
 
-#: includes/class-cloud-runtime-client.php:2349
+#: includes/class-cloud-runtime-client.php:2379
 msgid "WordPress AI connector requests require one wordpress_operation.v1 operation contract."
 msgstr "WordPress AI 连接器请求需要一个 wordpress_operation.v1 操作合同。"
 
-#: includes/class-cloud-runtime-client.php:2365
+#: includes/class-cloud-runtime-client.php:2395
 msgid "The AI task contract does not match the requested task."
 msgstr "AI 任务合同与请求的任务不匹配。"
 
-#: includes/class-cloud-runtime-client.php:2373
+#: includes/class-cloud-runtime-client.php:2403
 msgid "WordPress AI connector requests require a supported site-task surface."
 msgstr "WordPress AI 连接器请求需要受支持的站点任务场景。"
 
-#: includes/class-cloud-runtime-client.php:2382
+#: includes/class-cloud-runtime-client.php:2412
 msgid "WordPress AI connector requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr "WordPress AI 连接器请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
-#: includes/class-cloud-runtime-client.php:2394
+#: includes/class-cloud-runtime-client.php:2424
 msgid "WordPress AI connector request could not be encoded."
 msgstr "无法编码 WordPress AI 连接器请求。"
 
-#: includes/class-cloud-runtime-client.php:2401
+#: includes/class-cloud-runtime-client.php:2431
 msgid "WordPress AI connector request exceeds the scene runtime size limit."
 msgstr "WordPress AI 连接器请求超过场景运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:2418
+#: includes/class-cloud-runtime-client.php:2448
 msgid "WordPress AI title, summary, and rewrite requests require source_text without legacy prompt or post fields."
 msgstr "WordPress AI 标题、摘要和改写请求必须使用 source_text，且不能包含旧版 prompt 或文章字段。"
 
-#: includes/class-cloud-runtime-client.php:2426
+#: includes/class-cloud-runtime-client.php:2456
 msgid "WordPress AI title, summary, and rewrite requests require nonempty source_text."
 msgstr "WordPress AI 标题、摘要和改写请求需要非空的 source_text。"
 
-#: includes/class-cloud-runtime-client.php:2434
+#: includes/class-cloud-runtime-client.php:2464
 msgid "WordPress AI source_text exceeds the scene runtime size limit."
 msgstr "WordPress AI source_text 超过场景运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:2442
+#: includes/class-cloud-runtime-client.php:2472
 msgid "WordPress AI system_instruction must be a string."
 msgstr "WordPress AI system_instruction 必须是字符串。"
 
-#: includes/class-cloud-runtime-client.php:2450
+#: includes/class-cloud-runtime-client.php:2480
 msgid "WordPress AI system_instruction exceeds the scene runtime size limit."
 msgstr "WordPress AI system_instruction 超过场景运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:2461
+#: includes/class-cloud-runtime-client.php:2491
 msgid "WordPress AI connector prompt exceeds the scene runtime size limit."
 msgstr "WordPress AI 连接器 prompt 超过场景运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:2489
+#: includes/class-cloud-runtime-client.php:2519
 msgid "WordPress AI connector requests require a verified Cloud site_id."
 msgstr "WordPress AI 连接器请求需要已验证的 Cloud site_id。"
 
-#: includes/class-cloud-runtime-client.php:2497
+#: includes/class-cloud-runtime-client.php:2527
 msgid "WordPress AI connector requests require the canonical WordPress site URL."
 msgstr "WordPress AI 连接器请求需要规范的 WordPress 站点 URL。"
 
-#: includes/class-cloud-runtime-client.php:2505
+#: includes/class-cloud-runtime-client.php:2535
 msgid "WordPress AI connector requests require the active addon version."
 msgstr "WordPress AI 连接器请求需要当前启用的插件版本。"
 
-#: includes/class-cloud-runtime-client.php:2592
+#: includes/class-cloud-runtime-client.php:2622
 msgid "WordPress AI alt-text requests accept only an Artifact id and bounded text context."
 msgstr "WordPress AI 替代文本请求仅接受工件 ID 和有限文本上下文。"
 
-#: includes/class-cloud-runtime-client.php:2601
+#: includes/class-cloud-runtime-client.php:2631
 msgid "WordPress AI alt-text requests require a valid source_artifact_id."
 msgstr "WordPress AI 替代文本请求需要有效的 source_artifact_id。"
 
-#: includes/class-cloud-runtime-client.php:2610
+#: includes/class-cloud-runtime-client.php:2640
 msgid "WordPress AI alt-text prompt must be a nonempty string of at most 500 characters."
 msgstr "WordPress AI 替代文本提示必须是非空字符串，最多 500 个字符。"
 
-#: includes/class-cloud-runtime-client.php:2633
+#: includes/class-cloud-runtime-client.php:2663
 msgid "WordPress AI alt-text context fields must be bounded strings."
 msgstr "WordPress AI 替代文本上下文字段必须是长度受限的字符串。"
 
-#: includes/class-cloud-runtime-client.php:2644
+#: includes/class-cloud-runtime-client.php:2674
 msgid "WordPress AI alt-text max_tokens must be an integer from 1 through 96."
 msgstr "WordPress AI 替代文本 max_tokens 必须是 1 到 96 的整数。"
 
-#: includes/class-cloud-runtime-client.php:2669
+#: includes/class-cloud-runtime-client.php:2699
 msgid "WordPress AI Site Knowledge reference must be a bounded object."
 msgstr "WordPress AI 站点知识库参考必须是有界对象。"
 
-#: includes/class-cloud-runtime-client.php:2678
+#: includes/class-cloud-runtime-client.php:2708
 msgid "WordPress AI Site Knowledge reference accepts only enabled and mode."
 msgstr "WordPress AI 站点知识库参考仅接受 enabled 和 mode。"
 
-#: includes/class-cloud-runtime-client.php:2687
+#: includes/class-cloud-runtime-client.php:2717
 msgid "WordPress AI Site Knowledge reference enabled value must be boolean."
 msgstr "WordPress AI 站点知识库参考的 enabled 值必须为布尔值。"
 
-#: includes/class-cloud-runtime-client.php:2700
+#: includes/class-cloud-runtime-client.php:2730
 msgid "WordPress AI Site Knowledge reference is not supported for this task."
 msgstr "此任务不支持 WordPress AI 站点知识库参考。"
 
-#: includes/class-cloud-runtime-client.php:2707
+#: includes/class-cloud-runtime-client.php:2737
 msgid "WordPress AI Site Knowledge reference mode is not supported."
 msgstr "不支持此 WordPress AI 站点知识库参考模式。"
 
-#: includes/class-cloud-runtime-client.php:2728
+#: includes/class-cloud-runtime-client.php:2758
 msgid "WordPress AI image generation requests require the image_generation_request.v1 contract."
 msgstr "WordPress AI 图片生成请求需要 image_generation_request.v1 合同。"
 
-#: includes/class-cloud-runtime-client.php:2737
+#: includes/class-cloud-runtime-client.php:2767
 msgid "WordPress AI image generation requests require the supported image_generation task surface."
 msgstr "WordPress AI 图片生成请求需要受支持的 image_generation 任务界面。"
 
-#: includes/class-cloud-runtime-client.php:2745
+#: includes/class-cloud-runtime-client.php:2775
 msgid "WordPress AI image generation requests may not select a provider response format."
 msgstr "WordPress AI 图像生成请求不得选择提供商响应格式。"
 
-#: includes/class-cloud-runtime-client.php:2754
+#: includes/class-cloud-runtime-client.php:2784
 msgid "WordPress AI image generation requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr "WordPress AI 图片生成请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
-#: includes/class-cloud-runtime-client.php:2766
+#: includes/class-cloud-runtime-client.php:2796
 msgid "WordPress AI image generation request could not be encoded."
 msgstr "无法编码 WordPress AI 图片生成请求。"
 
-#: includes/class-cloud-runtime-client.php:2773
+#: includes/class-cloud-runtime-client.php:2803
 msgid "WordPress AI image generation request exceeds the scene runtime size limit."
 msgstr "WordPress AI 图片生成请求超过场景 runtime 大小限制。"
 
-#: includes/class-cloud-runtime-client.php:2782
+#: includes/class-cloud-runtime-client.php:2812
 msgid "WordPress AI image generation requires text scene input."
 msgstr "WordPress AI 图片生成需要文本场景输入。"
 
-#: includes/class-cloud-runtime-client.php:2789
+#: includes/class-cloud-runtime-client.php:2819
 msgid "WordPress AI image generation prompt exceeds the scene runtime size limit."
 msgstr "WordPress AI 图片生成提示词超过场景 runtime 大小限制。"
 
-#: includes/class-cloud-runtime-client.php:2843
+#: includes/class-cloud-runtime-client.php:2873
 msgid "Toolbox image generation requests require the image_generation_request.v1 contract."
 msgstr "Toolbox 图片生成请求需要 image_generation_request.v1 合同。"
 
-#: includes/class-cloud-runtime-client.php:2852
+#: includes/class-cloud-runtime-client.php:2882
 msgid "Toolbox image generation requests require the supported image_generation task surface."
 msgstr "Toolbox 图片生成请求需要受支持的 image_generation 任务面。"
 
-#: includes/class-cloud-runtime-client.php:2860
+#: includes/class-cloud-runtime-client.php:2890
 msgid "Toolbox image generation requests may not select a provider response format."
 msgstr "Toolbox 图像生成请求不得选择提供商响应格式。"
 
-#: includes/class-cloud-runtime-client.php:2869
+#: includes/class-cloud-runtime-client.php:2899
 msgid "Toolbox image generation requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr "Toolbox 图片生成请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
-#: includes/class-cloud-runtime-client.php:2881
+#: includes/class-cloud-runtime-client.php:2911
 msgid "Toolbox image generation request could not be encoded."
 msgstr "Toolbox 图片生成请求无法编码。"
 
-#: includes/class-cloud-runtime-client.php:2888
+#: includes/class-cloud-runtime-client.php:2918
 msgid "Toolbox image generation request exceeds the scene runtime size limit."
 msgstr "Toolbox 图片生成请求超过场景运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:2897
+#: includes/class-cloud-runtime-client.php:2927
 msgid "Toolbox image generation requires text scene input."
 msgstr "Toolbox 图片生成需要文本场景输入。"
 
-#: includes/class-cloud-runtime-client.php:2904
+#: includes/class-cloud-runtime-client.php:2934
 msgid "Toolbox image generation prompt exceeds the scene runtime size limit."
 msgstr "Toolbox 图片生成提示词超过场景运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:2977
+#: includes/class-cloud-runtime-client.php:3007
 msgid "Toolbox audio generation requests require the audio_generation_request.v1 contract."
 msgstr "Toolbox 音频生成请求需要 audio_generation_request.v1 合同。"
 
-#: includes/class-cloud-runtime-client.php:2986
+#: includes/class-cloud-runtime-client.php:3016
 msgid "Toolbox audio generation requests require a supported article audio intent."
 msgstr "Toolbox 音频生成请求需要受支持的文章音频意图。"
 
-#: includes/class-cloud-runtime-client.php:2995
+#: includes/class-cloud-runtime-client.php:3025
 msgid "Toolbox audio generation requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr "Toolbox 音频生成请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
-#: includes/class-cloud-runtime-client.php:3007
+#: includes/class-cloud-runtime-client.php:3037
 msgid "Toolbox audio generation request could not be encoded."
 msgstr "Toolbox 音频生成请求无法编码。"
 
-#: includes/class-cloud-runtime-client.php:3014
+#: includes/class-cloud-runtime-client.php:3044
 msgid "Toolbox audio generation request exceeds the scene runtime size limit."
 msgstr "Toolbox 音频生成请求超过场景运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:3023
+#: includes/class-cloud-runtime-client.php:3053
 msgid "Toolbox audio generation requires reviewed narration text or a summary script."
 msgstr "Toolbox 音频生成需要已审核的旁白文本或摘要脚本。"
 
-#: includes/class-cloud-runtime-client.php:3030
+#: includes/class-cloud-runtime-client.php:3060
 msgid "Toolbox audio generation text exceeds the scene runtime size limit."
 msgstr "Toolbox 音频生成文本超过场景运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:3100
+#: includes/class-cloud-runtime-client.php:3130
 msgid "Toolbox Site Check Cloud detail requests require the site_ops_cloud_analysis_request.v1 contract."
 msgstr "Toolbox 站点检查 Cloud 详情请求需要 site_ops_cloud_analysis_request.v1 合同。"
 
-#: includes/class-cloud-runtime-client.php:3108
+#: includes/class-cloud-runtime-client.php:3138
 msgid "Toolbox Site Check Cloud detail requests require the site_ops_cloud_analysis_result.v1 result contract."
 msgstr "Toolbox 站点检查 Cloud 详情请求需要 site_ops_cloud_analysis_result.v1 结果合同。"
 
-#: includes/class-cloud-runtime-client.php:3122
+#: includes/class-cloud-runtime-client.php:3152
 msgid "Toolbox Site Check Cloud detail requests must remain runtime-detail, suggestion-only, and no-write."
 msgstr "Toolbox 站点检查 Cloud 详情请求必须保持为运行时详情、仅建议且不写入。"
 
-#: includes/class-cloud-runtime-client.php:3130
+#: includes/class-cloud-runtime-client.php:3160
 msgid "Toolbox Site Check Cloud detail requests require bounded local analysis input."
 msgstr "Toolbox 站点检查 Cloud 详情请求需要有界的本地分析输入。"
 
-#: includes/class-cloud-runtime-client.php:3139
+#: includes/class-cloud-runtime-client.php:3169
 msgid "Toolbox Site Check Cloud detail requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr "Toolbox 站点检查 Cloud 详情请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
-#: includes/class-cloud-runtime-client.php:3151
+#: includes/class-cloud-runtime-client.php:3181
 msgid "Toolbox Site Check Cloud detail request could not be encoded."
 msgstr "Toolbox 站点检查 Cloud 详情请求无法编码。"
 
-#: includes/class-cloud-runtime-client.php:3158
+#: includes/class-cloud-runtime-client.php:3188
 msgid "Toolbox Site Check Cloud detail request exceeds the runtime size limit."
 msgstr "Toolbox 站点检查 Cloud 详情请求超过运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:3206
+#: includes/class-cloud-runtime-client.php:3236
 msgid "Media governance audits require the exact metadata-only request contract."
 msgstr "媒体治理审计需要严格遵循仅含元数据的请求契约。"
 
-#: includes/class-cloud-runtime-client.php:3234
+#: includes/class-cloud-runtime-client.php:3264
 msgid "Media governance audit snapshot facts are invalid or incomplete."
 msgstr "媒体治理审计快照信息无效或不完整。"
 
-#: includes/class-cloud-runtime-client.php:3242
+#: includes/class-cloud-runtime-client.php:3272
 msgid "Media governance capacity facts must be non-negative integers."
 msgstr "媒体治理容量信息必须是非负整数。"
 
-#: includes/class-cloud-runtime-client.php:3250
+#: includes/class-cloud-runtime-client.php:3280
 msgid "Media governance coverage sources are invalid."
 msgstr "媒体治理覆盖来源无效。"
 
-#: includes/class-cloud-runtime-client.php:3261
+#: includes/class-cloud-runtime-client.php:3291
 msgid "Media governance audit items require exact evidence fields."
 msgstr "媒体治理审计项需要准确的证据字段。"
 
-#: includes/class-cloud-runtime-client.php:3281
+#: includes/class-cloud-runtime-client.php:3311
 msgid "Media governance audit item evidence is invalid."
 msgstr "媒体治理审计项证据无效。"
 
-#: includes/class-cloud-runtime-client.php:3310
+#: includes/class-cloud-runtime-client.php:3340
 msgid "Media governance audit request exceeds the runtime size limit."
 msgstr "媒体治理审计请求超过运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:3342
+#: includes/class-cloud-runtime-client.php:3372
 msgid "Toolbox web search requests require the web_search.v1 contract."
 msgstr "Toolbox 网页搜索请求需要 web_search.v1 合同。"
 
-#: includes/class-cloud-runtime-client.php:3351
+#: includes/class-cloud-runtime-client.php:3381
 msgid "Toolbox web search requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr "Toolbox 网页搜索请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
-#: includes/class-cloud-runtime-client.php:3363
+#: includes/class-cloud-runtime-client.php:3393
 msgid "Toolbox web search request could not be encoded."
 msgstr "Toolbox 网页搜索请求无法编码。"
 
-#: includes/class-cloud-runtime-client.php:3370
+#: includes/class-cloud-runtime-client.php:3400
 msgid "Toolbox web search request exceeds the runtime size limit."
 msgstr "Toolbox 网页搜索请求超过运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:3379
+#: includes/class-cloud-runtime-client.php:3409
 msgid "Toolbox web search requires a query."
 msgstr "Toolbox 网页搜索需要查询词。"
 
-#: includes/class-cloud-runtime-client.php:3442
+#: includes/class-cloud-runtime-client.php:3472
 msgid "Toolbox image-source requests require the image_source_cloud_request.v1 contract."
 msgstr "Toolbox 图片来源请求需要 image_source_cloud_request.v1 合同。"
 
-#: includes/class-cloud-runtime-client.php:3451
+#: includes/class-cloud-runtime-client.php:3481
 msgid "Toolbox image-source requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr "Toolbox 图片来源请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
-#: includes/class-cloud-runtime-client.php:3463
+#: includes/class-cloud-runtime-client.php:3493
 msgid "Toolbox image-source request could not be encoded."
 msgstr "Toolbox 图片来源请求无法编码。"
 
-#: includes/class-cloud-runtime-client.php:3470
+#: includes/class-cloud-runtime-client.php:3500
 msgid "Toolbox image-source request exceeds the runtime size limit."
 msgstr "Toolbox 图片来源请求超过运行时大小限制。"
 
-#: includes/class-cloud-runtime-client.php:3479
+#: includes/class-cloud-runtime-client.php:3509
 msgid "Toolbox image-source search requires a query."
 msgstr "Toolbox 图片来源搜索需要查询词。"
 
-#: includes/class-cloud-runtime-client.php:3605
+#: includes/class-cloud-runtime-client.php:3635
 msgid "Agent feedback may not carry approval, preflight, or WordPress write authority."
 msgstr "Agent 反馈不得携带批准、预检或 WordPress 写入权限。"
 
-#: includes/class-cloud-runtime-client.php:3612
+#: includes/class-cloud-runtime-client.php:3642
 msgid "Agent feedback contains missing or unsupported fields."
 msgstr "Agent 反馈包含缺失或不支持的字段。"
 
-#: includes/class-cloud-runtime-client.php:3625
+#: includes/class-cloud-runtime-client.php:3655
 msgid "Agent feedback scalar fields must be strings."
 msgstr "Agent 反馈的标量字段必须是字符串。"
 
-#: includes/class-cloud-runtime-client.php:3633
+#: includes/class-cloud-runtime-client.php:3663
 msgid "Agent feedback contains an empty or oversized field."
 msgstr "Agent 反馈包含空字段或超长字段。"
 
-#: includes/class-cloud-runtime-client.php:3643
+#: includes/class-cloud-runtime-client.php:3673
 msgid "Agent feedback requires the cloud_agent_feedback.v1 contract."
 msgstr "Agent feedback 需要 cloud_agent_feedback.v1 合同。"
 
-#: includes/class-cloud-runtime-client.php:3650
+#: includes/class-cloud-runtime-client.php:3680
 msgid "Agent feedback contains an unsupported local outcome."
 msgstr "Agent 反馈包含不支持的本地结果。"
 
-#: includes/class-cloud-runtime-client.php:3667
+#: includes/class-cloud-runtime-client.php:3697
 msgid "Agent feedback created_at must be a valid date and time."
 msgstr "Agent 反馈的 created_at 必须是有效的日期和时间。"
 
-#: includes/class-cloud-runtime-client.php:3681
+#: includes/class-cloud-runtime-client.php:3711
 msgid "Agent feedback list fields must be bounded lists."
 msgstr "Agent 反馈的列表字段必须是长度受限的列表。"
 
-#: includes/class-cloud-runtime-client.php:3690
+#: includes/class-cloud-runtime-client.php:3720
 msgid "Agent feedback list entries must be bounded strings."
 msgstr "Agent 反馈的列表项必须是长度受限的字符串。"
 
-#: includes/class-cloud-runtime-client.php:3698
+#: includes/class-cloud-runtime-client.php:3728
 msgid "Agent feedback contains an unsupported feedback label."
 msgstr "Agent 反馈包含不支持的反馈标签。"
 
-#: includes/class-cloud-runtime-client.php:3712
+#: includes/class-cloud-runtime-client.php:3742
 msgid "Agent feedback source_score must be an integer from 0 through 100."
 msgstr "Agent 反馈的 source_score 必须是 0 到 100 的整数。"
 
-#: includes/class-cloud-runtime-client.php:3766
+#: includes/class-cloud-runtime-client.php:3796
 msgid "Image context evidence requires a suggestion-only no-write request contract."
 msgstr "图片上下文证据需要仅建议、不写入的请求合同。"
 
-#: includes/class-cloud-runtime-client.php:3787
+#: includes/class-cloud-runtime-client.php:3817
 msgid "Image context evidence items must use either a source artifact or media URLs."
 msgstr "图像上下文证据项必须使用源工件或媒体 URL 二者之一。"
 
-#: includes/class-cloud-runtime-client.php:3815
+#: includes/class-cloud-runtime-client.php:3845
 msgid "Background image recognition requires an attachment URL, media fingerprint, and image MIME type."
 msgstr "后台图片识别需要附件链接、媒体指纹和图片 MIME 类型。"
 
-#: includes/class-cloud-runtime-client.php:3849
+#: includes/class-cloud-runtime-client.php:3879
 msgid "Image context evidence requires at least one bounded source artifact or media URL."
 msgstr "图像上下文证据至少需要一个受限的源工件或媒体 URL。"
 
-#: includes/class-cloud-runtime-client.php:3957
+#: includes/class-cloud-runtime-client.php:3987
 msgid "Cloud did not return usable image context evidence."
 msgstr "Cloud 未返回可用的图片上下文证据。"
 
-#: includes/class-cloud-runtime-client.php:4197
+#: includes/class-cloud-runtime-client.php:4227
 msgid "Cloud request identifiers must use only letters, numbers, dot, underscore, colon, or hyphen and contain at most 128 characters."
 msgstr "Cloud 请求标识符只能使用字母、数字、点、下划线、冒号或连字符，且最多 128 个字符。"
 
-#: includes/class-cloud-runtime-client.php:4242
+#: includes/class-cloud-runtime-client.php:4272
 msgid "Cannot connect to Npcink Cloud. Check the Cloud Base URL."
 msgstr "无法连接到 Npcink Cloud。请检查 Cloud 基础 URL。"
 
 #. translators: 1: Cloud base URL, 2: transport error.
-#: includes/class-cloud-runtime-client.php:4247
+#: includes/class-cloud-runtime-client.php:4277
 #, php-format
 msgid "Cannot connect to %1$s. Original error: %2$s"
 msgstr "无法连接到 %1$s。原始错误：%2$s"
@@ -2430,3 +2431,7 @@ msgstr "本地附件在读取前已发生变化，无法进行 Cloud 替代文�
 #: includes/class-cloud-wordpress-ai-connector.php:1422
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr "本地附件图像类型不受 Cloud 替代文本生成支持。"
+
+#: includes/class-cloud-runtime-client.php:477
+msgid "Invalid content formatting request."
+msgstr "正文整理请求无效。"

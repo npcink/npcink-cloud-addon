@@ -36,7 +36,7 @@
     "package:release": "@php scripts/build-release.php",
     "package:verify": "@php scripts/verify-release.php",
     "plugin-check:release": "@php scripts/run-plugin-check.php",
-    "check:js": "node --check assets/admin-entitlement.js && node --check assets/admin-site-knowledge.js && node --check assets/ai-plugin-localization.js && node --check scripts/smoke-wordpress-ai-text-browser.mjs",
+    "check:js": "node --check assets/admin-entitlement.js && node --check assets/admin-site-knowledge.js && node --check assets/ai-plugin-localization.js && node --check scripts/smoke-wordpress-ai-text-browser.mjs && node --test tests/wp-ai-text-browser-readiness.test.mjs",
     "i18n:check": "@php scripts/check-pot-freshness.php",
     "release:verify": [
       "@test:all",

@@ -466,6 +466,20 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_web_search_runtime' 
 	}
 }
 
+if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_content_format_runtime' ) ) {
+	/**
+	 * Transports content, format=html and source_sha256 only; never applies or stores the result.
+	 *
+	 * @return array<string,mixed>|WP_Error Cloud runtime envelope or transport error.
+	 */
+	function npcink_cloud_addon_execute_toolbox_content_format_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
+		return $client
+			? $client->execute_toolbox_content_format_runtime( $request, $trace_id, $idempotency_key )
+			: new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
 if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_image_source_runtime' ) ) {
 	/**
 	 * Executes a bounded Toolbox image-source candidate runtime request.

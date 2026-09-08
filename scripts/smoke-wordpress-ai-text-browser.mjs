@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Opt-in browser evidence for the official WordPress AI 1.2.0 text surfaces.
+ * Opt-in browser evidence for the official WordPress AI 1.2.0/1.3.0 text surfaces.
  *
  * This smoke deliberately separates:
  * - UI review evidence: real editor controls, review modals, visible blocks, and screenshots.
@@ -325,18 +325,29 @@ add_filter(
 		if ( ! $is_local ) {
 			return $preempt;
 		}
+		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		if ( ! in_array( $path, array( '/v1/runtime/execute', '/v1/observability/plugin-events' ), true ) ) {
+			return $preempt;
+		}
 
 		$option_name = ${quotedOptionName};
 		$state       = get_option( $option_name, array() );
 		if ( ! is_array( $state ) || ${quotedToken} !== (string) ( $state['token'] ?? '' ) ) {
-			return $preempt;
+			return new WP_Error( 'npcink_browser_fake_state_missing', 'Disposable fake-provider state is missing; explicit cleanup is required.' );
 		}
 		if ( time() > ${Number(expiresAt)} ) {
-			delete_option( $option_name );
-			return $preempt;
+			return new WP_Error(
+				'npcink_browser_fake_expired',
+				'The disposable fake-provider test expired; explicit cleanup is required.'
+			);
 		}
 
-		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		if ( '/v1/observability/plugin-events' === $path ) {
+			return new WP_Error(
+				'npcink_browser_fake_upload_isolated',
+				'Monitoring uploads are paused during the disposable fake-provider test.'
+			);
+		}
 		if ( '/v1/runtime/execute' !== $path ) {
 			return $preempt;
 		}
@@ -582,6 +593,45 @@ function removeFakeProvider(fakeProvider) {
 	return { optionDeleted, pluginDeleted: !existsSync(fakeProvider.pluginPath) };
 }
 
+function fixtureQualityCleanupSource(postId) {
+	assert(Number.isSafeInteger(postId) && postId > 0, 'Quality cleanup requires an exact positive fixture ID.');
+	return `
+$post_id = ${postId};
+$scopes = array();
+foreach (array('title_generation', 'content_summary', 'content_rewrite') as $task) {
+	$scopes[] = hash_hmac('sha256', $post_id . '|' . $task, wp_salt('auth'));
+}
+$removed = array();
+foreach (array(
+	Npcink_Cloud_Observability_Collector::BUFFER_OPTION => 'events',
+	Npcink_Cloud_Editor_Assist_Quality::PENDING_OPTION => 'pending',
+) as $option => $kind) {
+	$records = get_option($option, null);
+	$removed[$kind] = 0;
+	if (!is_array($records)) { continue; }
+	$remaining = array();
+	foreach ($records as $record) {
+		$owned = is_array($record) && ('pending' === $kind
+			? $post_id === (int) ($record['post_id'] ?? 0)
+			: 'editor_assist_quality.v1' === ($record['quality_contract'] ?? '')
+				&& in_array($record['object_scope_hash'] ?? '', $scopes, true));
+		if ($owned) { ++$removed[$kind]; } else { $remaining[] = $record; }
+	}
+	if ($removed[$kind] > 0) {
+		update_option($option, $remaining, false);
+		if (get_option($option) !== $remaining) {
+			throw new RuntimeException('Fixture quality cleanup verification failed.');
+		}
+	}
+}
+echo wp_json_encode($removed);
+`;
+}
+
+function cleanupFixtureQuality(postId) {
+	return parseJson(wpCli(['eval', fixtureQualityCleanupSource(postId)]), 'Fixture quality cleanup');
+}
+
 function localBaseUrl(rawValue) {
 	let parsed;
 	try {
@@ -657,7 +707,7 @@ echo wp_json_encode(array(
 function assertReadiness(baseUrl, readiness) {
 	assert(['local', 'development'].includes(readiness.environment), `WordPress environment is non-production (${readiness.environment}).`);
 	assert(new URL(readiness.home_url).origin === baseUrl, 'WP_BASE_URL matches the Local WordPress home origin.');
-	assert(readiness.ai_active && readiness.ai_version === '1.2.0', 'Official WordPress AI 1.2.0 is active.');
+	assert(readiness.ai_active && ['1.2.0', '1.3.0'].includes(readiness.ai_version), 'Official WordPress AI 1.2.0 or 1.3.0 is active.');
 	assert(readiness.addon_loaded && readiness.addon_verified && readiness.connector_enabled, 'Verified Cloud Addon connector is enabled for WordPress AI.');
 	assert(Object.values(readiness.features).every(Boolean), 'Global, title, summary, and content resizing WordPress AI features are enabled.');
 	assert(readiness.has_administrator, 'A local administrator is available for the isolated fixture.');
@@ -708,6 +758,12 @@ echo wp_json_encode(array('post_id' => (int) $post_id, 'author_id' => (int) $use
 		]),
 		'Fixture creation'
 	);
+}
+
+function summaryMetaKey(version) {
+	if (version === '1.2.0') return 'ai_generated_summary';
+	if (version === '1.3.0') return 'wpai_generated_summary';
+	throw new Error('Summary persistence requires a reviewed AI version.');
 }
 
 function databaseSnapshot(postId) {
@@ -780,7 +836,7 @@ echo wp_json_encode(array(
 	'revision_ids' => array_values($revision_ids),
 	'summary_group_count' => $summary_group_count,
 	'summary_text' => implode("\n", $summary_parts),
-	'summary_meta' => (string) get_post_meta($post_id, 'ai_generated_summary', true),
+	'summary_meta' => (string) get_post_meta($post_id, ${phpString(summaryMetaKey(aiVersion))}, true),
 	'resized_paragraph_count' => $resized_paragraph_count,
 	'top_level' => $top_level,
 ));
@@ -1079,7 +1135,7 @@ async function visibleMenuItems(page, editorFrame) {
 		}
 		await page.waitForTimeout(100);
 	}
-	throw new Error('Content resizing menu did not expose its three pinned WordPress AI 1.2.0 controls.');
+	throw new Error('Content resizing menu did not expose its three pinned WordPress AI 1.2.0/1.3.0 controls.');
 }
 
 async function captureDiagnostics(page, screenshotPath, abilityResponses, preSaveWrites, error) {
@@ -1225,6 +1281,7 @@ const fixtureText = {
 };
 
 let baseUrl = '';
+let aiVersion = '';
 let browser = null;
 let page = null;
 let postId = 0;
@@ -1257,6 +1314,7 @@ try {
 	baseUrl = localBaseUrl(env('WP_BASE_URL', 'https://magick-ai.local'));
 	const readiness = preflight();
 	assertReadiness(baseUrl, readiness);
+	aiVersion = readiness.ai_version;
 	if (qualityValidationMode) {
 		assert(fakeProviderMode, 'Quality-correlation validation requires fake-provider mode.');
 		assert(readiness.monitoring_enabled === true, 'Quality-correlation validation requires verified metadata-only monitoring.');
@@ -1790,6 +1848,10 @@ try {
 	}
 	if (fakeProvider) {
 		try {
+			if (postId > 0) {
+				cleanupFixtureQuality(postId);
+				pass('Fixture-scoped quality buffer and pending records were removed before upload isolation ended.');
+			}
 			fakeProviderCleanup = removeFakeProvider(fakeProvider);
 			if (!fakeProviderCleanup.optionDeleted || !fakeProviderCleanup.pluginDeleted) {
 				throw new Error('Disposable fake-provider state was not fully removed.');
