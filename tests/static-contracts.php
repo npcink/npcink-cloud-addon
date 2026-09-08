@@ -333,7 +333,7 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'wordpress_write_attempted: false' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "const providerLedgerValidation = env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1'" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'provider_call_ledger_evidence: providerLedgerEvidence' )
-	&& false !== strpos( $wp_ai_text_browser_smoke, "readiness.ai_version === '1.2.0'" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "['1.2.0', '1.3.0'].includes(readiness.ai_version)" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "['shorten', 'expand', 'rephrase']" )
 	&& false === strpos( $wp_ai_text_browser_smoke, "'lengthen'" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'pre_save_post_writes' )
@@ -382,7 +382,7 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'title_acceptance_evidence' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'content_fields_recorded: false' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'removeFakeProvider(fakeProvider)' )
-	&& false !== strpos( $local_test_guide, 'official WordPress AI 1.2.0 plugin' )
+	&& false !== strpos( $local_test_guide, 'official WordPress AI 1.2.0 or 1.3.0 plugin' )
 	&& false !== strpos( $local_test_guide, 'composer run smoke:wp-ai-text-browser:preflight' )
 	&& false !== strpos( $local_test_guide, 'It does not create a draft, start a' )
 	&& false !== strpos( $local_test_guide, 'WP_AI_TEXT_FAKE_PROVIDER=1' )
@@ -395,7 +395,7 @@ maca_assert(
 	&& false !== strpos( $local_test_guide, 'not real-editor usefulness, acceptance, or a multi-site cohort' )
 	&& false !== strpos( $local_test_guide, '`cloud_run_id` only inside metadata-only request context for correlation' )
 	&& false !== strpos( $local_test_guide, 'proves zero post writes before the explicit Save/Update click' ),
-	'Opt-in browser acceptance uses the official AI 1.2.0 UI, supports a local expiring fake Provider, preserves suggestion-only review, records content-free adoption evidence, and cleans up its local fixture.'
+	'Opt-in browser acceptance uses the official AI 1.2.0/1.3.0 UI, supports a local expiring fake Provider, preserves suggestion-only review, records content-free adoption evidence, and cleans up its local fixture.'
 );
 
 maca_assert(

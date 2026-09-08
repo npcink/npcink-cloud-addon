@@ -1,5 +1,10 @@
 # Npcink Cloud Addon
 
+The named Toolbox content-format transport now requests
+`content_format_request.v2` for bounded HTML structure repair. Cloud returns
+the complete candidate body; Addon does not format, apply or save it. Older
+Cloud runtimes reject v2 rather than silently claiming spacing-only success.
+
 Standalone WordPress plugin for connecting a local Npcink installation to `npcink-cloud`.
 
 The addon is a thin Cloud connector. It stores the Cloud Base URL and the Cloud API Key signing credentials returned by Cloud site authorization, sends signed runtime requests, reads health and entitlement status, transports opt-in metadata-only plugin observability, customer journey, and Agent feedback data, bridges public Site Knowledge change hints to Cloud, and exposes a minimal PHP interface for local plugins. Signing credentials are persisted as one authenticated encrypted envelope rather than plaintext option fields.
@@ -101,6 +106,14 @@ them into local billing truth, a local quota engine, scheduler truth, or a
 WordPress write path.
 
 ## Public PHP Interface
+
+`npcink_cloud_addon_execute_toolbox_content_format_runtime(array $request,
+string $trace_id = '', string $idempotency_key = '')` transports exactly
+`content`, `format=html`, and the matching `source_sha256`. It fixes the
+`content_format_request.v2` / `npcink-toolbox/format-content` envelope to inline
+`no_store` with zero retry and retention. Cloud owns formatting; Toolbox owns
+candidate validation and visible editor application. This helper never stores
+or applies article text. The normal runtime response is returned unchanged.
 
 ```php
 npcink_cloud_addon_is_configured(): bool

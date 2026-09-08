@@ -464,6 +464,36 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
 		}
 
+		/** Transport exact editor text using the fixed inline, no-store formatting contract. */
+		public function execute_toolbox_content_format_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
+			$keys = array_keys( $request );
+			sort( $keys );
+			$content = $request['content'] ?? null;
+			if ( array( 'content', 'format', 'source_sha256' ) !== $keys
+				|| ! is_string( $content ) || '' === $content || strlen( $content ) > 100000
+				|| 1 !== preg_match( '//u', $content )
+				|| 'html' !== ( $request['format'] ?? null )
+				|| hash( 'sha256', $content ) !== ( $request['source_sha256'] ?? null ) ) {
+				return new WP_Error( 'cloud_content_format_invalid', __( 'Invalid content formatting request.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+			}
+			$payload = array(
+				'ability_name' => 'npcink-toolbox/format-content',
+				'ability_family' => 'text',
+				'contract_version' => 'content_format_request.v2',
+				'execution_kind' => 'content_format',
+				'profile_id' => 'content-format.managed',
+				'channel' => 'editor',
+				'execution_pattern' => 'inline',
+				'storage_mode' => 'no_store',
+				'data_classification' => 'pii',
+				'timeout_seconds' => 30,
+				'retry_max' => 0,
+				'retention_ttl' => 0,
+				'input' => $request,
+			);
+			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key ?: 'content_format_' . wp_generate_uuid4(), $trace_id );
+		}
+
 		/**
 		 * Executes one bounded Toolbox image-source candidate runtime request.
 		 *
