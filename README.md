@@ -107,6 +107,36 @@ WordPress write path.
 
 ## Public PHP Interface
 
+WordPress AI model discovery now consumes the signed Cloud entitlement
+`wordpress_ai_capabilities` configuration snapshot. Text, image generation,
+and image understanding are advertised independently and only while fresh and
+configured. Missing, expired, malformed, or failed evidence is unknown; it does
+not change the connector's credential marker. Model discovery may refresh the
+existing five-minute entitlement cache with its existing lock and failure
+backoff. Addon page rendering and bootstrap make no new Cloud calls.
+
+`Advanced and troubleshooting > Checks` shows the three cached states and
+their check times. The existing manual readiness action refreshes the capability
+snapshot through the same signed entitlement read. It does not generate content
+or consume model credits. A successful configuration check does not prove that
+the next generation request will succeed. Cloud must supply
+`wordpress-ai-capabilities-v1` before rolling out this model projection.
+
+The same Checks view links to the registered WordPress AI title, image, and
+alt-text test runners and its optional recent request log. Opening a link does
+not execute a test; invocation uses the host's current AI configuration and may
+consume credits. Missing abilities or disabled test/log pages lead back to the
+host AI settings. The addon does not enable those features automatically or own
+a second test runner or request history. Confirm the selected provider in each
+request log before treating a host test as Cloud evidence.
+
+The opt-in WordPress AI request-log bridge uses the host's `ai_client` log type
+and keeps modality in metadata. Text and vision success is logged only after
+task-bound output validation; image success also requires verified artifact
+delivery. Invalid output is an error even when the runtime HTTP response was
+successful. These connector records omit prompt and output content; retention
+and any other host-generated log records remain owned by WordPress AI.
+
 `npcink_cloud_addon_execute_toolbox_content_format_runtime(array $request,
 string $trace_id = '', string $idempotency_key = '')` transports exactly
 `content`, `format=html`, and the matching `source_sha256`. It fixes the
