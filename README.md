@@ -1,5 +1,8 @@
 # Npcink Cloud Addon
 
+WordPress AI acceptance evidence, image-feature limitations, and release gates:
+[2026-09-08 acceptance handoff](docs/wordpress-ai-acceptance-and-release-handoff-2026-09-08.md).
+
 The named Toolbox content-format transport now requests
 `content_format_request.v2` for bounded HTML structure repair. Cloud returns
 the complete candidate body; Addon does not format, apply or save it. Older
