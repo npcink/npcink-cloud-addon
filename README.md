@@ -2,6 +2,8 @@
 
 WordPress AI acceptance evidence, image-feature limitations, and release gates:
 [2026-09-08 acceptance handoff](docs/wordpress-ai-acceptance-and-release-handoff-2026-09-08.md).
+Follow the [WordPress AI acceptance standard](docs/wordpress-ai-acceptance-standard-v1.md)
+for repeatable diagnosis, evidence reuse, and closeout.
 
 The named Toolbox content-format transport now requests
 `content_format_request.v2` for bounded HTML structure repair. Cloud returns

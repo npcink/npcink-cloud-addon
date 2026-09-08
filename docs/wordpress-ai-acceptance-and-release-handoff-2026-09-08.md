@@ -7,6 +7,15 @@ Latest follow-up: image generation, native media import, and featured-image
 adoption into the test draft passed later on the same date. See the final
 section; earlier disabled-feature observations below remain historical facts.
 
+Closeout update, 2026-09-09: capability/runtime fixes are merged in Cloud #927
+and Addon #142; this evidence record was merged in Addon #143 and #144. Text
+and featured-image draft adoption passed. Normal journey batch recovery passed;
+natural Cron delivery and explicit generation-context evidence remain open.
+The temporary acceptance tunnel was closed after the image check; reopen the
+existing foreground tunnel before relying on the localhost Cloud destination.
+No production release occurred. The reusable procedure is now the
+[WordPress AI acceptance standard](wordpress-ai-acceptance-standard-v1.md).
+
 ## Baseline and Verified Evidence
 
 - Local site: `http://magick-ai.local`, single site; official AI plugin 1.3.0.
@@ -161,6 +170,27 @@ inserted to manufacture that evidence.
 The M4 owner reported PR #928 accepted on clean master
 `e19afb17dafc1b17fbc9f650860365b9571561ed`; its auxiliary worktree was removed.
 This task used the existing backend through a tunnel, with no sync or deploy.
-The Cloud admin page required login in this browser, so the historical text
-run's explicit context-injection evidence remains pending authorized admin
-inspection. Do not infer it from the successful image run or embedding calls.
+The Cloud admin page required login in this browser. Subsequent investigation
+found that provider input context metadata was not projected into the durable
+run result. Login alone therefore does not resolve this evidence gap. The
+related task has a local, uncommitted projection change; compilation and diff
+checks do not establish runtime acceptance or merge. Do not infer historical
+injection from the successful image run or embedding calls.
+
+## Related Task Reconciliation, 2026-09-09
+
+The related task named "规划任务" performed the original title/draft and journey
+recovery work; this session reused those exact run and draft IDs. It was not a
+second independent text-generation acceptance. This session delivered capability
+gating and completed the separate image run and native draft adoption.
+
+Background evidence projection and natural Cron delivery should be consolidated
+under the related task after ownership is acknowledged. No message or ownership
+transfer was performed by this closeout. Do not duplicate its uncommitted
+`app/domain/runtime/provider_execution.py` change or merge it as documentation.
+
+Existing untracked source-flow and request-log documents contain historical
+statements that predate merge/recovery. They remain with their original task;
+their "not merged" or "batch blocked" wording must not override the merged PR
+and successful recovery evidence above. This session closes its own delivery,
+not those remaining implementation and observation tasks.
