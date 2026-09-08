@@ -22,6 +22,95 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 		private const REFRESH_FAILURE_BACKOFF_SECONDS = 30;
 
 		/**
+		 * Reads Cloud capability evidence, optionally refreshing only on model discovery.
+		 *
+		 * @param bool $refresh Whether a caller may make a bounded signed read.
+		 * @return array<string,mixed>
+		 */
+		public static function get_wordpress_ai_capabilities( bool $refresh = false ): array {
+			$summary = self::get_cached_summary();
+			$previous = self::normalize_wordpress_ai_capabilities( $summary['wordpress_ai_capabilities'] ?? null );
+			$previous_time = strtotime( (string) $previous['checked_at'] );
+			$capability_expired = false !== $previous_time && $previous_time + $previous['max_age_seconds'] <= time();
+			if ( $refresh && ( ! empty( $summary['stale'] ) || ! empty( $summary['capability_refresh_failed'] ) || $capability_expired || 'not_refreshed' === ( $summary['state'] ?? '' ) ) ) {
+				$summary = self::refresh( true );
+			}
+			$snapshot = self::normalize_wordpress_ai_capabilities( $summary['wordpress_ai_capabilities'] ?? null );
+			$failure = get_transient( self::cache_key( Npcink_Cloud_Addon_Settings::get_settings() ) . '_refresh_failure' );
+			$checked_at = strtotime( (string) $snapshot['checked_at'] );
+			$expired = false === $checked_at || $checked_at > time() + 30 || $checked_at + $snapshot['max_age_seconds'] <= time();
+			$failed = ! empty( $summary['capability_refresh_failed'] ) || is_array( $failure );
+			if ( empty( $summary['available'] ) || ! empty( $summary['stale'] ) || $expired || $failed ) {
+				foreach ( $snapshot['capabilities'] as &$capability ) {
+					$capability['state'] = 'unknown';
+					$capability['reason_code'] = $failed ? 'refresh_failed' : ( $expired && '' !== $snapshot['checked_at'] ? 'snapshot_expired' : 'snapshot_unavailable' );
+				}
+				unset( $capability );
+			}
+			return $snapshot;
+		}
+
+		/**
+		 * Retains the failed-check fact until a successful signed read replaces it.
+		 *
+		 * @param array<string,mixed> $settings Connection identity used for the read.
+		 * @return void
+		 */
+		public static function record_capability_refresh_failure( array $settings ): void {
+			$key = self::cache_key( $settings );
+			$cached = get_transient( $key );
+			if ( is_array( $cached ) ) {
+				$cached['capability_refresh_failed'] = true;
+				set_transient( $key, $cached, self::CACHE_STORAGE_TTL_SECONDS );
+			}
+			set_transient( $key . '_refresh_failure', array( 'message' => __( 'Plan and entitlement are temporarily unavailable.', 'npcink-cloud-addon' ) ), self::REFRESH_FAILURE_BACKOFF_SECONDS );
+		}
+
+		/**
+		 * Validates the additive Cloud projection without inferring positive capability.
+		 *
+		 * @param mixed $raw Cloud capability snapshot.
+		 * @return array<string,mixed>
+		 */
+		private static function normalize_wordpress_ai_capabilities( $raw ): array {
+			$valid = is_array( $raw )
+				&& 'wordpress-ai-capabilities-v1' === ( $raw['contract_version'] ?? null )
+				&& 'configuration_snapshot' === ( $raw['evidence_kind'] ?? null )
+				&& true === ( $raw['runtime_admission_required'] ?? null )
+				&& false === ( $raw['provider_call_performed'] ?? null )
+				&& is_string( $raw['checked_at'] ?? null )
+				&& 1 === preg_match( '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/D', $raw['checked_at'] )
+				&& is_int( $raw['max_age_seconds'] ?? null )
+				&& $raw['max_age_seconds'] > 0 && $raw['max_age_seconds'] <= 300;
+			$result = array(
+				'contract_version' => 'wordpress-ai-capabilities-v1',
+				'evidence_kind' => 'configuration_snapshot',
+				'runtime_admission_required' => true,
+				'provider_call_performed' => false,
+				'checked_at' => $valid ? sanitize_text_field( $raw['checked_at'] ) : '',
+				'max_age_seconds' => $valid ? $raw['max_age_seconds'] : 300,
+				'capabilities' => array(),
+			);
+			$states = array( 'configured', 'unavailable', 'unknown' );
+			$reasons = array( 'configured', 'site_inactive', 'subscription_missing', 'subscription_requires_runtime_check', 'entitlement_missing', 'entitlement_unknown', 'entitlement_denied', 'provider_unavailable', 'profile_not_configured', 'no_eligible_model', 'profile_capability_mismatch', 'routing_unavailable' );
+			foreach ( array( 'text_generation', 'image_generation', 'vision' ) as $key ) {
+				$item = $valid && is_array( $raw['capabilities'] ?? null ) ? ( $raw['capabilities'][ $key ] ?? null ) : null;
+				$item_valid = is_array( $item )
+					&& in_array( $item['state'] ?? null, $states, true )
+					&& in_array( $item['configuration_state'] ?? null, $states, true )
+					&& in_array( $item['entitlement_state'] ?? null, $states, true )
+					&& in_array( $item['reason_code'] ?? null, $reasons, true );
+				if ( $item_valid && 'configured' === $item['state'] ) {
+					$item_valid = 'configured' === $item['configuration_state'] && 'configured' === $item['entitlement_state'] && 'configured' === $item['reason_code'];
+				}
+				$result['capabilities'][ $key ] = $item_valid ? array_intersect_key( $item, array_flip( array( 'state', 'reason_code', 'configuration_state', 'entitlement_state' ) ) ) : array(
+					'state' => 'unknown', 'reason_code' => 'snapshot_unavailable', 'configuration_state' => 'unknown', 'entitlement_state' => 'unknown',
+				);
+			}
+			return $result;
+		}
+
+		/**
 		 * Returns the entitlement summary.
 		 *
 		 * @param bool $force_refresh Whether to bypass cache.
@@ -57,6 +146,7 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 			$client = new Npcink_Cloud_Runtime_Client( $settings );
 			$result = $client->get_current_entitlement( 'trace_cloud_entitlement_' . wp_generate_uuid4() );
 			if ( is_wp_error( $result ) ) {
+				self::record_capability_refresh_failure( $settings );
 				return self::unavailable_summary( 'unavailable', $result->get_error_message() );
 			}
 
@@ -272,6 +362,7 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 					'execution_tiers' => self::sanitize_string_list( $quota['execution_tiers'] ?? array() ),
 				),
 				'pro_cloud_runtime' => self::normalize_pro_cloud_runtime( $pro_cloud_runtime ),
+				'wordpress_ai_capabilities' => self::normalize_wordpress_ai_capabilities( $entitlement['wordpress_ai_capabilities'] ?? null ),
 				'ai_credit_usage_detail' => $ai_credit_usage_detail,
 				'media_image_capacity' => $media_image_capacity,
 				'links' => self::build_portal_links( $settings, is_array( $ai_credit_usage_detail['portal_paths'] ?? null ) ? $ai_credit_usage_detail['portal_paths'] : array() ),
@@ -291,6 +382,7 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 			$settings = Npcink_Cloud_Addon_Settings::normalize_settings( $settings );
 			$summary = self::normalize_cloud_entitlement( $data, $settings );
 			set_transient( self::cache_key( $settings ), $summary, self::CACHE_STORAGE_TTL_SECONDS );
+			delete_transient( self::cache_key( $settings ) . '_refresh_failure' );
 
 			return $summary;
 		}

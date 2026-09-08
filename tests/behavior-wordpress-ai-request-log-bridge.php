@@ -25,12 +25,16 @@ namespace WordPress\AI\Logging {
 		 * Captures a log record.
 		 *
 		 * @param array<string,mixed> $data Log data.
-		 * @return int
+		 * @return string|false
 		 */
-		public function log( array $data ): int {
+		public function log( array $data ) {
+			// Match WordPress AI 1.3.0: modality is not a supported log type.
+			if ( ! in_array( $data['type'] ?? '', array( 'ai_client', 'mcp_tool', 'ability' ), true ) ) {
+				return false;
+			}
 			$GLOBALS['maca_wpai_request_logs'][] = $data;
 
-			return count( $GLOBALS['maca_wpai_request_logs'] );
+			return (string) count( $GLOBALS['maca_wpai_request_logs'] );
 		}
 	}
 }
@@ -80,7 +84,8 @@ namespace {
 
 	maca_assert(
 		1 === count( $GLOBALS['maca_wpai_request_logs'] )
-		&& 'image' === (string) ( $log['type'] ?? '' )
+		&& 'ai_client' === (string) ( $log['type'] ?? '' )
+		&& 'image' === (string) ( $context['modality'] ?? '' )
 		&& 'success' === (string) ( $log['status'] ?? '' )
 		&& 'npcink-cloud/generate-image:image_generation' === (string) ( $log['operation'] ?? '' )
 		&& 'cloud-provider' === (string) ( $log['provider'] ?? '' )
@@ -124,7 +129,8 @@ namespace {
 	$text_context = is_array( $text_log['context'] ?? null ) ? $text_log['context'] : array();
 	maca_assert(
 		2 === count( $GLOBALS['maca_wpai_request_logs'] )
-		&& 'text' === (string) ( $text_log['type'] ?? '' )
+		&& 'ai_client' === (string) ( $text_log['type'] ?? '' )
+		&& 'text' === (string) ( $text_context['modality'] ?? '' )
 		&& 'npcink-cloud/connector-runtime:content_summary' === (string) ( $text_log['operation'] ?? '' )
 		&& 'cloud-text-provider' === (string) ( $text_log['provider'] ?? '' )
 		&& 'cloud-text-model' === (string) ( $text_log['model'] ?? '' )
@@ -172,6 +178,7 @@ namespace {
 	$error_context = is_array( $error_log['context'] ?? null ) ? $error_log['context'] : array();
 	maca_assert(
 		3 === count( $GLOBALS['maca_wpai_request_logs'] )
+		&& 'ai_client' === (string) ( $error_log['type'] ?? '' )
 		&& 'error' === (string) ( $error_log['status'] ?? '' )
 		&& 'npcink-cloud/connector-runtime:content_summary' === (string) ( $error_log['operation'] ?? '' )
 		&& 'Provider timeout while generating text output.' === (string) ( $error_log['error_message'] ?? '' )
@@ -182,5 +189,36 @@ namespace {
 		&& 'editor' === (string) ( $error_context['channel'] ?? '' )
 		&& 'npcink-cloud-addon' === (string) ( $error_context['connector_id'] ?? '' ),
 		'Behavior: WordPress AI request log bridge records bounded Cloud runtime errors without request content.'
+	);
+
+	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
+		array(
+			'type'     => 'vision',
+			'task'     => 'alt_text_suggest',
+			'response' => array( 'run_id' => 'run_vision_1' ),
+		)
+	);
+	$vision_log = $GLOBALS['maca_wpai_request_logs'][3] ?? array();
+	maca_assert(
+		4 === count( $GLOBALS['maca_wpai_request_logs'] )
+		&& 'ai_client' === ( $vision_log['type'] ?? '' )
+		&& 'vision' === ( $vision_log['context']['modality'] ?? '' )
+		&& 'run_vision_1' === ( $vision_log['context']['cloud_run_id'] ?? '' ),
+		'Behavior: vision uses the official AI Client log type and preserves modality in context.'
+	);
+
+	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
+		array(
+			'type' => 'image',
+			'response' => array( 'run_id' => 'run_invalid_image' ),
+			'validation_error' => new \WP_Error( 'invalid_output', 'Image verification failed.' ),
+		)
+	);
+	$invalid_log = $GLOBALS['maca_wpai_request_logs'][4] ?? array();
+	maca_assert(
+		'error' === ( $invalid_log['status'] ?? '' )
+		&& 'run_invalid_image' === ( $invalid_log['context']['cloud_run_id'] ?? '' )
+		&& 'Image verification failed.' === ( $invalid_log['error_message'] ?? '' ),
+		'Behavior: an HTTP success with invalid output is logged as an error and retains Cloud correlation.'
 	);
 }

@@ -30,6 +30,47 @@ function maca_private_method( string $class_name, string $method_name ): Reflect
 maca_reset_test_state();
 maca_seed_settings( true );
 
+$capability_fixture = array(
+	'contract_version' => 'wordpress-ai-capabilities-v1',
+	'evidence_kind' => 'configuration_snapshot',
+	'runtime_admission_required' => true,
+	'provider_call_performed' => false,
+	'checked_at' => gmdate( 'Y-m-d\TH:i:s\Z' ),
+	'max_age_seconds' => 300,
+	'capabilities' => array_fill_keys( array( 'text_generation', 'image_generation', 'vision' ), array(
+		'state' => 'configured', 'reason_code' => 'configured', 'configuration_state' => 'configured', 'entitlement_state' => 'configured',
+	) ),
+);
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $capability_fixture ) ) );
+$capability_snapshot = Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities();
+maca_assert( 'configured' === $capability_snapshot['capabilities']['image_generation']['state'], 'Fresh validated Cloud capability is preserved.' );
+maca_assert( empty( $GLOBALS['maca_http_requests'] ), 'Cached capability rendering performs zero HTTP.' );
+
+foreach ( array( 'missing', 'inconsistent', 'expired', 'invalid_time', 'future', 'wrong_version' ) as $scenario ) {
+	$fixture = $capability_fixture;
+	if ( 'missing' === $scenario ) { unset( $fixture['capabilities']['image_generation'] ); }
+	if ( 'inconsistent' === $scenario ) { $fixture['capabilities']['image_generation']['entitlement_state'] = 'unavailable'; }
+	if ( 'expired' === $scenario ) { $fixture['checked_at'] = gmdate( 'Y-m-d\TH:i:s\Z', time() - 301 ); }
+	if ( 'invalid_time' === $scenario ) { $fixture['checked_at'] = 'now'; }
+	if ( 'future' === $scenario ) { $fixture['checked_at'] = gmdate( 'Y-m-d\TH:i:s\Z', time() + 3600 ); }
+	if ( 'wrong_version' === $scenario ) { $fixture['contract_version'] = 'future-contract'; }
+	Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $fixture ) ) );
+	$capability_snapshot = Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities();
+	maca_assert( 'unknown' === $capability_snapshot['capabilities']['image_generation']['state'], 'Cloud capability fails closed for ' . $scenario . '.' );
+}
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $capability_fixture ) ) );
+$capability_settings = Npcink_Cloud_Addon_Settings::get_settings();
+$capability_cache_key = maca_private_method( 'Npcink_Cloud_Entitlement_Summary', 'cache_key' )->invoke( null, $capability_settings );
+set_transient( $capability_cache_key . '_refresh_failure', array( 'message' => 'Failed' ), 30 );
+maca_assert( 'refresh_failed' === Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities()['capabilities']['text_generation']['reason_code'], 'Failed refresh does not present an older successful snapshot as current.' );
+Npcink_Cloud_Entitlement_Summary::record_capability_refresh_failure( $capability_settings );
+delete_transient( $capability_cache_key . '_refresh_failure' );
+maca_assert( 'refresh_failed' === Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities()['capabilities']['text_generation']['reason_code'], 'Failed capability check remains unknown after retry backoff expires.' );
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $capability_fixture ) ) );
+maca_assert( 'configured' === Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities()['capabilities']['text_generation']['state'], 'Successful signed read clears the failed capability check.' );
+maca_reset_test_state();
+maca_seed_settings( true );
+
 $entitlement_response = array(
 	'status' => 'ok',
 	'data'   => array(

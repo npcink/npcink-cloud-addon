@@ -10,6 +10,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/helpers.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-credential-store.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-settings.php';
+require_once MACA_TEST_ROOT . '/includes/class-cloud-entitlement-summary.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
 
 if ( ! class_exists( 'Maca_Connector_Registry_Stub' ) ) {
@@ -120,6 +121,19 @@ foreach ( $generated_image_filename_examples as $input_filename => $expected_fil
 
 maca_seed_settings( true );
 
+$capability_fixture = array(
+	'contract_version' => 'wordpress-ai-capabilities-v1',
+	'evidence_kind' => 'configuration_snapshot',
+	'runtime_admission_required' => true,
+	'provider_call_performed' => false,
+	'checked_at' => gmdate( 'Y-m-d\TH:i:s\Z' ),
+	'max_age_seconds' => 300,
+	'capabilities' => array_fill_keys( array( 'text_generation', 'image_generation', 'vision' ), array(
+		'state' => 'configured', 'reason_code' => 'configured', 'configuration_state' => 'configured', 'entitlement_state' => 'configured',
+	) ),
+);
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $capability_fixture ) ) );
+
 maca_assert(
 	false === Npcink_Cloud_Addon_Settings::is_site_knowledge_generation_reference_enabled(),
 	'WordPress AI Site Knowledge generation reference remains opt-in by default.'
@@ -190,6 +204,26 @@ maca_assert(
 	array( Npcink_Cloud_WordPress_AI_Connector::CONNECTOR_ID, Npcink_Cloud_WordPress_AI_Connector::VISION_MODEL_ID ) === $preferred_vision[0],
 	'Npcink Cloud scene vision model is added as the first preferred AI vision model.'
 );
+
+$text_only = $capability_fixture;
+foreach ( array( 'image_generation', 'vision' ) as $capability ) {
+	$text_only['capabilities'][ $capability ] = array( 'state' => 'unavailable', 'reason_code' => 'no_eligible_model', 'configuration_state' => 'unavailable', 'entitlement_state' => 'configured' );
+}
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $text_only ) ) );
+maca_assert(
+	Npcink_Cloud_WordPress_AI_Connector::is_model_available( Npcink_Cloud_WordPress_AI_Connector::MODEL_ID )
+	&& array() === Npcink_Cloud_WordPress_AI_Connector::filter_preferred_image_models( array() )
+	&& array() === Npcink_Cloud_WordPress_AI_Connector::filter_preferred_vision_models( array() ),
+	'Text-only Cloud configuration does not advertise image or vision models.'
+);
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array() ) );
+maca_assert(
+	array() === Npcink_Cloud_WordPress_AI_Connector::filter_preferred_text_models( array() )
+	&& array() === Npcink_Cloud_WordPress_AI_Connector::filter_preferred_image_models( array() )
+	&& '1' === get_option( Npcink_Cloud_WordPress_AI_Connector::SETTING_NAME, '' ),
+	'Unknown capability evidence hides models while preserving the verified connection marker.'
+);
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $capability_fixture ) ) );
 
 $abilities = array();
 for ( $i = 1; $i <= 120; $i++ ) {

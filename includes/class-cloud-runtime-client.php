@@ -271,6 +271,11 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 */
 		public function manual_readiness_test(): array {
 			$probe = $this->probe_connectivity();
+			if ( ! empty( $probe['auth_ok'] ) && is_array( $probe['entitlement_response'] ?? null ) && class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
+				Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( $probe['entitlement_response'], $this->config );
+			} elseif ( class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
+				Npcink_Cloud_Entitlement_Summary::record_capability_refresh_failure( $this->config );
+			}
 
 			return is_array( $probe['readiness_result'] ?? null ) ? $probe['readiness_result'] : $this->build_readiness_result( $probe );
 		}

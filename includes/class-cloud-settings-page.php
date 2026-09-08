@@ -1848,16 +1848,92 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php self::render_diagnostic_row( __( 'Credentials', 'npcink-cloud-addon' ), self::diagnostic_status( ! empty( $state['configured'] ), __( 'saved', 'npcink-cloud-addon' ), __( 'missing', 'npcink-cloud-addon' ) ), self::format_setting_value( (string) ( $settings['base_url'] ?? '' ), __( 'Not set', 'npcink-cloud-addon' ) ) ); ?>
 					<?php self::render_diagnostic_row( __( 'Cloud connection', 'npcink-cloud-addon' ), self::diagnostic_status( ! empty( $state['verified'] ), __( 'verified', 'npcink-cloud-addon' ), __( 'not verified', 'npcink-cloud-addon' ) ), $connection_detail ); ?>
 					<?php self::render_diagnostic_row( __( 'Hosted Runtime', 'npcink-cloud-addon' ), self::diagnostic_status( ! empty( $runtime['reported'] ), __( 'reported', 'npcink-cloud-addon' ), __( 'not returned', 'npcink-cloud-addon' ) ), self::format_hosted_runtime_diagnostic_detail( $runtime ) ); ?>
+					<?php self::render_capability_diagnostics(); ?>
 					<?php if ( ! empty( $readiness ) ) : ?>
 						<?php self::render_diagnostic_row( __( 'Readiness result', 'npcink-cloud-addon' ), self::format_readiness_status( $readiness ), self::format_readiness_detail( $readiness ) ); ?>
 					<?php endif; ?>
 					</tbody>
 				</table>
+				<?php self::render_generation_test_links(); ?>
 				<?php if ( $site_knowledge_needs_attention ) : ?>
 					<?php self::render_site_knowledge_bridge_health_detail( $site_knowledge ); ?>
 				<?php endif; ?>
 				<?php
 			}
+
+		/** Opens host-owned tests and logs without executing requests on page load. */
+		private static function render_generation_test_links(): void {
+			$pages = $GLOBALS['_registered_pages'] ?? array();
+			$explorer_available = ! empty( $pages['tools_page_ai-abilities-explorer'] ) && function_exists( 'wp_get_ability' );
+			$logs_available = ! empty( $pages['tools_page_ai-request-logs'] );
+			$test_count = 0;
+			?>
+			<h4><?php esc_html_e( 'WordPress AI generation tests', 'npcink-cloud-addon' ); ?></h4>
+			<p class="description"><?php esc_html_e( 'Invoking a test may consume credits. Tests use the current WordPress AI configuration; check the request provider in the logs.', 'npcink-cloud-addon' ); ?></p>
+			<ul>
+				<?php if ( $explorer_available ) : ?>
+					<?php foreach ( array( 'ai/title-generation' => __( 'Open text generation test', 'npcink-cloud-addon' ), 'ai/image-generation' => __( 'Open image generation test', 'npcink-cloud-addon' ), 'ai/alt-text-generation' => __( 'Open image understanding test', 'npcink-cloud-addon' ) ) as $ability => $label ) : ?>
+						<?php if ( wp_get_ability( $ability ) ) : ?>
+							<?php ++$test_count; ?>
+							<li><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'ai-abilities-explorer', 'action' => 'test', 'ability' => $ability ), admin_url( 'tools.php' ) ) ); ?>"><?php echo esc_html( $label ); ?></a></li>
+						<?php endif; ?>
+					<?php endforeach; ?>
+				<?php endif; ?>
+				<?php if ( $logs_available ) : ?>
+					<li><a href="<?php echo esc_url( admin_url( 'tools.php?page=ai-request-logs' ) ); ?>"><?php esc_html_e( 'View recent AI requests', 'npcink-cloud-addon' ); ?></a></li>
+				<?php endif; ?>
+				<?php if ( $test_count < 3 || ! $logs_available ) : ?>
+					<li><a href="<?php echo esc_url( admin_url( 'options-general.php?page=ai-wp-admin' ) ); ?>"><?php esc_html_e( 'Open WordPress AI settings for tests and request logging', 'npcink-cloud-addon' ); ?></a></li>
+				<?php endif; ?>
+			</ul>
+			<?php
+		}
+
+		/**
+		 * Shows cached configuration evidence separately from connectivity.
+		 *
+		 * @return void
+		 */
+		private static function render_capability_diagnostics(): void {
+			$snapshot = Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities();
+			$labels = array(
+				'text_generation' => __( 'Text generation', 'npcink-cloud-addon' ),
+				'image_generation' => __( 'Image generation', 'npcink-cloud-addon' ),
+				'vision' => __( 'Image understanding', 'npcink-cloud-addon' ),
+			);
+			$states = array(
+				'configured' => __( 'Configuration confirmed', 'npcink-cloud-addon' ),
+				'unavailable' => __( 'Unavailable', 'npcink-cloud-addon' ),
+				'unknown' => __( 'Unknown', 'npcink-cloud-addon' ),
+			);
+			$reasons = array(
+				'configured' => __( 'Cloud configuration and site entitlement are confirmed. Generation has not been tested by this check.', 'npcink-cloud-addon' ),
+				'site_inactive' => __( 'Activate this site in Cloud.', 'npcink-cloud-addon' ),
+				'subscription_missing' => __( 'This site has no Cloud subscription.', 'npcink-cloud-addon' ),
+				'subscription_requires_runtime_check' => __( 'Subscription renewal or grace needs a runtime check.', 'npcink-cloud-addon' ),
+				'entitlement_missing' => __( 'Cloud has no active entitlement for this site.', 'npcink-cloud-addon' ),
+				'entitlement_unknown' => __( 'Cloud did not provide complete entitlement evidence.', 'npcink-cloud-addon' ),
+				'entitlement_denied' => __( 'This site is not entitled to this capability.', 'npcink-cloud-addon' ),
+				'provider_unavailable' => __( 'Cloud has no executable provider configured.', 'npcink-cloud-addon' ),
+				'profile_not_configured' => __( 'The required Cloud runtime profile is not configured.', 'npcink-cloud-addon' ),
+				'no_eligible_model' => __( 'Cloud has no eligible model or current capability evidence. Check Cloud service detail.', 'npcink-cloud-addon' ),
+				'profile_capability_mismatch' => __( 'The Cloud runtime profile does not match this capability.', 'npcink-cloud-addon' ),
+				'snapshot_expired' => __( 'The previous capability check has expired. Run the connection checks to refresh it.', 'npcink-cloud-addon' ),
+				'refresh_failed' => __( 'The latest Cloud check failed. Previous evidence is not current.', 'npcink-cloud-addon' ),
+			);
+			foreach ( $labels as $key => $label ) {
+				$item = $snapshot['capabilities'][ $key ];
+				$detail = $reasons[ $item['reason_code'] ] ?? __( 'Capability evidence is unavailable. Run the connection checks; older Cloud versions may not report it.', 'npcink-cloud-addon' );
+				if ( '' !== $snapshot['checked_at'] ) {
+					$detail .= ' ' . sprintf(
+						/* translators: %s: last capability check in the site timezone. */
+						__( 'Checked: %s', 'npcink-cloud-addon' ),
+						self::format_datetime_value( $snapshot['checked_at'] )
+					);
+				}
+				self::render_diagnostic_row( $label, $states[ $item['state'] ], $detail );
+			}
+		}
 
 		/**
 		 * Renders one diagnostics row.
@@ -1871,7 +1947,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<tr>
 				<th scope="row"><?php echo esc_html( $label ); ?></th>
-				<td><?php echo esc_html( self::format_empty( $status ) ); ?></td>
+				<td class="npcink-cloud-metric-value"><?php echo esc_html( self::format_empty( $status ) ); ?></td>
 				<td><?php echo esc_html( self::format_empty( $detail ) ); ?></td>
 			</tr>
 			<?php

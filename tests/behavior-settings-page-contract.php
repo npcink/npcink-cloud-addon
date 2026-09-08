@@ -9,6 +9,12 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
 
+if ( ! function_exists( 'wp_get_ability' ) ) {
+	function wp_get_ability( string $name ) {
+		return $GLOBALS['maca_abilities'][ $name ] ?? null;
+	}
+}
+
 if ( ! function_exists( 'current_user_can' ) ) {
 	function current_user_can( string $capability ): bool {
 		return 'manage_options' === $capability;
@@ -618,3 +624,31 @@ maca_assert(
 		&& $http_before_site_knowledge === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: healthy Site Knowledge keeps maintenance and Cloud links, removes the duplicate Settings link, and hides manual recovery without Cloud HTTP.'
 );
+
+$test_links = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_generation_test_links' );
+$test_links->setAccessible( true );
+$GLOBALS['_registered_pages'] = array( 'tools_page_ai-abilities-explorer' => true, 'tools_page_ai-request-logs' => true );
+$previous_abilities = $GLOBALS['maca_abilities'] ?? array();
+$GLOBALS['maca_abilities'] = array( 'ai/title-generation' => new stdClass() );
+$http_before = count( $GLOBALS['maca_http_requests'] );
+ob_start();
+$test_links->invoke( null );
+$test_links_html = (string) ob_get_clean();
+maca_assert(
+	str_contains( $test_links_html, 'ability=ai/title-generation' )
+	&& ! str_contains( $test_links_html, 'ability=ai/image-generation' )
+	&& str_contains( $test_links_html, 'ai-request-logs' )
+	&& str_contains( $test_links_html, 'may consume credits' )
+	&& $http_before === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: generation entry links expose registered host tests only, disclose cost, and perform zero requests.'
+);
+$GLOBALS['_registered_pages'] = array();
+ob_start();
+$test_links->invoke( null );
+$test_links_html = (string) ob_get_clean();
+maca_assert(
+	! str_contains( $test_links_html, 'tools.php?' )
+	&& str_contains( $test_links_html, 'options-general.php?page=ai-wp-admin' ),
+	'Behavior: disabled host test and log pages lead to AI settings instead of broken tools links.'
+);
+$GLOBALS['maca_abilities'] = $previous_abilities;
