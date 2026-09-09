@@ -57,6 +57,7 @@ $admin_css = maca_read( $root . '/assets/admin.css' );
 $entitlement_summary = maca_read( $root . '/includes/class-cloud-entitlement-summary.php' );
 $observability = maca_read( $root . '/includes/class-cloud-observability-collector.php' );
 $customer_journey = maca_read( $root . '/includes/class-cloud-customer-journey.php' );
+$natural_journey_inspector = maca_read( $root . '/scripts/inspect-natural-journey.php' );
 $site_knowledge_bridge = maca_read( $root . '/includes/class-cloud-site-knowledge-change-bridge.php' );
 $site_knowledge_full_index_doc = maca_read( $root . '/docs/site-knowledge-full-index-delivery.md' );
 $site_knowledge_runtime_bridge = maca_read( $root . '/includes/class-cloud-site-knowledge-runtime-bridge.php' );
@@ -89,6 +90,15 @@ maca_assert(
 	&& false !== strpos( $release_source_manifest, 'includes/class-cloud-customer-journey.php' )
 	&& false !== strpos( $test_runner, "behavior-customer-journey.php" ),
 	'Static: customer journey delivery remains opt-in metadata transport with a bounded local cohort tag, the existing scheduler, named endpoints, cleanup, packaging, and behavior coverage.'
+);
+
+maca_assert(
+	false !== strpos( $natural_journey_inspector, "'expected_cloud_event_id'" )
+	&& false !== strpos( $natural_journey_inspector, "hash( 'sha256', \$site_id . '|' . \$event_id )" )
+	&& false !== strpos( $natural_journey_inspector, 'expected_cloud_event_id/run_id' )
+	&& false === strpos( $natural_journey_inspector, "'site_id' =>" )
+	&& false === strpos( $natural_journey_inspector, "'secret' =>" ),
+	'Static: natural journey inspector projects the expected site-scoped Cloud event hash without exposing site identity or credentials.'
 );
 
 maca_assert(
