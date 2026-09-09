@@ -24,6 +24,8 @@ $allowed_requests = array(
 	array( 'POST', '/v1/observability/plugin-events' ),
 	array( 'POST', '/v1/agent-feedback/events' ),
 	array( 'GET', '/v1/agent-feedback/summary?window_hours=24' ),
+	array( 'POST', '/v1/customer-journey/events' ),
+	array( 'GET', '/v1/customer-journey/summary?window_hours=24&cohort_id=pilot_1' ),
 	array( ' get ', '/v1/observability/plugin-summary?window_hours=24' ),
 	array( 'GET', '/v1/entitlements/current?return_url=https://example.test/a/b' ),
 	array( 'GET', '/v1/entitlements/current?return_url=https%3A%2F%2Fexample.test%2Fa%2Fb' ),

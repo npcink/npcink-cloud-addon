@@ -16,6 +16,7 @@
     "check:wporg": "@php scripts/check-wordpress-org-review-rules.php",
     "ai:i18n:audit": "@php scripts/audit-ai-plugin-localization.php",
     "local:runtime": "@php scripts/describe-local-runtime.php",
+    "local:journey:inspect": "WP_PATH=\"${WP_PATH:-/Users/muze/Local Sites/magick-ai/app/public}\"; WP_EXPECTED_SITE_URL=\"${WP_EXPECTED_SITE_URL:-http://magick-ai.local}\"; WP_CLI_BIN=\"${WP_CLI_BIN:-/opt/homebrew/bin/wp}\"; WP_CLI_PHP=\"${WP_CLI_PHP:-/opt/homebrew/bin/php}\"; WP_DB_SOCKET=\"${WP_DB_SOCKET:-}\"; if [ -z \"$WP_DB_SOCKET\" ]; then WP_DB_SOCKET=$(find \"$HOME/Library/Application Support/Local/run\" -path '*/mysql/mysqld.sock' -print -quit); fi; if [ -z \"$WP_DB_SOCKET\" ]; then echo 'Local MySQL socket not found; set WP_DB_SOCKET.' >&2; exit 1; fi; WP_EXPECTED_SITE_URL=\"$WP_EXPECTED_SITE_URL\" \"$WP_CLI_PHP\" -d display_errors=0 -d error_reporting=8191 -d mysqli.default_socket=\"$WP_DB_SOCKET\" \"$WP_CLI_BIN\" --path=\"$WP_PATH\" --no-color eval-file scripts/inspect-natural-journey.php",
     "smoke:wp-ai-abilities": "WP_PATH=\"${WP_PATH:-/Users/muze/Local Sites/magick-ai/app/public}\"; WP_CLI_BIN=\"${WP_CLI_BIN:-/opt/homebrew/bin/wp}\"; WP_CLI_PHP=\"${WP_CLI_PHP:-$HOME/Library/Application Support/Local/lightning-services/php-8.5.3+1/bin/darwin-arm64/bin/php}\"; WP_DB_SOCKET=\"${WP_DB_SOCKET:-$HOME/Library/Application Support/Local/run/NPb24Zg9g/mysql/mysqld.sock}\"; \"$WP_CLI_PHP\" -d display_errors=0 -d error_reporting=8191 -d mysqli.default_socket=\"$WP_DB_SOCKET\" \"$WP_CLI_BIN\" --path=\"$WP_PATH\" --no-color eval-file scripts/smoke-wordpress-ai-abilities.php",
     "smoke:wp-ai-editor": "WP_PATH=\"${WP_PATH:-/Users/muze/Local Sites/magick-ai/app/public}\"; WP_CLI_BIN=\"${WP_CLI_BIN:-/opt/homebrew/bin/wp}\"; WP_CLI_PHP=\"${WP_CLI_PHP:-$HOME/Library/Application Support/Local/lightning-services/php-8.5.3+1/bin/darwin-arm64/bin/php}\"; WP_DB_SOCKET=\"${WP_DB_SOCKET:-$HOME/Library/Application Support/Local/run/NPb24Zg9g/mysql/mysqld.sock}\"; \"$WP_CLI_PHP\" -d display_errors=0 -d error_reporting=8191 -d mysqli.default_socket=\"$WP_DB_SOCKET\" \"$WP_CLI_BIN\" --path=\"$WP_PATH\" --no-color eval-file scripts/smoke-wordpress-ai-editor.php",
     "smoke:wp-ai-text-browser:preflight": "node scripts/smoke-wordpress-ai-text-browser.mjs --preflight-only",
@@ -36,7 +37,7 @@
     "package:release": "@php scripts/build-release.php",
     "package:verify": "@php scripts/verify-release.php",
     "plugin-check:release": "@php scripts/run-plugin-check.php",
-    "check:js": "node --check assets/admin-entitlement.js && node --check assets/admin-site-knowledge.js && node --check assets/ai-plugin-localization.js && node --check scripts/smoke-wordpress-ai-text-browser.mjs",
+    "check:js": "node --check assets/admin-entitlement.js && node --check assets/admin-site-knowledge.js && node --check assets/ai-plugin-localization.js && node --check scripts/smoke-wordpress-ai-text-browser.mjs && node --test tests/wp-ai-text-browser-readiness.test.mjs",
     "i18n:check": "@php scripts/check-pot-freshness.php",
     "release:verify": [
       "@test:all",

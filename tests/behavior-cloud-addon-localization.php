@@ -41,9 +41,9 @@ maca_assert(
 		'Authorize with this endpoint',
 		'npcink-cloud-addon'
 	)
-	&& '本地授权' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Local permissions',
-		'Local permissions',
+	&& '功能' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Features',
+		'Features',
 		'npcink-cloud-addon'
 	)
 	&& '站点知识库' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -81,6 +81,21 @@ maca_assert(
 		'Available AI credits',
 		'npcink-cloud-addon'
 	)
+	&& '可用图片数' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Available images',
+		'Available images',
+		'npcink-cloud-addon'
+	)
+	&& '无限制' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Unlimited',
+		'Unlimited',
+		'npcink-cloud-addon'
+	)
+	&& '剩余图片识别额度占比' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Remaining image recognition capacity percentage',
+		'Remaining image recognition capacity percentage',
+		'npcink-cloud-addon'
+	)
 	&& '此处显示的 AI 积分属于当前连接的 Cloud 账户。断开、移除或更换此 WordPress 站点不会转移这些 AI 积分。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.',
 		'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.',
@@ -114,6 +129,81 @@ maca_assert(
 	'Addon localization fallback translates fixed npcink-cloud-addon strings in zh_CN admin.'
 );
 
+
+maca_assert(
+		'检查' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Checks',
+			'Checks',
+				'npcink-cloud-addon'
+			)
+			&& '连接与服务' === Npcink_Cloud_Addon_Localization::filter_gettext(
+				'Connection and service',
+				'Connection and service',
+				'npcink-cloud-addon'
+			)
+			&& '已连接' === Npcink_Cloud_Addon_Localization::filter_gettext(
+				'Connected',
+				'Connected',
+				'npcink-cloud-addon'
+			)
+			&& '打开 Cloud' === Npcink_Cloud_Addon_Localization::filter_gettext(
+				'Open Cloud',
+				'Open Cloud',
+				'npcink-cloud-addon'
+			)
+			&& '连接管理' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Connection management',
+			'Connection management',
+			'npcink-cloud-addon'
+		)
+		&& '更换 Cloud 账号' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Change Cloud account',
+			'Change Cloud account',
+			'npcink-cloud-addon'
+		)
+		&& '断开此站点' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Disconnect this site',
+			'Disconnect this site',
+			'npcink-cloud-addon'
+		)
+			&& '手动就绪测试已完成。连接器已就绪。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Manual readiness test completed. Connector is ready.',
+		'Manual readiness test completed. Connector is ready.',
+		'npcink-cloud-addon'
+	)
+	&& '允许匿名诊断' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Allow anonymous diagnostics',
+		'Allow anonymous diagnostics',
+		'npcink-cloud-addon'
+	)
+	&& '暂不允许' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Not now',
+		'Not now',
+		'npcink-cloud-addon'
+	)
+	&& '托管运行时' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Hosted Runtime',
+		'Hosted Runtime',
+		'npcink-cloud-addon'
+	)
+	&& '就绪' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'ready',
+		'ready',
+		'npcink-cloud-addon'
+	)
+	&& '继续' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'continue',
+		'continue',
+		'npcink-cloud-addon'
+	)
+	&& '云端扩展' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Cloud Addon',
+		'Cloud Addon',
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback covers the connected summary, troubleshooting, readiness, and monitoring-consent surfaces.'
+);
+
 maca_assert(
 	'允许 WordPress AI 使用 Npcink Cloud。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Allow WordPress AI to use Npcink Cloud.',
@@ -130,9 +220,19 @@ maca_assert(
 		'Reference site content during generation',
 		'npcink-cloud-addon'
 	)
-	&& '更多本地授权' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'More local permissions',
-		'More local permissions',
+	&& '发送匿名诊断信息' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Send anonymous diagnostics',
+		'Send anonymous diagnostics',
+		'npcink-cloud-addon'
+	)
+	&& '可选发送功能步骤、执行结果、耗时和机器可读错误码等元数据，用于排查故障并改善可靠性。不会发送 Prompt、源内容或生成内容、WordPress 用户或文章原始 ID、邮箱、URL、DOM 数据、凭据或自由文本错误消息。默认关闭；管理员可随时关闭。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Optionally send metadata-only events about feature steps, outcomes, timing, and machine-readable error codes to help diagnose failures and improve reliability. This does not send prompts, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.',
+		'Optionally send metadata-only events about feature steps, outcomes, timing, and machine-readable error codes to help diagnose failures and improve reliability. This does not send prompts, source or generated content, raw WordPress user or post IDs, email addresses, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.',
+		'npcink-cloud-addon'
+	)
+	&& '隐私设置' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Privacy settings',
+		'Privacy settings',
 		'npcink-cloud-addon'
 	)
 	&& '排队中' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -145,13 +245,13 @@ maca_assert(
 		'Running',
 		'npcink-cloud-addon'
 	),
-	'Addon localization fallback covers verified local permissions admin copy.'
+	'Addon localization fallback covers verified local permissions and explicit monitoring-scope copy.'
 );
 
 maca_assert(
-	'桥接健康详情' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Bridge health detail',
-		'Bridge health detail',
+		'知识库投递' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Knowledge base delivery',
+			'Knowledge base delivery',
 		'npcink-cloud-addon'
 	)
 	&& '手动刷新命令' === Npcink_Cloud_Addon_Localization::filter_gettext(
@@ -179,12 +279,7 @@ maca_assert(
 		'Indexed %1$s documents; remaining %2$s documents; limit %3$s documents.',
 		'npcink-cloud-addon'
 	)
-	&& 'Cloud 索引详情' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Cloud index details',
-		'Cloud index details',
-		'npcink-cloud-addon'
-	)
-	&& '暂时无法获取知识库用量。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		&& '暂时无法获取知识库用量。' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Site Knowledge usage is temporarily unavailable.',
 		'Site Knowledge usage is temporarily unavailable.',
 		'npcink-cloud-addon'
@@ -203,8 +298,39 @@ maca_assert(
 		'idle',
 		'idle',
 		'npcink-cloud-addon'
+	)
+	&& '知识库详情' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Knowledge base details',
+		'Knowledge base details',
+		'npcink-cloud-addon'
+	)
+		&& '重新更新' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'Update again',
+			'Update again',
+			'npcink-cloud-addon'
+		)
+		&& '查看高级排查' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'View advanced troubleshooting',
+			'View advanced troubleshooting',
+			'npcink-cloud-addon'
+		)
+	&& '%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',
+		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',
+		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers compact Site Knowledge usage and delivery status copy.'
+);
+
+maca_assert(
+	'%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。' === Npcink_Cloud_Addon_Localization::filter_ngettext(
+		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',
+		'%d change notification is no longer in the local delivery buffer. Request a public content refresh to reconcile it.',
+		'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.',
+		2,
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback covers dynamic Site Knowledge delivery-buffer plural copy.'
 );
 
 maca_assert(

@@ -4,6 +4,11 @@
 
 适用范围：`npcink-cloud-addon` 的设置页、连接流程、Site Knowledge 投递状态、Runtime Runs 只读投影、WordPress AI 固定 UI 本地化，以及这些区域的测试和文档。
 
+历史说明：本文保留 2026-08-13 时点的演进记录。Runtime Runs 本地投影、健康
+状态下的常驻手动刷新，以及当时的导航建议，已由
+`docs/admin-simplification-and-delivery-engineering-standard-2026-08-25.md`
+和 `docs/admin-surface-standard.md` 取代；当前实现以后二者为准。
+
 ## 1. 背景与结论
 
 本轮工作从用户端视角复盘 Cloud Addon：用户看到的是一个连接器和状态摘要，而不是 Cloud 控制台、工作流引擎或 WordPress 写入工具。历史问题主要集中在四类错位：

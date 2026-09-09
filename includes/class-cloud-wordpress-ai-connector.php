@@ -295,7 +295,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return array<int,mixed>
 		 */
 		public static function filter_preferred_text_models( array $preferred_models ): array {
-			if ( ! self::is_cloud_connector_available() ) {
+			if ( ! self::is_model_available( self::MODEL_ID ) ) {
 				return $preferred_models;
 			}
 
@@ -311,7 +311,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return array<int,mixed>
 		 */
 		public static function filter_preferred_vision_models( array $preferred_models ): array {
-			if ( ! self::is_cloud_connector_available() ) {
+			if ( ! self::is_model_available( self::VISION_MODEL_ID ) ) {
 				return $preferred_models;
 			}
 
@@ -327,13 +327,31 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return array<int,mixed>
 		 */
 		public static function filter_preferred_image_models( array $preferred_models ): array {
-			if ( ! self::is_cloud_connector_available() ) {
+			if ( ! self::is_model_available( self::IMAGE_MODEL_ID ) ) {
 				return $preferred_models;
 			}
 
 			array_unshift( $preferred_models, array( self::CONNECTOR_ID, self::IMAGE_MODEL_ID ) );
 
 			return $preferred_models;
+		}
+
+		/**
+		 * Maps fresh Cloud configuration evidence to this connector's fixed models.
+		 *
+		 * @param string $model_id Fixed connector model ID.
+		 * @return bool
+		 */
+		public static function is_model_available( string $model_id ): bool {
+			if ( ! self::is_cloud_connector_available() || ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
+				return false;
+			}
+			$mapping = array( self::MODEL_ID => 'text_generation', self::VISION_MODEL_ID => 'vision', self::IMAGE_MODEL_ID => 'image_generation' );
+			if ( ! isset( $mapping[ $model_id ] ) ) {
+				return false;
+			}
+			$snapshot = Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities( true );
+			return 'configured' === ( $snapshot['capabilities'][ $mapping[ $model_id ] ]['state'] ?? 'unknown' );
 		}
 
 		/**
@@ -402,7 +420,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			$response = $event['response'] ?? null;
-			$is_error = is_wp_error( $response );
+			$error = $event['validation_error'] ?? $response;
+			$is_error = is_wp_error( $error );
 			$response_array = is_array( $response ) ? $response : array();
 			$task     = self::clean_log_value( (string) ( $event['task'] ?? 'unknown' ), 80 );
 			$type     = self::clean_log_value( (string) ( $event['type'] ?? 'text' ), 20 );
@@ -454,6 +473,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'channel'                    => 'editor',
 				'connector_id'               => 'npcink-cloud-addon',
 				'task'                       => $task,
+				'modality'                   => $type,
 				'cloud_run_id'               => $run_id,
 				'suggestion_only'            => true,
 				'direct_wordpress_write'     => false,
@@ -461,13 +481,14 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			);
 
 			$log_data = array(
-				'type'        => $type,
+				// WordPress AI log types describe the caller, not the content modality.
+				'type'        => 'ai_client',
 				'operation'   => self::clean_log_value( (string) ( $event['operation'] ?? 'npcink-cloud/connector-runtime' ), 120 ) . ':' . $task,
 				'provider'    => self::clean_log_value( $provider, 120 ),
 				'model'       => self::clean_log_value( $model, 160 ),
 				'duration_ms' => max( 0, (int) ( $event['duration_ms'] ?? 0 ) ),
 				'status'      => $is_error ? 'error' : 'success',
-				'error_message' => $is_error ? self::clean_log_value( $response->get_error_message(), 300 ) : '',
+				'error_message' => $is_error ? self::clean_log_value( $error->get_error_message(), 300 ) : '',
 				'user_id'     => function_exists( 'get_current_user_id' ) ? get_current_user_id() : 0,
 				'context'     => $context,
 			);
@@ -709,7 +730,13 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return list<\WordPress\AiClient\Providers\Models\DTO\ModelMetadata>
 		 */
 		public function listModelMetadata(): array {
-			return array( $this->text_model_metadata(), $this->vision_model_metadata(), $this->image_model_metadata() );
+			$models = array();
+			foreach ( array( Npcink_Cloud_WordPress_AI_Connector::MODEL_ID, Npcink_Cloud_WordPress_AI_Connector::VISION_MODEL_ID, Npcink_Cloud_WordPress_AI_Connector::IMAGE_MODEL_ID ) as $model_id ) {
+				if ( $this->hasModelMetadata( $model_id ) ) {
+					$models[] = $this->getModelMetadata( $model_id );
+				}
+			}
+			return $models;
 		}
 
 		/**
@@ -719,15 +746,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return bool
 		 */
 		public function hasModelMetadata( string $model_id ): bool {
-			return in_array(
-				$model_id,
-				array(
-					Npcink_Cloud_WordPress_AI_Connector::MODEL_ID,
-					Npcink_Cloud_WordPress_AI_Connector::VISION_MODEL_ID,
-					Npcink_Cloud_WordPress_AI_Connector::IMAGE_MODEL_ID,
-				),
-				true
-			);
+			return Npcink_Cloud_WordPress_AI_Connector::is_model_available( $model_id );
 		}
 
 		/**
@@ -998,6 +1017,18 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 			}
 
+			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
+			$journey_input = $ability_name === (string) ( $ability_context['ability_id'] ?? '' )
+				&& is_array( $ability_context['input'] ?? null )
+				? $ability_context['input']
+				: array();
+			$journey_session_id = Npcink_Cloud_Customer_Journey::build_session_id( $task, $journey_input );
+			Npcink_Cloud_Customer_Journey::capture_generation(
+				$task,
+				'started',
+				$journey_session_id
+			);
+
 			$started  = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
 			$response = npcink_cloud_addon_execute_registered_ai_task_runtime(
 				$ability_name,
@@ -1006,8 +1037,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'wp_ai_connector_' . wp_generate_uuid4()
 			);
 			$duration_ms = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started );
-			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
-				array(
+			$log_event = array(
 					'type'                       => 'text',
 					'operation'                  => 'npcink-cloud/connector-runtime',
 					'task'                       => $task,
@@ -1016,20 +1046,41 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					'response'                   => $response,
 					'duration_ms'                => $duration_ms,
 					'fallback_model_id'          => Npcink_Cloud_WordPress_AI_Connector::MODEL_ID,
-				)
-			);
+				);
 
 			if ( is_wp_error( $response ) ) {
+				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
+				Npcink_Cloud_Customer_Journey::capture_generation_failure(
+					$task,
+					$journey_session_id,
+					$duration_ms,
+					$response->get_error_code()
+				);
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), $task );
 			if ( '' === $output_text ) {
+				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_output_missing', 'Cloud response did not include valid text output.' );
+				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
+				Npcink_Cloud_Customer_Journey::capture_generation_failure(
+					$task,
+					$journey_session_id,
+					$duration_ms,
+					'cloud_wp_ai_output_missing'
+				);
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector response did not include text output.' );
 			}
 
+			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 			$run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) );
-			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
+			Npcink_Cloud_Customer_Journey::capture_generation(
+				$task,
+				'succeeded',
+				$journey_session_id,
+				$duration_ms,
+				$run_id
+			);
 			if (
 				class_exists( 'Npcink_Cloud_Editor_Assist_Quality' )
 				&& $ability_name === (string) ( $ability_context['ability_id'] ?? '' )
@@ -1041,7 +1092,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					$ability_context['input'],
 					$run_id,
 					$output_text,
-					$duration_ms
+					$duration_ms,
+					$journey_session_id
 				);
 			}
 
@@ -1216,28 +1268,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		public static function dispatch( int $attachment_id, string $prompt ) {
-			$client = function_exists( 'npcink_cloud_addon_verified_runtime_client' )
-				? npcink_cloud_addon_verified_runtime_client()
-				: null;
-			if (
-				! is_object( $client )
-				|| ! method_exists( $client, 'upload_wordpress_ai_alt_text_source' )
-				|| ! method_exists( $client, 'execute_wordpress_ai_connector_runtime' )
-			) {
-				return new WP_Error(
-					'cloud_wp_ai_alt_text_verified_client_required',
-					__( 'WordPress AI alt text generation requires verified Npcink Cloud settings.', 'npcink-cloud-addon' ),
-					array( 'status' => 503 )
-				);
-			}
-
 			$source = self::local_source( $attachment_id, $prompt );
 			if ( is_wp_error( $source ) ) {
 				return $source;
 			}
 
 			$trace_id = 'trace_wp_ai_vision_' . wp_generate_uuid4();
-			$artifact = $client->upload_wordpress_ai_alt_text_source(
+			if ( ! function_exists( 'npcink_cloud_addon_upload_wordpress_ai_alt_text_source' ) || ! function_exists( 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime' ) ) {
+				return new WP_Error( 'cloud_wp_ai_alt_text_verified_client_required', __( 'WordPress AI alt text generation requires verified Npcink Cloud settings.', 'npcink-cloud-addon' ), array( 'status' => 503 ) );
+			}
+			$artifact = npcink_cloud_addon_upload_wordpress_ai_alt_text_source(
 				$source['file'],
 				$trace_id,
 				'wp_ai_vision_upload_' . wp_generate_uuid4()
@@ -1277,7 +1317,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'retry_max'          => 0,
 			);
 
-			return $client->execute_wordpress_ai_connector_runtime(
+			return npcink_cloud_addon_execute_wordpress_ai_connector_runtime(
 				$request,
 				$trace_id,
 				'wp_ai_vision_execute_' . wp_generate_uuid4()
@@ -1532,8 +1572,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 			$started  = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
 			$response = Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::dispatch( $attachment_id, $text );
-			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
-				array(
+			$log_event = array(
 					'type'                       => 'vision',
 					'operation'                  => 'npcink-cloud/connector-runtime',
 					'task'                       => 'alt_text_suggest',
@@ -1542,18 +1581,21 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					'response'                   => $response,
 					'duration_ms'                => Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started ),
 					'fallback_model_id'          => Npcink_Cloud_WordPress_AI_Connector::VISION_MODEL_ID,
-				)
-			);
+				);
 
 			if ( is_wp_error( $response ) ) {
+				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), 'alt_text_suggest' );
 			if ( '' === $output_text ) {
+				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_output_missing', 'Cloud response did not include valid alt text output.' );
+				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI vision connector response did not include alt text output.' );
 			}
 
+			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 			return new \WordPress\AiClient\Results\DTO\GenerativeAiResult(
 				(string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) ),
 				array(
@@ -1764,8 +1806,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$trace_id,
 				'wp_ai_image_' . wp_generate_uuid4()
 			);
-			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
-				array(
+			$log_event = array(
 					'type'             => 'image',
 					'operation'        => 'npcink-cloud/generate-image',
 					'task'             => 'image_generation',
@@ -1773,19 +1814,28 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					'response'         => $response,
 					'duration_ms'      => Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started ),
 					'fallback_model_id' => Npcink_Cloud_WordPress_AI_Connector::IMAGE_MODEL_ID,
-				)
-			);
+				);
 
 			if ( is_wp_error( $response ) ) {
+				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
 			}
 
 			$result     = $this->extract_result( is_array( $response ) ? $response : array() );
-			$candidates = $this->extract_image_candidates( $result, $trace_id );
-			if ( empty( $candidates ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector response did not include image output.' );
+			try {
+				$candidates = $this->extract_image_candidates( $result, $trace_id );
+				if ( empty( $candidates ) ) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector response did not include image output.' );
+				}
+			} catch ( \Throwable $error ) {
+				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_image_output_invalid', 'Cloud image output could not be downloaded or verified.' );
+				$log_event['duration_ms'] = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started );
+				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
+				throw $error;
 			}
 
+			$log_event['duration_ms'] = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started );
+			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 			return new \WordPress\AiClient\Results\DTO\GenerativeAiResult(
 				(string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) ),
 				$candidates,

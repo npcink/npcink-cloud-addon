@@ -18,6 +18,12 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 	final class Npcink_Cloud_Media_Derivative_Transport {
 		private const REQUEST_CONTRACT_VERSION = 'media_derivative_cloud_request.v1';
 		private const PROPOSAL_CONTRACT_VERSION = 'media_derivative_cloud_proposal.v1';
+		private const GOVERNANCE_REQUEST_CONTRACT_VERSION = 'media_governance_canary.v1';
+		private const GOVERNANCE_RESULT_CONTRACT_VERSION = 'media_governance_canary_result.v1';
+		private const GOVERNANCE_MINIMUM_SAVINGS_BASIS_POINTS = 1500;
+		private const GOVERNANCE_MAX_ITEMS = 10;
+			private const GOVERNANCE_MINIMUM_SOURCE_BYTES = 512000;
+			private const AUTO_SAFE_PROFILE = 'auto_safe.v1';
 		private const MAX_UPLOAD_BYTES = 26214400;
 		private const MAX_IMAGE_DIMENSION = 8192;
 		private const MAX_IMAGE_PIXELS = 16777216;
@@ -110,6 +116,13 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			if ( is_wp_error( $media_params ) ) {
 				return $media_params;
 			}
+			$governance_context = self::build_governance_request_context(
+				$contract,
+				! empty( $watermark_upload ) || ! empty( $watermark_reference )
+			);
+			if ( is_wp_error( $governance_context ) ) {
+				return $governance_context;
+			}
 
 			$base_idempotency_key = '' !== $idempotency_key ? $idempotency_key : 'media_derivative_' . wp_generate_uuid4();
 			if ( ! empty( $source_upload ) ) {
@@ -140,7 +153,8 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			$media_payload = self::build_media_job_request(
 				$media_params,
 				$source_reference,
-				$watermark_reference
+				$watermark_reference,
+				$governance_context
 			);
 			if ( is_wp_error( $media_payload ) ) {
 				return $media_payload;
@@ -202,12 +216,32 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				return $projection;
 			}
 
+			$canary = self::governance_canary_from_cloud_result( $result );
+			if ( is_wp_error( $canary ) ) {
+				return $canary;
+			}
+				if ( is_array( $canary ) && 'skipped' === $canary['status'] ) {
+					$projection['governance_canary'] = self::governance_canary_projection( $canary );
+					return $projection;
+				}
+				$auto_safe_skip = self::auto_safe_skip_from_cloud_result( $result );
+				if ( is_wp_error( $auto_safe_skip ) ) {
+					return $auto_safe_skip;
+				}
+				if ( is_array( $auto_safe_skip ) ) {
+					$projection['optimization'] = $auto_safe_skip;
+					return $projection;
+				}
+
 			$artifact = self::artifact_from_cloud_result( $result );
 			if ( is_wp_error( $artifact ) ) {
 				return $artifact;
 			}
 
 			$projection['artifact'] = $artifact;
+			if ( is_array( $canary ) ) {
+				$projection['governance_canary'] = self::governance_canary_projection( $canary );
+			}
 			if ( empty( $projection['warnings'] ) && is_array( $artifact['processing_warnings'] ?? null ) ) {
 				$projection['warnings'] = $artifact['processing_warnings'];
 			}
@@ -324,7 +358,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				if ( ! is_string( $warning ) ) {
 					continue;
 				}
-				$value = self::bounded_projection_text( $warning, self::MAX_PROCESSING_WARNING_BYTES );
+					$value = self::bounded_projection_text( $warning, self::MAX_PROCESSING_WARNING_BYTES );
 				if ( '' !== $value ) {
 					$projection[] = $value;
 				}
@@ -358,24 +392,286 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		public static function artifact_from_cloud_result( array $cloud_result ) {
 			$data   = is_array( $cloud_result['data'] ?? null ) ? $cloud_result['data'] : array();
 			$result = is_array( $data['result'] ?? null ) ? $data['result'] : array();
-			$expected_result_keys = array( 'artifact_type', 'contract_version', 'workflow_metadata', 'artifact' );
+			$canary = self::normalize_governance_canary_result( $result );
+			if ( is_wp_error( $canary ) ) {
+				return $canary;
+			}
+			if ( is_array( $canary ) ) {
+				if ( 'skipped' === $canary['status'] ) {
+					return new WP_Error(
+						'cloud_media_governance_canary_has_no_artifact',
+						__( 'Skipped media governance canaries do not publish derivative artifacts.', 'npcink-cloud-addon' ),
+						array( 'status' => 409 )
+					);
+				}
+				$result = $canary['derivative'];
+			}
+				$expected_result_keys = array( 'artifact_type', 'contract_version', 'workflow_metadata', 'artifact' );
+				$expected_result_keys[] = 'status';
 			if (
 				count( $expected_result_keys ) !== count( $result )
 				|| array() !== array_diff( $expected_result_keys, array_keys( $result ) )
 				|| array() !== array_diff( array_keys( $result ), $expected_result_keys )
 				|| 'media_derivative_artifact' !== (string) ( $result['artifact_type'] ?? '' )
-				|| 'media_derivative_result.v1' !== (string) ( $result['contract_version'] ?? '' )
+					|| 'media_derivative_result.v3' !== (string) ( $result['contract_version'] ?? '' )
+					|| 'qualified' !== (string) ( $result['status'] ?? '' )
 				|| ! is_array( $result['workflow_metadata'] ?? null )
 				|| ! is_array( $result['artifact'] ?? null )
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_result_contract_invalid',
-					__( 'Cloud media derivative results require the exact media_derivative_result.v1 artifact envelope.', 'npcink-cloud-addon' ),
+						__( 'Cloud media derivative results require the exact qualified media_derivative_result.v3 artifact envelope.', 'npcink-cloud-addon' ),
 					array( 'status' => 502 )
 				);
 			}
 
 			return self::normalize_artifact_descriptor( $result['artifact'], 'derivative' );
+		}
+
+		/**
+		 * Returns a strictly validated governance canary wrapper when present.
+		 *
+		 * @param array<string,mixed> $cloud_result Cloud run result envelope.
+		 * @return array<string,mixed>|null|WP_Error
+		 */
+			private static function governance_canary_from_cloud_result( array $cloud_result ) {
+			$data = is_array( $cloud_result['data'] ?? null ) ? $cloud_result['data'] : array();
+			$result = is_array( $data['result'] ?? null ) ? $data['result'] : array();
+
+				return self::normalize_governance_canary_result( $result );
+			}
+
+			/**
+			 * Returns a bounded auto-safe skip decision when Cloud intentionally publishes no artifact.
+			 *
+			 * @param array<string,mixed> $cloud_result Cloud run result envelope.
+			 * @return array<string,mixed>|null|WP_Error
+			 */
+		private static function auto_safe_skip_from_cloud_result( array $cloud_result ) {
+			$data = is_array( $cloud_result['data'] ?? null ) ? $cloud_result['data'] : array();
+			$result = is_array( $data['result'] ?? null ) ? $data['result'] : array();
+			if ( 'media_derivative_result.v3' !== (string) ( $result['contract_version'] ?? '' ) || 'skipped' !== (string) ( $result['status'] ?? '' ) ) {
+				return null;
+			}
+			if (
+				! self::has_exact_keys( $result, array( 'artifact_type', 'contract_version', 'status', 'workflow_metadata', 'artifact', 'decision' ) )
+				|| 'media_derivative_artifact' !== (string) ( $result['artifact_type'] ?? '' )
+				|| null !== ( $result['artifact'] ?? null )
+				|| ! is_array( $result['workflow_metadata'] ?? null )
+				|| ! is_array( $result['decision'] ?? null )
+			) {
+				return new WP_Error( 'cloud_media_derivative_skip_contract_invalid', __( 'Skipped automatic optimization results require the exact media_derivative_result.v3 decision envelope.', 'npcink-cloud-addon' ), array( 'status' => 502 ) );
+			}
+
+			$decision = $result['decision'];
+			$facts    = is_array( $decision['transform_facts'] ?? null ) ? $decision['transform_facts'] : array();
+			$fact_keys = array(
+				'source_checksum', 'output_checksum', 'source_format', 'output_format', 'source_mime_type',
+				'output_mime_type', 'source_width', 'source_height', 'output_width', 'output_height',
+				'source_filesize_bytes', 'output_filesize_bytes', 'source_frame_count', 'output_frame_count',
+				'source_has_alpha', 'output_has_alpha', 'alpha_preserved', 'decodable', 'crop_applied',
+				'watermark_applied', 'resize_applied', 'encoding_mode', 'savings_basis_points',
+				'optimization_profile', 'source_class', 'effective_quality', 'quality_metric', 'quality_score',
+				'quality_threshold', 'color_profile_normalized', 'qualified', 'decision_reasons',
+			);
+			$reasons = self::bounded_projection_warnings( $decision['decision_reasons'] ?? array() );
+			$fact_reasons = self::bounded_projection_warnings( $facts['decision_reasons'] ?? array() );
+			$allowed_reasons = array( 'transparent_pixels_changed', 'quality_threshold_not_met', 'minimum_savings_not_met', 'output_not_smaller', 'color_profile_normalization_failed' );
+			if (
+				! self::has_exact_keys( $decision, array( 'qualified', 'decision_reasons', 'transform_facts' ) )
+				|| false !== $decision['qualified']
+				|| ! self::has_exact_keys( $facts, $fact_keys )
+				|| false !== ( $facts['qualified'] ?? null )
+				|| 'auto_safe.v1' !== (string) ( $facts['optimization_profile'] ?? '' )
+				|| empty( $reasons )
+				|| $reasons !== $fact_reasons
+				|| array() !== array_diff( $reasons, $allowed_reasons )
+				|| (int) ( $facts['source_filesize_bytes'] ?? 0 ) <= 0
+				|| (int) ( $facts['output_filesize_bytes'] ?? 0 ) <= 0
+				|| (int) ( $facts['savings_basis_points'] ?? -1 ) < 0
+				|| (int) ( $facts['savings_basis_points'] ?? 10001 ) > 10000
+			) {
+				return new WP_Error( 'cloud_media_derivative_skip_decision_invalid', __( 'Skipped automatic optimization results require bounded decision facts.', 'npcink-cloud-addon' ), array( 'status' => 502 ) );
+			}
+
+			return array(
+				'status'           => 'skipped',
+				'qualified'        => false,
+				'decision_reasons' => $reasons,
+				'transform_facts'  => self::sanitize_projection_value( $facts ),
+			);
+		}
+
+		/**
+		 * Validates the additive governance result without changing ordinary results.
+		 *
+		 * @param array<string,mixed> $result Cloud result object.
+		 * @return array<string,mixed>|null|WP_Error
+		 */
+		private static function normalize_governance_canary_result( array $result ) {
+			if ( self::GOVERNANCE_RESULT_CONTRACT_VERSION !== (string) ( $result['contract_version'] ?? '' ) ) {
+				return null;
+			}
+
+			$expected_keys = array( 'contract_version', 'artifact_type', 'status', 'candidate', 'source', 'validation', 'derivative', 'preview_only', 'retain_originals', 'write_posture', 'direct_wordpress_write' );
+			if ( ! self::has_exact_keys( $result, $expected_keys ) ) {
+				return self::governance_result_error( 'Media governance canary results require the exact wrapper fields.' );
+			}
+			if (
+				'media_governance_canary_preview' !== (string) $result['artifact_type']
+				|| ! in_array( $result['status'], array( 'ready', 'skipped' ), true )
+				|| true !== $result['preview_only']
+				|| true !== $result['retain_originals']
+				|| false !== $result['direct_wordpress_write']
+			) {
+				return self::governance_result_error( 'Media governance canary posture is invalid.' );
+			}
+
+			$candidate = is_array( $result['candidate'] ) ? $result['candidate'] : array();
+			$source = is_array( $result['source'] ) ? $result['source'] : array();
+			$validation = is_array( $result['validation'] ) ? $result['validation'] : array();
+			if (
+				! self::has_exact_keys( $candidate, array( 'candidate_id', 'snapshot_id', 'source_sha256', 'evidence_revision' ) )
+				|| ! self::has_exact_keys( $source, array( 'artifact_id', 'format', 'mime_type', 'width', 'height', 'filesize_bytes', 'checksum' ) )
+				|| ! self::has_exact_keys( $validation, array( 'source_checksum_matches', 'dimensions_unchanged', 'output_smaller', 'source_bytes', 'output_bytes', 'savings_bytes', 'savings_basis_points', 'minimum_savings_basis_points', 'qualified', 'reasons' ) )
+			) {
+				return self::governance_result_error( 'Media governance canary evidence fields are invalid.' );
+			}
+
+			$candidate_id = sanitize_text_field( (string) $candidate['candidate_id'] );
+			$snapshot_id = sanitize_text_field( (string) $candidate['snapshot_id'] );
+			$evidence_revision = sanitize_text_field( (string) $candidate['evidence_revision'] );
+			$source_sha256 = self::normalize_sha256( (string) $candidate['source_sha256'] );
+			$source_checksum = self::normalize_sha256( (string) $source['checksum'] );
+			if (
+				1 !== preg_match( '/^mgc_[0-9a-f]{24}$/', $candidate_id )
+				|| '' === $snapshot_id
+				|| strlen( $snapshot_id ) > 160
+				|| '' === $evidence_revision
+				|| strlen( $evidence_revision ) > 160
+				|| '' === $source_sha256
+				|| $source_sha256 !== $source_checksum
+				|| true !== $validation['source_checksum_matches']
+			) {
+				return self::governance_result_error( 'Media governance candidate and source evidence do not match.' );
+			}
+
+			$source_bytes = is_int( $validation['source_bytes'] ) ? $validation['source_bytes'] : -1;
+			$output_bytes = is_int( $validation['output_bytes'] ) ? $validation['output_bytes'] : -1;
+			$savings_bytes = is_int( $validation['savings_bytes'] ) ? $validation['savings_bytes'] : -1;
+			$savings_basis_points = is_int( $validation['savings_basis_points'] ) ? $validation['savings_basis_points'] : -1;
+			$reasons = self::bounded_projection_warnings( $validation['reasons'] );
+			$source_format = sanitize_key( (string) $source['format'] );
+			$source_mime_type = self::normalize_media_type( (string) $source['mime_type'] );
+			$source_width = is_int( $source['width'] ) ? $source['width'] : 0;
+			$source_height = is_int( $source['height'] ) ? $source['height'] : 0;
+			$allowed_reasons = array( 'source_format_not_supported', 'output_not_smaller', 'below_minimum_source_bytes', 'minimum_savings_not_met', 'dimensions_changed' );
+			if (
+				! is_bool( $validation['dimensions_unchanged'] )
+				|| ! is_bool( $validation['output_smaller'] )
+				|| ! is_bool( $validation['qualified'] )
+				|| ! is_array( $validation['reasons'] )
+				|| count( $reasons ) !== count( $validation['reasons'] )
+				|| array() !== array_diff( $reasons, $allowed_reasons )
+				|| self::GOVERNANCE_MINIMUM_SAVINGS_BASIS_POINTS !== $validation['minimum_savings_basis_points']
+				|| $source_bytes !== (int) $source['filesize_bytes']
+				|| '' === $source_format
+				|| '' === $source_mime_type
+				|| $source_width <= 0
+				|| $source_height <= 0
+				|| $source_bytes <= 0
+				|| $output_bytes <= 0
+				|| $savings_bytes !== max( 0, $source_bytes - $output_bytes )
+				|| $savings_basis_points !== max( 0, intdiv( $savings_bytes * 10000, $source_bytes ) )
+			) {
+				return self::governance_result_error( 'Media governance validation evidence is inconsistent.' );
+			}
+
+			$ready = 'ready' === $result['status'];
+			if (
+				$ready !== $validation['qualified']
+				|| $validation['output_smaller'] !== ( $output_bytes < $source_bytes )
+				|| ( $ready && $savings_basis_points < self::GOVERNANCE_MINIMUM_SAVINGS_BASIS_POINTS )
+				|| ( $ready && $source_bytes <= self::GOVERNANCE_MINIMUM_SOURCE_BYTES )
+				|| ( $ready && ! in_array( $source_format, array( 'jpg', 'jpeg', 'png' ), true ) )
+				|| ( $ready && ! in_array( $source_mime_type, array( 'image/jpeg', 'image/png' ), true ) )
+				|| ( $ready && ! empty( $reasons ) )
+				|| ( ! $ready && empty( $reasons ) )
+				|| ( $ready && 'artifact_only' !== $result['write_posture'] )
+				|| ( ! $ready && 'no_artifact' !== $result['write_posture'] )
+				|| ( $ready && ! is_array( $result['derivative'] ) )
+				|| ( ! $ready && null !== $result['derivative'] )
+			) {
+				return self::governance_result_error( 'Media governance canary qualification state is inconsistent.' );
+			}
+			if ( $ready ) {
+				$derivative = $result['derivative'];
+					$expected_derivative_keys = array( 'artifact_type', 'contract_version', 'status', 'workflow_metadata', 'artifact' );
+				if (
+					! self::has_exact_keys( $derivative, $expected_derivative_keys )
+					|| 'media_derivative_artifact' !== (string) $derivative['artifact_type']
+						|| 'media_derivative_result.v3' !== (string) $derivative['contract_version']
+						|| 'qualified' !== (string) $derivative['status']
+					|| ! is_array( $derivative['workflow_metadata'] )
+					|| ! is_array( $derivative['artifact'] )
+				) {
+					return self::governance_result_error( 'Qualified media governance canaries require the exact derivative result envelope.' );
+				}
+				$artifact = self::normalize_artifact_descriptor( $derivative['artifact'], 'derivative' );
+				if ( is_wp_error( $artifact ) ) {
+					return $artifact;
+				}
+				if (
+					'webp' !== $artifact['format']
+					|| 'image/webp' !== $artifact['mime_type']
+					|| $source_width !== $artifact['width']
+					|| $source_height !== $artifact['height']
+					|| $output_bytes !== $artifact['filesize_bytes']
+					|| true !== $validation['dimensions_unchanged']
+				) {
+					return self::governance_result_error( 'Qualified media governance derivative facts do not match the validation evidence.' );
+				}
+			}
+
+			$result['candidate']['source_sha256'] = 'sha256:' . $source_sha256;
+			$result['source']['checksum'] = 'sha256:' . $source_checksum;
+			$result['validation']['reasons'] = $reasons;
+
+			return $result;
+		}
+
+		/**
+		 * Builds the bounded public canary evidence projection.
+		 *
+		 * @param array<string,mixed> $canary Validated canary result.
+		 * @return array<string,mixed>
+		 */
+		private static function governance_canary_projection( array $canary ): array {
+			return array(
+				'contract_version' => self::GOVERNANCE_RESULT_CONTRACT_VERSION,
+				'status'           => $canary['status'],
+				'candidate'        => $canary['candidate'],
+				'source'           => $canary['source'],
+				'validation'       => $canary['validation'],
+				'preview_only'     => true,
+				'retain_originals' => true,
+				'write_posture'    => $canary['write_posture'],
+			);
+		}
+
+		/**
+		 * Returns one fail-closed governance result error.
+		 *
+		 * @param string $message Error message.
+		 * @return WP_Error
+		 */
+		private static function governance_result_error( string $message ): WP_Error {
+			unset( $message );
+			return new WP_Error(
+				'cloud_media_governance_canary_result_invalid',
+				__( 'Cloud media governance canary evidence failed strict validation.', 'npcink-cloud-addon' ),
+				array( 'status' => 502 )
+			);
 		}
 
 		/**
@@ -954,10 +1250,15 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		 */
 		private static function extract_cloud_data( array $cloud_result ) {
 			$expected_keys = array( 'run_id', 'status', 'job_type', 'created_at', 'updated_at', 'artifact', 'warnings', 'error' );
+			$actual_keys = array_keys( $cloud_result );
+			$canary_projection = $cloud_result['governance_canary'] ?? null;
+			if ( is_array( $canary_projection ) ) {
+				$actual_keys = array_values( array_diff( $actual_keys, array( 'governance_canary' ) ) );
+			}
 			if (
-				count( $expected_keys ) !== count( $cloud_result )
-				|| array() !== array_diff( $expected_keys, array_keys( $cloud_result ) )
-				|| array() !== array_diff( array_keys( $cloud_result ), $expected_keys )
+				count( $expected_keys ) !== count( $actual_keys )
+				|| array() !== array_diff( $expected_keys, $actual_keys )
+				|| array() !== array_diff( $actual_keys, $expected_keys )
 				|| ! is_array( $cloud_result['artifact'] ?? null )
 			) {
 				return new WP_Error(
@@ -971,6 +1272,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				return $artifact;
 			}
 			$data = $cloud_result;
+			unset( $data['governance_canary'] );
 			$data['artifact'] = $artifact;
 
 			return $data;
@@ -1045,11 +1347,20 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		 * @param bool                $has_watermark_source Whether the host supplied a watermark artifact/upload.
 		 * @return array<string,mixed>|WP_Error
 		 */
-		private static function build_media_job_params( array $contract, bool $has_watermark_source ) {
+			private static function build_media_job_params( array $contract, bool $has_watermark_source ) {
 			$job_payload = is_array( $contract['cloud_job_payload'] ?? null ) ? $contract['cloud_job_payload'] : array();
 			$requested = is_array( $job_payload['requested_derivative'] ?? null ) ? $job_payload['requested_derivative'] : array();
 			$watermark = is_array( $job_payload['watermark'] ?? null ) ? $job_payload['watermark'] : array();
-			$watermark_type = sanitize_key( (string) ( $watermark['type'] ?? 'image' ) );
+				$watermark_type = sanitize_key( (string) ( $watermark['type'] ?? 'image' ) );
+				$optimization_mode = sanitize_key( (string) ( $job_payload['optimization_mode'] ?? 'manual' ) );
+				if ( ! in_array( $optimization_mode, array( 'manual', 'auto_safe' ), true ) ) {
+					return new WP_Error( 'cloud_media_derivative_optimization_mode_invalid', __( 'Media derivative optimization mode is invalid.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$auto_safe = 'auto_safe' === $optimization_mode;
+				$optimization_profile = sanitize_text_field( (string) ( $job_payload['optimization_profile'] ?? '' ) );
+				if ( $auto_safe && self::AUTO_SAFE_PROFILE !== $optimization_profile ) {
+					return new WP_Error( 'cloud_media_derivative_auto_safe_profile_invalid', __( 'Automatic safe optimization requires the current fixed policy version.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
 			if ( ! in_array( $watermark_type, array( 'image', 'text' ), true ) ) {
 				$watermark_type = 'image';
 			}
@@ -1076,7 +1387,10 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				);
 			}
 
-			$target_format = sanitize_key( (string) ( $job_payload['target_format'] ?? $requested['format'] ?? '' ) );
+				$target_format = sanitize_key( (string) ( $job_payload['target_format'] ?? $requested['format'] ?? '' ) );
+				if ( $auto_safe && 'webp' !== $target_format ) {
+					return new WP_Error( 'cloud_media_derivative_auto_safe_format_invalid', __( 'Automatic safe optimization requires WebP output.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
 			if ( ! in_array( $target_format, array( 'webp', 'avif', 'jpeg', 'png', 'original' ), true ) ) {
 				return new WP_Error(
 					'cloud_media_derivative_target_format_missing',
@@ -1094,8 +1408,8 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				);
 			}
 
-			$quality = absint( $job_payload['quality'] ?? $requested['quality'] ?? 0 );
-			if ( $quality <= 0 ) {
+				$quality = absint( $job_payload['quality'] ?? $requested['quality'] ?? 0 );
+				if ( ! $auto_safe && $quality <= 0 ) {
 				return new WP_Error(
 					'cloud_media_derivative_quality_missing',
 					__( 'Media derivative request must include quality from the ability response.', 'npcink-cloud-addon' ),
@@ -1103,12 +1417,28 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				);
 			}
 
-			$params = array(
-				'target_format'     => $target_format,
-				'max_width'         => max( 1, min( 10000, $max_width ) ),
-				'quality'           => max( 1, min( 100, $quality ) ),
-				'source_media_type' => 'image',
-			);
+				$params = array(
+					'mode'              => $optimization_mode,
+					'target_format'     => $target_format,
+					'max_width'         => max( 1, min( 10000, $max_width ) ),
+					'source_media_type' => 'image',
+				);
+				$resize_mode = sanitize_key( (string) ( $job_payload['resize_mode'] ?? $requested['resize_mode'] ?? ( $auto_safe ? 'preserve' : 'fit' ) ) );
+				if ( ! in_array( $resize_mode, array( 'fit', 'preserve' ), true ) ) {
+					return new WP_Error( 'cloud_media_derivative_resize_mode_invalid', __( 'Media derivative resize mode is invalid.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$params['resize_mode'] = $resize_mode;
+				if ( $auto_safe ) {
+					if ( 1920 !== $max_width || array_key_exists( 'quality', $job_payload ) || array_key_exists( 'quality', $requested ) || ! empty( $watermark ) || $has_watermark_source || ! empty( $job_payload['crop'] ) ) {
+						return new WP_Error( 'cloud_media_derivative_auto_safe_contract_invalid', __( 'Automatic safe optimization does not accept quality, crop, watermark, or custom width parameters.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+					}
+					$params['optimization_profile'] = self::AUTO_SAFE_PROFILE;
+				} else {
+					$params['quality'] = max( 1, min( 100, $quality ) );
+				}
+				if ( is_array( $job_payload['governance'] ?? null ) ) {
+					$params['resize_mode'] = 'preserve';
+			}
 			$raw_source_media_type = (string) ( $job_payload['source_media_type'] ?? '' );
 			$source_media_type = self::normalize_media_type( $raw_source_media_type, true );
 			if ( '' !== trim( $raw_source_media_type ) && '' === $source_media_type ) {
@@ -1130,6 +1460,108 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		}
 
 		/**
+		 * Validates the optional governance canary request extension.
+		 *
+		 * @param array<string,mixed> $contract Ability contract data.
+		 * @param bool                $has_watermark_source Whether a watermark source was supplied.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		private static function build_governance_request_context( array $contract, bool $has_watermark_source ) {
+			$job_payload = is_array( $contract['cloud_job_payload'] ?? null ) ? $contract['cloud_job_payload'] : array();
+			if ( ! array_key_exists( 'governance', $job_payload ) ) {
+				return array();
+			}
+
+			$governance = is_array( $job_payload['governance'] ) ? $job_payload['governance'] : array();
+			$batch = is_array( $job_payload['batch_context'] ?? null ) ? $job_payload['batch_context'] : array();
+			$requested = is_array( $job_payload['requested_derivative'] ?? null ) ? $job_payload['requested_derivative'] : array();
+			$target_format = sanitize_key( (string) ( $job_payload['target_format'] ?? $requested['format'] ?? '' ) );
+			if (
+				! self::has_exact_keys( $governance, array( 'contract_version', 'candidate_id', 'snapshot_id', 'source_sha256', 'evidence_revision', 'minimum_savings_basis_points', 'require_dimensions_unchanged', 'skip_if_not_beneficial', 'retain_originals' ) )
+				|| ! self::has_exact_keys( $batch, array( 'batch_id', 'item_index', 'item_count', 'chunk_size' ) )
+			) {
+				return new WP_Error(
+					'cloud_media_governance_canary_contract_invalid',
+					__( 'Media governance canaries require exact governance and batch context fields.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$candidate_id = sanitize_text_field( (string) $governance['candidate_id'] );
+			$snapshot_id = sanitize_text_field( (string) $governance['snapshot_id'] );
+			$evidence_revision = sanitize_text_field( (string) $governance['evidence_revision'] );
+			$source_sha256 = self::normalize_sha256( (string) $governance['source_sha256'] );
+			$item_index = absint( $batch['item_index'] );
+			$item_count = absint( $batch['item_count'] );
+			$chunk_size = absint( $batch['chunk_size'] );
+			$batch_id = sanitize_text_field( (string) $batch['batch_id'] );
+			if (
+				self::GOVERNANCE_REQUEST_CONTRACT_VERSION !== $governance['contract_version']
+				|| 1 !== preg_match( '/^mgc_[0-9a-f]{24}$/', $candidate_id )
+				|| '' === $snapshot_id
+				|| strlen( $snapshot_id ) > 160
+				|| '' === $evidence_revision
+				|| strlen( $evidence_revision ) > 160
+				|| '' === $source_sha256
+				|| self::GOVERNANCE_MINIMUM_SAVINGS_BASIS_POINTS !== $governance['minimum_savings_basis_points']
+				|| true !== $governance['require_dimensions_unchanged']
+				|| true !== $governance['skip_if_not_beneficial']
+				|| true !== $governance['retain_originals']
+				|| 'webp' !== $target_format
+				|| $has_watermark_source
+				|| ! empty( $job_payload['watermark'] )
+				|| ! empty( $job_payload['crop'] )
+				|| '' === $batch_id
+				|| strlen( $batch_id ) > 128
+				|| $item_count < 1
+				|| $item_count > self::GOVERNANCE_MAX_ITEMS
+				|| $item_index < 1
+				|| $item_index > $item_count
+				|| $chunk_size < 1
+				|| $chunk_size > self::GOVERNANCE_MAX_ITEMS
+			) {
+				return new WP_Error(
+					'cloud_media_governance_canary_contract_invalid',
+					__( 'Media governance canaries require WebP preserve previews, no crop or watermark, and at most ten items.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			return array(
+				'batch_context' => array(
+					'batch_id'    => $batch_id,
+					'item_index'  => $item_index,
+					'item_count'  => $item_count,
+					'chunk_size'  => $chunk_size,
+				),
+				'governance' => array(
+					'contract_version'               => self::GOVERNANCE_REQUEST_CONTRACT_VERSION,
+					'candidate_id'                   => $candidate_id,
+					'snapshot_id'                    => $snapshot_id,
+					'source_sha256'                  => 'sha256:' . $source_sha256,
+					'evidence_revision'              => $evidence_revision,
+					'minimum_savings_basis_points'   => self::GOVERNANCE_MINIMUM_SAVINGS_BASIS_POINTS,
+					'require_dimensions_unchanged'   => true,
+					'skip_if_not_beneficial'         => true,
+					'retain_originals'               => true,
+				),
+			);
+		}
+
+		/**
+		 * Returns whether an array has exactly the expected string keys.
+		 *
+		 * @param array<string,mixed> $value Array under validation.
+		 * @param array<int,string>   $expected_keys Expected keys.
+		 * @return bool
+		 */
+		private static function has_exact_keys( array $value, array $expected_keys ): bool {
+			return count( $expected_keys ) === count( $value )
+				&& array() === array_diff( $expected_keys, array_keys( $value ) )
+				&& array() === array_diff( array_keys( $value ), $expected_keys );
+		}
+
+		/**
 		 * Builds one exact artifact-referenced media_job_request.v1 body.
 		 *
 		 * @param array<string,mixed> $params Validated operation parameters.
@@ -1137,7 +1569,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		 * @param array<string,mixed> $watermark_reference Optional watermark artifact.
 		 * @return array<string,mixed>|WP_Error
 		 */
-		private static function build_media_job_request( array $params, array $source_reference, array $watermark_reference ) {
+		private static function build_media_job_request( array $params, array $source_reference, array $watermark_reference, array $governance_context = array() ) {
 			$source_artifact_id = sanitize_text_field( (string) ( $source_reference['artifact_id'] ?? '' ) );
 			if ( 1 !== preg_match( '/^art_[0-9a-f]{32}$/', $source_artifact_id ) ) {
 				return new WP_Error(
@@ -1164,6 +1596,10 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				$payload['watermark_artifact_id'] = $watermark_artifact_id;
 			}
 			$payload['params']             = $params;
+			if ( ! empty( $governance_context ) ) {
+				$payload['batch_context'] = $governance_context['batch_context'];
+				$payload['governance']    = $governance_context['governance'];
+			}
 			$payload['result_ttl_minutes'] = 30;
 
 			return $payload;
@@ -1550,6 +1986,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'filesize_bytes',
 				'checksum',
 				'processing_warnings',
+				'transform_facts',
 			);
 			if (
 				count( $expected_keys ) !== count( $artifact )
@@ -1558,7 +1995,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_artifact_contract_invalid',
-					__( 'Media derivative artifacts require the exact 12-field Cloud descriptor.', 'npcink-cloud-addon' ),
+				__( 'Media derivative artifacts require the exact 13-field Cloud descriptor.', 'npcink-cloud-addon' ),
 					array( 'status' => 502 )
 				);
 			}
@@ -1640,6 +2077,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			$filesize_bytes = $artifact['filesize_bytes'] ?? null;
 			$checksum = (string) ( $artifact['checksum'] ?? '' );
 			$warnings = $artifact['processing_warnings'] ?? null;
+			$transform_facts = $artifact['transform_facts'] ?? null;
 			if (
 				! is_int( $width ) || $width <= 0 || $width > self::MAX_IMAGE_DIMENSION
 				|| ! is_int( $height ) || $height <= 0 || $height > self::MAX_IMAGE_DIMENSION
@@ -1647,6 +2085,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				|| ! is_int( $filesize_bytes ) || $filesize_bytes <= 0 || $filesize_bytes > self::MAX_UPLOAD_BYTES
 				|| 1 !== preg_match( '/^sha256:[0-9a-f]{64}$/', $checksum )
 				|| ! is_array( $warnings ) || count( $warnings ) > self::MAX_PROCESSING_WARNINGS
+				|| ! is_array( $transform_facts )
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_artifact_facts_invalid',
@@ -1677,6 +2116,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'filesize_bytes' => $filesize_bytes,
 				'checksum'       => $checksum,
 				'processing_warnings' => array_values( array_map( 'sanitize_text_field', $warnings ) ),
+				'transform_facts' => $transform_facts,
 			);
 		}
 
@@ -1699,11 +2139,12 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'suggested_filename' => (string) $artifact['suggested_filename'],
 				'filename_basis' => $artifact['filename_basis'],
 				'processing_warnings' => $artifact['processing_warnings'],
+				'transform_facts' => $artifact['transform_facts'],
 			);
 		}
 
 		/**
-		 * Validates the exact local 11-field artifact passed through Core/Toolkit.
+		 * Validates the exact local 12-field artifact passed through Core/Toolkit.
 		 *
 		 * @param array<string,mixed> $artifact Local proposal artifact.
 		 * @return array<string,mixed>|WP_Error
@@ -1721,6 +2162,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'suggested_filename',
 				'filename_basis',
 				'processing_warnings',
+				'transform_facts',
 			);
 			if (
 				count( $expected_keys ) !== count( $artifact )
@@ -1729,7 +2171,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_local_artifact_contract_invalid',
-					__( 'Local media derivative artifacts require the exact 11-field proposal contract.', 'npcink-cloud-addon' ),
+					__( 'Local media derivative artifacts require the exact 12-field proposal contract.', 'npcink-cloud-addon' ),
 					array( 'status' => 400 )
 				);
 			}
@@ -1766,6 +2208,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 			$suggested_filename = (string) $artifact['suggested_filename'];
 			$filename_basis = $artifact['filename_basis'];
 			$warnings = $artifact['processing_warnings'];
+			$transform_facts = $artifact['transform_facts'];
 			if (
 				'' === $suggested_filename
 				|| sanitize_file_name( $suggested_filename ) !== $suggested_filename
@@ -1778,6 +2221,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				|| 'format_checksum' !== ( $filename_basis['strategy'] ?? null )
 				|| true !== ( $filename_basis['final_sanitize_unique_required'] ?? null )
 				|| ! is_array( $warnings ) || count( $warnings ) > self::MAX_PROCESSING_WARNINGS
+				|| ! is_array( $transform_facts )
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_local_artifact_metadata_invalid',
@@ -1807,6 +2251,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				'suggested_filename' => $suggested_filename,
 				'filename_basis' => $filename_basis,
 				'processing_warnings' => array_values( array_map( 'sanitize_text_field', $warnings ) ),
+				'transform_facts' => $transform_facts,
 			);
 		}
 

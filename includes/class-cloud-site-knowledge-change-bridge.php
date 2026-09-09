@@ -19,6 +19,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		public const BUFFER_OPTION = 'npcink_cloud_addon_site_knowledge_change_buffer';
 		public const STATUS_OPTION = 'npcink_cloud_addon_site_knowledge_change_status';
 		public const MAINTENANCE_OPTION = 'npcink_cloud_addon_site_knowledge_maintenance_cursor';
+		public const RECONCILIATION_OPTION = 'npcink_cloud_addon_site_knowledge_reconciliation_cursor';
 		public const FLUSH_HOOK = 'npcink_cloud_addon_flush_site_knowledge_changes';
 		public const RECONCILE_HOOK = 'npcink_cloud_addon_reconcile_site_knowledge_changes';
 
@@ -35,7 +36,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			private const MANUAL_INDEX_POSTS = 200;
 			private const MANUAL_MAX_POSTS = 10000;
 			private const MAX_DOCUMENT_CHARS = 1800;
-			private const MAX_TAXONOMY_TERMS = 10;
+		private const MAX_TAXONOMY_TERMS = 10;
+		/** @var array<int,array{post_id:int,approved:bool}> */
+		private static array $removed_comment_context = array();
+		/** @var array<int,bool> */
+		private static array $public_posts_pending_removal = array();
 
 		/**
 		 * Registers content change hooks and delivery cron hooks.
@@ -50,6 +55,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			add_action( 'transition_comment_status', array( __CLASS__, 'handle_comment_status_transition' ), 10, 3 );
 			add_action( 'comment_post', array( __CLASS__, 'handle_comment_posted' ), 20, 3 );
 			add_action( 'edit_comment', array( __CLASS__, 'handle_edited_comment' ), 20, 2 );
+			add_action( 'trash_comment', array( __CLASS__, 'capture_comment_removal_context' ), 5, 1 );
+			add_action( 'delete_comment', array( __CLASS__, 'capture_comment_removal_context' ), 5, 1 );
 			add_action( 'trashed_comment', array( __CLASS__, 'handle_removed_comment' ), 10, 1 );
 			add_action( 'deleted_comment', array( __CLASS__, 'handle_removed_comment' ), 10, 1 );
 			add_action( self::FLUSH_HOOK, array( __CLASS__, 'flush_buffer' ) );
@@ -79,6 +86,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$maintenance = self::get_maintenance_cursor();
 			$next_flush = function_exists( 'wp_next_scheduled' ) ? wp_next_scheduled( self::FLUSH_HOOK ) : false;
 			$next_reconcile = function_exists( 'wp_next_scheduled' ) ? wp_next_scheduled( self::RECONCILE_HOOK ) : false;
+			$reconcile_overdue = false !== $next_reconcile && (int) $next_reconcile < ( time() - ( 2 * HOUR_IN_SECONDS ) );
 			$configured = Npcink_Cloud_Addon_Settings::is_configured();
 			$verified = Npcink_Cloud_Addon_Settings::is_verified();
 			$delivery_enabled = self::is_enabled();
@@ -132,6 +140,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				'maintenance_total_batches' => absint( $maintenance['batch_count'] ?? 0 ),
 				'next_flush_at' => false === $next_flush ? '' : gmdate( 'c', (int) $next_flush ),
 				'next_reconcile_at' => false === $next_reconcile ? '' : gmdate( 'c', (int) $next_reconcile ),
+				'reconcile_overdue' => $reconcile_overdue,
+				'last_reconciled_at' => sanitize_text_field( (string) ( $status['last_reconciled_at'] ?? '' ) ),
 				'wp_cron_disabled' => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
 				'cron_command' => 'wp cron event run ' . self::FLUSH_HOOK,
 				'wp_cli_command' => 'wp cron event run ' . self::FLUSH_HOOK,
@@ -182,6 +192,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			delete_option( self::BUFFER_OPTION );
 			delete_option( self::STATUS_OPTION );
 			delete_option( self::MAINTENANCE_OPTION );
+			delete_option( self::RECONCILIATION_OPTION );
 			wp_clear_scheduled_hook( self::FLUSH_HOOK );
 			wp_clear_scheduled_hook( self::RECONCILE_HOOK );
 		}
@@ -196,11 +207,18 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 */
 		public static function handle_post_status_transition( string $new_status, string $old_status, $post ): void {
 			$post_id = self::post_id_from_value( $post );
+			$post_type = is_object( $post ) ? (string) ( $post->post_type ?? '' ) : '';
+			$post_password = is_object( $post ) ? (string) ( $post->post_password ?? '' ) : '';
+			$was_public = self::is_public_post( (object) array( 'ID' => $post_id, 'post_type' => $post_type, 'post_status' => $old_status, 'post_password' => $post_password ) );
+			$is_public = self::is_public_post( (object) array( 'ID' => $post_id, 'post_type' => $post_type, 'post_status' => $new_status, 'post_password' => $post_password ) );
+			if ( $was_public && ! $is_public ) {
+				self::$public_posts_pending_removal[ $post_id ] = true;
+			}
 			if ( $post_id <= 0 ) {
 				return;
 			}
 
-			if ( 'publish' === $new_status || 'publish' === $old_status ) {
+			if ( $was_public || $is_public ) {
 				self::buffer_post_ids( array( $post_id ) );
 			}
 		}
@@ -225,9 +243,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @return void
 		 */
 		public static function handle_removed_post( int $post_id ): void {
-			if ( $post_id > 0 ) {
+			$post = function_exists( 'get_post' ) ? get_post( $post_id ) : null;
+			if ( self::is_public_post( $post ) || ! empty( self::$public_posts_pending_removal[ $post_id ] ) ) {
 				self::buffer_post_ids( array( $post_id ) );
 			}
+			unset( self::$public_posts_pending_removal[ $post_id ] );
 		}
 
 		/**
@@ -280,9 +300,13 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @return void
 		 */
 		public static function handle_edited_comment( int $comment_id, $data = null ): void {
+			$comment = function_exists( 'get_comment' ) ? get_comment( $comment_id ) : null;
+			if ( ! is_object( $comment ) || ! in_array( (string) ( $comment->comment_approved ?? '' ), array( '1', 'approved' ), true ) ) {
+				return;
+			}
 			$post_id = is_array( $data ) ? absint( $data['comment_post_ID'] ?? 0 ) : 0;
-			if ( $post_id <= 0 && function_exists( 'get_comment' ) ) {
-				$post_id = self::post_id_from_comment( get_comment( $comment_id ) );
+			if ( $post_id <= 0 ) {
+				$post_id = self::post_id_from_comment( $comment );
 			}
 
 			if ( $post_id > 0 ) {
@@ -291,20 +315,33 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		/**
-		 * Handles removed comments.
+		 * Captures a comment's public state before trash or permanent deletion.
+		 *
+		 * @param int $comment_id Comment id.
+		 * @return void
+		 */
+		public static function capture_comment_removal_context( int $comment_id ): void {
+			$comment = function_exists( 'get_comment' ) ? get_comment( $comment_id ) : null;
+			if ( is_object( $comment ) ) {
+				self::$removed_comment_context[ $comment_id ] = array(
+					'post_id' => self::post_id_from_comment( $comment ),
+					'approved' => in_array( (string) ( $comment->comment_approved ?? '' ), array( '1', 'approved' ), true ),
+				);
+			}
+		}
+
+		/**
+		 * Handles a removed comment using its pre-removal context.
 		 *
 		 * @param int $comment_id Comment id.
 		 * @return void
 		 */
 		public static function handle_removed_comment( int $comment_id ): void {
-			if ( ! function_exists( 'get_comment' ) ) {
-				return;
+			$context = self::$removed_comment_context[ $comment_id ] ?? array();
+			if ( ! empty( $context['approved'] ) && absint( $context['post_id'] ?? 0 ) > 0 ) {
+				self::buffer_post_ids( array( absint( $context['post_id'] ) ) );
 			}
-
-			$post_id = self::post_id_from_comment( get_comment( $comment_id ) );
-			if ( $post_id > 0 ) {
-				self::buffer_post_ids( array( $post_id ) );
-			}
+			unset( self::$removed_comment_context[ $comment_id ] );
 		}
 
 		/**
@@ -320,19 +357,56 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				Npcink_Cloud_Site_Knowledge_Runtime_Bridge::refresh_status_summary();
 			}
 
-			$posts = get_posts(
-				array(
-					'post_type' => self::post_types(),
-					'post_status' => 'publish',
-					'posts_per_page' => self::RECONCILE_POSTS,
-					'orderby' => 'modified',
-					'order' => 'DESC',
-					'fields' => 'ids',
-					'no_found_rows' => true,
-				)
-			);
+			$cursor = self::get_reconciliation_cursor();
+			$posts = self::query_reconciliation_posts( $cursor );
+			if ( empty( $posts ) ) {
+				update_option( self::STATUS_OPTION, array_merge( self::get_status(), array( 'last_reconciled_at' => gmdate( 'c' ) ) ), false );
+				return;
+			}
 
-			self::buffer_post_ids( is_array( $posts ) ? array_map( 'absint', $posts ) : array() );
+			$post_ids = array();
+			$last_post = array();
+			foreach ( $posts as $post ) {
+				if ( is_scalar( $post ) && function_exists( 'get_post' ) ) {
+					$post = get_post( absint( $post ) );
+				}
+				$post_id = absint( is_object( $post ) ? ( $post->ID ?? 0 ) : ( $post['ID'] ?? 0 ) );
+				$modified_gmt = sanitize_text_field( (string) ( is_object( $post ) ? ( $post->post_modified_gmt ?? '' ) : ( $post['post_modified_gmt'] ?? '' ) ) );
+				if ( $post_id < 1 || '' === $modified_gmt ) {
+					continue;
+				}
+				if ( $modified_gmt < (string) ( $cursor['modified_gmt'] ?? '' ) || ( $modified_gmt === (string) ( $cursor['modified_gmt'] ?? '' ) && $post_id <= absint( $cursor['post_id'] ?? 0 ) ) ) {
+					continue;
+				}
+				$post_ids[] = $post_id;
+				$last_post = array( 'modified_gmt' => $modified_gmt, 'post_id' => $post_id );
+			}
+
+			if ( empty( $post_ids ) || ! self::buffer_post_ids( $post_ids ) || empty( $last_post ) ) {
+				return;
+			}
+
+			update_option( self::RECONCILIATION_OPTION, $last_post, false );
+			update_option( self::STATUS_OPTION, array_merge( self::get_status(), array( 'last_reconciled_at' => gmdate( 'c' ) ) ), false );
+		}
+
+		/**
+		 * Sends one currently public post/page through the existing refresh transport.
+		 *
+		 * @param int $post_id Public WordPress post id.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		public static function request_public_post_refresh( int $post_id ) {
+			if ( ! self::is_enabled() ) {
+				return new WP_Error( 'cloud_site_knowledge_delivery_disabled', __( 'Site Knowledge delivery is disabled locally.', 'npcink-cloud-addon' ) );
+			}
+
+			$post = function_exists( 'get_post' ) ? get_post( $post_id ) : null;
+			if ( ! self::is_public_post( $post ) ) {
+				return new WP_Error( 'cloud_site_knowledge_article_not_public', __( 'Only published posts and pages can be refreshed in Site Knowledge.', 'npcink-cloud-addon' ) );
+			}
+
+			return self::request_site_knowledge_sync( 'refresh', array( $post_id ), 'article_refresh', array( $post_id ) );
 		}
 
 		/**
@@ -866,28 +940,29 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * Buffers changed post ids.
 		 *
 		 * @param array<int,int> $post_ids Post ids.
-		 * @return void
+		 * @return bool Whether every change was retained in the bounded buffer.
 		 */
-		private static function buffer_post_ids( array $post_ids ): void {
+		private static function buffer_post_ids( array $post_ids ): bool {
 			if ( ! self::is_enabled() ) {
-				return;
+				return false;
 			}
 
 			$clean = array_values( array_filter( array_map( 'absint', $post_ids ) ) );
 			if ( empty( $clean ) ) {
-				return;
+				return true;
 			}
 
-				$buffer = self::get_buffer();
-				$merged = array_values( array_unique( array_merge( $buffer['post_ids'], $clean ) ) );
-				if ( count( $merged ) > self::MAX_BUFFER_ITEMS ) {
+			$buffer = self::get_buffer();
+			$merged = array_values( array_unique( array_merge( $buffer['post_ids'], $clean ) ) );
+			$dropped = 0;
+			if ( count( $merged ) > self::MAX_BUFFER_ITEMS ) {
 					$dropped = count( $merged ) - self::MAX_BUFFER_ITEMS;
 					$merged = array_slice( $merged, -1 * self::MAX_BUFFER_ITEMS );
 					self::record_dropped_changes( $dropped );
 			}
 			if ( $merged === array_values( $buffer['post_ids'] ) ) {
 				self::schedule_flush( self::DEBOUNCE_SECONDS );
-				return;
+				return true;
 			}
 
 			self::save_buffer( $merged, absint( $buffer['attempts'] ?? 0 ) );
@@ -904,6 +979,73 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				false
 			);
 			self::schedule_flush( self::DEBOUNCE_SECONDS );
+
+			return $dropped < 1;
+		}
+
+		/**
+		 * Reads the durable reconciliation cursor.
+		 *
+		 * @return array{modified_gmt:string,post_id:int}
+		 */
+		private static function get_reconciliation_cursor(): array {
+			$cursor = get_option( self::RECONCILIATION_OPTION, array() );
+			$cursor = is_array( $cursor ) ? $cursor : array();
+			$modified_gmt = sanitize_text_field( (string) ( $cursor['modified_gmt'] ?? '' ) );
+			if ( '' === $modified_gmt ) {
+				$legacy_delivery_at = strtotime( (string) ( self::get_status()['last_delivered_at'] ?? '' ) );
+				$modified_gmt = false !== $legacy_delivery_at ? gmdate( 'Y-m-d H:i:s', $legacy_delivery_at ) : '';
+			}
+
+			return array(
+				'modified_gmt' => $modified_gmt,
+				'post_id' => absint( $cursor['post_id'] ?? 0 ),
+			);
+		}
+
+		/**
+		 * Returns one stable ascending reconciliation page.
+		 *
+		 * The SQL path preserves the `(modified_gmt, ID)` watermark across rows
+		 * sharing the same WordPress modification second. The fallback keeps the
+		 * lightweight behavior tests usable outside a loaded WordPress runtime.
+		 *
+		 * @param array{modified_gmt:string,post_id:int} $cursor Cursor.
+		 * @return array<int,mixed>
+		 */
+		private static function query_reconciliation_posts( array $cursor ): array {
+			global $wpdb;
+			$modified_gmt = (string) ( $cursor['modified_gmt'] ?? '' );
+			$post_id = absint( $cursor['post_id'] ?? 0 );
+			$post_types = self::post_types();
+
+			if ( isset( $wpdb ) && is_object( $wpdb ) && method_exists( $wpdb, 'prepare' ) && method_exists( $wpdb, 'get_results' ) && ! empty( $post_types ) ) {
+				$type_placeholders = implode( ', ', array_fill( 0, count( $post_types ), '%s' ) );
+				$sql = "SELECT ID, post_modified_gmt FROM {$wpdb->posts} WHERE post_status = %s AND post_type IN ({$type_placeholders}) AND (post_modified_gmt > %s OR (post_modified_gmt = %s AND ID > %d)) ORDER BY post_modified_gmt ASC, ID ASC LIMIT %d";
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- placeholders and values are assembled immediately above.
+				$prepared = $wpdb->prepare( $sql, array_merge( array( 'publish' ), $post_types, array( $modified_gmt, $modified_gmt, $post_id, self::RECONCILE_POSTS ) ) );
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- bounded reconciliation read uses the prepared cursor query above.
+				$results = $wpdb->get_results( $prepared );
+
+				return is_array( $results ) ? $results : array();
+			}
+
+			$args = array(
+				'post_type' => $post_types,
+				'post_status' => 'publish',
+				'posts_per_page' => self::RECONCILE_POSTS,
+				'orderby' => 'modified ID',
+				'order' => 'ASC',
+				'fields' => 'all',
+				'no_found_rows' => true,
+			);
+			if ( '' !== $modified_gmt ) {
+				$args['date_query'] = array( array( 'column' => 'post_modified_gmt', 'after' => $modified_gmt, 'inclusive' => true ) );
+			}
+
+			$results = get_posts( $args );
+
+			return is_array( $results ) ? $results : array();
 		}
 
 		/**
@@ -1560,9 +1702,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$post_id = self::post_id_from_value( $post );
 			$post_type = sanitize_key( (string) ( $post->post_type ?? '' ) );
 			$post_status = sanitize_key( (string) ( $post->post_status ?? '' ) );
+			$post_password = (string) ( $post->post_password ?? '' );
 
 			return $post_id > 0
 				&& 'publish' === $post_status
+				&& '' === $post_password
 				&& 'attachment' !== $post_type
 				&& in_array( $post_type, self::post_types(), true );
 		}

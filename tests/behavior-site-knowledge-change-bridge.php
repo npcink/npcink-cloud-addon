@@ -33,9 +33,15 @@ if ( ! function_exists( 'get_posts' ) ) {
 	 */
 	function get_posts( array $args = array() ): array {
 		$limit = absint( $args['posts_per_page'] ?? 50 );
+		$date_query = is_array( $args['date_query'][0] ?? null ) ? $args['date_query'][0] : array();
+		$modified_after = strtotime( (string) ( $date_query['after'] ?? '' ) );
 		$ids   = array();
 		foreach ( $GLOBALS['maca_posts'] as $post_id => $post ) {
 			if ( 'publish' !== (string) ( $post->post_status ?? '' ) ) {
+				continue;
+			}
+			$post_modified = strtotime( (string) ( $post->post_modified_gmt ?? '' ) . ' UTC' );
+			if ( false !== $modified_after && false !== $post_modified && $post_modified <= $modified_after ) {
 				continue;
 			}
 			$ids[] = absint( $post_id );
@@ -156,6 +162,7 @@ function maca_add_public_post_fixture( int $post_id, string $type = 'post' ): vo
 		'ID'                => $post_id,
 		'post_type'         => $type,
 		'post_status'       => 'publish',
+		'post_password'     => '',
 		'post_title'        => 'Public fixture ' . $post_id,
 		'post_excerpt'      => 'Excerpt ' . $post_id,
 		'post_content'      => 'Public content for Site Knowledge ' . $post_id,
@@ -321,6 +328,83 @@ maca_assert(
 
 maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
+$GLOBALS['maca_comments'][105] = (object) array(
+	'comment_ID'       => 105,
+	'comment_post_ID'  => 715,
+	'comment_approved' => '0',
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_edited_comment( 105, array( 'comment_post_ID' => 715 ) );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_edited_comment( 999, array( 'comment_post_ID' => 799 ) );
+maca_assert(
+	array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() ),
+	'Behavior: unapproved or unavailable comments cannot trigger an edited-comment refresh.'
+);
+
+$GLOBALS['maca_comments'][106] = (object) array(
+	'comment_ID'       => 106,
+	'comment_post_ID'  => 716,
+	'comment_approved' => '1',
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_edited_comment( 106, null );
+$buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert(
+	array( 716 ) === array_map( 'absint', (array) ( $buffer['post_ids'] ?? array() ) ),
+	'Behavior: approved comment edits refresh their public parent post.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+$GLOBALS['maca_comments'][107] = (object) array(
+	'comment_ID'       => 107,
+	'comment_post_ID'  => 717,
+	'comment_approved' => '1',
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::capture_comment_removal_context( 107 );
+unset( $GLOBALS['maca_comments'][107] );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_comment( 107 );
+$buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert(
+	array( 717 ) === array_map( 'absint', (array) ( $buffer['post_ids'] ?? array() ) ),
+	'Behavior: approved comment deletion uses the captured pre-delete parent and approval state.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+$GLOBALS['maca_comments'][108] = (object) array(
+	'comment_ID'       => 108,
+	'comment_post_ID'  => 718,
+	'comment_approved' => 'spam',
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::capture_comment_removal_context( 108 );
+unset( $GLOBALS['maca_comments'][108] );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_comment( 108 );
+maca_assert(
+	array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() ),
+	'Behavior: deleting a non-public comment does not refresh Site Knowledge.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 719 );
+$GLOBALS['maca_posts'][720] = (object) array(
+	'ID'            => 720,
+	'post_type'     => 'post',
+	'post_status'   => 'draft',
+	'post_password' => '',
+);
+maca_add_public_post_fixture( 721 );
+$GLOBALS['maca_posts'][721]->post_password = 'protected';
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_post( 720 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_post( 721 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_post( 719 );
+$buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert(
+	array( 719 ) === array_map( 'absint', (array) ( $buffer['post_ids'] ?? array() ) ),
+	'Behavior: only previously public allowed posts emit removal hints; drafts and password-protected posts are ignored.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
 maca_set_site_knowledge_delivery_enabled( false );
 Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_comment_posted(
 	106,
@@ -334,6 +418,45 @@ maca_assert(
 	&& false === (bool) ( $health['delivery_enabled'] ?? true )
 	&& 'disabled' === (string) ( $health['status'] ?? '' ),
 	'Behavior: disabled Site Knowledge delivery consent stops automatic public content buffering.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 710 );
+maca_add_public_post_fixture( 711 );
+$GLOBALS['maca_posts'][710]->post_modified_gmt = '2026-06-30 00:00:00';
+$GLOBALS['maca_posts'][711]->post_modified_gmt = '2026-07-02 00:00:00';
+update_option(
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,
+	array(
+		'last_delivery_ok' => true,
+		'last_delivered_at' => '2026-07-01T00:00:00+00:00',
+	),
+	false
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$reconciled_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert(
+	array( 711 ) === array_values( $reconciled_buffer['post_ids'] ?? array() ),
+	'Behavior: hourly Site Knowledge reconciliation buffers only public content modified after the last successful delivery.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+for ( $post_id = 800; $post_id <= 850; $post_id++ ) {
+	maca_add_public_post_fixture( $post_id );
+	$GLOBALS['maca_posts'][ $post_id ]->post_modified_gmt = sprintf( '2026-07-10 00:00:%02d', $post_id - 800 );
+}
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$first_reconcile_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$second_reconcile_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+$reconcile_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION, array() );
+maca_assert(
+	50 === count( (array) ( $first_reconcile_buffer['post_ids'] ?? array() ) )
+	&& 51 === count( (array) ( $second_reconcile_buffer['post_ids'] ?? array() ) )
+	&& 850 === absint( $reconcile_cursor['post_id'] ?? 0 ),
+	'Behavior: reconciliation advances a durable ordered cursor across more than one page instead of limiting each run to the newest 50 changes.'
 );
 
 maca_reset_site_knowledge_bridge_state();
@@ -369,6 +492,33 @@ maca_assert(
 	&& 'cloud_service' === (string) ( $error_health['freshness_policy_owner'] ?? '' )
 	&& 'cloud_service' === (string) ( $error_health['diagnostics_detail_owner'] ?? '' ),
 	'Behavior: Site Knowledge bridge health exposes retry and error detail without becoming lifecycle truth.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 706 );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ),
+);
+$single_refresh = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_public_post_refresh( 706 );
+$single_refresh_body = json_decode( (string) ( $GLOBALS['maca_http_requests'][0]['args']['body'] ?? '' ), true );
+maca_assert(
+	is_array( $single_refresh )
+	&& array( 706 ) === ( $single_refresh_body['input']['post_ids'] ?? array() )
+	&& 'article_refresh' === (string) ( $single_refresh_body['input']['operation_source'] ?? '' )
+	&& 1 === count( (array) ( $single_refresh_body['input']['documents'] ?? array() ) ),
+	'Behavior: single-article refresh sends exactly one currently public document through the existing transport.'
+);
+
+$GLOBALS['maca_posts'][706]->post_status = 'draft';
+$request_count_before_draft = count( $GLOBALS['maca_http_requests'] );
+$draft_refresh = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_public_post_refresh( 706 );
+maca_assert(
+	is_wp_error( $draft_refresh )
+	&& 'cloud_site_knowledge_article_not_public' === $draft_refresh->get_error_code()
+	&& $request_count_before_draft === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: single-article refresh rejects non-public content without Cloud traffic.'
 );
 
 maca_reset_site_knowledge_bridge_state();

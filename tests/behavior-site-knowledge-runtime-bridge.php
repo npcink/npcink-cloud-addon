@@ -9,6 +9,33 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
 
+$GLOBALS['maca_runtime_posts'] = array();
+
+if ( ! function_exists( 'get_posts' ) ) {
+	function get_posts( array $args = array() ): array {
+		return array_slice( array_keys( $GLOBALS['maca_runtime_posts'] ), 0, absint( $args['posts_per_page'] ?? 1001 ) );
+	}
+}
+
+if ( ! function_exists( 'get_post' ) ) {
+	function get_post( int $post_id ) {
+		return $GLOBALS['maca_runtime_posts'][ $post_id ] ?? null;
+	}
+}
+
+if ( ! function_exists( 'get_the_title' ) ) {
+	function get_the_title( int $post_id ): string {
+		$post = get_post( $post_id );
+		return is_object( $post ) ? (string) ( $post->post_title ?? '' ) : '';
+	}
+}
+
+if ( ! function_exists( 'get_permalink' ) ) {
+	function get_permalink( int $post_id ): string {
+		return 'https://example.test/?p=' . absint( $post_id );
+	}
+}
+
 maca_load_addon_classes();
 
 /**
@@ -76,6 +103,38 @@ maca_assert(
 	'Behavior: Site Knowledge runtime bridge registers the Toolbox Cloud request filter.'
 );
 
+maca_assert(
+	isset( $GLOBALS['maca_filters']['npcink_toolbox_cloud_addon_verified'] )
+	&& isset( $GLOBALS['maca_filters']['npcink_toolbox_site_knowledge_transport_enabled'] ),
+	'Behavior: Addon registers read-only Toolbox readiness projections without continuation ownership.'
+);
+
+maca_reset_test_state();
+Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
+maca_assert(
+	false === apply_filters( 'npcink_toolbox_cloud_addon_verified', false )
+	&& false === apply_filters( 'npcink_toolbox_site_knowledge_transport_enabled', false )
+	&& array() === $GLOBALS['maca_http_requests'],
+	'Behavior: unverified settings project disabled scan readiness without Cloud traffic.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_site_knowledge_delivery_enabled( false );
+Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
+maca_assert(
+	true === apply_filters( 'npcink_toolbox_cloud_addon_verified', false )
+	&& false === apply_filters( 'npcink_toolbox_site_knowledge_transport_enabled', false ),
+	'Behavior: verified connection alone does not enable Site Knowledge scan readiness.'
+);
+
+maca_set_site_knowledge_delivery_enabled( true );
+maca_assert(
+	true === apply_filters( 'npcink_toolbox_site_knowledge_transport_enabled', false )
+	&& array() === $GLOBALS['maca_http_requests'],
+	'Behavior: explicit Site Knowledge delivery projects readiness without owning or starting a scan.'
+);
+
 maca_reset_test_state();
 Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
 $unconfigured = apply_filters(
@@ -115,6 +174,11 @@ maca_assert(
 
 maca_reset_test_state();
 maca_seed_settings( true );
+$GLOBALS['maca_runtime_posts'] = array(
+	101 => (object) array( 'post_status' => 'publish', 'post_type' => 'post', 'post_title' => 'Indexed article', 'post_modified_gmt' => '2026-08-20 08:00:00' ),
+	102 => (object) array( 'post_status' => 'publish', 'post_type' => 'page', 'post_title' => 'Missing page', 'post_modified_gmt' => '2026-08-19 08:00:00' ),
+);
+$GLOBALS['maca_posts'] = $GLOBALS['maca_runtime_posts'];
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 200 ),
 	'body' => wp_json_encode(
@@ -195,7 +259,7 @@ maca_assert(
 
 maca_reset_test_state();
 maca_seed_settings( true );
-$GLOBALS['maca_http_response_queue'][] = array(
+$quota_response = array(
 	'response' => array( 'code' => 200 ),
 	'body' => wp_json_encode(
 		array(
@@ -212,6 +276,8 @@ $GLOBALS['maca_http_response_queue'][] = array(
 						'target_embedding_space_id' => 'siliconflow:BAAI/bge-m3',
 					),
 					'coverage' => array(
+						'indexed_post_ids' => array( 101, 999999 ),
+						'indexed_post_ids_requested' => 2,
 						'indexed_posts' => 2340,
 						'indexed_chunks' => 15200,
 						'truncated_documents' => 4,
@@ -235,12 +301,14 @@ $GLOBALS['maca_http_response_queue'][] = array(
 		)
 	),
 );
+$GLOBALS['maca_http_response_queue'][] = $quota_response;
 $quota_summary = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::refresh_status_summary();
 $quota_request = $GLOBALS['maca_http_requests'][0] ?? array();
 $quota_body = json_decode( (string) ( $quota_request['args']['body'] ?? '' ), true );
 $quota_body = is_array( $quota_body ) ? $quota_body : array();
 $request_count_before_cache_read = count( $GLOBALS['maca_http_requests'] );
 $cached_quota_summary = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::get_cached_status_summary();
+$article_statuses = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::article_index_statuses( $cached_quota_summary );
 maca_assert(
 	! empty( $quota_summary['available'] )
 	&& 2340 === (int) ( $quota_summary['indexed_documents'] ?? 0 )
@@ -260,6 +328,12 @@ maca_assert(
 	&& 'site_knowledge_status.v1' === (string) ( $quota_body['contract_version'] ?? '' )
 	&& 'suggestion_only' === (string) ( $quota_body['input']['write_posture'] ?? '' )
 	&& false === (bool) ( $quota_body['input']['direct_wordpress_write'] ?? true )
+	&& true === (bool) ( $quota_body['input']['include_coverage'] ?? false )
+	&& array( 101, 102 ) === ( $quota_body['input']['post_ids'] ?? array() )
+	&& 1 === (int) ( $quota_summary['article_coverage']['indexed_count'] ?? 0 )
+	&& 1 === (int) ( $quota_summary['article_coverage']['not_indexed_count'] ?? 0 )
+	&& 'indexed' === (string) ( $article_statuses[0]['status'] ?? '' )
+	&& 'not_indexed' === (string) ( $article_statuses[1]['status'] ?? '' )
 	&& ! empty( $cached_quota_summary['available'] )
 	&& $request_count_before_cache_read === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: Site Knowledge quota refresh reads bounded Cloud truth, caches it, and never fetches Cloud during the cached page projection.'
@@ -267,6 +341,22 @@ maca_assert(
 
 maca_reset_test_state();
 maca_seed_settings( true );
+$incomplete_quota_body = json_decode( (string) $quota_response['body'], true );
+$incomplete_quota_body['data']['result']['coverage']['indexed_post_ids_requested'] = 1;
+$quota_response['body'] = wp_json_encode( $incomplete_quota_body );
+$GLOBALS['maca_http_response_queue'][] = $quota_response;
+$incomplete_quota_summary = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::refresh_status_summary();
+maca_assert(
+	empty( $incomplete_quota_summary['available'] )
+	&& 'not_returned' === (string) ( $incomplete_quota_summary['state'] ?? '' )
+	&& array() === Npcink_Cloud_Site_Knowledge_Runtime_Bridge::article_index_statuses( $incomplete_quota_summary ),
+	'Behavior: Site Knowledge article coverage fails closed when Cloud does not confirm the complete local comparison manifest.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_runtime_posts'] = array();
+$GLOBALS['maca_posts'] = array();
 maca_set_site_knowledge_delivery_enabled( false );
 $disabled_quota_summary = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::refresh_status_summary();
 maca_assert(
@@ -356,4 +446,57 @@ maca_assert(
 	&& 'cloud_site_knowledge_sync_mode_not_allowed' === $delete_sync->get_error_code()
 	&& array() === $GLOBALS['maca_http_requests'],
 	'Behavior: Site Knowledge runtime bridge rejects rebuild and delete sync modes before transport.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data' => array(
+				'result' => array(
+					'contract_version' => 'site_knowledge_status.v1',
+					'media_evidence_items' => array(
+						array( 'attachment_id' => 501, 'visual_evidence' => array( 'visual_summary' => 'must not be cached' ) ),
+						array( 'attachment_id' => '502' ),
+						array( 'attachment_id' => 501 ),
+						array( 'attachment_id' => 0 ),
+					),
+				),
+			),
+		)
+	),
+);
+$media_status_payload = maca_site_knowledge_runtime_payload();
+$media_status_payload['ability_name'] = 'npcink-cloud/site-knowledge-status';
+$media_status_payload['contract_version'] = 'site_knowledge_status.v1';
+$media_status_payload['input']['contract_version'] = 'site_knowledge_status.v1';
+$media_status_result = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::dispatch_runtime(
+	$media_status_payload,
+	'npcink-cloud/site-knowledge-status',
+	'site_knowledge_status.v1'
+);
+Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
+$projected_media_ids = apply_filters(
+	'npcink_toolbox_media_fingerprint_scan_evidence_attachment_ids',
+	array( 503, 501 ),
+	3
+);
+$media_cache_keys = array_values(
+	array_filter(
+		array_keys( $GLOBALS['maca_transients'] ),
+		static fn( $key ): bool => false !== strpos( (string) $key, '_media_evidence_ids' )
+	)
+);
+$media_cache = ! empty( $media_cache_keys ) ? $GLOBALS['maca_transients'][ $media_cache_keys[0] ] : array();
+maca_assert(
+	is_array( $media_status_result )
+	&& array( 503, 501, 502 ) === $projected_media_ids
+	&& 1 === count( $media_cache_keys )
+	&& array( 501, 502 ) === (array) $media_cache
+	&& false === in_array( 'must not be cached', (array) $media_cache, true )
+	&& 1 === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: Site Knowledge status responses retain only bounded, credential-scoped media evidence attachment IDs for Toolbox scans without caching visual evidence or issuing a read request.'
 );

@@ -60,6 +60,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		private const TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_MAX_REQUEST_BYTES = 750000;
 		private const TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_MAX_TIMEOUT_SECONDS = 90;
 		private const TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_MAX_RETENTION_TTL = 86400;
+		private const TOOLBOX_MEDIA_GOVERNANCE_AUDIT_CONTRACT = 'media_governance_audit_request.v1';
+		private const TOOLBOX_MEDIA_GOVERNANCE_AUDIT_MAX_REQUEST_BYTES = 750000;
+		private const TOOLBOX_MEDIA_GOVERNANCE_AUDIT_MAX_ITEMS = 500;
 		private const TOOLBOX_WEB_SEARCH_CONTRACT = 'web_search.v1';
 		private const TOOLBOX_WEB_SEARCH_MAX_REQUEST_BYTES = 24000;
 		private const TOOLBOX_WEB_SEARCH_MAX_QUERY_CHARS = 1000;
@@ -268,6 +271,11 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 */
 		public function manual_readiness_test(): array {
 			$probe = $this->probe_connectivity();
+			if ( ! empty( $probe['auth_ok'] ) && is_array( $probe['entitlement_response'] ?? null ) && class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
+				Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( $probe['entitlement_response'], $this->config );
+			} elseif ( class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
+				Npcink_Cloud_Entitlement_Summary::record_capability_refresh_failure( $this->config );
+			}
 
 			return is_array( $probe['readiness_result'] ?? null ) ? $probe['readiness_result'] : $this->build_readiness_result( $probe );
 		}
@@ -361,7 +369,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				$idempotency_key = 'toolbox_ai_image_generation_' . wp_generate_uuid4();
 			}
 
-			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+			$response = $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+
+			return $this->project_runtime_execute_failure( $response );
 		}
 
 		/**
@@ -416,6 +426,26 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		}
 
 		/**
+		 * Executes one metadata-only media governance audit.
+		 *
+		 * @param array<string,mixed> $request Exact media governance audit request.
+		 * @param string              $trace_id Optional trace id.
+		 * @param string              $idempotency_key Optional idempotency key.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		public function execute_toolbox_media_governance_audit_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
+			$payload = $this->normalize_toolbox_media_governance_audit_request( $request );
+			if ( is_wp_error( $payload ) ) {
+				return $payload;
+			}
+			if ( '' === $idempotency_key ) {
+				$idempotency_key = 'toolbox_media_governance_audit_' . wp_generate_uuid4();
+			}
+
+			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+		}
+
+		/**
 		 * Executes one bounded Toolbox managed web search runtime request.
 		 *
 		 * The addon only signs and dispatches the Cloud request. Toolbox keeps
@@ -437,6 +467,36 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			}
 
 			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+		}
+
+		/** Transport exact editor text using the fixed inline, no-store formatting contract. */
+		public function execute_toolbox_content_format_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
+			$keys = array_keys( $request );
+			sort( $keys );
+			$content = $request['content'] ?? null;
+			if ( array( 'content', 'format', 'source_sha256' ) !== $keys
+				|| ! is_string( $content ) || '' === $content || strlen( $content ) > 100000
+				|| 1 !== preg_match( '//u', $content )
+				|| 'html' !== ( $request['format'] ?? null )
+				|| hash( 'sha256', $content ) !== ( $request['source_sha256'] ?? null ) ) {
+				return new WP_Error( 'cloud_content_format_invalid', __( 'Invalid content formatting request.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+			}
+			$payload = array(
+				'ability_name' => 'npcink-toolbox/format-content',
+				'ability_family' => 'text',
+				'contract_version' => 'content_format_request.v2',
+				'execution_kind' => 'content_format',
+				'profile_id' => 'content-format.managed',
+				'channel' => 'editor',
+				'execution_pattern' => 'inline',
+				'storage_mode' => 'no_store',
+				'data_classification' => 'pii',
+				'timeout_seconds' => 30,
+				'retry_max' => 0,
+				'retention_ttl' => 0,
+				'input' => $request,
+			);
+			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key ?: 'content_format_' . wp_generate_uuid4(), $trace_id );
 		}
 
 		/**
@@ -515,6 +575,19 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			$response = $this->request( 'POST', '/v1/runtime/execute', $runtime_payload, $idempotency_key, $trace_id );
 			if ( is_wp_error( $response ) ) {
 				return $response;
+			}
+			$run_id = sanitize_text_field( (string) ( $response['data']['run_id'] ?? ( $response['run_id'] ?? '' ) ) );
+			$response_status = sanitize_key( (string) ( $response['data']['status'] ?? ( $response['status'] ?? '' ) ) );
+			if ( '' !== $run_id && in_array( $response_status, array( 'submitted', 'queued', 'running', 'processing', 'pending' ), true ) ) {
+				return array(
+					'contract_version' => 'image_context_evidence.v1',
+					'artifact_type' => 'image_context_evidence',
+					'run_id' => $run_id,
+					'status' => $response_status,
+					'items' => array(),
+					'write_posture' => 'suggestion_only',
+					'direct_wordpress_write' => false,
+				);
 			}
 
 			return $this->normalize_image_context_evidence_response( is_array( $response ) ? $response : array(), $request );
@@ -618,7 +691,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 */
 		public function create_media_job( array $payload, string $trace_id = '', string $idempotency_key = '' ) {
 			$required_keys = array( 'request_contract_version', 'operation', 'source_artifact_id', 'params', 'result_ttl_minutes' );
-			$allowed_keys  = array_merge( $required_keys, array( 'watermark_artifact_id' ) );
+			$allowed_keys  = array_merge( $required_keys, array( 'watermark_artifact_id', 'batch_context', 'governance' ) );
+			$has_governance = array_key_exists( 'governance', $payload );
+			$has_batch_context = array_key_exists( 'batch_context', $payload );
 			if (
 				array() !== array_diff( $required_keys, array_keys( $payload ) )
 				|| array() !== array_diff( array_keys( $payload ), $allowed_keys )
@@ -628,12 +703,44 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				|| ! is_array( $payload['params'] ?? null )
 				|| 30 !== ( $payload['result_ttl_minutes'] ?? null )
 				|| ( isset( $payload['watermark_artifact_id'] ) && 1 !== preg_match( self::MEDIA_ARTIFACT_ID_PATTERN, (string) $payload['watermark_artifact_id'] ) )
+				|| $has_governance !== $has_batch_context
 			) {
 				return new WP_Error(
 					'cloud_media_job_contract_invalid',
 					__( 'Media jobs require the exact artifact-referenced media_job_request.v1 contract.', 'npcink-cloud-addon' ),
 					array( 'status' => 400 )
 				);
+			}
+			if ( $has_governance ) {
+				$params = $payload['params'];
+				$batch = is_array( $payload['batch_context'] ) ? $payload['batch_context'] : array();
+				$governance = is_array( $payload['governance'] ) ? $payload['governance'] : array();
+				$batch_keys = array( 'batch_id', 'item_index', 'item_count', 'chunk_size' );
+				$governance_keys = array( 'contract_version', 'candidate_id', 'snapshot_id', 'source_sha256', 'evidence_revision', 'minimum_savings_basis_points', 'require_dimensions_unchanged', 'skip_if_not_beneficial', 'retain_originals' );
+				if (
+					count( $batch_keys ) !== count( $batch )
+					|| array() !== array_diff( $batch_keys, array_keys( $batch ) )
+					|| array() !== array_diff( array_keys( $batch ), $batch_keys )
+					|| count( $governance_keys ) !== count( $governance )
+					|| array() !== array_diff( $governance_keys, array_keys( $governance ) )
+					|| array() !== array_diff( array_keys( $governance ), $governance_keys )
+					|| 'webp' !== ( $params['target_format'] ?? null )
+					|| 'preserve' !== ( $params['resize_mode'] ?? null )
+					|| isset( $params['crop'], $params['watermark'], $payload['watermark_artifact_id'] )
+					|| 'media_governance_canary.v1' !== ( $governance['contract_version'] ?? null )
+					|| 1500 !== ( $governance['minimum_savings_basis_points'] ?? null )
+					|| true !== ( $governance['require_dimensions_unchanged'] ?? null )
+					|| true !== ( $governance['skip_if_not_beneficial'] ?? null )
+					|| true !== ( $governance['retain_originals'] ?? null )
+					|| (int) ( $batch['item_count'] ?? 0 ) < 1
+					|| (int) ( $batch['item_count'] ?? 0 ) > 10
+				) {
+					return new WP_Error(
+						'cloud_media_governance_canary_contract_invalid',
+						__( 'Media governance canary jobs require the exact bounded preserve-WebP contract.', 'npcink-cloud-addon' ),
+						array( 'status' => 400 )
+					);
+				}
 			}
 			if ( '' === $idempotency_key ) {
 				$idempotency_key = 'media_job_' . wp_generate_uuid4();
@@ -962,6 +1069,38 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		}
 
 		/**
+		 * Sends a metadata-only customer journey batch.
+		 *
+		 * @param array<int,array<string,mixed>> $events Closed journey event batch.
+		 * @param string                         $trace_id Optional trace id.
+		 * @param string                         $idempotency_key Optional idempotency key.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		public function send_customer_journey_events( array $events, string $trace_id = '', string $idempotency_key = '' ) {
+			if ( empty( $events ) || count( $events ) > 100 ) {
+				return new WP_Error(
+					'cloud_customer_journey_events_invalid',
+					__( 'Customer journey upload requires between 1 and 100 metadata-only events.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+			if ( '' === $idempotency_key ) {
+				$idempotency_key = 'journey_' . wp_generate_uuid4();
+			}
+
+			return $this->request(
+				'POST',
+				'/v1/customer-journey/events',
+				array(
+					'contract_version' => 'customer_journey_event.v1',
+					'events'           => array_values( $events ),
+				),
+				$idempotency_key,
+				$trace_id
+			);
+		}
+
+		/**
 		 * Sends one local Agent handoff feedback event for Cloud eval rollups.
 		 *
 		 * @param array<string,mixed> $payload Agent feedback payload.
@@ -1020,6 +1159,33 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			$window_hours = min( 168, max( 1, absint( $window_hours ) ) );
 
 			return $this->request( 'GET', '/v1/observability/plugin-summary?window_hours=' . rawurlencode( (string) $window_hours ), null, '', $trace_id );
+		}
+
+		/**
+		 * Reads the current site's customer journey summary.
+		 *
+		 * @param int    $window_hours Summary window in hours.
+		 * @param string $cohort_id Optional cohort id.
+		 * @param string $trace_id Optional trace id.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		public function get_customer_journey_summary( int $window_hours = 24, string $cohort_id = '', string $trace_id = '' ) {
+			$window_hours = min( 168, max( 1, absint( $window_hours ) ) );
+			$cohort_id = trim( $cohort_id );
+			if ( strlen( $cohort_id ) > 64 || ( '' !== $cohort_id && 1 !== preg_match( '/^[A-Za-z0-9._:-]+$/', $cohort_id ) ) ) {
+				return new WP_Error(
+					'cloud_customer_journey_cohort_invalid',
+					__( 'Customer journey cohort id is invalid.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$path = '/v1/customer-journey/summary?window_hours=' . rawurlencode( (string) $window_hours );
+			if ( '' !== $cohort_id ) {
+				$path .= '&cohort_id=' . rawurlencode( $cohort_id );
+			}
+
+			return $this->request( 'GET', $path, null, '', $trace_id );
 		}
 
 		/**
@@ -1670,6 +1836,41 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			}
 
 			return $decoded;
+		}
+
+		/**
+		 * Projects an inline runtime business failure without changing run-status reads.
+		 *
+		 * @param array<string,mixed>|WP_Error $response Runtime execute response.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		private function project_runtime_execute_failure( $response ) {
+			if ( is_wp_error( $response ) || ! is_array( $response ) ) {
+				return $response;
+			}
+
+			$data = is_array( $response['data'] ?? null ) ? $response['data'] : array();
+			$status = sanitize_key( (string) ( $data['status'] ?? '' ) );
+			$error_code = $this->normalize_remote_error_code( $data['error_code'] ?? '' );
+			if ( ! in_array( $status, array( 'failed', 'error', 'canceled' ), true ) && '' === $error_code ) {
+				return $response;
+			}
+
+			$message = $this->normalize_error_message( $data['error_message'] ?? $data['message'] ?? '' );
+			if ( '' === $message ) {
+				$message = __( 'Cloud runtime request failed.', 'npcink-cloud-addon' );
+			}
+
+			return new WP_Error(
+				$this->map_remote_error_code( $error_code ),
+				$message,
+				array(
+					'status'            => 502,
+					'cloud_http_status' => 200,
+					'cloud_error_code'  => $error_code,
+					'cloud_error_data'  => $data,
+				)
+			);
 		}
 
 		/**
@@ -2632,7 +2833,6 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 
 			$image_count = absint( $request['n'] ?? 1 );
 			$image_count = min( 4, max( 1, $image_count ) );
-
 			$timeout_seconds = absint( $request['timeout_seconds'] ?? self::WP_AI_IMAGE_GENERATION_MAX_TIMEOUT_SECONDS );
 			$retention_ttl   = absint( $request['retention_ttl'] ?? self::WP_AI_IMAGE_GENERATION_MAX_RETENTION_TTL );
 
@@ -2753,6 +2953,12 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 
 			$image_count = absint( $request['n'] ?? 1 );
 			$image_count = min( 4, max( 1, $image_count ) );
+			$review = is_array( $request['review'] ?? null ) ? $request['review'] : array();
+			$source_locale = sanitize_key( (string) ( $review['source_prompt_locale'] ?? '' ) );
+			$translation_mode = sanitize_key( (string) ( $review['prompt_translation_mode'] ?? 'none' ) );
+			if ( ! in_array( $translation_mode, array( 'none', 'preplanned_pair', 'required' ), true ) ) {
+				$translation_mode = 'none';
+			}
 
 			$timeout_seconds = absint( $request['timeout_seconds'] ?? self::WP_AI_IMAGE_GENERATION_MAX_TIMEOUT_SECONDS );
 			$retention_ttl   = absint( $request['retention_ttl'] ?? self::WP_AI_IMAGE_GENERATION_MAX_RETENTION_TTL );
@@ -2763,6 +2969,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'contract_version'    => self::WP_AI_IMAGE_GENERATION_CONTRACT,
 				'channel'             => 'toolbox_image_generation',
 				'execution_kind'      => 'image_generation',
+				'profile_id'          => 'wp-ai.image-generation',
 				'execution_pattern'   => 'inline',
 				'input'               => array(
 					'contract_version' => self::WP_AI_IMAGE_GENERATION_CONTRACT,
@@ -2773,6 +2980,12 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 					'n'                 => $image_count,
 					'aspect_ratio'      => $aspect_ratio,
 					'resolution'        => sanitize_key( (string) ( $request['resolution'] ?? 'high' ) ),
+					'review'            => array(
+						'source_prompt_reviewed_by_operator' => ! empty( $review['source_prompt_reviewed_by_operator'] ),
+						'source_prompt_locale'               => $source_locale,
+						'prompt_translation_mode'            => $translation_mode,
+						'provider_prompt_reviewed_by_operator' => ! empty( $review['provider_prompt_reviewed_by_operator'] ),
+					),
 				),
 				'data_classification' => 'internal',
 				'storage_mode'        => 'result_only',
@@ -3001,6 +3214,152 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'policy'              => array(
 					'allow_fallback' => false,
 				),
+			);
+		}
+
+		/**
+		 * Normalizes one exact metadata-only media governance audit request.
+		 *
+		 * @param array<string,mixed> $request Raw request.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		private function normalize_toolbox_media_governance_audit_request( array $request ) {
+			$expected_request_keys = array( 'contract_version', 'snapshot' );
+			$snapshot = is_array( $request['snapshot'] ?? null ) ? $request['snapshot'] : array();
+			$expected_snapshot_keys = array( 'snapshot_id', 'captured_at', 'inventory_complete', 'capacity', 'coverage', 'items' );
+			if (
+				count( $expected_request_keys ) !== count( $request )
+				|| array() !== array_diff( $expected_request_keys, array_keys( $request ) )
+				|| array() !== array_diff( array_keys( $request ), $expected_request_keys )
+				|| self::TOOLBOX_MEDIA_GOVERNANCE_AUDIT_CONTRACT !== (string) ( $request['contract_version'] ?? '' )
+				|| count( $expected_snapshot_keys ) !== count( $snapshot )
+				|| array() !== array_diff( $expected_snapshot_keys, array_keys( $snapshot ) )
+				|| array() !== array_diff( array_keys( $snapshot ), $expected_snapshot_keys )
+			) {
+				return new WP_Error(
+					'cloud_toolbox_media_governance_audit_contract_invalid',
+					__( 'Media governance audits require the exact metadata-only request contract.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$snapshot_id = sanitize_text_field( (string) $snapshot['snapshot_id'] );
+			$captured_at = sanitize_text_field( (string) $snapshot['captured_at'] );
+			$capacity = is_array( $snapshot['capacity'] ) ? $snapshot['capacity'] : array();
+			$coverage = is_array( $snapshot['coverage'] ) ? $snapshot['coverage'] : array();
+			$items = is_array( $snapshot['items'] ) ? $snapshot['items'] : array();
+			$capacity_keys = array( 'uploads_bytes', 'backup_bytes', 'logs_bytes', 'filesystem_used_bytes', 'filesystem_available_bytes' );
+			$coverage_keys = array( 'complete', 'sources' );
+			if (
+				1 !== preg_match( '/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/', $snapshot_id )
+				|| '' === $captured_at
+				|| ! is_bool( $snapshot['inventory_complete'] )
+				|| ! isset( $capacity['uploads_bytes'] )
+				|| array() !== array_diff( array_keys( $capacity ), $capacity_keys )
+				|| count( $coverage_keys ) !== count( $coverage )
+				|| array() !== array_diff( $coverage_keys, array_keys( $coverage ) )
+				|| array() !== array_diff( array_keys( $coverage ), $coverage_keys )
+				|| ! is_bool( $coverage['complete'] )
+				|| ! is_array( $coverage['sources'] )
+				|| empty( $items )
+				|| count( $items ) > self::TOOLBOX_MEDIA_GOVERNANCE_AUDIT_MAX_ITEMS
+			) {
+				return new WP_Error(
+					'cloud_toolbox_media_governance_audit_snapshot_invalid',
+					__( 'Media governance audit snapshot facts are invalid or incomplete.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$normalized_capacity = array();
+			foreach ( $capacity as $key => $value ) {
+				if ( is_bool( $value ) || ! is_int( $value ) || $value < 0 ) {
+					return new WP_Error( 'cloud_toolbox_media_governance_audit_capacity_invalid', __( 'Media governance capacity facts must be non-negative integers.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$normalized_capacity[ sanitize_key( (string) $key ) ] = $value;
+			}
+
+			$normalized_sources = array();
+			foreach ( array_slice( $coverage['sources'], 0, 32 ) as $source ) {
+				if ( ! is_string( $source ) || '' === trim( $source ) || strlen( trim( $source ) ) > 80 ) {
+					return new WP_Error( 'cloud_toolbox_media_governance_audit_coverage_invalid', __( 'Media governance coverage sources are invalid.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$normalized_sources[] = sanitize_text_field( $source );
+			}
+
+			$normalized_items = array();
+			$item_keys = array( 'item_id', 'source_sha256', 'filesize_bytes', 'format', 'width', 'height', 'animated', 'reference_state', 'evidence_revision', 'evidence_sources' );
+			$allowed_formats = array( 'jpeg', 'jpg', 'png', 'webp', 'gif', 'avif', 'svg', 'unknown', 'other' );
+			$allowed_reference_states = array( 'referenced', 'no_known_reference', 'coverage_incomplete', 'dynamic_reference_possible', 'externally_observed' );
+			foreach ( $items as $item ) {
+				if ( ! is_array( $item ) || count( $item_keys ) !== count( $item ) || array() !== array_diff( $item_keys, array_keys( $item ) ) || array() !== array_diff( array_keys( $item ), $item_keys ) ) {
+					return new WP_Error( 'cloud_toolbox_media_governance_audit_item_invalid', __( 'Media governance audit items require exact evidence fields.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$item_id = sanitize_text_field( (string) $item['item_id'] );
+				$source_sha256 = strtolower( preg_replace( '/^sha256:/i', '', trim( (string) $item['source_sha256'] ) ) );
+				$format = sanitize_key( (string) $item['format'] );
+				$reference_state = sanitize_key( (string) $item['reference_state'] );
+				$evidence_revision = sanitize_text_field( (string) $item['evidence_revision'] );
+				$evidence_sources = is_array( $item['evidence_sources'] ) ? array_values( array_filter( array_map( 'sanitize_text_field', array_slice( $item['evidence_sources'], 0, 32 ) ) ) ) : array();
+				if (
+					1 !== preg_match( '/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/', $item_id )
+					|| 1 !== preg_match( '/^[0-9a-f]{64}$/', $source_sha256 )
+					|| ! is_int( $item['filesize_bytes'] )
+					|| $item['filesize_bytes'] <= 0
+					|| ! in_array( $format, $allowed_formats, true )
+					|| ! in_array( $reference_state, $allowed_reference_states, true )
+					|| 1 !== preg_match( '/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/', $evidence_revision )
+					|| ! is_bool( $item['animated'] )
+					|| ( null !== $item['width'] && ( ! is_int( $item['width'] ) || $item['width'] <= 0 ) )
+					|| ( null !== $item['height'] && ( ! is_int( $item['height'] ) || $item['height'] <= 0 ) )
+				) {
+					return new WP_Error( 'cloud_toolbox_media_governance_audit_item_invalid', __( 'Media governance audit item evidence is invalid.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$normalized_items[] = array(
+					'item_id'          => $item_id,
+					'source_sha256'     => 'sha256:' . $source_sha256,
+					'filesize_bytes'    => $item['filesize_bytes'],
+					'format'            => $format,
+					'width'             => $item['width'],
+					'height'            => $item['height'],
+					'animated'          => $item['animated'],
+					'reference_state'   => $reference_state,
+					'evidence_revision' => $evidence_revision,
+					'evidence_sources'  => $evidence_sources,
+				);
+			}
+
+			$input = array(
+				'contract_version' => self::TOOLBOX_MEDIA_GOVERNANCE_AUDIT_CONTRACT,
+				'snapshot'         => array(
+					'snapshot_id'       => $snapshot_id,
+					'captured_at'       => $captured_at,
+					'inventory_complete' => $snapshot['inventory_complete'],
+					'capacity'          => $normalized_capacity,
+					'coverage'          => array( 'complete' => $coverage['complete'], 'sources' => $normalized_sources ),
+					'items'             => $normalized_items,
+				),
+			);
+			$encoded_input = wp_json_encode( $input );
+			if ( ! is_string( $encoded_input ) || strlen( $encoded_input ) > self::TOOLBOX_MEDIA_GOVERNANCE_AUDIT_MAX_REQUEST_BYTES ) {
+				return new WP_Error( 'cloud_toolbox_media_governance_audit_request_too_large', __( 'Media governance audit request exceeds the runtime size limit.', 'npcink-cloud-addon' ), array( 'status' => 413 ) );
+			}
+
+			return array(
+				'ability_name'        => 'npcink-toolbox/audit-media-governance',
+				'ability_family'      => 'vision',
+				'contract_version'    => self::TOOLBOX_MEDIA_GOVERNANCE_AUDIT_CONTRACT,
+				'channel'             => 'toolbox_media_governance',
+				'execution_kind'      => 'media_governance_audit',
+				'execution_pattern'   => 'inline',
+				'profile_id'          => 'media-governance-audit.managed',
+				'input'               => $input,
+				'data_classification' => 'internal',
+				'storage_mode'        => 'result_only',
+				'retention_ttl'       => 3600,
+				'timeout_seconds'     => 30,
+				'retry_max'           => 0,
+				'policy'              => array( 'allow_fallback' => false ),
 			);
 		}
 
@@ -3428,12 +3787,14 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		private function normalize_image_context_evidence_request( array $request ) {
+			$dispatch_mode = sanitize_key( (string) ( $request['dispatch_mode'] ?? 'interactive' ) );
 			if (
 				'image_context_evidence_request.v1' !== (string) ( $request['contract_version'] ?? '' )
 				|| 'suggestion_only' !== (string) ( $request['write_posture'] ?? '' )
 				|| false !== (bool) ( $request['direct_wordpress_write'] ?? true )
 				|| false === (bool) ( $request['no_local_model'] ?? false )
 				|| false === (bool) ( $request['no_media_write'] ?? false )
+				|| ! in_array( $dispatch_mode, array( 'interactive', 'background_completion' ), true )
 			) {
 				return new WP_Error(
 					'cloud_image_context_evidence_request_invalid',
@@ -3450,6 +3811,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				}
 				$attachment_id = absint( $item['attachment_id'] ?? 0 );
 				$source_artifact_id = trim( (string) ( $item['source_artifact_id'] ?? '' ) );
+				$attachment_url = esc_url_raw( (string) ( $item['attachment_url'] ?? '' ) );
+				$media_fingerprint = sanitize_text_field( (string) ( $item['media_fingerprint'] ?? '' ) );
+				$mime_type = strtolower( sanitize_text_field( (string) ( $item['mime_type'] ?? '' ) ) );
 				$url           = esc_url_raw( (string) ( $item['url'] ?? '' ) );
 				$thumbnail_url = esc_url_raw( (string) ( $item['thumbnail_url'] ?? '' ) );
 				if ( '' !== $source_artifact_id && ( '' !== $url || '' !== $thumbnail_url ) ) {
@@ -3473,16 +3837,35 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				) {
 					continue;
 				}
+				if (
+					'background_completion' === $dispatch_mode
+					&& (
+						'' === $attachment_url
+						|| '' === $media_fingerprint
+						|| 0 !== strpos( $mime_type, 'image/' )
+					)
+				) {
+					return new WP_Error(
+						'cloud_image_context_evidence_background_identity_invalid',
+						__( 'Background image recognition requires an attachment URL, media fingerprint, and image MIME type.', 'npcink-cloud-addon' ),
+						array( 'status' => 400 )
+					);
+				}
 				$normalized_item = array(
 					'attachment_id'            => $attachment_id,
-					'title'                    => $this->bounded_text( (string) ( $item['title'] ?? '' ), 160 ),
-					'filename'                 => sanitize_file_name( (string) ( $item['filename'] ?? '' ) ),
-					'mime_type'                => sanitize_text_field( (string) ( $item['mime_type'] ?? '' ) ),
+					'mime_type'                => $mime_type,
 					'current_alt_status'       => sanitize_key( (string) ( $item['current_alt_status'] ?? '' ) ),
 					'current_caption_status'   => sanitize_key( (string) ( $item['current_caption_status'] ?? '' ) ),
 					'candidate_quality_flags'  => array_slice( $this->sanitize_string_list( $item['candidate_quality_flags'] ?? array() ), 0, 12 ),
 					'filtered_candidate_notes' => array_slice( $this->sanitize_string_list( $item['filtered_candidate_notes'] ?? array() ), 0, 12 ),
 				);
+				if ( 'background_completion' !== $dispatch_mode ) {
+					$normalized_item['title'] = $this->bounded_text( (string) ( $item['title'] ?? '' ), 160 );
+					$normalized_item['filename'] = sanitize_file_name( (string) ( $item['filename'] ?? '' ) );
+				} else {
+					$normalized_item['attachment_url'] = $attachment_url;
+					$normalized_item['media_fingerprint'] = $media_fingerprint;
+				}
 				if ( '' !== $source_artifact_id ) {
 					$normalized_item['source_artifact_id'] = $source_artifact_id;
 				} else {
@@ -3529,6 +3912,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'no_media_write'             => true,
 				'source_policy'              => $source_policy,
 				'expected_response_contract' => 'image_context_evidence.v1',
+				'dispatch_mode'              => $dispatch_mode,
 				'requested_count'            => count( $normalized_items ),
 				'max_items'                  => count( $normalized_items ),
 				'items'                      => $normalized_items,

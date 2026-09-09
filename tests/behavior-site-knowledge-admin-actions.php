@@ -15,8 +15,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		public static int $buffer_calls = 0;
 		public static int $flush_calls = 0;
 		public static array $index_calls = array();
+		public static array $article_calls = array();
 		public static array $flush_result = array();
 		public static $index_result = array();
+		public static $article_result = array();
 
 		public static function buffer_recent_public_content(): void {
 			self::$buffer_calls++;
@@ -34,6 +36,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 			return self::$index_result;
 		}
+
+		public static function request_public_post_refresh( int $post_id ) {
+			self::$article_calls[] = $post_id;
+			return self::$article_result;
+		}
 	}
 }
 
@@ -46,8 +53,10 @@ function maca_reset_site_knowledge_admin_actions( bool $verified = true ): void 
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$buffer_calls = 0;
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_calls = 0;
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_calls = array();
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::$article_calls = array();
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_result = array();
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_result = array();
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::$article_result = array();
 }
 
 /** Returns whether the result has the fixed public shape. */
@@ -102,6 +111,34 @@ $refresh_fallback = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_re
 maca_assert(
 	'Site Knowledge refresh request failed.' === $refresh_fallback['message'],
 	'Behavior: public refresh preserves the administrator fallback failure copy.'
+);
+
+maca_reset_site_knowledge_admin_actions();
+$invalid_article = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_article_refresh( 0 );
+maca_assert(
+	'invalid_article' === $invalid_article['code']
+	&& array() === Npcink_Cloud_Site_Knowledge_Change_Bridge::$article_calls,
+	'Behavior: invalid single-article refresh stops before transport.'
+);
+
+maca_reset_site_knowledge_admin_actions();
+$article_refresh = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_article_refresh( 88 );
+maca_assert(
+	! empty( $article_refresh['ok'] )
+	&& 'article_refresh_requested' === $article_refresh['code']
+	&& 1 === $article_refresh['sent_count']
+	&& array( 88 ) === Npcink_Cloud_Site_Knowledge_Change_Bridge::$article_calls,
+	'Behavior: one published article refresh maps to one bounded bridge call.'
+);
+
+maca_reset_site_knowledge_admin_actions();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$article_result = new WP_Error( 'not_public', 'Only public content is allowed.' );
+$article_failure = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_article_refresh( 89 );
+maca_assert(
+	'article_refresh_failed' === $article_failure['code']
+	&& 'not_public' === $article_failure['source_error_code']
+	&& 'Only public content is allowed.' === $article_failure['message'],
+	'Behavior: single-article refresh preserves a bounded bridge failure.'
 );
 
 maca_reset_site_knowledge_admin_actions();

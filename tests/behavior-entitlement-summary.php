@@ -30,6 +30,47 @@ function maca_private_method( string $class_name, string $method_name ): Reflect
 maca_reset_test_state();
 maca_seed_settings( true );
 
+$capability_fixture = array(
+	'contract_version' => 'wordpress-ai-capabilities-v1',
+	'evidence_kind' => 'configuration_snapshot',
+	'runtime_admission_required' => true,
+	'provider_call_performed' => false,
+	'checked_at' => gmdate( 'Y-m-d\TH:i:s\Z' ),
+	'max_age_seconds' => 300,
+	'capabilities' => array_fill_keys( array( 'text_generation', 'image_generation', 'vision' ), array(
+		'state' => 'configured', 'reason_code' => 'configured', 'configuration_state' => 'configured', 'entitlement_state' => 'configured',
+	) ),
+);
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $capability_fixture ) ) );
+$capability_snapshot = Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities();
+maca_assert( 'configured' === $capability_snapshot['capabilities']['image_generation']['state'], 'Fresh validated Cloud capability is preserved.' );
+maca_assert( empty( $GLOBALS['maca_http_requests'] ), 'Cached capability rendering performs zero HTTP.' );
+
+foreach ( array( 'missing', 'inconsistent', 'expired', 'invalid_time', 'future', 'wrong_version' ) as $scenario ) {
+	$fixture = $capability_fixture;
+	if ( 'missing' === $scenario ) { unset( $fixture['capabilities']['image_generation'] ); }
+	if ( 'inconsistent' === $scenario ) { $fixture['capabilities']['image_generation']['entitlement_state'] = 'unavailable'; }
+	if ( 'expired' === $scenario ) { $fixture['checked_at'] = gmdate( 'Y-m-d\TH:i:s\Z', time() - 301 ); }
+	if ( 'invalid_time' === $scenario ) { $fixture['checked_at'] = 'now'; }
+	if ( 'future' === $scenario ) { $fixture['checked_at'] = gmdate( 'Y-m-d\TH:i:s\Z', time() + 3600 ); }
+	if ( 'wrong_version' === $scenario ) { $fixture['contract_version'] = 'future-contract'; }
+	Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $fixture ) ) );
+	$capability_snapshot = Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities();
+	maca_assert( 'unknown' === $capability_snapshot['capabilities']['image_generation']['state'], 'Cloud capability fails closed for ' . $scenario . '.' );
+}
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $capability_fixture ) ) );
+$capability_settings = Npcink_Cloud_Addon_Settings::get_settings();
+$capability_cache_key = maca_private_method( 'Npcink_Cloud_Entitlement_Summary', 'cache_key' )->invoke( null, $capability_settings );
+set_transient( $capability_cache_key . '_refresh_failure', array( 'message' => 'Failed' ), 30 );
+maca_assert( 'refresh_failed' === Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities()['capabilities']['text_generation']['reason_code'], 'Failed refresh does not present an older successful snapshot as current.' );
+Npcink_Cloud_Entitlement_Summary::record_capability_refresh_failure( $capability_settings );
+delete_transient( $capability_cache_key . '_refresh_failure' );
+maca_assert( 'refresh_failed' === Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities()['capabilities']['text_generation']['reason_code'], 'Failed capability check remains unknown after retry backoff expires.' );
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $capability_fixture ) ) );
+maca_assert( 'configured' === Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities()['capabilities']['text_generation']['state'], 'Successful signed read clears the failed capability check.' );
+maca_reset_test_state();
+maca_seed_settings( true );
+
 $entitlement_response = array(
 	'status' => 'ok',
 	'data'   => array(
@@ -62,6 +103,16 @@ $entitlement_response = array(
 			),
 		),
 		'quota_summary'    => array(
+			'resource_limits' => array(
+				array(
+					'key' => 'media_images',
+					'used' => 320,
+					'limit' => 5000,
+					'remaining' => 4680,
+					'status' => 'ok',
+					'unit' => 'image',
+				),
+			),
 			'ai_credit_usage_detail' => array(
 				'summary'      => array(
 					'used'      => 12.5,
@@ -88,7 +139,10 @@ maca_assert(
 	&& 'active' === (string) ( $cached_summary['entitlement_status'] ?? '' )
 	&& 'cached' === (string) ( $read_summary['state'] ?? '' )
 	&& 'Pro' === (string) ( $read_summary['package_label'] ?? '' )
-	&& 'ai_credits' === (string) ( $read_summary['ai_credit_usage_detail']['summary']['unit'] ?? '' ),
+	&& 'ai_credits' === (string) ( $read_summary['ai_credit_usage_detail']['summary']['unit'] ?? '' )
+	&& 320.0 === (float) ( $read_summary['media_image_capacity']['used'] ?? 0 )
+	&& 5000.0 === (float) ( $read_summary['media_image_capacity']['limit'] ?? 0 )
+	&& 4680.0 === (float) ( $read_summary['media_image_capacity']['remaining'] ?? 0 ),
 	'Behavior: verification entitlement response can populate the short local summary cache.'
 );
 
@@ -280,8 +334,6 @@ $runtime_with_optional_fields = $runtime_normalizer->invoke(
 	)
 );
 
-$format_runtime_days = maca_private_method( Npcink_Cloud_Settings_Page::class, 'format_runtime_days_projection' );
-
 maca_assert(
 	is_array( $runtime_without_optional_fields )
 	&& empty( $runtime_not_reported['reported'] )
@@ -299,10 +351,9 @@ maca_assert(
 	&& false === (bool) ( $runtime_without_optional_fields['contract_reuse']['adds_approval_store'] ?? true )
 	&& false === (bool) ( $runtime_without_optional_fields['contract_reuse']['adds_queue'] ?? true )
 	&& false === (bool) ( $runtime_without_optional_fields['contract_reuse']['adds_write_executor'] ?? true )
-	&& 'unavailable' === $format_runtime_days->invoke( null, $runtime_without_optional_fields, 'result_retention_days' )
 	&& is_array( $runtime_with_optional_fields )
 	&& true === (bool) ( $runtime_with_optional_fields['quota_exhausted'] ?? false )
-	&& '14 days' === $format_runtime_days->invoke( null, $runtime_with_optional_fields, 'result_retention_days' ),
+	&& 14 === (int) ( $runtime_with_optional_fields['result_retention_days'] ?? 0 ),
 	'Behavior: Pro Cloud Runtime projection preserves unavailable optional fields, contract reuse boundaries, and quota exhaustion strictly.'
 );
 

@@ -37,6 +37,7 @@ if ( 0 !== $public_api_status ) {
 	exit( $public_api_status );
 }
 
+
 $pr_body_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-pr-body-contract.php' );
 passthru( $pr_body_command, $pr_body_status );
 if ( 0 !== $pr_body_status ) {
@@ -45,7 +46,7 @@ if ( 0 !== $pr_body_status ) {
 
 require __DIR__ . '/static-contracts.php';
 require __DIR__ . '/behavior-runtime-endpoint-policy.php';
-require __DIR__ . '/behavior-runtime-runs-presenter.php';
+require __DIR__ . '/behavior-content-format.php';
 require __DIR__ . '/behavior-credential-store.php';
 require __DIR__ . '/behavior-cleanup.php';
 require __DIR__ . '/behavior-outbound-policy.php';
@@ -61,9 +62,11 @@ require __DIR__ . '/behavior-settings-page-contract.php';
 require __DIR__ . '/behavior-ai-task-contract.php';
 require __DIR__ . '/behavior-wordpress-ai-connector-runtime.php';
 require __DIR__ . '/behavior-media-derivative.php';
+require __DIR__ . '/behavior-media-governance.php';
 require __DIR__ . '/behavior-image-context-evidence.php';
 require __DIR__ . '/behavior-agent-feedback.php';
 require __DIR__ . '/behavior-observability-collector.php';
+require __DIR__ . '/behavior-customer-journey.php';
 require __DIR__ . '/behavior-editor-assist-quality.php';
 require __DIR__ . '/behavior-site-knowledge-change-bridge.php';
 require __DIR__ . '/behavior-site-knowledge-runtime-bridge.php';

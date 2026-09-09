@@ -19,7 +19,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		private const MAX_RUNTIME_PAYLOAD_BYTES = 900000;
 		private const STATUS_FRESHNESS_TTL_SECONDS = 300;
 		private const STATUS_CACHE_TTL_SECONDS = 86400;
+		private const MEDIA_EVIDENCE_IDS_CACHE_TTL_SECONDS = 604800;
+		private const MAX_MEDIA_EVIDENCE_IDS = 1000;
 		private const STATUS_REFRESH_LOCK_TTL_SECONDS = 15;
+		private const MAX_STATUS_POST_IDS = 1000;
 		private const ALLOWED_CONTRACTS = array(
 			'npcink-cloud/site-knowledge-search' => 'site_knowledge_search.v1',
 			'npcink-cloud/site-knowledge-status' => 'site_knowledge_status.v1',
@@ -50,6 +53,45 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		 */
 		public static function register(): void {
 			add_filter( 'npcink_toolbox_site_knowledge_cloud_request', array( __CLASS__, 'handle_toolbox_request' ), 10, 4 );
+			add_filter( 'npcink_toolbox_media_fingerprint_scan_evidence_attachment_ids', array( __CLASS__, 'media_fingerprint_scan_evidence_attachment_ids' ), 10, 2 );
+			add_filter( 'npcink_toolbox_cloud_addon_verified', array( __CLASS__, 'toolbox_cloud_verified' ) );
+			add_filter( 'npcink_toolbox_site_knowledge_transport_enabled', array( __CLASS__, 'toolbox_site_knowledge_transport_enabled' ) );
+		}
+
+		/** Projects connection readiness without owning Toolbox scheduling. */
+		public static function toolbox_cloud_verified(): bool {
+			return Npcink_Cloud_Addon_Settings::is_verified();
+		}
+
+		/** Projects explicit Site Knowledge transport readiness only. */
+		public static function toolbox_site_knowledge_transport_enabled(): bool {
+			return Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled();
+		}
+
+		/**
+		 * Returns bounded attachment IDs observed in Cloud visual-evidence
+		 * projections. This is a read-only cache and never dispatches Cloud.
+		 *
+		 * @param mixed $ids Existing filter value.
+		 * @param mixed $limit Requested maximum IDs.
+		 * @return array<int,int>
+		 */
+		public static function media_fingerprint_scan_evidence_attachment_ids( $ids, $limit = 100 ): array {
+			$limit = max( 1, min( self::MAX_MEDIA_EVIDENCE_IDS, absint( $limit ) ) );
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() || ! Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled() ) {
+				return array_values( array_unique( array_filter( array_map( 'absint', (array) $ids ) ) ) );
+			}
+			$cached = get_transient( self::media_evidence_ids_cache_key() );
+			$values = array_merge( (array) $ids, is_array( $cached ) ? $cached : array() );
+			$normalized = array();
+			foreach ( $values as $value ) {
+				$attachment_id = absint( $value );
+				if ( $attachment_id > 0 && ! in_array( $attachment_id, $normalized, true ) ) {
+					$normalized[] = $attachment_id;
+				}
+			}
+
+			return array_slice( $normalized, 0, $limit );
 		}
 
 		/**
@@ -113,7 +155,54 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				return $result;
 			}
 
-			return self::attach_cloud_boundary_projection( $result, $contract_version );
+			$result = self::attach_cloud_boundary_projection( $result, $contract_version );
+			if ( 'site_knowledge_status.v1' === $contract_version ) {
+				self::remember_media_evidence_attachment_ids( self::runtime_result_payload( $result ) );
+			}
+
+			return $result;
+		}
+
+		/**
+		 * Retains only bounded attachment identities from a status response.
+		 *
+		 * @param array<string,mixed> $source Site Knowledge status payload.
+		 * @return void
+		 */
+		private static function remember_media_evidence_attachment_ids( array $source ): void {
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() || ! Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled() ) {
+				return;
+			}
+			$items = is_array( $source['media_evidence_items'] ?? null ) ? $source['media_evidence_items'] : array();
+			$observed = array();
+			foreach ( $items as $item ) {
+				if ( ! is_array( $item ) ) {
+					continue;
+				}
+				$attachment_id = absint( $item['attachment_id'] ?? 0 );
+				if ( $attachment_id > 0 && ! in_array( $attachment_id, $observed, true ) ) {
+					$observed[] = $attachment_id;
+				}
+			}
+			if ( empty( $observed ) ) {
+				return;
+			}
+
+			$existing = get_transient( self::media_evidence_ids_cache_key() );
+			$values = array_merge( is_array( $existing ) ? $existing : array(), $observed );
+			$normalized = array();
+			foreach ( $values as $value ) {
+				$attachment_id = absint( $value );
+				if ( $attachment_id > 0 && ! in_array( $attachment_id, $normalized, true ) ) {
+					$normalized[] = $attachment_id;
+				}
+			}
+
+			set_transient(
+				self::media_evidence_ids_cache_key(),
+				array_slice( $normalized, 0, self::MAX_MEDIA_EVIDENCE_IDS ),
+				self::MEDIA_EVIDENCE_IDS_CACHE_TTL_SECONDS
+			);
 		}
 
 		/**
@@ -169,6 +258,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				return self::unavailable_status_summary( 'refreshing' );
 			}
 
+			$post_id_selection = self::local_public_post_ids();
+			$post_ids = $post_id_selection['post_ids'];
 			$result = null;
 			try {
 				$result = self::dispatch_runtime(
@@ -178,7 +269,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 						'execution_pattern' => 'inline',
 						'input' => array(
 							'contract_version' => 'site_knowledge_status.v1',
-							'include_coverage' => false,
+							'include_coverage' => true,
+							'post_ids' => $post_ids,
 							'write_posture' => 'suggestion_only',
 							'direct_wordpress_write' => false,
 						),
@@ -200,7 +292,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				return self::unavailable_status_summary( 'unavailable' );
 			}
 
-			$summary = self::normalize_status_summary( $result );
+			$summary = self::normalize_status_summary( $result, $post_ids, $post_id_selection['has_more'] );
 			if ( empty( $summary['available'] ) ) {
 				return $summary;
 			}
@@ -219,7 +311,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		 * @param array<string,mixed> $result Cloud runtime result.
 		 * @return array<string,mixed>
 		 */
-		private static function normalize_status_summary( array $result ): array {
+		private static function normalize_status_summary( array $result, array $compared_post_ids = array(), bool $has_more = false ): array {
 			$source = self::runtime_result_payload( $result );
 			$coverage = is_array( $source['coverage'] ?? null ) ? $source['coverage'] : array();
 			$quota = is_array( $coverage['quota'] ?? null ) ? $coverage['quota'] : array();
@@ -257,6 +349,21 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				'result_count' => absint( $acceptance_source['result_count'] ?? 0 ),
 				'error_code' => sanitize_key( (string) ( $acceptance_source['error_code'] ?? '' ) ),
 			);
+			$compared_post_ids = array_values( array_unique( array_filter( array_map( 'absint', $compared_post_ids ) ) ) );
+			$indexed_post_ids_source = $coverage['indexed_post_ids'] ?? null;
+			if (
+				! empty( $compared_post_ids )
+				&& (
+					! is_array( $indexed_post_ids_source )
+					|| count( $compared_post_ids ) !== absint( $coverage['indexed_post_ids_requested'] ?? 0 )
+				)
+			) {
+				return self::unavailable_status_summary( 'not_returned' );
+			}
+			$indexed_post_ids = array_values( array_intersect(
+				$compared_post_ids,
+				array_values( array_unique( array_filter( array_map( 'absint', is_array( $indexed_post_ids_source ) ? $indexed_post_ids_source : array() ) ) ) )
+			) );
 
 			return array(
 				'state' => 'fresh',
@@ -279,9 +386,97 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				'warning_ratio' => is_numeric( $quota['warning_ratio'] ?? null ) ? (float) $quota['warning_ratio'] : 0.85,
 				'maintenance' => $maintenance,
 				'retrieval_acceptance' => $retrieval_acceptance,
+				'article_coverage' => array(
+					'compared_post_ids' => $compared_post_ids,
+					'indexed_post_ids' => $indexed_post_ids,
+					'compared_count' => count( $compared_post_ids ),
+					'indexed_count' => count( $indexed_post_ids ),
+					'not_indexed_count' => max( 0, count( $compared_post_ids ) - count( $indexed_post_ids ) ),
+					'has_more' => $has_more,
+				),
 				'synced_at' => gmdate( 'Y-m-d H:i:s' ) . ' UTC',
 				'fresh_until' => gmdate( 'Y-m-d H:i:s', time() + self::STATUS_FRESHNESS_TTL_SECONDS ) . ' UTC',
 			);
+		}
+
+		/**
+		 * Builds current local display rows from one retained Cloud comparison.
+		 *
+		 * @param array<string,mixed> $summary Retained Site Knowledge status summary.
+		 * @return array<int,array<string,mixed>>
+		 */
+		public static function article_index_statuses( array $summary ): array {
+			$coverage = is_array( $summary['article_coverage'] ?? null ) ? $summary['article_coverage'] : array();
+			$compared_post_ids = is_array( $coverage['compared_post_ids'] ?? null ) ? $coverage['compared_post_ids'] : array();
+			$indexed_post_ids = array_fill_keys(
+				array_values( array_unique( array_filter( array_map( 'absint', is_array( $coverage['indexed_post_ids'] ?? null ) ? $coverage['indexed_post_ids'] : array() ) ) ) ),
+				true
+			);
+			$rows = array();
+
+			if ( ! function_exists( 'get_post' ) ) {
+				return $rows;
+			}
+
+			foreach ( array_slice( array_values( array_unique( array_filter( array_map( 'absint', $compared_post_ids ) ) ) ), 0, self::MAX_STATUS_POST_IDS ) as $post_id ) {
+				$post = get_post( $post_id );
+				if ( ! self::is_public_article( $post ) ) {
+					continue;
+				}
+
+				$title = function_exists( 'get_the_title' ) ? (string) get_the_title( $post_id ) : (string) ( $post->post_title ?? '' );
+				$url = function_exists( 'get_permalink' ) ? (string) get_permalink( $post_id ) : '';
+				$rows[] = array(
+					'post_id' => $post_id,
+					'title' => sanitize_text_field( $title ),
+					'url' => esc_url_raw( $url ),
+					'modified_gmt' => sanitize_text_field( (string) ( $post->post_modified_gmt ?? '' ) ),
+					'status' => isset( $indexed_post_ids[ $post_id ] ) ? 'indexed' : 'not_indexed',
+				);
+			}
+
+			return $rows;
+		}
+
+		/**
+		 * Selects the most recently modified public posts/pages for Cloud comparison.
+		 *
+		 * @return array{post_ids:array<int,int>,has_more:bool}
+		 */
+		private static function local_public_post_ids(): array {
+			if ( ! function_exists( 'get_posts' ) ) {
+				return array( 'post_ids' => array(), 'has_more' => false );
+			}
+
+			$post_ids = get_posts(
+				array(
+					'post_type' => array( 'post', 'page' ),
+					'post_status' => 'publish',
+					'posts_per_page' => self::MAX_STATUS_POST_IDS + 1,
+					'orderby' => 'modified',
+					'order' => 'DESC',
+					'fields' => 'ids',
+					'no_found_rows' => true,
+				)
+			);
+			$post_ids = is_array( $post_ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $post_ids ) ) ) ) : array();
+
+			return array(
+				'post_ids' => array_slice( $post_ids, 0, self::MAX_STATUS_POST_IDS ),
+				'has_more' => count( $post_ids ) > self::MAX_STATUS_POST_IDS,
+			);
+		}
+
+		/**
+		 * Returns whether a local object is a currently public article/page.
+		 *
+		 * @param mixed $post WordPress post object.
+		 * @return bool
+		 */
+		private static function is_public_article( $post ): bool {
+			return is_object( $post )
+				&& 'publish' === sanitize_key( (string) ( $post->post_status ?? '' ) )
+				&& in_array( sanitize_key( (string) ( $post->post_type ?? '' ) ), array( 'post', 'page' ), true );
 		}
 
 		/**
@@ -315,6 +510,15 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 			);
 
 			return 'npcink_cloud_site_knowledge_status_' . md5( $seed );
+		}
+
+		/**
+		 * Builds the credential-scoped media evidence ID projection key.
+		 *
+		 * @return string
+		 */
+		private static function media_evidence_ids_cache_key(): string {
+			return self::status_cache_key() . '_media_evidence_ids';
 		}
 
 		/**

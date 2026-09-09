@@ -1,8 +1,18 @@
 # Npcink Cloud Addon
 
+WordPress AI acceptance evidence, image-feature limitations, and release gates:
+[2026-09-08 acceptance handoff](docs/wordpress-ai-acceptance-and-release-handoff-2026-09-08.md).
+Follow the [WordPress AI acceptance standard](docs/wordpress-ai-acceptance-standard-v1.md)
+for repeatable diagnosis, evidence reuse, and closeout.
+
+The named Toolbox content-format transport now requests
+`content_format_request.v2` for bounded HTML structure repair. Cloud returns
+the complete candidate body; Addon does not format, apply or save it. Older
+Cloud runtimes reject v2 rather than silently claiming spacing-only success.
+
 Standalone WordPress plugin for connecting a local Npcink installation to `npcink-cloud`.
 
-The addon is a thin Cloud connector. It stores the Cloud Base URL and the Cloud API Key signing credentials returned by Cloud site authorization, sends signed runtime requests, reads health and entitlement status, transports opt-in metadata-only plugin observability and Agent feedback data, bridges public Site Knowledge change hints to Cloud, and exposes a minimal PHP interface for local plugins. Signing credentials are persisted as one authenticated encrypted envelope rather than plaintext option fields.
+The addon is a thin Cloud connector. It stores the Cloud Base URL and the Cloud API Key signing credentials returned by Cloud site authorization, sends signed runtime requests, reads health and entitlement status, transports opt-in metadata-only plugin observability, customer journey, and Agent feedback data, bridges public Site Knowledge change hints to Cloud, and exposes a minimal PHP interface for local plugins. Signing credentials are persisted as one authenticated encrypted envelope rather than plaintext option fields.
 
 Cross-project platform coordination starts from
 `/Users/muze/gitee/npcink-workflow-toolbox/docs/platform/README.md`. This
@@ -10,6 +20,14 @@ repository remains authoritative only for Cloud Addon connector contracts and
 bounded signed transport.
 
 ## Engineering Decisions and Standards
+
+- [Admin simplification and delivery engineering standard](docs/admin-simplification-and-delivery-engineering-standard-2026-08-25.md)
+  records the current operator mental model, automatic Site Knowledge behavior,
+  Cloud ownership boundary, merge lessons, release-manifest gate, and reusable
+  delivery checklist.
+- [Site Knowledge Recommendation Connector Record](docs/site-knowledge-recommendation-connector-record-v1.md) records the WordPress-side coverage, fail-closed, UI, and troubleshooting lessons for Cloud-backed article recommendations.
+- [Production monitoring consent and package handoff ADR](docs/decisions/002-production-monitoring-consent-and-package-handoff.md)
+- [Production monitoring development retrospective](docs/production-monitoring-development-retrospective-2026-08-19.md)
 
 - [Runtime seam closeout and engineering standard](docs/runtime-seam-closeout-and-engineering-standard-2026-08-13.md)
   records the consumer-migration, public-seam removal, Playground stabilization,
@@ -47,9 +65,13 @@ The addon owns:
 - Bounded Agent feedback event transport and read-only quality projection:
   - `POST /v1/agent-feedback/events`
   - `GET /v1/agent-feedback/summary`
+- Opt-in privacy-safe customer journey transport and manual summary read:
+  - `POST /v1/customer-journey/events`
+  - `GET /v1/customer-journey/summary`
+  - [Customer journey transport contract](docs/customer-journey-transport-v1.md)
 - Site Knowledge public content change bridge through `POST /v1/runtime/execute`, including a bounded settings-page status and manual public refresh transport.
 - Toolbox Site Knowledge runtime bridge through `POST /v1/runtime/execute`.
-- An `Advanced and troubleshooting > Runtime runs` section for read-only Nightly Inspection recent/status/result detail and nonce-protected Cloud-owned retry requests.
+- Cloud-only Nightly Inspection run history, status, result, and retry presentation; the addon retains bounded runtime transport methods for maintained integrations without exposing a WordPress run console.
 - Bounded image context evidence transport through `POST /v1/runtime/execute`.
 - Bounded WordPress AI connector scene runtime through `POST /v1/runtime/execute`.
 - `Npcink AI > Cloud Addon` when Workflow Toolbox is active, or
@@ -90,11 +112,51 @@ WordPress write path.
 
 ## Public PHP Interface
 
+WordPress AI model discovery now consumes the signed Cloud entitlement
+`wordpress_ai_capabilities` configuration snapshot. Text, image generation,
+and image understanding are advertised independently and only while fresh and
+configured. Missing, expired, malformed, or failed evidence is unknown; it does
+not change the connector's credential marker. Model discovery may refresh the
+existing five-minute entitlement cache with its existing lock and failure
+backoff. Addon page rendering and bootstrap make no new Cloud calls.
+
+`Advanced and troubleshooting > Checks` shows the three cached states and
+their check times. The existing manual readiness action refreshes the capability
+snapshot through the same signed entitlement read. It does not generate content
+or consume model credits. A successful configuration check does not prove that
+the next generation request will succeed. Cloud must supply
+`wordpress-ai-capabilities-v1` before rolling out this model projection.
+
+The same Checks view links to the registered WordPress AI title, image, and
+alt-text test runners and its optional recent request log. Opening a link does
+not execute a test; invocation uses the host's current AI configuration and may
+consume credits. Missing abilities or disabled test/log pages lead back to the
+host AI settings. The addon does not enable those features automatically or own
+a second test runner or request history. Confirm the selected provider in each
+request log before treating a host test as Cloud evidence.
+
+The opt-in WordPress AI request-log bridge uses the host's `ai_client` log type
+and keeps modality in metadata. Text and vision success is logged only after
+task-bound output validation; image success also requires verified artifact
+delivery. Invalid output is an error even when the runtime HTTP response was
+successful. These connector records omit prompt and output content; retention
+and any other host-generated log records remain owned by WordPress AI.
+
+`npcink_cloud_addon_execute_toolbox_content_format_runtime(array $request,
+string $trace_id = '', string $idempotency_key = '')` transports exactly
+`content`, `format=html`, and the matching `source_sha256`. It fixes the
+`content_format_request.v2` / `npcink-toolbox/format-content` envelope to inline
+`no_store` with zero retry and retention. Cloud owns formatting; Toolbox owns
+candidate validation and visible editor application. This helper never stores
+or applies article text. The normal runtime response is returned unchanged.
+
 ```php
 npcink_cloud_addon_is_configured(): bool
 npcink_cloud_addon_get_connection_state(): array
-npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
+npcink_cloud_addon_pull_media_artifact( $artifact_id, $trace_id )
+npcink_cloud_addon_acknowledge_media_artifact_delivery( $artifact_id, $payload, $trace_id )
 npcink_cloud_addon_get_manual_readiness_result(): array
+npcink_cloud_addon_get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '')
 npcink_cloud_addon_dispatch_media_derivative_cloud_request(array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_request_image_context_evidence(array $image_context_evidence_request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_wordpress_ai_connector_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
@@ -102,6 +164,7 @@ npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime(array $request,
 npcink_cloud_addon_execute_toolbox_image_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_toolbox_audio_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_toolbox_site_ops_cloud_analysis_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_media_governance_audit_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_toolbox_web_search_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_toolbox_image_source_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_dispatch_site_knowledge_runtime(array $runtime_payload, string $ability_name = '', string $contract_version = '')
@@ -121,6 +184,7 @@ execute_wordpress_ai_image_generation_runtime(array $request, string $trace_id =
 execute_toolbox_image_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 execute_toolbox_audio_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 execute_toolbox_site_ops_cloud_analysis_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+execute_toolbox_media_governance_audit_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 execute_toolbox_web_search_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 execute_toolbox_image_source_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 request_image_context_evidence(array $image_context_evidence_request, string $trace_id = '', string $idempotency_key = '')
@@ -134,9 +198,11 @@ pull_media_artifact(string $artifact_id, string $trace_id = '')
 acknowledge_media_artifact_delivery(string $artifact_id, array $payload, string $trace_id = '', string $idempotency_key = '')
 get_current_entitlement(string $trace_id = '')
 send_observability_events(array $events, string $trace_id = '', string $idempotency_key = '')
+send_customer_journey_events(array $events, string $trace_id = '', string $idempotency_key = '')
 send_agent_feedback_event(array $payload, string $trace_id = '', string $idempotency_key = '')
 get_agent_feedback_summary(int $window_hours = 24, string $trace_id = '')
 get_observability_summary(int $window_hours = 24, string $trace_id = '')
+get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '', string $trace_id = '')
 ```
 
 The low-level signed request method is private and endpoint-allowlisted. New
@@ -422,6 +488,23 @@ media bytes, raw request/response payloads, provider credentials, Cloud API
 secrets, passwords, cookies, nonces, Authorization headers, database names,
 table names, or filesystem paths.
 
+The customer-journey subset records only supported editor steps such as
+generation start, success, failure, retry, acceptance, save, and abandonment.
+It excludes raw WordPress user and post ids, email addresses, URLs, DOM data,
+and free-form error messages. Signed uploads are associated with the configured
+Cloud site for diagnosis, but are not used for advertising, individual user
+scoring, automatic approval, or automatic WordPress content changes.
+
+Normal production operation does not require a cohort tag: every signed event
+is already associated with the authenticated Cloud site. For an explicitly
+controlled experiment, an operator may optionally set
+`NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID` on the participating sites.
+Valid values are 1-64 characters from letters, digits, `.`, `_`, `:`, and `-`;
+they must not encode editor, account, site, article, prompt, or content
+identity. The optional tag is projected only on new customer-journey events and
+allows the existing Cloud summary to isolate that experiment from other data.
+It is not part of the normal production-user setup.
+
 Cloud observability summaries are dashboard projections only. They must not be
 used to approve proposals, change Core status, execute WordPress writes, or
 configure router, prompt, or preset behavior.
@@ -439,6 +522,11 @@ with `write_posture=suggestion_only`. Cloud remains the Site Knowledge vector,
 index, freshness, and collection lifecycle owner. The addon does not create a
 local index, decide stale-index policy, register a workflow engine, own scheduler
 truth, or perform WordPress writes.
+
+The hourly reconciliation safety net selects only public posts and pages whose
+WordPress modification time is later than the last successful delivery. A
+routine local delivery buffer is automatic background state and is not shown as
+an Overview warning; only a recorded delivery error requires operator attention.
 
 `npcink_cloud_addon_site_knowledge_change_bridge_health()` returns the stable
 `site_knowledge_change_bridge_status.v1` projection. Host plugins should expose
@@ -486,18 +574,19 @@ or authorization outages.
 
 When verified, the page opens `Overview` first. It shows plan/entitlement and
 only surfaces monitoring or Site Knowledge summaries when local action is
-needed. WordPress AI connector exposure and Site Knowledge delivery remain the
-primary immediate-save permissions; generation reference is shown only when
-delivery is enabled, and metadata-only monitoring consent is folded under
-`More local permissions`. The
+needed. The default feature surface exposes one `Enable Site Knowledge` switch;
+that choice keeps public-content delivery and supported generation reference
+in sync. WordPress AI connector exposure remains connected-system state rather
+than a separate operator-facing permission. Metadata-only monitoring consent is
+independent, off by default, and folded under `Privacy settings`. The
 `Advanced and troubleshooting` entry is the Cloud Addon-side
 replacement for the old Toolbox Cloud Checks / Troubleshooting Checks entry:
 it shows compact connection checks, account/usage projection, attention-only
-local monitoring upload state, connection recovery, and `Runtime runs` detail. It does not recreate
+local monitoring upload state, and connection management. Runtime history and operations stay in Cloud. It does not recreate
 Toolbox product tools for Cloud search, image source search, provider
 operations, or task execution.
 
-`Advanced and troubleshooting > Runtime runs` is the low-frequency home for Nightly Inspection Cloud run detail that used to crowd Toolbox advanced surfaces. Its default entitlement projection is limited to nightly-run availability and retention. Manual run-ID lookup stays folded; recent runs, one-run status/result reads, and bounded Cloud retry remain available. It does not submit scheduled reviews, build local snapshots, create Core proposals, own retry queues, or write WordPress data.
+The WordPress settings page does not expose Nightly Inspection run history, run-ID lookup, status/result reads, retention, or retry controls. Cloud owns that technical runtime surface. The addon's existing run read and retry methods remain bounded transport contracts for maintained integrations; they do not create local run truth, queues, proposals, approvals, or WordPress writes.
 
 The Pro Cloud Runtime projection also exposes contract reuse detail: Cloud owns
 runtime/detail, Toolbox owns product buttons, Core owns proposal handoff,
@@ -505,11 +594,11 @@ Adapter owns execution profiles, and Toolkit owns ability contracts. The addon
 is signed transport and read-only detail only; it adds no registry, scheduler
 truth, approval store, queue, or write executor.
 
-The Site Knowledge tab keeps delivery, buffered public changes, last delivery,
-and manual public content refresh visible. Errors appear only when present.
-Index operations use an explicit `Manage index` entry, while local error and
-WP-Cron recovery facts appear under `Technical delivery details` only when
-action is needed. Cloud owns index execution, rebuild/delete
+The Site Knowledge tab keeps a compact update status and last delivery visible.
+Healthy state hides the manual refresh action; a recovery update appears only
+when delivery needs attention. Settings, maintenance, and Cloud detail use
+explicit text links instead of a generic overflow menu. Local error and WP-Cron
+recovery facts remain under advanced checks only when action is needed. Cloud owns index execution, rebuild/delete
 handling, freshness policy, collection lifecycle, and deep diagnostics. Toolbox consumes
 Site Knowledge results in fixed best-practice buttons instead of owning index
 management UI.

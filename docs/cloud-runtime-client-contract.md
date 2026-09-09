@@ -52,6 +52,8 @@ send_observability_events(array $events, string $trace_id = '', string $idempote
 send_agent_feedback_event(array $payload, string $trace_id = '', string $idempotency_key = '')
 get_agent_feedback_summary(int $window_hours = 24, string $trace_id = '')
 get_observability_summary(int $window_hours = 24, string $trace_id = '')
+send_customer_journey_events(array $events, string $trace_id = '', string $idempotency_key = '')
+get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '', string $trace_id = '')
 ```
 
 The low-level signed `request()` helper is private implementation detail. It must enforce the endpoint allowlist in this contract and must not be exposed as a generic public Cloud proxy.
@@ -68,14 +70,14 @@ connection. WordPress safe HTTP validation and HTTPS certificate verification
 remain mandatory, but trusted Cloud DNS is still an operational requirement
 and sub-second DNS rebinding is a residual risk rather than a solved guarantee.
 
-For Cloud jobs that move local media bytes or downloadable artifacts, host code
-should use the verified helper:
+For Cloud jobs that download artifacts, host code should use the bounded,
+verification-gated facade:
 
 ```php
-npcink_cloud_addon_verified_runtime_client(): ?Npcink_Cloud_Runtime_Client
+npcink_cloud_addon_pull_media_artifact(): bounded artifact download facade
 ```
 
-It returns `null` until the addon settings have passed Save and Verify.
+It returns a `WP_Error` until the addon settings have passed Save and Verify.
 
 ## Endpoint Mapping
 
@@ -107,6 +109,8 @@ It returns `null` until the addon settings have passed Save and Verify.
 | `send_agent_feedback_event()` | `POST /v1/agent-feedback/events` |
 | `get_agent_feedback_summary()` | `GET /v1/agent-feedback/summary` |
 | `get_observability_summary()` | `GET /v1/observability/plugin-summary` |
+| `send_customer_journey_events()` | `POST /v1/customer-journey/events` |
+| `get_customer_journey_summary()` | `GET /v1/customer-journey/summary` |
 
 ## Diagnostics Surface
 
@@ -152,21 +156,19 @@ status backed by an existing addon contract. If no addon read contract exists,
 the row must say that the capability is not connected or Cloud-owned instead of
 fabricating a check.
 
-## Runtime Runs Surface
+## Runtime Runs Ownership
 
-The Cloud Addon `Advanced and troubleshooting > Runtime runs` section may use the existing
-run endpoints for Nightly Inspection detail: recent runs, one-run status,
-one-run result, and a nonce-protected retry request for a known run. It is a
-low-frequency
-Cloud-owned recovery/detail surface. Its local default projection is limited to
-nightly-run availability and result retention; batch, quota-exhaustion, and
-contract-reuse internals remain in the Cloud-owned detail/data contract rather
-than the WordPress settings UI.
+The Cloud Addon does not expose a WordPress runtime-runs UI. Run history,
+run-ID lookup, status, result, retention, and retry presentation belong to
+Cloud, where technical detail can be shown without turning WordPress settings
+into an operations console.
 
-The tab must not submit scheduled reviews, rebuild Toolbox local snapshots,
-create Core proposals, approve changes, create a local retry queue, or write
-WordPress data. If Cloud rejects a retry because the original run input is not
-recoverable, the addon shows the Cloud error and fails closed.
+The existing `get_recent_nightly_inspection_runs()`, `get_run()`,
+`get_run_result()`, and `retry_run()` methods remain bounded transport
+contracts for maintained integrations. They must not create local run truth,
+submit scheduled reviews, rebuild Toolbox local snapshots, create Core
+proposals, approve changes, create a local retry queue, or write WordPress
+data.
 
 ## Signing
 

@@ -12,7 +12,7 @@ require_once __DIR__ . '/helpers.php';
 maca_load_addon_classes();
 
 /**
- * Returns one exact Cloud 12-field media derivative descriptor.
+ * Returns one exact Cloud 13-field media derivative descriptor.
  *
  * @param string $artifact_id Artifact id.
  * @param string $contents Image bytes.
@@ -39,6 +39,16 @@ function maca_cloud_derivative_artifact( string $artifact_id, string $contents, 
 		'filesize_bytes'     => strlen( $contents ),
 		'checksum'           => 'sha256:' . $checksum,
 		'processing_warnings' => array(),
+		'transform_facts'    => array(
+			'source_checksum' => 'sha256:' . str_repeat( 'b', 64 ),
+			'output_checksum' => 'sha256:' . $checksum,
+			'source_width' => 1,
+			'source_height' => 1,
+			'output_width' => 1,
+			'output_height' => 1,
+			'encoding_mode' => 'lossless',
+			'alpha_preserved' => true,
+		),
 	);
 }
 
@@ -63,9 +73,140 @@ function maca_cloud_run_result_response( array $artifact ): array {
 					'updated_at' => '2026-07-16T00:00:01+00:00',
 					'result'     => array(
 						'artifact_type'    => 'media_derivative_artifact',
-						'contract_version' => 'media_derivative_result.v1',
+						'contract_version' => 'media_derivative_result.v3',
+						'status'           => 'qualified',
 						'workflow_metadata' => array( 'operation' => 'image.transform.v1' ),
 						'artifact'         => $artifact,
+					),
+				),
+			)
+		),
+	);
+}
+
+/** Returns one exact direct v3 skipped result response. */
+function maca_cloud_skipped_result_response(): array {
+	$reasons = array( 'minimum_savings_not_met', 'output_not_smaller' );
+	$facts = array_fill_keys(
+		array(
+			'source_checksum', 'output_checksum', 'source_format', 'output_format', 'source_mime_type',
+			'output_mime_type', 'source_width', 'source_height', 'output_width', 'output_height',
+			'source_filesize_bytes', 'output_filesize_bytes', 'source_frame_count', 'output_frame_count',
+			'source_has_alpha', 'output_has_alpha', 'alpha_preserved', 'decodable', 'crop_applied',
+			'watermark_applied', 'resize_applied', 'encoding_mode', 'savings_basis_points',
+			'optimization_profile', 'source_class', 'effective_quality', 'quality_metric', 'quality_score',
+			'quality_threshold', 'color_profile_normalized', 'qualified', 'decision_reasons',
+		),
+		false
+	);
+	$facts = array_merge(
+		$facts,
+		array(
+			'source_checksum' => 'sha256:' . str_repeat( 'd', 64 ), 'output_checksum' => 'sha256:' . str_repeat( 'c', 64 ),
+			'source_format' => 'webp', 'output_format' => 'webp', 'source_mime_type' => 'image/webp',
+			'output_mime_type' => 'image/webp', 'source_width' => 800, 'source_height' => 450,
+			'output_width' => 800, 'output_height' => 450, 'source_filesize_bytes' => 1040,
+			'output_filesize_bytes' => 1120, 'source_frame_count' => 1, 'output_frame_count' => 1,
+			'alpha_preserved' => true, 'decodable' => true, 'encoding_mode' => 'lossy',
+			'savings_basis_points' => 0, 'optimization_profile' => 'auto_safe.v1', 'source_class' => 'opaque',
+			'effective_quality' => 82, 'quality_metric' => 'ssim', 'quality_score' => 0.99,
+			'quality_threshold' => 0.985, 'decision_reasons' => $reasons,
+		)
+	);
+
+	return array(
+		'response' => array( 'code' => 200 ),
+		'headers'  => array( 'Content-Type' => 'application/json' ),
+		'body'     => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data'   => array(
+					'run_id' => 'run_media_skipped', 'status' => 'succeeded', 'job_type' => 'generate_optimized_media_derivative',
+					'created_at' => '2026-09-05T00:00:00Z', 'updated_at' => '2026-09-05T00:00:01Z',
+					'result' => array(
+						'artifact_type' => 'media_derivative_artifact', 'contract_version' => 'media_derivative_result.v3',
+						'status' => 'skipped', 'workflow_metadata' => array( 'operation' => 'image.transform.v1' ), 'artifact' => null,
+						'decision' => array( 'qualified' => false, 'decision_reasons' => $reasons, 'transform_facts' => $facts ),
+					),
+				),
+			)
+		),
+	);
+}
+
+/**
+ * Returns one exact media governance canary run-result response.
+ *
+ * @param string              $status Canary result status.
+ * @param array<string,mixed> $artifact Qualified derivative artifact.
+ * @param array<int,string>   $reasons Skip reasons.
+ * @return array<string,mixed>
+ */
+function maca_governance_canary_run_result_response( string $status, array $artifact = array(), array $reasons = array() ): array {
+	$source_sha256 = str_repeat( 'a', 64 );
+	$source_bytes = 1000000;
+	$output_bytes = 'ready' === $status ? (int) ( $artifact['filesize_bytes'] ?? 700000 ) : 900000;
+	$savings_bytes = max( 0, $source_bytes - $output_bytes );
+	$qualified = 'ready' === $status;
+	$derivative = null;
+	if ( $qualified ) {
+		$derivative = array(
+			'artifact_type'    => 'media_derivative_artifact',
+			'contract_version' => 'media_derivative_result.v3',
+			'status'           => 'qualified',
+			'workflow_metadata' => array( 'operation' => 'image.transform.v1' ),
+			'artifact'         => $artifact,
+		);
+	}
+
+	return array(
+		'response' => array( 'code' => 200 ),
+		'headers'  => array( 'Content-Type' => 'application/json' ),
+		'body'     => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data'   => array(
+					'run_id'     => 'run_media_governance_1',
+					'status'     => 'succeeded',
+					'job_type'   => 'generate_optimized_media_derivative',
+					'created_at' => '2026-08-31T00:00:00+00:00',
+					'updated_at' => '2026-08-31T00:00:01+00:00',
+					'result'     => array(
+						'contract_version'      => 'media_governance_canary_result.v1',
+						'artifact_type'         => 'media_governance_canary_preview',
+						'status'                => $status,
+						'candidate'             => array(
+							'candidate_id'      => 'mgc_0123456789abcdef01234567',
+							'snapshot_id'       => 'scan_20260831',
+							'source_sha256'     => 'sha256:' . $source_sha256,
+							'evidence_revision' => 'refs_20260831',
+						),
+						'source'                => array(
+							'artifact_id'    => 'art_' . str_repeat( '1', 32 ),
+							'format'         => 'jpeg',
+							'mime_type'      => 'image/jpeg',
+							'width'          => 800,
+							'height'         => 600,
+							'filesize_bytes' => $source_bytes,
+							'checksum'       => 'sha256:' . $source_sha256,
+						),
+						'validation'            => array(
+							'source_checksum_matches'      => true,
+							'dimensions_unchanged'         => true,
+							'output_smaller'               => true,
+							'source_bytes'                 => $source_bytes,
+							'output_bytes'                 => $output_bytes,
+							'savings_bytes'                => $savings_bytes,
+							'savings_basis_points'         => intdiv( $savings_bytes * 10000, $source_bytes ),
+							'minimum_savings_basis_points' => 1500,
+							'qualified'                    => $qualified,
+							'reasons'                      => $reasons,
+						),
+						'derivative'            => $derivative,
+						'preview_only'          => true,
+						'retain_originals'      => true,
+						'write_posture'         => $qualified ? 'artifact_only' : 'no_artifact',
+						'direct_wordpress_write' => false,
 					),
 				),
 			)
@@ -311,6 +452,145 @@ maca_assert(
 	&& ! isset( $job_body['source'], $job_body['cloud_job_payload'], $job_body['ttl_minutes'] ),
 	'Behavior: exact11 available image upload and artifact-referenced media job use the exact new resources.'
 );
+
+$auto_safe_ability = maca_ability_fixture();
+$auto_safe_ability['cloud_job_payload']['optimization_mode'] = 'auto_safe';
+$auto_safe_ability['cloud_job_payload']['optimization_profile'] = 'auto_safe.v1';
+$auto_safe_ability['cloud_job_payload']['target_format'] = 'webp';
+$auto_safe_ability['cloud_job_payload']['max_width'] = 1920;
+$auto_safe_ability['cloud_job_payload']['resize_mode'] = 'fit';
+unset( $auto_safe_ability['cloud_job_payload']['quality'] );
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'headers'  => array( 'Content-Type' => 'application/json' ),
+	'body'     => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'run_id' => 'run_auto_safe', 'status' => 'queued', 'trace_id' => 'trace-auto-safe', 'idempotent_replay' => false, 'result' => array() ) ) ),
+);
+$auto_safe_dispatch = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+	$auto_safe_ability,
+	array( 'artifact_id' => $source_artifact_id, 'expires_at' => maca_future_expiry() ),
+	'trace-auto-safe',
+	'auto-safe'
+);
+$auto_safe_body = json_decode( (string) ( $GLOBALS['maca_http_requests'][0]['args']['body'] ?? '' ), true );
+maca_assert(
+	is_array( $auto_safe_dispatch )
+	&& array( 'mode', 'target_format', 'max_width', 'source_media_type', 'resize_mode', 'optimization_profile' ) === array_keys( $auto_safe_body['params'] ?? array() )
+	&& 'auto_safe' === ( $auto_safe_body['params']['mode'] ?? null )
+	&& 'auto_safe.v1' === ( $auto_safe_body['params']['optimization_profile'] ?? null )
+	&& 'fit' === ( $auto_safe_body['params']['resize_mode'] ?? null )
+	&& ! isset( $auto_safe_body['params']['quality'], $auto_safe_body['params']['crop'], $auto_safe_body['params']['watermark'] ),
+	'Behavior: auto-safe dispatch emits only the fixed WebP policy and optional 1920 fit choice.'
+);
+
+foreach ( array( 'quality', 'profile' ) as $auto_safe_invalid_case ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$invalid_auto_safe = $auto_safe_ability;
+	if ( 'quality' === $auto_safe_invalid_case ) {
+		$invalid_auto_safe['cloud_job_payload']['quality'] = 82;
+	} else {
+		$invalid_auto_safe['cloud_job_payload']['optimization_profile'] = 'auto_safe.v2';
+	}
+	$invalid_auto_safe_result = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+		$invalid_auto_safe,
+		array( 'artifact_id' => $source_artifact_id, 'expires_at' => maca_future_expiry() )
+	);
+	maca_assert(
+		is_wp_error( $invalid_auto_safe_result ) && array() === $GLOBALS['maca_http_requests'],
+		'Behavior: auto-safe ' . $auto_safe_invalid_case . ' injection fails before Cloud transport.'
+	);
+}
+
+$governance_ability = maca_ability_fixture();
+$governance_ability['cloud_job_payload']['governance'] = array(
+	'contract_version'               => 'media_governance_canary.v1',
+	'candidate_id'                   => 'mgc_0123456789abcdef01234567',
+	'snapshot_id'                    => 'scan_20260831',
+	'source_sha256'                  => 'sha256:' . str_repeat( 'a', 64 ),
+	'evidence_revision'              => 'refs_20260831',
+	'minimum_savings_basis_points'   => 1500,
+	'require_dimensions_unchanged'   => true,
+	'skip_if_not_beneficial'         => true,
+	'retain_originals'               => true,
+);
+$governance_ability['cloud_job_payload']['batch_context'] = array(
+	'batch_id'   => 'media-governance-canary',
+	'item_index' => 1,
+	'item_count' => 10,
+	'chunk_size' => 10,
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'headers'  => array( 'Content-Type' => 'application/json' ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array(
+				'run_id'            => 'run_media_governance_dispatch',
+				'status'            => 'queued',
+				'trace_id'          => 'trace-governance-dispatch',
+				'idempotent_replay' => false,
+				'result'            => array(),
+			),
+		)
+	),
+);
+$governance_dispatch = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+	$governance_ability,
+	array(
+		'artifact_id' => 'art_' . str_repeat( '1', 32 ),
+		'expires_at'  => maca_future_expiry(),
+	),
+	'trace-governance-dispatch',
+	'governance-dispatch'
+);
+$governance_job_request = $GLOBALS['maca_http_requests'][0] ?? array();
+$governance_job_body = json_decode( (string) ( $governance_job_request['args']['body'] ?? '' ), true );
+maca_assert(
+	is_array( $governance_dispatch )
+	&& 1 === count( $GLOBALS['maca_http_requests'] )
+	&& array( 'request_contract_version', 'operation', 'source_artifact_id', 'params', 'batch_context', 'governance', 'result_ttl_minutes' ) === array_keys( $governance_job_body )
+	&& 'webp' === ( $governance_job_body['params']['target_format'] ?? null )
+	&& 'preserve' === ( $governance_job_body['params']['resize_mode'] ?? null )
+	&& 10 === ( $governance_job_body['batch_context']['item_count'] ?? null )
+	&& 1500 === ( $governance_job_body['governance']['minimum_savings_basis_points'] ?? null )
+	&& ! isset( $governance_job_body['params']['crop'], $governance_job_body['params']['watermark'], $governance_job_body['watermark_artifact_id'] ),
+	'Behavior: governance canary dispatch adds only the strict preserve-WebP batch and evidence extensions.'
+);
+
+foreach ( array( 'item_count', 'crop', 'watermark', 'format', 'unknown_governance_field' ) as $invalid_governance_case ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$invalid_governance_ability = $governance_ability;
+	if ( 'item_count' === $invalid_governance_case ) {
+		$invalid_governance_ability['cloud_job_payload']['batch_context']['item_count'] = 11;
+	} elseif ( 'crop' === $invalid_governance_case ) {
+		$invalid_governance_ability['cloud_job_payload']['crop'] = array( 'aspect_ratio' => '1:1' );
+	} elseif ( 'watermark' === $invalid_governance_case ) {
+		$invalid_governance_ability['cloud_job_payload']['watermark'] = array( 'type' => 'text', 'text' => 'preview' );
+	} elseif ( 'format' === $invalid_governance_case ) {
+		$invalid_governance_ability['cloud_job_payload']['target_format'] = 'jpeg';
+	} else {
+		$invalid_governance_ability['cloud_job_payload']['governance']['unknown'] = true;
+	}
+	$invalid_governance_dispatch = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+		$invalid_governance_ability,
+		array(
+			'artifact_id' => 'art_' . str_repeat( '1', 32 ),
+			'expires_at'  => maca_future_expiry(),
+		)
+	);
+	maca_assert(
+		is_wp_error( $invalid_governance_dispatch ) && array() === $GLOBALS['maca_http_requests'],
+		'Behavior: invalid governance canary ' . $invalid_governance_case . ' fails before Cloud transport.'
+	);
+}
 
 $legacy_upload_descriptor_cases = array(
 	'file_path' => array(
@@ -654,8 +934,44 @@ maca_assert(
 	&& array( 'run_id', 'status', 'job_type', 'created_at', 'updated_at', 'artifact', 'warnings', 'error' ) === array_keys( $projection )
 	&& $cloud_artifact === $projection['artifact']
 	&& ! isset( $projection['derivative'] ),
-	'Behavior: raw data.result is accepted only as exact media_derivative_result.v1 and projected once.'
+	'Behavior: raw data.result is accepted only as exact qualified media_derivative_result.v3 and projected once.'
 );
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = maca_cloud_skipped_result_response();
+$skipped_projection = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_skipped', 'trace-result-skipped' );
+maca_assert(
+	is_array( $skipped_projection )
+	&& array() === ( $skipped_projection['artifact'] ?? null )
+	&& 'skipped' === ( $skipped_projection['optimization']['status'] ?? null )
+	&& false === ( $skipped_projection['optimization']['qualified'] ?? null )
+	&& array( 'minimum_savings_not_met', 'output_not_smaller' ) === ( $skipped_projection['optimization']['decision_reasons'] ?? null ),
+	'Behavior: direct v3 skipped results expose a bounded decision and never expose an artifact.'
+);
+
+foreach ( array( 'missing_qualified', 'unknown_decision_field', 'unknown_transform_field', 'reason_mismatch' ) as $invalid_skip_case ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$invalid_skip_response = maca_cloud_skipped_result_response();
+	$invalid_skip_body = json_decode( (string) $invalid_skip_response['body'], true );
+	if ( 'missing_qualified' === $invalid_skip_case ) {
+		unset( $invalid_skip_body['data']['result']['decision']['qualified'] );
+	} elseif ( 'unknown_decision_field' === $invalid_skip_case ) {
+		$invalid_skip_body['data']['result']['decision']['unknown'] = true;
+	} elseif ( 'unknown_transform_field' === $invalid_skip_case ) {
+		$invalid_skip_body['data']['result']['decision']['transform_facts']['unknown'] = true;
+	} else {
+		$invalid_skip_body['data']['result']['decision']['transform_facts']['decision_reasons'] = array( 'output_not_smaller' );
+	}
+	$invalid_skip_response['body'] = wp_json_encode( $invalid_skip_body );
+	$GLOBALS['maca_http_response_queue'][] = $invalid_skip_response;
+	$invalid_skip_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_skipped', 'trace-invalid-skip' );
+	maca_assert(
+		is_wp_error( $invalid_skip_result ) && 'cloud_media_derivative_skip_decision_invalid' === $invalid_skip_result->get_error_code(),
+		'Behavior: malformed direct skipped result ' . $invalid_skip_case . ' fails closed.'
+	);
+}
 
 $proposal = Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
 	maca_ability_fixture(),
@@ -665,12 +981,89 @@ $proposal = Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payloa
 $proposal_artifact = is_array( $proposal ) ? ( $proposal['artifact'] ?? array() ) : array();
 maca_assert(
 	is_array( $proposal )
-	&& array( 'artifact_id', 'expires_at', 'mime_type', 'format', 'width', 'height', 'filesize_bytes', 'sha256', 'suggested_filename', 'filename_basis', 'processing_warnings' ) === array_keys( $proposal_artifact )
+	&& array( 'artifact_id', 'expires_at', 'mime_type', 'format', 'width', 'height', 'filesize_bytes', 'sha256', 'suggested_filename', 'filename_basis', 'processing_warnings', 'transform_facts' ) === array_keys( $proposal_artifact )
 	&& hash( 'sha256', $png ) === ( $proposal_artifact['sha256'] ?? null )
 	&& ! isset( $proposal_artifact['checksum'], $proposal_artifact['artifact_reference'] )
 	&& 'local_wordpress_host' === ( $proposal['final_write_owner'] ?? null ),
 	'Behavior: exact Addon projection builds an exact 11-field local proposal artifact without Cloud-only fields.'
 );
+
+$canary_cloud_artifact = maca_cloud_derivative_artifact(
+	'art_' . str_repeat( 'c', 32 ),
+	str_repeat( 'w', 700000 ),
+	maca_future_expiry()
+);
+$canary_cloud_artifact['suggested_filename'] = 'media-governance-canary.webp';
+$canary_cloud_artifact['mime_type'] = 'image/webp';
+$canary_cloud_artifact['format'] = 'webp';
+$canary_cloud_artifact['width'] = 800;
+$canary_cloud_artifact['height'] = 600;
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = maca_governance_canary_run_result_response( 'ready', $canary_cloud_artifact );
+$ready_canary_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_governance_1', 'trace-governance-ready' );
+$ready_canary_proposal = is_array( $ready_canary_result )
+	? Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
+		maca_ability_fixture(),
+		$ready_canary_result,
+		$ready_canary_result['artifact']
+	)
+	: $ready_canary_result;
+maca_assert(
+	is_array( $ready_canary_result )
+	&& array( 'run_id', 'status', 'job_type', 'created_at', 'updated_at', 'artifact', 'warnings', 'error', 'governance_canary' ) === array_keys( $ready_canary_result )
+	&& 'ready' === ( $ready_canary_result['governance_canary']['status'] ?? null )
+	&& true === ( $ready_canary_result['governance_canary']['validation']['qualified'] ?? null )
+	&& $canary_cloud_artifact === ( $ready_canary_result['artifact'] ?? null )
+	&& is_array( $ready_canary_proposal )
+	&& 'local_wordpress_host' === ( $ready_canary_proposal['final_write_owner'] ?? null )
+	&& true === ( $ready_canary_proposal['approval_required'] ?? null ),
+	'Behavior: qualified governance wrapper is strictly unwrapped into the existing local proposal handoff.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = maca_governance_canary_run_result_response( 'skipped', array(), array( 'minimum_savings_not_met' ) );
+$skipped_canary_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_governance_1', 'trace-governance-skipped' );
+maca_assert(
+	is_array( $skipped_canary_result )
+	&& array() === ( $skipped_canary_result['artifact'] ?? null )
+	&& 'skipped' === ( $skipped_canary_result['governance_canary']['status'] ?? null )
+	&& array( 'minimum_savings_not_met' ) === ( $skipped_canary_result['governance_canary']['validation']['reasons'] ?? null )
+	&& 1 === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: skipped governance wrapper exposes bounded reasons and never exposes or pulls an artifact.'
+);
+
+$skipped_canary_raw = json_decode( (string) maca_governance_canary_run_result_response( 'skipped', array(), array( 'minimum_savings_not_met' ) )['body'], true );
+$skipped_canary_artifact = Npcink_Cloud_Media_Derivative_Transport::artifact_from_cloud_result( $skipped_canary_raw );
+maca_assert(
+	is_wp_error( $skipped_canary_artifact )
+	&& 'cloud_media_governance_canary_has_no_artifact' === $skipped_canary_artifact->get_error_code(),
+	'Behavior: skipped governance canaries cannot enter artifact receive, ACK, or proposal paths.'
+);
+
+foreach ( array( 'candidate_checksum', 'unknown_wrapper_field', 'qualified_without_derivative' ) as $invalid_canary_case ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$invalid_canary_response = maca_governance_canary_run_result_response( 'ready', $canary_cloud_artifact );
+	$invalid_canary_body = json_decode( (string) $invalid_canary_response['body'], true );
+	if ( 'candidate_checksum' === $invalid_canary_case ) {
+		$invalid_canary_body['data']['result']['candidate']['source_sha256'] = 'sha256:' . str_repeat( 'b', 64 );
+	} elseif ( 'unknown_wrapper_field' === $invalid_canary_case ) {
+		$invalid_canary_body['data']['result']['unknown'] = true;
+	} else {
+		$invalid_canary_body['data']['result']['derivative'] = null;
+	}
+	$invalid_canary_response['body'] = wp_json_encode( $invalid_canary_body );
+	$GLOBALS['maca_http_response_queue'][] = $invalid_canary_response;
+	$invalid_canary_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_governance_1', 'trace-invalid-canary' );
+	maca_assert(
+		is_wp_error( $invalid_canary_result )
+		&& 'cloud_media_governance_canary_result_invalid' === $invalid_canary_result->get_error_code(),
+		'Behavior: malformed governance canary ' . $invalid_canary_case . ' fails closed.'
+	);
+}
 
 maca_reset_test_state();
 maca_seed_settings( true );
