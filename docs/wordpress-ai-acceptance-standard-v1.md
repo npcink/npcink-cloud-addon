@@ -49,6 +49,26 @@ system, or writer to make acceptance easier.
 - Use isolated fixtures for denied entitlements, invalid credentials, and
   provider failures. Do not disrupt the real site to create test evidence.
 
+## Natural Cron Test Tool
+
+Use the read-only inspector before and after a normal real WordPress action:
+
+```bash
+composer run local:journey:inspect
+```
+
+It auto-detects the Local MySQL socket and reports the journey buffer event IDs,
+the hourly Cron hook, next scheduled time, monitoring state, and last upload
+summary. It never runs Cron, calls `flush_buffer()`, writes options, creates
+events, or calls a model. Set `WP_PATH`, `WP_CLI_BIN`, `WP_CLI_PHP`, or
+`WP_DB_SOCKET` when the site is not the default Local site.
+
+The acceptance sequence is: inspect with an empty buffer; use the site normally
+to create one real event; inspect again and record its `event_id`/`run_id`; wait
+for the ordinary Cron cycle; inspect again; then correlate that same ID with the
+Cloud customer-journey receipt. Empty buffer, an hourly schedule, or a previous
+manual flush is not natural-delivery evidence.
+
 ## Shared Work and Historical Records
 
 Read related task records and compare run IDs before repeating acceptance.
