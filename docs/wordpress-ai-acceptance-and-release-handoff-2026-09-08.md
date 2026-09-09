@@ -10,7 +10,8 @@ section; earlier disabled-feature observations below remain historical facts.
 Closeout update, 2026-09-09: capability/runtime fixes are merged in Cloud #927
 and Addon #142; this evidence record was merged in Addon #143 and #144. Text
 and featured-image draft adoption passed. Normal journey batch recovery passed;
-natural Cron delivery and explicit generation-context evidence remain open.
+natural Cron delivery and explicit generation-context evidence were completed
+in the 2026-09-09 final follow-up below.
 The temporary acceptance tunnel was closed after the image check; reopen the
 existing foreground tunnel before relying on the localhost Cloud destination.
 No production release occurred. The reusable procedure is now the
@@ -194,3 +195,46 @@ statements that predate merge/recovery. They remain with their original task;
 their "not merged" or "batch blocked" wording must not override the merged PR
 and successful recovery evidence above. This session closes its own delivery,
 not those remaining implementation and observation tasks.
+
+## Final Background and Natural Cron Acceptance, 2026-09-09
+
+Cloud generation-context projection merged in
+[#929](https://github.com/npcink/npcink-ai-cloud/pull/929) and was promoted from
+clean `master` to M4 with `acceptance_state=accepted`, `promotion_pr=929`, and
+source revision `d8b1343e1d9bb67e18c7dbd2aa35b30443d9229d`.
+
+After restoring the existing foreground M4 tunnel, one bounded
+`ai/title-generation` request used draft `281071`. It returned a suggestion
+without saving or publishing either article. Original article `280982` retained
+its title and `2026-06-12 09:16:05` UTC modification time; the draft retained
+its `2026-09-08 15:24:49` UTC modification time. Cloud run
+`run_47770a0caa4c4080b7e8ec02efb7f1c1` returned:
+
+- `generation_context_evidence.v1`;
+- `applied / site_title_style / references_applied`;
+- one reference and 120 assembled context characters.
+
+This is same-run evidence that site-title context was assembled, not an
+inference from an embedding call. It does not claim adoption or publishing.
+
+Before natural delivery, the local buffer contained a `started` event
+`journey_event_7ea08934ea5649d585a7abeaaf6ed9c9` and a `succeeded` event
+`journey_event_6e4e340baa604ee6a25a1f9a9756b4a3`; the latter carried the run ID
+above. Cloud stored neither before the due cycle. Existing normal WordPress
+traffic triggered the due cycle without a Cron endpoint, WP-CLI Cron runner,
+manual flush, fake event, or reschedule. A separately scheduled ordinary
+site-home request occurred at `2026-09-09T04:42:11Z`, six seconds after Cloud
+had already received the batch, so it is not claimed as the trigger.
+
+The schedule advanced from `04:42:04Z` to `05:42:04Z` and the local journey
+buffer became empty. Cloud received both records at
+`2026-09-09T04:42:05.580169Z`. Because Cloud intentionally hashes raw event IDs,
+the stored identifiers were the exact `SHA-256(site_id|event_id)` values:
+
+- started: `18825c6e3266556d05b56b8efcfe896e3e32e651d2c52fdd6eca3a33bf3480f2`;
+- succeeded: `c5efbf197223349959fdca7c6ce3aac8ea99aef668635ee950c863e075b16de7`.
+
+The succeeded row retained `run_47770a0caa4c4080b7e8ec02efb7f1c1`.
+Natural WordPress Cron journey delivery is therefore accepted. The reusable
+inspector now reports the expected Cloud hash for pending events so future
+checks do not require manual hash reconstruction.

@@ -10,13 +10,19 @@ $expected_site_url = getenv( 'WP_EXPECTED_SITE_URL' ) ?: '';
 $buffer = get_option( 'npcink_cloud_addon_customer_journey_buffer', array() );
 $status = get_option( 'npcink_cloud_addon_observability_status', array() );
 $next   = wp_next_scheduled( $hook );
+$settings = class_exists( 'Npcink_Cloud_Addon_Settings' )
+	? Npcink_Cloud_Addon_Settings::get_settings() : array();
+$site_id = sanitize_text_field( (string) ( $settings['site_id'] ?? '' ) );
 $events = array();
 foreach ( is_array( $buffer ) ? array_slice( $buffer, 0, 20 ) : array() as $event ) {
 	if ( ! is_array( $event ) ) {
 		continue;
 	}
+	$event_id = sanitize_text_field( (string) ( $event['event_id'] ?? '' ) );
 	$events[] = array(
-		'event_id'    => sanitize_text_field( (string) ( $event['event_id'] ?? '' ) ),
+		'event_id'    => $event_id,
+		'expected_cloud_event_id' => '' !== $site_id && '' !== $event_id
+			? hash( 'sha256', $site_id . '|' . $event_id ) : '',
 		'run_id'      => sanitize_text_field( (string) ( $event['run_id'] ?? '' ) ),
 		'journey'     => sanitize_key( (string) ( $event['journey'] ?? '' ) ),
 		'step'        => sanitize_key( (string) ( $event['step'] ?? '' ) ),
@@ -55,7 +61,7 @@ $output = array(
 		'error' => sanitize_text_field( (string) ( $status['last_upload_error'] ?? '' ) ),
 	),
 	'next_action' => $count > 0
-		? 'Wait for natural WP-Cron, then compare the same event_id/run_id with Cloud receipt.'
+		? 'Wait for natural WP-Cron, then compare expected_cloud_event_id/run_id with Cloud storage.'
 		: 'Use the site normally to create one real event; do not run Cron or flush manually.',
 );
 if ( '' !== $expected_site_url && untrailingslashit( (string) $output['site_url'] ) !== untrailingslashit( $expected_site_url ) ) {
