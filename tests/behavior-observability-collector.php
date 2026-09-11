@@ -11,6 +11,50 @@ require_once __DIR__ . '/helpers.php';
 
 maca_load_addon_classes();
 
+// Exercise producer hook dispatch, not a direct call to capture_event: the
+// regression was that the collector never subscribed to these three hooks.
+$producer_hooks = array(
+	'npcink_abilities_toolkit_observability_event' => 'npcink-abilities-toolkit',
+	'npcink_governance_core_observability_event' => 'npcink-governance-core',
+	'npcink_openclaw_adapter_observability_event' => 'npcink-ai-client-adapter',
+);
+foreach ( array( false, true ) as $verified ) {
+	foreach ( array( false, true ) as $enabled ) {
+		maca_reset_test_state();
+		maca_seed_settings( $verified );
+		maca_set_monitoring_enabled( $enabled );
+		Npcink_Cloud_Observability_Collector::register();
+		foreach ( $producer_hooks as $hook => $slug ) {
+			$listeners = $GLOBALS['maca_actions'][ $hook ][10] ?? array();
+			maca_assert( 1 === count( $listeners ), 'Behavior: producer hook has one collector: ' . $hook );
+			foreach ( $listeners as $listener ) {
+				call_user_func( $listener['callback'], array(
+					'plugin_slug' => $slug, 'event_kind' => 'validation.technical_monitoring_only',
+					'event_id' => 'hook_' . $slug, 'status' => 'error',
+					'error_code' => 'validation.expected_failure', 'correlation_id' => 'hook-test',
+					'prompt' => 'private text', 'secret' => 'private credential',
+				) );
+			}
+		}
+		$events = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
+		maca_assert( ( $verified && $enabled ? 3 : 0 ) === count( $events ), 'Behavior: producer hooks retain verification and opt-in gates.' );
+		if ( $verified && $enabled ) {
+			$GLOBALS['maca_http_response_queue'][] = array(
+				'response' => array( 'code' => 200 ),
+				'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'accepted_count' => 4, 'stored_count' => 4, 'duplicate_count' => 0 ) ) ),
+			);
+			Npcink_Cloud_Observability_Collector::flush_buffer();
+			$sent = json_decode( $GLOBALS['maca_http_requests'][0]['args']['body'], true )['events'];
+			maca_assert( array_values( $producer_hooks ) === array_column( array_slice( $sent, 0, 3 ), 'plugin_slug' ), 'Behavior: all three producer records reach the existing batch transport.' );
+			foreach ( array_slice( $sent, 0, 3 ) as $event ) {
+				maca_assert( 'validation.expected_failure' === $event['error_code'] && 'hook-test' === $event['correlation_id'] && ! array_key_exists( 'prompt', $event ) && ! array_key_exists( 'secret', $event ), 'Behavior: transport preserves diagnostic evidence and omits private fields.' );
+			}
+		} else {
+			maca_assert( empty( $GLOBALS['maca_http_requests'] ), 'Behavior: disabled producer capture makes no upload.' );
+		}
+	}
+}
+
 /**
  * Builds one metadata-only observability event.
  *

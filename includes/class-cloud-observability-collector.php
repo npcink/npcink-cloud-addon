@@ -34,6 +34,9 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		 */
 		public static function register(): void {
 			add_action( 'npcink_observability_event', array( __CLASS__, 'capture_event' ), 10, 1 );
+			add_action( 'npcink_abilities_toolkit_observability_event', array( __CLASS__, 'capture_event' ), 10, 1 );
+			add_action( 'npcink_governance_core_observability_event', array( __CLASS__, 'capture_event' ), 10, 1 );
+			add_action( 'npcink_openclaw_adapter_observability_event', array( __CLASS__, 'capture_event' ), 10, 1 );
 			add_action( self::CRON_HOOK, array( __CLASS__, 'flush_buffer' ) );
 
 			self::sync_schedule();
