@@ -21,6 +21,9 @@ bounded signed transport.
 
 ## Engineering Decisions and Standards
 
+- [插件上报接通与验证交接（2026-09-11）](docs/observability-producer-handoff-2026-09-11.md)
+  records producer hooks, consent boundaries, real delivery evidence, and remaining trial acceptance.
+
 - [Admin simplification and delivery engineering standard](docs/admin-simplification-and-delivery-engineering-standard-2026-08-25.md)
   records the current operator mental model, automatic Site Knowledge behavior,
   Cloud ownership boundary, merge lessons, release-manifest gate, and reusable
@@ -473,7 +476,10 @@ the artifact, create an artifact registry, or write WordPress media.
 ## Observability Transport
 
 Administrators may enable Cloud monitoring after Cloud settings verify. When
-enabled, the addon listens for local `npcink_observability_event` metadata,
+enabled, the addon listens for local `npcink_observability_event` metadata and
+the producer hooks `npcink_abilities_toolkit_observability_event`,
+`npcink_governance_core_observability_event`, and
+`npcink_openclaw_adapter_observability_event` (AI Client Adapter's retained hook name),
 stores a bounded local observability buffer, and flushes buffered metadata to
 Cloud. wp-admin shows only local buffer or upload errors when action is needed;
 Cloud observability aggregates and Agent feedback quality detail remain
