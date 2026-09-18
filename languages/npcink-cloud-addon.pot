@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-11T04:15:51+00:00\n"
+"POT-Creation-Date: 2026-09-18T09:20:53+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -1667,7 +1667,7 @@ msgid "WordPress AI generation tests"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1872
-msgid "Invoking a test may consume credits. Tests use the current WordPress AI configuration; check the request provider in the logs."
+msgid "Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here."
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1875

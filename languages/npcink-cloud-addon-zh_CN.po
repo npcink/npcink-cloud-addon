@@ -486,13 +486,13 @@ msgstr "原始媒体指标不完整。"
 msgid "Derivative media metrics are incomplete."
 msgstr "衍生媒体指标不完整。"
 
-#: includes/class-cloud-observability-collector.php:104
-#: includes/class-cloud-observability-collector.php:233
+#: includes/class-cloud-observability-collector.php:107
+#: includes/class-cloud-observability-collector.php:236
 msgid "Monitoring is disabled or Cloud is not verified."
 msgstr "监控已禁用，或 Cloud 尚未验证。"
 
-#: includes/class-cloud-observability-collector.php:159
-#: includes/class-cloud-observability-collector.php:254
+#: includes/class-cloud-observability-collector.php:162
+#: includes/class-cloud-observability-collector.php:257
 #: includes/class-cloud-settings-page.php:587
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:68
@@ -502,23 +502,23 @@ msgstr "监控已禁用，或 Cloud 尚未验证。"
 msgid "Cloud Addon settings are not verified."
 msgstr "Cloud Addon 设置尚未验证。"
 
-#: includes/class-cloud-observability-collector.php:183
+#: includes/class-cloud-observability-collector.php:186
 msgid "Cloud did not accept the monitoring state projection."
 msgstr "Cloud 未接受监控状态投影。"
 
-#: includes/class-cloud-observability-collector.php:1160
+#: includes/class-cloud-observability-collector.php:1163
 msgid "Core"
 msgstr "治理核心"
 
-#: includes/class-cloud-observability-collector.php:1165
+#: includes/class-cloud-observability-collector.php:1168
 msgid "Abilities"
 msgstr "原子能力"
 
-#: includes/class-cloud-observability-collector.php:1170
+#: includes/class-cloud-observability-collector.php:1173
 msgid "Adapter"
 msgstr "渠道适配器"
 
-#: includes/class-cloud-observability-collector.php:1175
+#: includes/class-cloud-observability-collector.php:1178
 #: includes/class-cloud-settings-page.php:224
 #: includes/class-cloud-settings-page.php:2017
 msgid "Cloud Addon"
@@ -2524,10 +2524,6 @@ msgstr "检查时间：%s"
 msgid "WordPress AI generation tests"
 msgstr "WordPress AI 生成测试"
 
-#: includes/class-cloud-settings-page.php:1872
-msgid "Invoking a test may consume credits. Tests use the current WordPress AI configuration; check the request provider in the logs."
-msgstr "执行测试可能消耗额度。测试使用当前 WordPress AI 配置，请在请求日志中确认实际服务商。"
-
 #: includes/class-cloud-settings-page.php:1875
 msgid "Open text generation test"
 msgstr "打开文本生成测试"
@@ -2547,3 +2543,7 @@ msgstr "查看最近 AI 请求"
 #: includes/class-cloud-settings-page.php:1886
 msgid "Open WordPress AI settings for tests and request logging"
 msgstr "前往 WordPress AI 设置启用能力测试与请求日志"
+
+#: includes/class-cloud-settings-page.php:1872
+msgid "Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here."
+msgstr "执行测试可能消耗额度。测试使用当前 WordPress AI 配置；请求日志只记录每次请求由哪个模型处理。模型由 Npcink Cloud 按任务自动选择，这里没有需要你选择的模型。"
