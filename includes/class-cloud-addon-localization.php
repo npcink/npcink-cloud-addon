@@ -112,7 +112,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Image understanding' => '图片理解',
 				'Configuration confirmed' => '配置已确认',
 				'WordPress AI generation tests' => 'WordPress AI 生成测试',
-				'Invoking a test may consume credits. Tests use the current WordPress AI configuration; check the request provider in the logs.' => '执行测试可能消耗额度。测试使用当前 WordPress AI 配置，请在请求日志中确认实际服务商。',
+				'Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here.' => '执行测试可能消耗额度。测试使用当前 WordPress AI 配置；请求日志只记录每次请求由哪个模型处理。模型由 Npcink Cloud 按任务自动选择，这里没有需要你选择的模型。',
 				'Open text generation test' => '打开文本生成测试',
 				'Open image generation test' => '打开图片生成测试',
 				'Open image understanding test' => '打开图像理解测试',
