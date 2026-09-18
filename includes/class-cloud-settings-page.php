@@ -1869,7 +1869,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$test_count = 0;
 			?>
 			<h4><?php esc_html_e( 'WordPress AI generation tests', 'npcink-cloud-addon' ); ?></h4>
-			<p class="description"><?php esc_html_e( 'Invoking a test may consume credits. Tests use the current WordPress AI configuration; check the request provider in the logs.', 'npcink-cloud-addon' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here.', 'npcink-cloud-addon' ); ?></p>
 			<ul>
 				<?php if ( $explorer_available ) : ?>
 					<?php foreach ( array( 'ai/title-generation' => __( 'Open text generation test', 'npcink-cloud-addon' ), 'ai/image-generation' => __( 'Open image generation test', 'npcink-cloud-addon' ), 'ai/alt-text-generation' => __( 'Open image understanding test', 'npcink-cloud-addon' ) ) as $ability => $label ) : ?>

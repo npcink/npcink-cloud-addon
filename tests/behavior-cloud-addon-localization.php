@@ -200,8 +200,13 @@ maca_assert(
 		'Cloud Addon',
 		'Cloud Addon',
 		'npcink-cloud-addon'
+	)
+	&& '执行测试可能消耗额度。测试使用当前 WordPress AI 配置；请求日志只记录每次请求由哪个模型处理。模型由 Npcink Cloud 按任务自动选择，这里没有需要你选择的模型。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here.',
+		'Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here.',
+		'npcink-cloud-addon'
 	),
-	'Addon localization fallback covers the connected summary, troubleshooting, readiness, and monitoring-consent surfaces.'
+	'Addon localization fallback covers the connected summary, troubleshooting, readiness, monitoring-consent, and hosted model ownership surfaces.'
 );
 
 maca_assert(
