@@ -81,12 +81,16 @@ $events = maca_editor_assist_events();
 $pending = get_option( Npcink_Cloud_Editor_Assist_Quality::PENDING_OPTION, array() );
 $journey_events = maca_editor_assist_journey_events();
 maca_assert(
-	3 === count( $events )
-	&& 'addon.editor_assist.generation.completed' === (string) ( $events[0]['event_kind'] ?? '' )
-	&& 'addon.editor_assist.generation.completed' === (string) ( $events[1]['event_kind'] ?? '' )
-	&& 'addon.editor_assist.generation.repeated' === (string) ( $events[2]['event_kind'] ?? '' )
-	&& 2 === absint( $events[2]['generation_sequence'] ?? 0 )
-	&& ( $events[0]['quality_session_id'] ?? '' ) === ( $events[2]['quality_session_id'] ?? '' ),
+	4 === count( $events )
+	&& 'addon.editor_assist.generation.presented' === (string) ( $events[0]['event_kind'] ?? '' )
+	&& 'addon.editor_assist.generation.superseded' === (string) ( $events[1]['event_kind'] ?? '' )
+	&& 'addon.editor_assist.generation.presented' === (string) ( $events[2]['event_kind'] ?? '' )
+	&& 'addon.editor_assist.generation.repeated' === (string) ( $events[3]['event_kind'] ?? '' )
+	&& 2 === absint( $events[3]['generation_sequence'] ?? 0 )
+	&& ( $events[0]['quality_session_id'] ?? '' ) === ( $events[3]['quality_session_id'] ?? '' )
+	&& ( $events[0]['generation_id'] ?? '' ) !== ( $events[2]['generation_id'] ?? '' )
+	&& array_key_exists( 'wordpress_ai_version', $events[0] )
+	&& 'superseded' === (string) ( $events[1]['lifecycle_state'] ?? '' ),
 	'Behavior: a short-window second generation emits one repeat signal in the same quality session.'
 );
 maca_assert(

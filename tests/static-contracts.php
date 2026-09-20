@@ -202,6 +202,9 @@ $ai_i18n_audit = maca_read( $root . '/scripts/audit-ai-plugin-localization.php' 
 $wp_ai_smoke = maca_read( $root . '/scripts/smoke-wordpress-ai-abilities.php' );
 $wp_ai_editor_smoke = maca_read( $root . '/scripts/smoke-wordpress-ai-editor.php' );
 $wp_ai_text_browser_smoke = maca_read( $root . '/scripts/smoke-wordpress-ai-text-browser.mjs' );
+$wp_ai_compatibility_smoke = maca_read( $root . '/scripts/smoke-wordpress-ai-compatibility.sh' );
+$wp_ai_compatibility_matrix = maca_read( $root . '/tests/fixtures/wp-ai-compatibility-matrix.json' );
+$playground_smoke_mu_plugin = maca_read( $root . '/tests/playground/mu-plugins/npcink-cloud-addon-playground-smoke.php' );
 $wp_ai_generation_eval = maca_read( $root . '/scripts/eval-wordpress-ai-generation-reference.php' );
 $zh_cn_po = maca_read( $root . '/languages/npcink-cloud-addon-zh_CN.po' );
 $uninstall = maca_read( $root . '/uninstall.php' );
@@ -301,6 +304,30 @@ maca_assert(
 maca_assert(
 	false === strpos( $composer . "\n" . $eval_lab_proxy, 'sk-' ),
 	'Cloud Addon eval-lab integration does not contain committed provider keys.'
+);
+
+maca_assert(
+	false !== strpos( $composer, '"smoke:wp-ai-compatibility": "bash scripts/smoke-wordpress-ai-compatibility.sh"' )
+	&& false !== strpos( $wp_ai_compatibility_matrix, '"contract_version": "wordpress_ai_compatibility_matrix.v1"' )
+	&& false !== strpos( $wp_ai_compatibility_matrix, '"lane_id": "stable-primary"' )
+	&& false !== strpos( $wp_ai_compatibility_matrix, '"lane_id": "stable-regression"' )
+	&& false !== strpos( $wp_ai_compatibility_matrix, '"lane_id": "upstream-warning"' )
+	&& false !== strpos( $wp_ai_compatibility_matrix, 'https://api.github.com/repos/WordPress/ai/releases/assets/519975984' )
+	&& false !== strpos( $wp_ai_compatibility_matrix, 'https://api.github.com/repos/WordPress/ai/releases/assets/477122229' )
+	&& false !== strpos( $wp_ai_compatibility_matrix, 'https://github.com/WordPress/ai/archive/refs/heads/develop.zip' )
+	&& false !== strpos( $wp_ai_compatibility_smoke, 'non_blocking_warning' )
+	&& false !== strpos( $wp_ai_compatibility_smoke, 'playground/v1/compatibility' )
+	&& false !== strpos( $wp_ai_compatibility_smoke, 'connector_runtime_present' )
+	&& false !== strpos( $playground_smoke_mu_plugin, "'/compatibility'" )
+	&& false !== strpos( $playground_smoke_mu_plugin, "'wordpress_ai_version'" )
+	&& false !== strpos( maca_read( $root . '/includes/class-cloud-editor-assist-quality.php' ), "'wordpress_ai_version'" )
+	&& false !== strpos( maca_read( $root . '/includes/class-cloud-observability-collector.php' ), "'wordpress_ai_version'" )
+	&& false !== strpos( $ci_workflow, 'wordpress-ai-compatibility:' )
+	&& false !== strpos( $ci_workflow, 'lane: stable-primary' )
+	&& false !== strpos( $ci_workflow, 'lane: stable-regression' )
+	&& false !== strpos( $ci_workflow, 'lane: upstream-warning' )
+	&& false !== strpos( $ci_workflow, 'wordpress-ai-compatibility-required:' ),
+	'WordPress AI compatibility lanes remain declared in one fixture, exercised by the Playground runner, and blocking only where the lane gate says so.'
 );
 
 maca_assert(

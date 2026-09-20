@@ -23,8 +23,64 @@ add_action(
 			'callback'            => 'npcink_cloud_addon_playground_smoke_response',
 			)
 		);
+		register_rest_route(
+			'npcink-cloud-addon-playground/v1',
+			'/compatibility',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'permission_callback' => '__return_true',
+				'callback'            => 'npcink_cloud_addon_playground_compatibility_response',
+			)
+		);
 	}
 );
+
+/**
+ * Returns bounded compatibility evidence for the disposable Playground lane.
+ *
+ * @return WP_REST_Response|WP_Error
+ */
+function npcink_cloud_addon_playground_compatibility_response() {
+	require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	$ai_plugin_file = WP_PLUGIN_DIR . '/ai/ai.php';
+	$ai_plugin_data = file_exists( $ai_plugin_file )
+		? get_file_data( $ai_plugin_file, array( 'Version' => 'Version' ) )
+		: array();
+	$active_plugins = (array) get_option( 'active_plugins', array() );
+	$active_plugin_names = array_values(
+		array_filter(
+			array_map(
+				'sanitize_text_field',
+				$active_plugins
+			)
+		)
+	);
+	$addon_active = is_plugin_active( 'npcink-cloud-addon/npcink-cloud-addon.php' );
+	$ai_active = is_plugin_active( 'ai/ai.php' );
+	$abilities_api_present = function_exists( 'wp_register_ability' )
+		&& function_exists( 'wp_get_abilities' );
+	$connector_runtime_present = function_exists( 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime' );
+	if ( ! $ai_active || ! $addon_active ) {
+		return new WP_Error(
+			'npcink_cloud_addon_playground_compatibility_pending',
+			'Compatibility plugins are not active yet.',
+			array( 'status' => 503 )
+		);
+	}
+
+	return rest_ensure_response(
+		array(
+			'wordpress_version'          => (string) get_bloginfo( 'version' ),
+			'php_version'                => PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION,
+			'wordpress_ai_version'       => (string) ( $ai_plugin_data['Version'] ?? '' ),
+			'wordpress_ai_active'        => $ai_active,
+			'addon_active'               => $addon_active,
+			'abilities_api_present'      => $abilities_api_present,
+			'connector_runtime_present'  => $connector_runtime_present,
+			'active_plugin_names'        => $active_plugin_names,
+		)
+	);
+}
 
 /**
  * Returns bounded activation and fail-closed evidence for the disposable site.

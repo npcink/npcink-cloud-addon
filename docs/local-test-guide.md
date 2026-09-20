@@ -289,6 +289,11 @@ WP_AI_TEXT_PROVIDER_LEDGER_PLAN='{
 composer run smoke:wp-ai-text-browser
 ```
 
+The browser smoke calls the ledger's `scripts/provider_call_ledger.py` directly.
+If the host's default `python3` is unavailable, set
+`WP_AI_TEXT_PROVIDER_LEDGER_PYTHON` to an explicit Python executable (for
+example the Cloud repository virtualenv) before running the preflight.
+
 This mode fails during preflight, before a draft or Provider request exists,
 when monitoring is not explicitly enabled, the ledger plan is malformed, the
 experiment is closed, an item is unavailable, or a dispatch ID conflicts with

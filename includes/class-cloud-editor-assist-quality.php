@@ -18,12 +18,13 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 	 * Raw prompts, generated text, post IDs, and user IDs never leave WordPress.
 	 */
 	final class Npcink_Cloud_Editor_Assist_Quality {
-		public const CONTRACT_VERSION = 'editor_assist_quality.v1';
+		public const CONTRACT_VERSION = 'editor_assist_quality.v2';
 		public const PENDING_OPTION = 'npcink_cloud_addon_editor_assist_pending';
 
 		private const PENDING_TTL = HOUR_IN_SECONDS;
 		private const REPEAT_WINDOW = 10 * MINUTE_IN_SECONDS;
 		private const MAX_PENDING = 100;
+		private static $wordpress_ai_version = null;
 		private const TRACKED_TASKS = array(
 			'title_generation',
 			'content_summary',
@@ -100,6 +101,7 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 
 			$scope_context = $post_id . '|' . $task_key;
 			$record = array(
+				'generation_id'      => 'generation_' . wp_generate_uuid4(),
 				'quality_session_id' => $quality_session_id,
 				'generation_sequence' => $generation_sequence,
 				'post_id'            => $post_id,
@@ -115,18 +117,37 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 				'journey_session_id' => '' !== $journey_session_id
 					? $journey_session_id
 					: Npcink_Cloud_Customer_Journey::build_session_id( $task_key, $ability_input ),
+				'lifecycle_state'   => 'presented',
 			);
+			$superseded_record = null;
+			if ( null !== $latest_index ) {
+				$superseded_record = $records[ $latest_index ];
+				$records[ $latest_index ]['lifecycle_state'] = 'superseded';
+			}
 			$records[] = $record;
 			if ( count( $records ) > self::MAX_PENDING ) {
 				$records = array_slice( $records, -1 * self::MAX_PENDING );
 			}
 			update_option( self::PENDING_OPTION, array_values( $records ), false );
+			if ( is_array( $superseded_record ) ) {
+				self::emit_event(
+					$superseded_record,
+					'addon.editor_assist.generation.superseded',
+					array(
+						'status'          => 'warning',
+						'lifecycle_state' => 'superseded',
+						'evidence_type'   => 'newer_generation_presented',
+					)
+				);
+			}
 
 			self::emit_event(
 				$record,
-				'addon.editor_assist.generation.completed',
+				'addon.editor_assist.generation.presented',
 				array(
-					'status' => 'ok',
+					'status'          => 'ok',
+					'lifecycle_state' => 'presented',
+					'evidence_type'   => 'generation_presented',
 				)
 			);
 			if ( $generation_sequence > 1 ) {
@@ -134,7 +155,9 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 					$record,
 					'addon.editor_assist.generation.repeated',
 					array(
-						'status' => 'warning',
+						'status'          => 'warning',
+						'lifecycle_state' => 'presented',
+						'evidence_type'   => 'repeat_pressure',
 					)
 				);
 				Npcink_Cloud_Customer_Journey::capture_generation(
@@ -213,6 +236,7 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 				$task_key = (string) ( $latest['task_key'] ?? '' );
 				$run_id = (string) ( $latest['run_id'] ?? '' );
 				if ( 'saved_exact_output' === $outcome ) {
+					$latest['lifecycle_state'] = 'adopted_exact';
 					Npcink_Cloud_Customer_Journey::capture_generation(
 						$task_key,
 						'accepted',
@@ -234,6 +258,8 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 						'status'                 => 'ok',
 						'outcome'                => $outcome,
 						'outcome_confidence'     => $confidence,
+						'evidence_type'          => 'saved_exact_output' === $outcome ? 'exact_hash_match' : 'unknown_save',
+						'lifecycle_state'        => 'saved_exact_output' === $outcome ? 'adopted_exact' : 'saved_unknown',
 						'save_kind'              => 'publish' === (string) ( $post->post_status ?? '' ) ? 'publish' : 'save',
 						'time_to_outcome_bucket' => self::time_bucket( time() - absint( $latest['generated_at'] ?? time() ) ),
 					)
@@ -293,6 +319,8 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 						'status'                 => 'warning',
 						'outcome'                => 'expired_without_save',
 						'outcome_confidence'     => 'medium',
+						'evidence_type'          => 'expired_without_save',
+						'lifecycle_state'        => 'expired',
 						'save_kind'              => 'none',
 						'time_to_outcome_bucket' => 'over_60m',
 					)
@@ -322,14 +350,22 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 				return array();
 			}
 
-			return array_values(
-				array_filter(
-					$records,
-					static function ( $record ): bool {
-						return is_array( $record );
-					}
-				)
-			);
+			$normalized = array();
+			foreach ( $records as $record ) {
+				if ( ! is_array( $record ) ) {
+					continue;
+				}
+				if ( '' === (string) ( $record['generation_id'] ?? '' ) ) {
+					$legacy_key = (string) ( $record['quality_session_id'] ?? '' ) . '|' . absint( $record['generation_sequence'] ?? 0 );
+					$record['generation_id'] = 'generation_legacy_' . substr( hash( 'sha256', $legacy_key ), 0, 24 );
+				}
+				if ( '' === (string) ( $record['lifecycle_state'] ?? '' ) ) {
+					$record['lifecycle_state'] = 'presented';
+				}
+				$normalized[] = $record;
+			}
+
+			return $normalized;
 		}
 
 		/**
@@ -418,6 +454,28 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 			return hash_hmac( 'sha256', $value, wp_salt( 'auth' ) );
 		}
 
+		/**
+		 * Reads the installed official WordPress AI version from its local header.
+		 *
+		 * @return string
+		 */
+		private static function wordpress_ai_version(): string {
+			if ( null !== self::$wordpress_ai_version ) {
+				return (string) self::$wordpress_ai_version;
+			}
+			self::$wordpress_ai_version = '';
+			if ( ! defined( 'WP_PLUGIN_DIR' ) || ! function_exists( 'get_file_data' ) ) {
+				return '';
+			}
+			$plugin_file = WP_PLUGIN_DIR . '/ai/ai.php';
+			if ( ! is_readable( $plugin_file ) ) {
+				return '';
+			}
+			$plugin_data = get_file_data( $plugin_file, array( 'Version' => 'Version' ) );
+			self::$wordpress_ai_version = sanitize_text_field( (string) ( $plugin_data['Version'] ?? '' ) );
+			return (string) self::$wordpress_ai_version;
+		}
+
 		private static function time_bucket( int $seconds ): string {
 			if ( $seconds <= 60 ) {
 				return 'under_1m';
@@ -446,11 +504,13 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 						'schema_version'      => '2026-07-26',
 						'plugin_slug'        => 'npcink-cloud-addon',
 						'plugin_version'     => defined( 'NPCINK_CLOUD_ADDON_VERSION' ) ? NPCINK_CLOUD_ADDON_VERSION : '',
+						'wordpress_ai_version' => self::wordpress_ai_version(),
 						'source'             => 'wordpress_local',
 						'event_kind'         => $event_kind,
 						'event_id'           => 'evt_editor_assist_' . wp_generate_uuid4(),
 						'quality_contract'   => self::CONTRACT_VERSION,
 						'quality_session_id' => (string) ( $record['quality_session_id'] ?? '' ),
+						'generation_id'      => (string) ( $record['generation_id'] ?? '' ),
 						'task_key'           => (string) ( $record['task_key'] ?? '' ),
 						'object_scope_hash'  => (string) ( $record['object_scope_hash'] ?? '' ),
 						'actor_scope_hash'   => (string) ( $record['actor_scope_hash'] ?? '' ),

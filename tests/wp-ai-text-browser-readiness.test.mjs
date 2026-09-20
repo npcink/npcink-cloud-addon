@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 
 // Exercise the actual readiness guard without importing the opt-in runner.
 const source = readFileSync(new URL('../scripts/smoke-wordpress-ai-text-browser.mjs', import.meta.url), 'utf8');
+const matrix = JSON.parse(readFileSync(new URL('./fixtures/wp-ai-compatibility-matrix.json', import.meta.url), 'utf8'));
 const guard = source.slice(source.indexOf('function assertReadiness('), source.indexOf('\nfunction createFixture('));
 const check = runInNewContext(`${guard}\nassertReadiness`, { assert, URL });
 const ready = {
@@ -23,6 +24,27 @@ test('accepts only explicitly reviewed active AI versions', () => {
 		assert.throws(() => check('http://fixture.local', { ...ready, ai_version }), /WordPress AI/);
 	}
 	assert.throws(() => check('http://fixture.local', { ...ready, ai_active: false }), /WordPress AI/);
+});
+
+test('declares stable and upstream-warning compatibility lanes without widening the Cloud contract', () => {
+	assert.equal(matrix.contract_version, 'wordpress_ai_compatibility_matrix.v1');
+	assert.deepEqual(matrix.lanes.map((lane) => lane.lane_id), [
+		'stable-primary', 'stable-regression', 'upstream-warning',
+	]);
+	const primary = matrix.lanes.find((lane) => lane.lane_id === 'stable-primary');
+	const regression = matrix.lanes.find((lane) => lane.lane_id === 'stable-regression');
+	const warning = matrix.lanes.find((lane) => lane.lane_id === 'upstream-warning');
+	assert.equal(primary.wordpress, '7.0.4');
+	assert.equal(regression.wordpress, '7.1.1');
+	assert.equal(warning.wordpress, '7.1.1');
+	assert.deepEqual(primary.wordpress_ai_versions, ['1.3.0']);
+	assert.deepEqual(regression.wordpress_ai_versions, ['1.2.0']);
+	assert.deepEqual(primary.wordpress_ai_urls, ['https://api.github.com/repos/WordPress/ai/releases/assets/519975984']);
+	assert.deepEqual(regression.wordpress_ai_urls, ['https://api.github.com/repos/WordPress/ai/releases/assets/477122229']);
+	assert.equal(warning.gate, 'non_blocking_warning');
+	assert.equal(warning.wordpress_ai_versions[0], 'develop');
+	assert.deepEqual(warning.wordpress_ai_urls, ['https://github.com/WordPress/ai/archive/refs/heads/develop.zip']);
+	assert.deepEqual(primary.php_versions, ['8.0', '8.2', '8.4']);
 });
 
 test('version compatibility does not bypass site or connection safeguards', () => {
@@ -95,9 +117,9 @@ function wp_salt($kind) { return 'test-salt'; }
 function get_option($name, $default = false) { return $GLOBALS['options'][$name] ?? $default; }
 function update_option($name, $value, $autoload) { $GLOBALS['options'][$name] = $value; }
 function wp_json_encode($value) { return json_encode($value); }
-$foreign = array('quality_contract' => 'editor_assist_quality.v1', 'object_scope_hash' => 'other');
+$foreign = array('quality_contract' => 'editor_assist_quality.v2', 'object_scope_hash' => 'other');
 $options = array('events' => array(
-	array('quality_contract' => 'editor_assist_quality.v1', 'object_scope_hash' => hash_hmac('sha256', '42|title_generation', 'test-salt')),
+	array('quality_contract' => 'editor_assist_quality.v2', 'object_scope_hash' => hash_hmac('sha256', '42|title_generation', 'test-salt')),
 	$foreign,
 	array('event_kind' => 'unrelated'),
 ), 'pending' => array(array('post_id' => 42), array('post_id' => 43)));
