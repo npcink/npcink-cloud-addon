@@ -64,6 +64,71 @@ jobs:
           MATRIX_RESULT: ${{ needs.php-contracts.result }}
         run: test "$MATRIX_RESULT" = success
 
+  wordpress-ai-compatibility:
+    name: WordPress AI ${{ matrix.lane }} / PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.gate == 'non_blocking_warning' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lane: stable-primary
+            wordpress: '7.0.4'
+            ai_version: '1.3.0'
+            php: '8.0'
+            gate: blocking
+          - lane: stable-primary
+            wordpress: '7.0.4'
+            ai_version: '1.3.0'
+            php: '8.2'
+            gate: blocking
+          - lane: stable-primary
+            wordpress: '7.0.4'
+            ai_version: '1.3.0'
+            php: '8.4'
+            gate: blocking
+          - lane: stable-regression
+            wordpress: '7.1.1'
+            ai_version: '1.2.0'
+            php: '8.2'
+            gate: blocking
+          - lane: upstream-warning
+            wordpress: '7.1.1'
+            ai_version: develop
+            php: '8.2'
+            gate: non_blocking_warning
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Run compatibility lane
+        env:
+          WP_AI_COMPAT_LANE: ${{ matrix.lane }}
+          NPCINK_COMPAT_PLAYGROUND_PORT: 9427
+          NPCINK_COMPAT_WORDPRESS_VERSION: ${{ matrix.wordpress }}
+          NPCINK_COMPAT_PHP_VERSION: ${{ matrix.php }}
+          NPCINK_COMPAT_AI_VERSION: ${{ matrix.ai_version }}
+        run: composer run smoke:wp-ai-compatibility -- "$WP_AI_COMPAT_LANE"
+
+  wordpress-ai-compatibility-required:
+    name: WordPress AI compatibility blocking lanes
+    needs: wordpress-ai-compatibility
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Require blocking compatibility lanes
+        env:
+          MATRIX_RESULT: ${{ needs.wordpress-ai-compatibility.result }}
+        run: test "$MATRIX_RESULT" = success
+
   release-static:
     name: Release static gates
     runs-on: ubuntu-latest

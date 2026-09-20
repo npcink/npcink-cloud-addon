@@ -26,6 +26,19 @@ system, or writer to make acceptance easier.
 6. Correlate the actual model, run, official request log, delivered output, and
    reviewed draft save. Report each proven step separately.
 
+The compatibility lanes are declared in
+`tests/fixtures/wp-ai-compatibility-matrix.json`: WordPress 7.0.4 with
+WordPress AI 1.3.0 is the primary stable lane, WordPress 7.1.1 with AI 1.2.0
+is the reviewed regression lane, and WordPress 7.1.1 with upstream `develop`
+is a visible non-blocking warning lane. The
+`composer run smoke:wp-ai-compatibility -- <lane>` runner boots each lane in
+WordPress Playground, installs the pinned AI artifact, activates the Addon,
+and checks the bounded Abilities and connector seam. The Cloud contract remains
+the Npcink connector contract in every lane; upstream class names and UI hooks
+stay inside the Addon. The complete browser/provider/save flow remains an
+opt-in local acceptance check because it needs a verified Cloud connection and
+must not manufacture paid traffic in CI.
+
 ## Evidence Rules
 
 - Record site, source revision, UTC time, run ID, official log ID, draft or
@@ -46,6 +59,10 @@ system, or writer to make acceptance easier.
 - An empty telemetry buffer proves neither scheduled execution nor successful
   upload. Separate manual flush receipts, Cron registration, and naturally
   observed delivery. Never manufacture fake run IDs in a live queue.
+- Editor-assist quality events include the locally installed official WordPress
+  AI version when the reviewed `ai/ai.php` header is available. Missing version
+  data remains an explicit unknown compatibility bucket; it never becomes a
+  guessed version or a Cloud routing input.
 - Use isolated fixtures for denied entitlements, invalid credentials, and
   provider failures. Do not disrupt the real site to create test evidence.
 

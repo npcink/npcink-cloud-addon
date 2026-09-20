@@ -125,9 +125,11 @@ function exactObjectKeys(value, expectedKeys, label) {
 function providerLedgerCommand(plan, args, label) {
 	let output = '';
 	try {
+		const python = env('WP_AI_TEXT_PROVIDER_LEDGER_PYTHON', 'python3');
+		const ledgerScript = resolve(plan.ledger_repo, 'scripts/provider_call_ledger.py');
 		output = execFileSync(
-			'pnpm',
-			['run', 'provider:call-ledger', ...args],
+			python,
+			[ledgerScript, ...args],
 			{
 				cwd: plan.ledger_repo,
 				encoding: 'utf8',
@@ -515,7 +517,7 @@ $pending_count = 0;
 foreach ($events as $event) {
 	if (
 		!is_array($event)
-		|| 'editor_assist_quality.v1' !== (string) ($event['quality_contract'] ?? '')
+		|| 'editor_assist_quality.v2' !== (string) ($event['quality_contract'] ?? '')
 	) {
 		continue;
 	}
@@ -613,7 +615,7 @@ foreach (array(
 	foreach ($records as $record) {
 		$owned = is_array($record) && ('pending' === $kind
 			? $post_id === (int) ($record['post_id'] ?? 0)
-			: 'editor_assist_quality.v1' === ($record['quality_contract'] ?? '')
+			: 'editor_assist_quality.v2' === ($record['quality_contract'] ?? '')
 				&& in_array($record['object_scope_hash'] ?? '', $scopes, true));
 		if ($owned) { ++$removed[$kind]; } else { $remaining[] = $record; }
 	}
@@ -1166,6 +1168,8 @@ that fails before dispatch unless metadata-only monitoring is enabled and then
 verifies the three generated suggestions and their three local-save outcomes.
 This mode also requires WP_AI_TEXT_PROVIDER_LEDGER_PLAN with one bounded ledger
 experiment and unique title_generation, content_summary, and content_rewrite dispatches.
+Set WP_AI_TEXT_PROVIDER_LEDGER_PYTHON to an explicit Python executable when the
+host's default python3 is unavailable or has an unresolved system runtime.
 This automated checkpoint does not prove real-editor acceptance.`;
 }
 
@@ -1682,19 +1686,20 @@ try {
 	}
 	if (qualityValidationMode) {
 		assert(
-			qualityCorrelationEvidence.event_total === 8
+			qualityCorrelationEvidence.event_total === 9
 			&& qualityCorrelationEvidence.session_total === 3
 			&& qualityCorrelationEvidence.pending_count === 0,
-			'Quality evidence: four successful generations resolve into three complete editor sessions.'
+			'Quality evidence: four successful generations, one superseded generation, and three outcomes resolve into three complete editor sessions.'
 		);
 		assert(
-			qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.completed'] === 4
+			qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.presented'] === 4
 			&& qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.repeated'] === 1
+			&& qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.superseded'] === 1
 			&& qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.outcome.observed'] === 3,
 			'Quality evidence: completed, Regenerate, and local-save event counts are complete.'
 		);
 		assert(
-			qualityCorrelationEvidence.task_counts?.title_generation === 4
+			qualityCorrelationEvidence.task_counts?.title_generation === 5
 			&& qualityCorrelationEvidence.task_counts?.content_summary === 2
 			&& qualityCorrelationEvidence.task_counts?.content_rewrite === 2
 			&& qualityCorrelationEvidence.outcome_by_task?.title_generation?.saved_after_generation_unmatched === 1
@@ -1717,7 +1722,7 @@ try {
 			'Real quality evidence: three successful generations resolve into three complete editor sessions.'
 		);
 		assert(
-			qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.completed'] === 3
+			qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.presented'] === 3
 			&& (qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.generation.repeated'] || 0) === 0
 			&& qualityCorrelationEvidence.kind_counts?.['addon.editor_assist.outcome.observed'] === 3,
 			'Real quality evidence: each generated suggestion has one metadata-only local-save outcome.'

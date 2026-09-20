@@ -506,19 +506,19 @@ msgstr "Cloud Addon 设置尚未验证。"
 msgid "Cloud did not accept the monitoring state projection."
 msgstr "Cloud 未接受监控状态投影。"
 
-#: includes/class-cloud-observability-collector.php:1163
+#: includes/class-cloud-observability-collector.php:1167
 msgid "Core"
 msgstr "治理核心"
 
-#: includes/class-cloud-observability-collector.php:1168
+#: includes/class-cloud-observability-collector.php:1172
 msgid "Abilities"
 msgstr "原子能力"
 
-#: includes/class-cloud-observability-collector.php:1173
+#: includes/class-cloud-observability-collector.php:1177
 msgid "Adapter"
 msgstr "渠道适配器"
 
-#: includes/class-cloud-observability-collector.php:1178
+#: includes/class-cloud-observability-collector.php:1182
 #: includes/class-cloud-settings-page.php:224
 #: includes/class-cloud-settings-page.php:2017
 msgid "Cloud Addon"

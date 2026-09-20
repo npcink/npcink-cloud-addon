@@ -76,7 +76,7 @@ function maca_observability_event( int $index ): array {
 			'prompt'         => 'must not be collected',
 			'raw_request'    => array( 'body' => 'must not be collected' ),
 			'authorization'  => 'Bearer secret',
-			'quality_contract' => 'editor_assist_quality.v1',
+			'quality_contract' => 'editor_assist_quality.v2',
 			'quality_session_id' => 'quality_session_' . $index,
 			'task_key'       => 'content_summary',
 			'object_scope_hash' => str_repeat( 'a', 64 ),
@@ -178,7 +178,7 @@ maca_assert(
 		1 === count( $buffer )
 		&& 'npcink-governance-core' === (string) ( $buffer[0]['plugin_slug'] ?? '' )
 		&& 200 === strlen( (string) ( $buffer[0]['route'] ?? '' ) )
-		&& 'editor_assist_quality.v1' === (string) ( $buffer[0]['quality_contract'] ?? '' )
+		&& 'editor_assist_quality.v2' === (string) ( $buffer[0]['quality_contract'] ?? '' )
 		&& 'content_summary' === (string) ( $buffer[0]['task_key'] ?? '' )
 		&& 'omitted_metadata_only' === (string) ( $buffer[0]['content_storage'] ?? '' )
 		&& ! array_key_exists( 'prompt', $buffer[0] )
