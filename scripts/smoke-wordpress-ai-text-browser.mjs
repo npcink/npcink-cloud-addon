@@ -483,6 +483,17 @@ function installFakeProvider(token) {
 	return { optionName, pluginPath, expiresAt };
 }
 
+function assertSyntheticTitleFailure(evidence) {
+	const events = evidence?.events;
+	assert(
+		evidence?.title_calls === 1 && Array.isArray(events) && events.length === 1
+			&& events[0]?.task === 'title_generation'
+			&& events[0].outcome === 'provider_unavailable'
+			&& events[0].transport_preempted === true,
+		'The first title failure reached the fixture fake transport; an unrelated ability error is not synthetic failure evidence.'
+	);
+}
+
 function readFakeProviderEvidence(fakeProvider) {
 	return parseJson(
 		wpCli([
@@ -681,6 +692,9 @@ require_once ABSPATH . 'wp-admin/includes/plugin.php';
 $ai_file = WP_PLUGIN_DIR . '/ai/ai.php';
 $ai_data = file_exists($ai_file) ? get_plugin_data($ai_file, false, false) : array();
 $administrator = get_users(array('role' => 'administrator', 'number' => 1, 'orderby' => 'ID', 'order' => 'ASC'));
+$capabilities = class_exists('Npcink_Cloud_Entitlement_Summary')
+	? Npcink_Cloud_Entitlement_Summary::get_wordpress_ai_capabilities(false)
+	: array();
 echo wp_json_encode(array(
 	'environment' => wp_get_environment_type(),
 	'home_url' => home_url('/'),
@@ -691,6 +705,7 @@ echo wp_json_encode(array(
 	'addon_version' => defined('NPCINK_CLOUD_ADDON_VERSION') ? NPCINK_CLOUD_ADDON_VERSION : '',
 	'addon_verified' => class_exists('Npcink_Cloud_Addon_Settings') && Npcink_Cloud_Addon_Settings::is_verified(),
 	'connector_enabled' => class_exists('Npcink_Cloud_Addon_Settings') && Npcink_Cloud_Addon_Settings::is_wordpress_ai_connector_enabled(),
+	'text_capability' => $capabilities['capabilities']['text_generation'] ?? array(),
 	'monitoring_enabled' => class_exists('Npcink_Cloud_Addon_Settings') && Npcink_Cloud_Addon_Settings::is_monitoring_enabled(),
 	'features' => array(
 		'global' => (bool) get_option('wpai_features_enabled', false),
@@ -711,6 +726,13 @@ function assertReadiness(baseUrl, readiness) {
 	assert(new URL(readiness.home_url).origin === baseUrl, 'WP_BASE_URL matches the Local WordPress home origin.');
 	assert(readiness.ai_active && ['1.2.0', '1.3.0'].includes(readiness.ai_version), 'Official WordPress AI 1.2.0 or 1.3.0 is active.');
 	assert(readiness.addon_loaded && readiness.addon_verified && readiness.connector_enabled, 'Verified Cloud Addon connector is enabled for WordPress AI.');
+	const capability = readiness.text_capability;
+	const reason = /^[a-z_]{1,64}$/.test(capability?.reason_code || '') ? capability.reason_code : 'snapshot_unavailable';
+	assert(
+		capability?.state === 'configured' && capability?.configuration_state === 'configured'
+			&& capability?.entitlement_state === 'configured' && capability?.reason_code === 'configured',
+		`Fresh cached Cloud text capability must be configured (reason=${reason}). Refresh through the existing Cloud connection check; preflight does not refresh or override capability evidence.`
+	);
 	assert(Object.values(readiness.features).every(Boolean), 'Global, title, summary, and content resizing WordPress AI features are enabled.');
 	assert(readiness.has_administrator, 'A local administrator is available for the isolated fixture.');
 }
@@ -1428,6 +1450,7 @@ try {
 			'first synthetic title failure response',
 			15000
 		);
+		assertSyntheticTitleFailure(readFakeProviderEvidence(fakeProvider));
 		const errorNotice = await waitForVisibleLocator(
 			page,
 			[page.locator('.components-notice.is-error'), editorFrame.locator('.components-notice.is-error')],

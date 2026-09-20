@@ -14,7 +14,43 @@ const ready = {
 	ai_version: '1.3.0', addon_loaded: true, addon_verified: true,
 	connector_enabled: true, features: { global: true, title: true, summary: true, resizing: true },
 	has_administrator: true,
+	text_capability: {
+		state: 'configured', reason_code: 'configured',
+		configuration_state: 'configured', entitlement_state: 'configured',
+	},
 };
+
+test('verified credentials cannot bypass missing, stale, or unavailable text capability', () => {
+	for (const text_capability of [
+		undefined, {},
+		{ ...ready.text_capability, state: 'unavailable', configuration_state: 'unavailable', reason_code: 'no_eligible_model' },
+		{ ...ready.text_capability, state: 'unknown', reason_code: 'snapshot_expired' },
+		{ ...ready.text_capability, state: 'unknown', reason_code: 'refresh_failed' },
+		{ ...ready.text_capability, entitlement_state: 'unavailable' },
+	]) {
+		assert.throws(() => check('http://fixture.local', { ...ready, text_capability }), /Cloud text capability/);
+	}
+	assert.throws(() => check('http://fixture.local', {
+		...ready, text_capability: { state: 'unavailable', reason_code: 'no_eligible_model' },
+	}), /reason=no_eligible_model/);
+});
+
+test('synthetic failure evidence requires the actual fixture transport attempt', () => {
+	const code = source.slice(source.indexOf('function assertSyntheticTitleFailure('), source.indexOf('\nfunction readFakeProviderEvidence('));
+	const validate = runInNewContext(`${code}\nassertSyntheticTitleFailure`, { assert });
+	const event = { task: 'title_generation', outcome: 'provider_unavailable', transport_preempted: true };
+	assert.doesNotThrow(() => validate({ title_calls: 1, events: [event] }));
+	for (const evidence of [
+		undefined, { title_calls: 0, events: [] },
+		{ title_calls: 1, events: [null] },
+		{ title_calls: 2, events: [event, event] },
+		{ title_calls: 1, events: [{ ...event, task: 'content_summary' }] },
+		{ title_calls: 1, events: [{ ...event, outcome: 'succeeded' }] },
+		{ title_calls: 1, events: [{ ...event, transport_preempted: false }] },
+	]) {
+		assert.throws(() => validate(evidence), /unrelated ability error/);
+	}
+});
 
 test('accepts only explicitly reviewed active AI versions', () => {
 	for (const ai_version of ['1.2.0', '1.3.0']) {
