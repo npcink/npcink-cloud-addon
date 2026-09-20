@@ -1,5 +1,9 @@
 # Local Test Guide
 
+For the business-validation sequence and its evidence/exit criteria, follow
+[Local Business Validation Plan v1](local-business-validation-plan-v1.md).
+This guide contains the command-level details used by that plan.
+
 Before any Local WordPress browser acceptance, identify the plugin worktree
 actually mounted by the site. Follow
 [the Local WordPress Acceptance Runbook](local-wordpress-acceptance-runbook.md)
@@ -178,6 +182,20 @@ browser, invoke an AI provider, or write WordPress data. Use
 `composer run smoke:wp-ai-text-browser -- --help` to inspect the two modes
 without connecting to WordPress.
 
+It also requires fresh cached Cloud text-generation capability evidence. Saved
+credentials alone do not prove model availability. Missing, expired, failed,
+or `no_eligible_model` evidence stops preflight before fixture creation, in both
+fake and real modes. Preflight reads the existing projection without a signed
+refresh or a capability override. Use the existing connection check to refresh
+the snapshot; resolve unavailable models in Cloud before trying again. The
+fake transport substitutes execution output only; it does not simulate model
+discovery, entitlement, or signed Cloud ingestion.
+
+The default PHP executable, database socket, and site scheme are installation
+specific. Set `WP_CLI_PHP`, `WP_DB_SOCKET`, and `WP_BASE_URL` to the inspected
+Local site's actual values; do not assume an old example still matches the
+current Local installation.
+
 The version allowlist is exact: other versions fail closed. AI 1.3.0 retains
 the title modal, summary block marker, and shorten/expand/rephrase controls
 used by this harness. Source compatibility is not browser acceptance; retain
@@ -233,6 +251,9 @@ Fake-provider mode installs one random-name, ten-minute local MU filter for the
 isolated fixture only. It preempts the Addon HTTP request with the canonical
 `cloud_connector_result.v1` shape, makes the first title attempt fail, and then
 exercises retry, Regenerate, manual title editing, Insert, and normal Save. The
+runner verifies that the first failed title attempt actually reached this
+fixture transport before calling it synthetic failure evidence. An unrelated
+`unsupported_model` error cannot satisfy that assertion. The
 filter records only task name, bounded outcome, data classification, storage
 mode, suggestion-only posture, Site Knowledge-reference presence, and sequence
 number. It stores no prompt, post content, generated title, credentials, or
