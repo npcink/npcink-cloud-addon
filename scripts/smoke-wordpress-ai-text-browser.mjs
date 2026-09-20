@@ -35,6 +35,8 @@ function assert(condition, message) {
 	pass(message);
 }
 
+class ScenarioCompleted extends Error {}
+
 function sha256(value) {
 	return createHash('sha256').update(String(value)).digest('hex');
 }
@@ -299,7 +301,7 @@ function fakeProviderOptionName(token) {
 	return `npcink_cloud_addon_browser_fake_${token}`;
 }
 
-function fakeProviderPluginSource(token, optionName, expiresAt) {
+function fakeProviderPluginSource(token, optionName, expiresAt, delayTitleCall = 0) {
 	const quotedToken = phpString(token);
 	const quotedOptionName = phpString(optionName);
 
@@ -315,6 +317,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_filter(
+	'pre_update_option_npcink_cloud_addon_customer_journey_buffer',
+	static function ( $value, $old_value ) {
+		$state = get_option( ${quotedOptionName}, array() );
+		if ( ! is_array( $state ) || ${quotedToken} !== (string) ( $state['token'] ?? '' ) ) {
+			return $value;
+		}
+		$baseline = is_array( $state['journey_baseline_event_ids'] ?? null )
+			? array_fill_keys( array_map( 'strval', $state['journey_baseline_event_ids'] ), true )
+			: array();
+		$owned = is_array( $state['journey_event_ids'] ?? null )
+			? array_fill_keys( array_map( 'strval', $state['journey_event_ids'] ), true )
+			: array();
+		foreach ( is_array( $value ) ? $value : array() as $event ) {
+			$event_id = is_array( $event ) ? (string) ( $event['event_id'] ?? '' ) : '';
+			if ( '' !== $event_id && ! isset( $baseline[ $event_id ] ) ) {
+				$owned[ $event_id ] = true;
+			}
+		}
+		$state['journey_event_ids'] = array_keys( $owned );
+		update_option( ${quotedOptionName}, $state, false );
+		return $value;
+	},
+	10,
+	2
+);
+
+add_filter(
 	'pre_http_request',
 	static function ( $preempt, array $parsed_args, string $url ) {
 		$environment = wp_get_environment_type();
@@ -328,7 +357,7 @@ add_filter(
 			return $preempt;
 		}
 		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
-		if ( ! in_array( $path, array( '/v1/runtime/execute', '/v1/observability/plugin-events' ), true ) ) {
+		if ( ! in_array( $path, array( '/v1/runtime/execute', '/v1/observability/plugin-events', '/v1/customer-journey/events' ), true ) ) {
 			return $preempt;
 		}
 
@@ -344,10 +373,10 @@ add_filter(
 			);
 		}
 
-		if ( '/v1/observability/plugin-events' === $path ) {
+		if ( in_array( $path, array( '/v1/observability/plugin-events', '/v1/customer-journey/events' ), true ) ) {
 			return new WP_Error(
 				'npcink_browser_fake_upload_isolated',
-				'Monitoring uploads are paused during the disposable fake-provider test.'
+				'Monitoring and customer-journey uploads are paused during the disposable fake-provider test.'
 			);
 		}
 		if ( '/v1/runtime/execute' !== $path ) {
@@ -379,6 +408,9 @@ add_filter(
 		$state['title_calls'] = absint( $state['title_calls'] ?? 0 );
 		if ( 'title_generation' === $task ) {
 			++$state['title_calls'];
+			if ( ${Number(delayTitleCall)} > 0 && ${Number(delayTitleCall)} === $state['title_calls'] ) {
+				usleep( 1500000 );
+			}
 		}
 		$outcome = 'succeeded';
 		if ( 'title_generation' === $task && 1 === $state['title_calls'] ) {
@@ -468,19 +500,27 @@ add_filter(
 function installFakeProvider(token) {
 	const optionName = fakeProviderOptionName(token);
 	const expiresAt = Math.floor(Date.now() / 1000) + 600;
+	const delayTitleCall = scenarioMode === 'concurrent-tabs' ? 2 : 0;
 	const muPluginDir = resolve(wpPath(), 'wp-content/mu-plugins');
 	const pluginPath = resolve(muPluginDir, `npcink-cloud-addon-browser-fake-${token}.php`);
 	assert(pluginPath.startsWith(`${muPluginDir}/`), 'Disposable fake-provider plugin stays inside the Local mu-plugins directory.');
 	assert(!existsSync(pluginPath), 'Disposable fake-provider plugin path is unused before setup.');
 	mkdirSync(muPluginDir, { recursive: true });
-	writeFileSync(pluginPath, fakeProviderPluginSource(token, optionName, expiresAt), { encoding: 'utf8', mode: 0o600, flag: 'wx' });
-	wpCli([
+	writeFileSync(pluginPath, fakeProviderPluginSource(token, optionName, expiresAt, delayTitleCall), { encoding: 'utf8', mode: 0o600, flag: 'wx' });
+	const state = parseJson(wpCli([
 		'eval',
-		`update_option(${phpString(optionName)}, array('token'=>${phpString(token)}, 'title_calls'=>0, 'events'=>array()), false); echo wp_json_encode(array('active'=>${phpString(token)} === (string) (get_option(${phpString(optionName)}, array())['token'] ?? '')));`,
-	]);
+		`$baseline = array(); foreach ((array) get_option(Npcink_Cloud_Customer_Journey::BUFFER_OPTION, array()) as $event) { if (is_array($event) && '' !== (string) ($event['event_id'] ?? '')) { $baseline[] = (string) $event['event_id']; } } update_option(${phpString(optionName)}, array('token'=>${phpString(token)}, 'title_calls'=>0, 'events'=>array(), 'journey_baseline_event_ids'=>$baseline, 'journey_event_ids'=>array()), false); echo wp_json_encode(array('active'=>${phpString(token)} === (string) (get_option(${phpString(optionName)}, array())['token'] ?? ''), 'journey_baseline_event_ids'=>$baseline));`,
+	]), 'Fake-provider installation state');
 	assert(existsSync(pluginPath), 'Disposable fake-provider plugin is installed for this fixture only.');
 
-	return { optionName, pluginPath, expiresAt };
+	return {
+		optionName,
+		pluginPath,
+		expiresAt,
+		delayTitleCall,
+		journeyRunPrefix: `run_browser_fake_${token}_`,
+		journeyBaselineEventIds: Array.isArray(state.journey_baseline_event_ids) ? state.journey_baseline_event_ids : [],
+	};
 }
 
 function assertSyntheticTitleFailure(evidence) {
@@ -588,7 +628,21 @@ echo wp_json_encode(array(
 
 function removeFakeProvider(fakeProvider) {
 	let optionDeleted = false;
+	let journeyEventsRemoved = 0;
 	try {
+		const baselineEventIds = fakeProvider.journeyBaselineEventIds.map((eventId) => String(eventId));
+		const journeyRunPrefix = fakeProvider.journeyRunPrefix;
+		const journeyCleanup = parseJson(
+			wpCli([
+				'eval',
+				`$baseline = json_decode(${phpString(JSON.stringify(baselineEventIds))}, true); $baseline = is_array($baseline) ? array_fill_keys($baseline, true) : array(); $prefix = ${phpString(journeyRunPrefix)}; $fake_state = get_option(${phpString(fakeProvider.optionName)}, array()); $owned = is_array($fake_state['journey_event_ids'] ?? null) ? array_fill_keys(array_map('strval', $fake_state['journey_event_ids']), true) : array(); $events = get_option(Npcink_Cloud_Customer_Journey::BUFFER_OPTION, array()); $events = is_array($events) ? $events : array(); $remaining = array(); $removed = 0; foreach ($events as $event) { $event_id = is_array($event) ? (string) ($event['event_id'] ?? '') : ''; $run_id = is_array($event) ? (string) ($event['run_id'] ?? '') : ''; if (isset($owned[$event_id]) || ('' !== $prefix && 0 === strpos($run_id, $prefix))) { ++$removed; continue; } $remaining[] = $event; } update_option(Npcink_Cloud_Customer_Journey::BUFFER_OPTION, $remaining, false); $remaining_ids = array_fill_keys(array_filter(array_map(static function ($event) { return is_array($event) ? (string) ($event['event_id'] ?? '') : ''; }, $remaining)), true); echo wp_json_encode(array('removed'=>$removed, 'remaining'=>count($remaining), 'expected_baseline'=>count($baseline), 'baseline_preserved'=>0 === count(array_diff_key($baseline, $remaining_ids))));`,
+			]),
+			'Fake-provider customer-journey cleanup'
+		);
+		journeyEventsRemoved = Number(journeyCleanup.removed || 0);
+		if (journeyCleanup.baseline_preserved !== true) {
+			throw new Error('Disposable fake-provider cleanup did not preserve the pre-existing customer-journey buffer.');
+		}
 		const result = parseJson(
 			wpCli([
 				'eval',
@@ -603,7 +657,7 @@ function removeFakeProvider(fakeProvider) {
 		}
 	}
 
-	return { optionDeleted, pluginDeleted: !existsSync(fakeProvider.pluginPath) };
+	return { optionDeleted, pluginDeleted: !existsSync(fakeProvider.pluginPath), journeyEventsRemoved };
 }
 
 function fixtureQualityCleanupSource(postId) {
@@ -782,6 +836,31 @@ echo wp_json_encode(array('post_id' => (int) $post_id, 'author_id' => (int) $use
 		]),
 		'Fixture creation'
 	);
+}
+
+function createPermissionUser(token) {
+	const login = `npcink_p5b3_author_${token}`;
+	const email = `${login}@example.invalid`;
+	const userId = Number(wpCli([
+		'user',
+		'create',
+		login,
+		email,
+		'--role=author',
+		'--display_name=Disposable P5-B3 Author',
+		'--porcelain',
+	]));
+	if (!Number.isSafeInteger(userId) || userId < 1) {
+		throw new Error('Disposable permission user creation did not return a valid user ID.');
+	}
+	return userId;
+}
+
+function deletePermissionUser(userId) {
+	if (!Number.isSafeInteger(userId) || userId < 1) {
+		return;
+	}
+	wpCli(['user', 'delete', String(userId), '--yes']);
 }
 
 function summaryMetaKey(version) {
@@ -1273,6 +1352,7 @@ const savedScreenshotPath = resolve(env('WP_AI_TEXT_SAVED_SCREENSHOT', `${artifa
 const failureScreenshotPath = resolve(env('WP_AI_TEXT_FAILURE_SCREENSHOT', `${artifactDir}/wordpress-ai-text-failure.png`));
 const summaryPath = env('WP_AI_TEXT_SUMMARY_PATH', '');
 const fakeProviderMode = env('WP_AI_TEXT_FAKE_PROVIDER') === '1';
+const scenarioMode = env('WP_AI_TEXT_SCENARIO', '');
 const qualityValidationMode = env('WP_AI_TEXT_VALIDATE_QUALITY') === '1';
 const providerQualityValidationMode = env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1';
 const providerLedgerPlanRaw = env('WP_AI_TEXT_PROVIDER_LEDGER_PLAN');
@@ -1289,6 +1369,14 @@ if (
 }
 if (qualityValidationMode && providerQualityValidationMode) {
 	console.error('FAIL: Select only one quality-correlation validation mode.');
+	process.exit(2);
+}
+if (scenarioMode !== '' && !['cancel-reload', 'concurrent-tabs', 'permission-denied'].includes(scenarioMode)) {
+	console.error(`FAIL: Unsupported WP_AI_TEXT_SCENARIO: ${scenarioMode}.`);
+	process.exit(2);
+}
+if (scenarioMode !== '' && !fakeProviderMode) {
+	console.error('FAIL: WP_AI_TEXT_SCENARIO requires WP_AI_TEXT_FAKE_PROVIDER=1.');
 	process.exit(2);
 }
 const providerLedgerPlan = providerQualityValidationMode
@@ -1311,6 +1399,7 @@ let aiVersion = '';
 let browser = null;
 let page = null;
 let postId = 0;
+let permissionUserId = 0;
 let autosaveLocked = false;
 let manualSaveStarted = false;
 let authSession = null;
@@ -1380,7 +1469,10 @@ try {
 	}
 	browser = await chromium.launch(launchOptions);
 	const context = await browser.newContext({ ignoreHTTPSErrors: true });
-	const authentication = authCookies(baseUrl, fixture.author_id);
+	const browserUserId = scenarioMode === 'permission-denied'
+		? (permissionUserId = createPermissionUser(token))
+		: fixture.author_id;
+	const authentication = authCookies(baseUrl, browserUserId);
 	authSession = authentication.session;
 	assert(authSession.userId > 0 && authSession.token.length >= 8 && authentication.cookies.length === 3, 'One short-lived WordPress session backs all three browser authentication cookies.');
 	await context.addCookies(authentication.cookies);
@@ -1410,7 +1502,178 @@ try {
 	});
 
 	await page.goto(`${baseUrl}/wp-admin/post.php?post=${postId}&action=edit`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+	if (scenarioMode === 'permission-denied') {
+		const pageText = (await page.locator('body').innerText()).replace(/\s+/g, ' ').trim();
+		assert(
+			/You are not allowed to edit this post\.?|You are not allowed to edit this item\.?|没有权限编辑|无权编辑|您不能编辑此项目/i.test(pageText),
+			'Permission evidence: a non-owner author cannot open the administrator-owned draft for editing.'
+		);
+		assert(abilityResponses.length === 0, 'Permission evidence: no WordPress AI ability request is issued when editing is denied.');
+		assert(preSaveWrites.length === 0 && saveWrites.length === 0, 'Permission evidence: denied editing causes no autosave or post write.');
+		assert(samePersistedSnapshot(initialSnapshot, databaseSnapshot(postId)), 'Permission evidence: the protected draft remains unchanged.');
+		fakeProviderEvidence = readFakeProviderEvidence(fakeProvider);
+		const permissionFakeEvents = Array.isArray(fakeProviderEvidence.events) ? fakeProviderEvidence.events : [];
+		assert(permissionFakeEvents.length === 0, 'Permission evidence: the fake transport receives no request from the denied session.');
+		machineSummary = {
+			contract: 'p5_b3_wordpress_ai_text_browser.v1',
+			scenario: 'permission-denied',
+			execution_mode: 'local_fake_provider',
+			site_origin: baseUrl,
+			environment: readiness.environment,
+			versions: {
+				wordpress: readiness.wordpress_version,
+				wordpress_ai: readiness.ai_version,
+				cloud_addon: readiness.addon_version,
+			},
+			api_data_path_evidence: {
+				ability_responses: abilityResponses,
+				pre_save_post_writes: preSaveWrites.length,
+				explicit_save_writes: saveWrites.length,
+				stored_content_unchanged: true,
+			},
+			persistence_evidence: {
+				permission_denied: true,
+				fake_transport_events: permissionFakeEvents.length,
+			},
+			fixture: { post_id: postId, deleted: false },
+		};
+		pass('Permission-denied scenario completed without exposing the protected editor.');
+		throw new ScenarioCompleted();
+	}
 	assert(!page.url().includes('wp-login.php'), 'WP-CLI cookies open the real block editor without a login redirect.');
+	if (scenarioMode === 'concurrent-tabs') {
+		const concurrentPage = await context.newPage();
+		const concurrentAbilityResponses = [];
+		const concurrentPreSaveWrites = [];
+		const concurrentSaveWrites = [];
+		concurrentPage.on('response', (response) => {
+			const kind = abilityKind(response.url());
+			if (!kind) {
+				return;
+			}
+			const request = response.request();
+			concurrentAbilityResponses.push({
+				kind,
+				status: response.status(),
+				method: request.method(),
+				action: kind === 'content-resizing' ? abilityAction(request) : '',
+			});
+		});
+		concurrentPage.on('request', (request) => {
+			if (isFixtureWrite(request.url(), request.method(), postId)) {
+				concurrentPreSaveWrites.push({ method: request.method(), path: requestRestPath(request.url()) });
+			}
+		});
+		await concurrentPage.goto(`${baseUrl}/wp-admin/post.php?post=${postId}&action=edit`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+		assert(!concurrentPage.url().includes('wp-login.php'), 'Concurrent-tabs evidence: the second editor opens with the same short-lived session.');
+		await Promise.all([
+			page.waitForFunction(() => Boolean(window.wp?.data?.select?.('core/editor')?.getCurrentPostId?.()), null, { timeout: 30000 }),
+			concurrentPage.waitForFunction(() => Boolean(window.wp?.data?.select?.('core/editor')?.getCurrentPostId?.()), null, { timeout: 30000 }),
+		]);
+		assert(await dismissEditorOverlays(page), 'Concurrent-tabs evidence: first editor overlays are dismissed.');
+		assert(await dismissEditorOverlays(concurrentPage), 'Concurrent-tabs evidence: second editor overlays are dismissed.');
+
+		const titleControls = async (targetPage) => {
+			const targetFrame = targetPage.frameLocator('iframe[name="editor-canvas"], iframe.wp-block-editor-iframe__iframe').first();
+			await waitForVisibleLocator(
+				targetPage,
+				[targetFrame.locator('.ai-title-toolbar-wrapper'), targetPage.locator('.ai-title-toolbar-wrapper')],
+				'concurrent title-toolbar wrapper',
+				30000
+			);
+			const targetInput = await waitForVisibleLocator(
+				targetPage,
+				[
+					targetFrame.locator('.ai-title-toolbar-wrapper .editor-post-title__input'),
+					targetPage.locator('.ai-title-toolbar-wrapper .editor-post-title__input'),
+				],
+				'concurrent title input'
+			);
+			const targetButtonCandidates = [
+				targetFrame.locator('.ai-title-toolbar-container button'),
+				targetPage.locator('.ai-title-toolbar-container button'),
+			];
+			await targetInput.focus();
+			await targetInput.click();
+			const targetButton = await waitForVisibleLocator(targetPage, targetButtonCandidates, 'concurrent title-generation control', 30000);
+			assert(!(await targetButton.isDisabled()), 'Concurrent-tabs evidence: both title controls are enabled.');
+			return { targetFrame, targetInput, targetButton };
+		};
+
+		const firstControls = await titleControls(page);
+		const secondControls = await titleControls(concurrentPage);
+		await Promise.all([firstControls.targetButton.click(), secondControls.targetButton.click()]);
+		await waitForCondition(
+			page,
+			async () => (
+				abilityResponses.some((entry) => entry.kind === 'title-generation')
+				&& concurrentAbilityResponses.some((entry) => entry.kind === 'title-generation')
+			),
+			'two concurrent title responses',
+			30000
+		);
+
+		const titleModalFor = async (targetPage, controls, responses, label) => {
+			const modalLocators = [targetPage.locator('.ai-title-generation-modal'), controls.targetFrame.locator('.ai-title-generation-modal')];
+			let modal;
+			try {
+				modal = await waitForVisibleLocator(targetPage, modalLocators, `${label} title suggestion modal`, 9000);
+			} catch (error) {
+				const errorNotice = await waitForVisibleLocator(
+					targetPage,
+					[targetPage.locator('.components-notice.is-error'), controls.targetFrame.locator('.components-notice.is-error')],
+					`${label} delayed title failure notice`,
+					5000
+				);
+				assert((await errorNotice.innerText()).trim().length > 0, `${label} delayed response exposes a visible failure notice.`);
+				await waitForCondition(targetPage, async () => !(await controls.targetButton.isDisabled().catch(() => true)), `${label} title retry control`, 15000);
+				await controls.targetButton.click();
+				modal = await waitForVisibleLocator(targetPage, modalLocators, `${label} retried title suggestion modal`, 30000);
+			}
+			const textarea = modal.locator('textarea').first();
+			await waitForCondition(targetPage, async () => (await textarea.inputValue().catch(() => '')).trim().length > 0, `${label} generated title`, 30000);
+			assert(responses.some((entry) => entry.kind === 'title-generation' && entry.status >= 200 && entry.status < 300), `${label} receives a successful title response after the delayed request.`);
+			return (await textarea.inputValue()).trim();
+		};
+
+		const firstConcurrentTitle = await titleModalFor(page, firstControls, abilityResponses, 'First tab');
+		const secondConcurrentTitle = await titleModalFor(concurrentPage, secondControls, concurrentAbilityResponses, 'Second tab');
+		assert(firstConcurrentTitle.length > 0 && secondConcurrentTitle.length > 0, 'Concurrent-tabs evidence: both editors display bounded non-empty suggestions.');
+		assert(samePersistedSnapshot(initialSnapshot, databaseSnapshot(postId)), 'Concurrent-tabs evidence: delayed and concurrent suggestions do not write the shared draft.');
+		assert(preSaveWrites.length === 0 && concurrentPreSaveWrites.length === 0 && saveWrites.length === 0 && concurrentSaveWrites.length === 0, 'Concurrent-tabs evidence: neither editor writes before explicit save.');
+		fakeProviderEvidence = readFakeProviderEvidence(fakeProvider);
+		const concurrentFakeEvents = Array.isArray(fakeProviderEvidence.events) ? fakeProviderEvidence.events : [];
+		const concurrentTitleEvents = concurrentFakeEvents.filter((entry) => entry.task === 'title_generation');
+		assert(concurrentTitleEvents.length >= 3 && concurrentTitleEvents.every((entry) => entry.transport_preempted === true && entry.suggestion_only === true), 'Concurrent-tabs evidence: delayed, retry, and successful title attempts remain inside the isolated fake transport.');
+		machineSummary = {
+			contract: 'p5_b3_wordpress_ai_text_browser.v1',
+			scenario: 'concurrent-tabs',
+			execution_mode: 'local_fake_provider',
+			site_origin: baseUrl,
+			environment: readiness.environment,
+			versions: {
+				wordpress: readiness.wordpress_version,
+				wordpress_ai: readiness.ai_version,
+				cloud_addon: readiness.addon_version,
+			},
+			api_data_path_evidence: {
+				first_tab_ability_responses: abilityResponses,
+				second_tab_ability_responses: concurrentAbilityResponses,
+				pre_save_post_writes: preSaveWrites.length + concurrentPreSaveWrites.length,
+				explicit_save_writes: saveWrites.length + concurrentSaveWrites.length,
+				stored_content_unchanged: true,
+			},
+			persistence_evidence: {
+				two_tabs_reviewed: true,
+				delayed_response_handled: true,
+				first_tab_title_sha256: sha256(firstConcurrentTitle),
+				second_tab_title_sha256: sha256(secondConcurrentTitle),
+			},
+			fixture: { post_id: postId, deleted: false },
+		};
+		pass('Concurrent-tabs scenario completed with delayed title response isolation and no pre-save writes.');
+		throw new ScenarioCompleted();
+	}
 	await page.waitForFunction(() => Boolean(window.wp?.data?.select?.('core/editor')?.getCurrentPostId?.()), null, { timeout: 30000 });
 	assert(await dismissEditorOverlays(page), 'Fresh editor startup overlays are dismissed before WordPress AI review.');
 	autosaveLocked = await lockAutosaving(page);
@@ -1620,6 +1883,57 @@ try {
 	assert(acceptedState.targetAiResized && acceptedState.targetText === suggestedReviewText, 'UI review evidence: Accept changes only the selected paragraph block in editor state.');
 	assert(samePersistedSnapshot(initialSnapshot, databaseSnapshot(postId)), 'Data-path evidence: accepted title, summary, and paragraph remain unsaved until the explicit local save.');
 	assert(preSaveWrites.length === 0, 'API evidence: no fixture post/autosave REST write occurred before explicit Save/Update.');
+
+	if (scenarioMode === 'cancel-reload') {
+		assert(saveWrites.length === 0, 'Cancel/reload evidence: leaving the editor has not issued a normal save.');
+		assert(preSaveWrites.length === 0, 'Cancel/reload evidence: no autosave or post write occurred before leaving.');
+		const persistedBeforeLeave = databaseSnapshot(postId);
+		assert(samePersistedSnapshot(initialSnapshot, persistedBeforeLeave), 'Cancel/reload evidence: the stored draft is unchanged before leaving.');
+		await page.close();
+		page = null;
+		autosaveLocked = false;
+		page = await context.newPage();
+		await page.goto(`${baseUrl}/wp-admin/post.php?post=${postId}&action=edit`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+		assert(!page.url().includes('wp-login.php'), 'Cancel/reload evidence: the editor can be reopened after abandoning the dirty session.');
+		await page.waitForFunction(() => Boolean(window.wp?.data?.select?.('core/editor')?.getCurrentPostId?.()), null, { timeout: 30000 });
+		assert(await dismissEditorOverlays(page), 'Cancel/reload evidence: reopened editor overlays are dismissed.');
+		const reopenedState = await editorState(page);
+		const reopenedBlocks = await page.evaluate(() => window.wp?.data?.select?.('core/block-editor')?.getBlocks?.() || []);
+		assert(reopenedState.title === initialSnapshot.title && reopenedState.summaryCount === 0 && !reopenedState.dirty, 'Cancel/reload evidence: unsaved title and summary changes are discarded after reopening.');
+		assert(!reopenedBlocks.some((block) => block?.attributes?.aiResized === true), 'Cancel/reload evidence: the unsaved rewrite marker is discarded after reopening.');
+		assert(samePersistedSnapshot(initialSnapshot, databaseSnapshot(postId)), 'Cancel/reload evidence: abandoning the editor leaves the stored draft unchanged.');
+		fakeProviderEvidence = readFakeProviderEvidence(fakeProvider);
+		const cancelFakeEvents = Array.isArray(fakeProviderEvidence.events) ? fakeProviderEvidence.events : [];
+		assert(cancelFakeEvents.length === 5 && cancelFakeEvents.every((entry) => entry.transport_preempted === true && entry.suggestion_only === true), 'Cancel/reload evidence: all generated suggestions stayed inside the local fake transport.');
+		machineSummary = {
+			contract: 'p5_b3_wordpress_ai_text_browser.v1',
+			scenario: 'cancel-reload',
+			execution_mode: 'local_fake_provider',
+			site_origin: baseUrl,
+			environment: readiness.environment,
+			versions: {
+				wordpress: readiness.wordpress_version,
+				wordpress_ai: readiness.ai_version,
+				cloud_addon: readiness.addon_version,
+			},
+			api_data_path_evidence: {
+				ability_responses: abilityResponses,
+				pre_save_post_writes: preSaveWrites.length,
+				explicit_save_writes: saveWrites.length,
+				stored_content_unchanged: true,
+				reopened_dirty: reopenedState.dirty,
+			},
+			persistence_evidence: {
+				cancelled: true,
+				unsaved_title_discarded: reopenedState.title === initialSnapshot.title,
+				unsaved_summary_discarded: reopenedState.summaryCount === 0,
+				unsaved_rewrite_discarded: !reopenedBlocks.some((block) => block?.attributes?.aiResized === true),
+			},
+			fixture: { post_id: postId, deleted: false },
+		};
+		pass('Cancel/reload scenario completed without saving the disposable fixture.');
+		throw new ScenarioCompleted();
+	}
 
 	await waitForCondition(
 		page,
@@ -1863,9 +2177,13 @@ try {
 		fixture: { post_id: postId, deleted: false },
 	};
 } catch (error) {
-	failure = error;
-	if (page) {
-		await captureDiagnostics(page, failureScreenshotPath, abilityResponses, preSaveWrites, error);
+	if (error instanceof ScenarioCompleted) {
+		failure = null;
+	} else {
+		failure = error;
+		if (page) {
+			await captureDiagnostics(page, failureScreenshotPath, abilityResponses, preSaveWrites, error);
+		}
 	}
 } finally {
 	if (page && autosaveLocked) {
@@ -1903,6 +2221,16 @@ try {
 			console.error(`FAIL: authentication session cleanup: ${cleanupError.message || cleanupError}`);
 		}
 	}
+	if (permissionUserId > 0) {
+		try {
+			deletePermissionUser(permissionUserId);
+			permissionUserId = 0;
+			pass('Disposable permission user was deleted and verified by WP-CLI.');
+		} catch (cleanupError) {
+			failure = failure || cleanupError;
+			console.error(`FAIL: permission user cleanup: ${cleanupError.message || cleanupError}`);
+		}
+	}
 	if (postId > 0) {
 		try {
 			const cleanup = deleteFixture(postId);
@@ -1930,6 +2258,7 @@ if (failure) {
 		content_fields_recorded: false,
 		option_deleted: fakeProviderMode ? fakeProviderCleanup.optionDeleted : true,
 		plugin_deleted: fakeProviderMode ? fakeProviderCleanup.pluginDeleted : true,
+		journey_events_removed: fakeProviderMode ? fakeProviderCleanup.journeyEventsRemoved : 0,
 	};
 	const encodedSummary = JSON.stringify(machineSummary);
 	if (summaryPath) {

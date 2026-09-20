@@ -126,8 +126,8 @@ if (false !== $GLOBALS['filter'](false, array(), 'http://cloud.test/health/live'
 	throw new RuntimeException('Unrelated health traffic must not be blocked.');
 }
 $results = array();
-foreach (array('/v1/observability/plugin-events', '/v1/runtime/execute') as $path) {
-	if (${expired ? 'true' : 'false'} || str_contains($path, 'plugin-events')) {
+	foreach (array('/v1/observability/plugin-events', '/v1/customer-journey/events', '/v1/runtime/execute') as $path) {
+	if (${expired ? 'true' : 'false'} || str_contains($path, 'plugin-events') || str_contains($path, 'customer-journey')) {
 		$value = $GLOBALS['filter'](false, array(), 'http://cloud.test' . $path);
 		$results[] = $value instanceof WP_Error ? $value->code : 'NETWORK_LEAK';
 	}
@@ -135,9 +135,40 @@ foreach (array('/v1/observability/plugin-events', '/v1/runtime/execute') as $pat
 echo json_encode($results);
 `);
 		assert.deepEqual(result, expired
-			? ['npcink_browser_fake_expired', 'npcink_browser_fake_expired']
-			: ['npcink_browser_fake_upload_isolated']);
+			? ['npcink_browser_fake_expired', 'npcink_browser_fake_expired', 'npcink_browser_fake_expired']
+			: ['npcink_browser_fake_upload_isolated', 'npcink_browser_fake_upload_isolated']);
 	}
+});
+
+test('fake transport records exact customer-journey event ownership for cleanup', () => {
+	const php = generateFake('fixture', 'fake_option', 4102444800, 2).replace(/^<\?php/, '');
+	const result = phpJson(`
+define('ABSPATH', '/test/');
+function get_option($name, $default = false) { return $GLOBALS['options'][$name] ?? $default; }
+function update_option($name, $value, $autoload) { $GLOBALS['options'][$name] = $value; }
+function add_filter($name, $callback, $priority, $args) { $GLOBALS['filters'][$name] = $callback; }
+function wp_get_environment_type() { return 'local'; }
+function home_url($path) { return 'http://fixture.local/'; }
+function wp_parse_url($url, $part) { return parse_url($url, $part); }
+class WP_Error { public function __construct(public $code, public $message) {} }
+$GLOBALS['options'] = array('fake_option' => array(
+	'token' => 'fixture',
+	'journey_baseline_event_ids' => array('baseline-event'),
+	'journey_event_ids' => array(),
+));
+${php}
+$journey_filter = $GLOBALS['filters']['pre_update_option_npcink_cloud_addon_customer_journey_buffer'];
+$journey_filter(
+	array(
+		array('event_id' => 'baseline-event'),
+		array('event_id' => 'owned-event-without-run-id'),
+		array('event_id' => 'owned-event-with-run-id', 'run_id' => 'run_browser_fake_fixture_1'),
+	),
+	array(),
+);
+echo json_encode($GLOBALS['options']['fake_option']['journey_event_ids']);
+`);
+	assert.deepEqual(result, ['owned-event-without-run-id', 'owned-event-with-run-id']);
 });
 
 test('fixture cleanup removes only owned records, preserves absent options and is idempotent', () => {
