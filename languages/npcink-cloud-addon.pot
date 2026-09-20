@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-18T09:20:53+00:00\n"
+"POT-Creation-Date: 2026-09-20T08:18:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -507,19 +507,19 @@ msgstr ""
 msgid "Cloud did not accept the monitoring state projection."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1163
+#: includes/class-cloud-observability-collector.php:1167
 msgid "Core"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1168
+#: includes/class-cloud-observability-collector.php:1172
 msgid "Abilities"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1173
+#: includes/class-cloud-observability-collector.php:1177
 msgid "Adapter"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1178
+#: includes/class-cloud-observability-collector.php:1182
 #: includes/class-cloud-settings-page.php:224
 #: includes/class-cloud-settings-page.php:2017
 msgid "Cloud Addon"
