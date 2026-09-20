@@ -110,6 +110,47 @@ validate fixture quality records before cleanup. Report cancel/reload, concurren
 tabs, and the other Stage 2 cases separately: they are requirements, not claims
 about what the existing browser runner covers.
 
+The cancellation/reload scenario is now executable through the same runner:
+
+```bash
+WP_AI_TEXT_FAKE_PROVIDER=1 \
+WP_AI_TEXT_SCENARIO=cancel-reload \
+composer run smoke:wp-ai-text-browser
+```
+
+It closes and reopens the dirty editor before saving, then verifies that the
+stored draft and all generated editor changes remain unchanged.
+
+The concurrent-tab and delayed-response scenario is executable through the same
+runner:
+
+```bash
+WP_AI_TEXT_FAKE_PROVIDER=1 \
+WP_AI_TEXT_SCENARIO=concurrent-tabs \
+composer run smoke:wp-ai-text-browser
+```
+
+It opens the same disposable draft in two editor tabs, sends title requests at
+the same time, delays one bounded fake response, and verifies that both tabs
+receive a visible suggestion without any pre-save write to the shared draft.
+The scenario remains local fake-transport evidence; it does not claim that a
+real Provider's server-side ordering is correct.
+
+The permission-denied scenario is also executable with a disposable author
+account:
+
+```bash
+WP_AI_TEXT_FAKE_PROVIDER=1 \
+WP_AI_TEXT_SCENARIO=permission-denied \
+composer run smoke:wp-ai-text-browser
+```
+
+It opens an administrator-owned draft as a non-owner author and verifies that
+WordPress denies editing before the editor or AI abilities become available.
+The expected evidence is zero ability requests, zero autosave or post writes,
+an unchanged protected draft, zero fake transport events, and deletion of the
+temporary author and draft.
+
 ## Stage 2 — Business edge cases
 
 Run these cases against a fresh fixture or a reset draft. Each case must have a
@@ -144,6 +185,11 @@ distinct:
 - a suggestion was presented;
 - a user accepted or edited it;
 - WordPress saved the selected value.
+
+The M4 lane must first show an executable provider adapter in the Cloud
+capability projection. A catalog entry or an administratively saved candidate
+is insufficient when the adapter is disabled; the correct result is
+`no_eligible_model`, followed by restoration to the fail-closed state.
 
 For observability delivery, use the read-only inspector before and after one
 normal local action:
@@ -185,8 +231,12 @@ Build the exact candidate package and repeat the core journey after a clean
 install and an upgrade from the previous supported version. Verify the Cloud
 contract and Addon consumer in the compatible order, exercise the rollback
 path in an isolated environment, and record any dependency or database-version
-parity gap. This stage is required before treating local business evidence as
-release evidence.
+parity gap. For the 0.1.3-to-0.2.0 credential-storage boundary, the expected
+security result is fail-closed behavior: legacy plaintext credential fields are
+ignored by 0.2.0 and the administrator must reconnect the site. A rollback to
+0.1.3 may read those legacy fields again; record that behavior explicitly and
+never treat it as evidence that 0.2.0 accepted plaintext credentials. This
+stage is required before treating local business evidence as release evidence.
 
 ## Exit criteria
 

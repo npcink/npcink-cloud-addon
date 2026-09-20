@@ -260,12 +260,13 @@ number. It stores no prompt, post content, generated title, credentials, or
 headers, dispatches no real Provider request, and removes its option and file
 in the smoke `finally` block. A run must fail if cleanup cannot be confirmed.
 
-During this fake-mode window, the filter rejects observability uploads rather
-than acknowledging them, so the collector retains its buffer and synthetic
-events cannot reach Cloud. Before removing the filter, cleanup removes only
-the fixture's quality scope hashes and pending post records, preserving other
-buffer entries. Expiry or missing fake state fails closed for runtime execution
-and observability uploads; it does not silently resume real Provider traffic.
+During this fake-mode window, the filter rejects observability and customer
+journey uploads rather than acknowledging them, so synthetic events cannot
+reach Cloud. Before removing the filter, cleanup removes only the fixture's
+quality scope hashes, pending post records, and customer-journey event IDs
+created during this run, preserving pre-existing buffer entries. Expiry or
+missing fake state fails closed for runtime execution and both upload paths; it
+does not silently resume real Provider traffic.
 Unrelated HTTP endpoints and cron hooks are not disabled. If quality cleanup
 fails, the runner fails and retains the filter for explicit recovery. Inspect
 the exact fixture and filter path before cleanup; never clear the entire
@@ -275,6 +276,52 @@ The machine-readable summary adds `title_acceptance_evidence` with attempt
 counts, Regenerate count, edited/inserted/saved booleans, outcome, and bounded
 durations. These are test evidence for the disposable fixture, not Cloud
 telemetry, WordPress approval truth, or a product analytics system.
+
+To verify that abandoning a dirty editor session does not persist suggestions,
+run the cancellation/reload scenario with the same fake transport:
+
+```bash
+WP_AI_TEXT_FAKE_PROVIDER=1 \
+WP_AI_TEXT_SCENARIO=cancel-reload \
+composer run smoke:wp-ai-text-browser
+```
+
+This scenario performs the same title, summary, and whole-paragraph review,
+then closes and reopens the editor before Save/Update. It requires zero post or
+autosave writes, restores the original title and block content, and confirms
+that the temporary draft, session, fake filter, and option are cleaned up.
+It is local cancellation evidence only; it does not cover two independent
+browser tabs or real Provider concurrency.
+
+To exercise two tabs and a delayed response, run:
+
+```bash
+WP_AI_TEXT_FAKE_PROVIDER=1 \
+WP_AI_TEXT_SCENARIO=concurrent-tabs \
+composer run smoke:wp-ai-text-browser
+```
+
+The runner opens the same disposable draft in two editors, sends title requests
+concurrently, delays one fake response, and verifies that both suggestions stay
+local to their tabs with no pre-save write. The fake MU plugin records the
+customer-journey event IDs created during that run and cleanup removes only
+those IDs, including events without a Cloud `run_id`. This is a deterministic
+local ordering check; it does not prove ordering inside a real Provider.
+
+To verify the WordPress permission boundary, run the disposable author case:
+
+```bash
+WP_AI_TEXT_FAKE_PROVIDER=1 \
+WP_AI_TEXT_SCENARIO=permission-denied \
+composer run smoke:wp-ai-text-browser
+```
+
+The runner creates an author who does not own the administrator-created draft.
+It expects the WordPress permission-denied screen, zero AI ability requests,
+zero autosave or post writes, an unchanged protected draft, and zero fake
+transport events. It deletes the temporary author and draft in the same
+cleanup path. This is local authorization evidence; it does not replace a
+separate role matrix for production policy review.
 
 To validate the opt-in editor-assist quality correlation at the same time,
 enable metadata-only monitoring for the disposable local site and add:
