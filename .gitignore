@@ -7,3 +7,6 @@ dist/
 
 # Reasonix agent session artifacts
 .reasonix/
+
+# Mimosa security plugin local state
+.mimosa/
