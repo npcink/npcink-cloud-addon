@@ -25,6 +25,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		 */
 		public static function register(): void {
 			add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
+			add_filter( 'ngettext', array( __CLASS__, 'filter_ngettext' ), 20, 5 );
 			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_script_locale_data' ), 1 );
 			add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_script_locale_data' ), 1 );
 		}
@@ -45,6 +46,28 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 			$translations = self::translations();
 
 			return $translations[ $text ] ?? $translation;
+		}
+
+		/**
+		 * Translates selected AI plugin PHP plural strings when no upstream zh_CN language pack is present.
+		 *
+		 * Chinese locales have no plural distinction, so the singular source key always maps.
+		 *
+		 * @param string $translation Existing translation.
+		 * @param string $single      Singular original string.
+		 * @param string $plural      Plural original string.
+		 * @param int    $number      Number used for plural selection.
+		 * @param string $domain      Text domain.
+		 * @return string
+		 */
+		public static function filter_ngettext( $translation, $single, $plural, $number, $domain = 'default' ) {
+			if ( self::AI_TEXT_DOMAIN !== $domain || ! self::should_localize() ) {
+				return $translation;
+			}
+
+			$translations = self::translations();
+
+			return $translations[ $single ] ?? $translation;
 		}
 
 		/**
@@ -734,6 +757,24 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'Embedding generation is not available in this environment.' => '当前环境不支持嵌入生成。',
 				'%s connection details' => '%s 连接详情',
 				'Unsupported log type: %1$s. Supported types are: %2$s.' => '不支持的日志类型：%1$s。支持的类型为：%2$s。',
+				// WordPress AI plugin: admin-facing ability failure notices.
+				'Reply suggestion could not be generated. Please ensure you have a connected provider that supports text generation.' => '无法生成回复建议。请确保已连接支持文本生成的提供方。',
+				'Comment analysis failed. Please ensure you have a connected provider that supports text generation.' => '评论分析失败。请确保已连接支持文本生成的提供方。',
+				'Term generation failed. Please ensure you have a connected provider that supports text generation.' => '术语生成失败。请确保已连接支持文本生成的提供方。',
+				'Content resizing failed. Please ensure you have a connected provider that supports text generation.' => '内容长度调整失败。请确保已连接支持文本生成的提供方。',
+				'Content translation failed. Please ensure you have a connected provider that supports text generation.' => '内容翻译失败。请确保已连接支持文本生成的提供方。',
+				'Editorial notes generation failed. Please ensure you have a connected provider that supports text generation.' => '编辑建议生成失败。请确保已连接支持文本生成的提供方。',
+				'Refinement generation failed. Please ensure you have a connected provider that supports text generation.' => '优化内容生成失败。请确保已连接支持文本生成的提供方。',
+				'Excerpt generation failed. Please ensure you have a connected provider that supports text generation.' => '文章摘要生成失败。请确保已连接支持文本生成的提供方。',
+				'Alt text generation failed. Please ensure you have a connected provider that supports both text generation and vision capabilities.' => '替代文本生成失败。请确保已连接同时支持文本生成和视觉能力的提供方。',
+				'Image generation failed. Please ensure you have a connected provider that supports image generation.' => '图片生成失败。请确保已连接支持图片生成的提供方。',
+				'Image refinement failed. Please ensure you have a connected provider that supports image refinement, not just image generation.' => '图片优化失败。请确保已连接支持图片优化（而不仅是图片生成）的提供方。',
+				'Image prompt generation failed. Please ensure you have a connected provider that supports text generation.' => '图片提示词生成失败。请确保已连接支持文本生成的提供方。',
+				'Meta description generation failed. Please ensure you have a connected provider that supports text generation.' => 'SEO 描述生成失败。请确保已连接支持文本生成的提供方。',
+				'Slug generation failed. Please ensure you have a connected provider that supports text generation.' => '别名生成失败。请确保已连接支持文本生成的提供方。',
+				'Summarization failed. Please ensure you have a connected provider that supports text generation.' => '内容总结失败。请确保已连接支持文本生成的提供方。',
+				'Title generation failed. Please ensure you have a connected provider that supports text generation.' => '标题生成失败。请确保已连接支持文本生成的提供方。',
+				'Type-ahead suggestion generation failed. Please ensure you have a connected provider that supports text generation.' => '输入预测建议生成失败。请确保已连接支持文本生成的提供方。',
 			);
 		}
 	}

@@ -47,7 +47,9 @@ The implementation is intentionally static:
 - It only runs in `wp-admin`.
 - It only runs for Chinese locales (`zh_*`).
 - It only targets text domain `ai`.
-- It feeds PHP gettext and `wp.i18n.setLocaleData()`.
+- It feeds PHP gettext, PHP ngettext (Chinese locales have no plural
+  distinction, so the singular source key always maps), and
+  `wp.i18n.setLocaleData()` through the same translation map.
 - It must not call `npcink_cloud_addon_runtime_client()` or any Cloud runtime
   method.
 
@@ -95,6 +97,11 @@ The command should output:
 - Missing strings grouped for review:
   - `fixed_ui_candidates` for likely fixed admin/editor UI copy that may belong
     in this shim.
+  - `ability_error_notices` for admin-facing failure notices found inside
+    `includes/Abilities/` or `includes/Features/` files. These are fixed UI
+    copy rather than ability metadata; a reviewer decides each one. Names,
+    descriptions, schemas, and input fields from the same files still land in
+    `dynamic_ability_metadata` or `schema_or_json_fields`.
   - `dynamic_ability_metadata` for likely ability labels, descriptions, or
     feature metadata that should usually stay out of this addon.
   - `schema_or_json_fields` for schema labels, JSON fields, REST arguments, and
