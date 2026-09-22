@@ -188,7 +188,7 @@
 	cursor: pointer;
 	display: grid;
 	gap: 16px;
-	grid-template-columns: 54px minmax(0, 1fr) max-content;
+	grid-template-columns: 54px minmax(0, 1fr);
 	min-height: 64px;
 	padding: 14px 0;
 }
@@ -209,12 +209,6 @@
 	color: #646970;
 	line-height: 1.45;
 	overflow-wrap: anywhere;
-}
-
-.npcink-cloud-local-permission__state {
-	color: #646970;
-	font-size: 12px;
-	text-transform: lowercase;
 }
 
 .npcink-cloud-local-permission__progress,
@@ -351,8 +345,7 @@
 }
 
 .npcink-cloud-overview-service {
-	margin-left: 8px;
-	font-weight: 600;
+	font-weight: 400;
 }
 
 .npcink-cloud-overview-service--warning {
@@ -501,13 +494,78 @@
 	padding: 2px 0 0 14px;
 }
 
-.npcink-cloud-overview-status {
-	max-width: 860px;
+.npcink-cloud-overview-panel {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	box-sizing: border-box;
+	max-width: 880px;
 }
 
-.npcink-cloud-overview-status th {
-	white-space: normal;
-	width: 180px;
+.npcink-cloud-overview-panel__header {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 12px;
+	padding: 14px 20px;
+}
+
+.npcink-cloud-overview-panel__plan {
+	color: #50575e;
+	margin-left: auto;
+}
+
+.npcink-cloud-overview-panel__plan-label {
+	overflow-wrap: anywhere;
+}
+
+.npcink-cloud-overview-panel__metrics {
+	border-top: 1px solid #f0f0f1;
+	display: grid;
+	gap: 1px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	background: #f0f0f1;
+}
+
+.npcink-cloud-stat {
+	background: #fff;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+	padding: 14px 20px 16px;
+}
+
+.npcink-cloud-stat[hidden] {
+	display: none;
+}
+
+.npcink-cloud-stat__label {
+	color: #646970;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.npcink-cloud-stat__value {
+	color: #1d2327;
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.npcink-cloud-overview-panel__notices {
+	border-top: 1px solid #f0f0f1;
+	padding: 12px 20px 14px;
+}
+
+.npcink-cloud-overview-notice {
+	color: #996800;
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.npcink-cloud-overview-notice strong {
+	color: #1d2327;
+	font-weight: 600;
 }
 
 .npcink-cloud-entitlement {
@@ -526,17 +584,24 @@
 	display: none;
 }
 
-.npcink-cloud-overview-status tr[hidden],
+.npcink-cloud-stat[hidden],
 .npcink-cloud-entitlement-progress[hidden] {
 	display: none;
 }
 
-.npcink-cloud-entitlement-metric,
+.npcink-cloud-site-knowledge-usage {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+}
+
 .npcink-cloud-site-knowledge-usage__main {
-	align-items: center;
-	display: grid;
-	gap: 10px;
-	grid-template-columns: minmax(0, 1fr) 112px minmax(140px, 180px) 64px;
+	align-items: baseline;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 10px;
+	min-width: 0;
 }
 
 .npcink-cloud-metric-value,
@@ -547,6 +612,7 @@
 
 .npcink-cloud-metric-status {
 	color: #50575e;
+	font-size: 12px;
 }
 
 .npcink-cloud-metric-status[hidden] {
@@ -559,12 +625,11 @@
 	background: linear-gradient(
 		to right,
 		var(--npcink-cloud-progress-color) 0 var(--npcink-cloud-progress),
-		#c3c4c7 var(--npcink-cloud-progress) 100%
+		#dcdcde var(--npcink-cloud-progress) 100%
 	);
+	border-radius: 999px;
 	display: block;
-	height: 10px;
-	-webkit-mask: repeating-linear-gradient(to right, #000 0 calc(10% - 3px), transparent calc(10% - 3px) 10%);
-	mask: repeating-linear-gradient(to right, #000 0 calc(10% - 3px), transparent calc(10% - 3px) 10%);
+	height: 4px;
 	max-width: 100%;
 	width: 100%;
 }
@@ -989,38 +1054,16 @@
 		gap: 10px;
 	}
 
-	.npcink-cloud-overview-status th {
-		width: auto;
-	}
-
-	.npcink-cloud-entitlement-metric,
-	.npcink-cloud-site-knowledge-usage__main {
+	.npcink-cloud-overview-panel__metrics {
 		grid-template-columns: 1fr;
 	}
 
-	.npcink-cloud-metric-status {
-		justify-self: start;
-	}
-
-	.npcink-cloud-segmented-progress {
-		grid-column: 1 / -1;
-		width: min(180px, 100%);
-	}
-
-	.npcink-cloud-metric-actions {
-		grid-column: 1 / -1;
-	}
-
-	.npcink-cloud-metric-actions--empty {
-		display: none;
+	.npcink-cloud-overview-panel__plan {
+		margin-left: 0;
 	}
 
 	.npcink-cloud-local-permission__control {
 		grid-template-columns: 54px minmax(0, 1fr);
-	}
-
-	.npcink-cloud-local-permission__state {
-		grid-column: 2;
 	}
 
 	.npcink-cloud-local-permission__progress,
@@ -1080,15 +1123,10 @@
 		text-decoration: underline;
 	}
 
-	.npcink-cloud-overview-status,
 	.npcink-cloud-site-knowledge-status {
 		border: 0;
 	}
 
-	.npcink-cloud-overview-status tbody,
-	.npcink-cloud-overview-status tr,
-	.npcink-cloud-overview-status th,
-	.npcink-cloud-overview-status td,
 	.npcink-cloud-site-knowledge-status tbody,
 	.npcink-cloud-site-knowledge-status tr,
 	.npcink-cloud-site-knowledge-status th,
@@ -1097,18 +1135,15 @@
 		width: auto;
 	}
 
-	.npcink-cloud-overview-status tr,
 	.npcink-cloud-site-knowledge-status tr {
 		border-bottom: 1px solid #dcdcde;
 		padding: 10px 0;
 	}
 
-	.npcink-cloud-overview-status th,
 	.npcink-cloud-site-knowledge-status th {
 		padding-bottom: 3px;
 	}
 
-	.npcink-cloud-overview-status td,
 	.npcink-cloud-site-knowledge-status td {
 		padding-top: 3px;
 	}
