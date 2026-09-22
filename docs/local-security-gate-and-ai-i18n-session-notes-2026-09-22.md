@@ -57,16 +57,19 @@ what that doc does not cover.
   sandboxes cannot share, and the site-knowledge admin actions test
   substitutes the bridge class name that
   `behavior-site-knowledge-change-bridge.php` needs as the real class.
-- Known debt left in place (not blocking while the gate is off): four
-  `exec`/`passthru` call sites that must spawn subprocesses with runtime
-  paths, which the scanner cannot accept as fully literal commands:
+- Known debt left in place (not blocking while the gate is off): six
+  `exec`/`passthru` call sites. Two are the `tests/run.php` sandbox
+  passthru blocks described above, kept in separate processes because
+  their function and class replacements cannot share a process with the
+  shared-runner tests. Four must spawn subprocesses with runtime paths,
+  which the scanner cannot accept as fully literal commands:
   `scripts/check-pot-freshness.php` (WP-CLI make-pot),
   `scripts/describe-local-runtime.php` (git against a runtime worktree),
   `scripts/run-plugin-check.php` (WordPress.org plugin-check through
   WP-CLI), and `scripts/run-wp-cli.php` (WP-CLI binary at a runtime
-  path). These are a policy retention, not an oversight. While Mimosa is
-  enabled, launch with `MIMOSA_HOOK_PROJECT=1` so cross-file findings
-  become non-blocking hints, or keep the plugin disabled.
+  path); these four are a policy retention, not an oversight. While
+  Mimosa is enabled, launch with `MIMOSA_HOOK_PROJECT=1` so cross-file
+  findings become non-blocking hints, or keep the plugin disabled.
 
 ## Cross-Session Handoff Convention
 
