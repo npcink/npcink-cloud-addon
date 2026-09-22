@@ -151,17 +151,13 @@
 	display: flex;
 	gap: 12px;
 	justify-content: space-between;
-	padding-bottom: 12px;
+	padding-bottom: 2px;
 }
 
 .npcink-cloud-local-permissions__header h2 {
 	font-size: 16px;
 	line-height: 1.4;
 	margin: 0;
-}
-
-.npcink-cloud-local-permissions__list {
-	border-top: 1px solid #f0f0f1;
 }
 
 .npcink-cloud-local-permission {
@@ -208,6 +204,7 @@
 .npcink-cloud-local-permission__description {
 	color: #646970;
 	line-height: 1.45;
+	max-width: 60ch;
 	overflow-wrap: anywhere;
 }
 
@@ -494,19 +491,16 @@
 	padding: 2px 0 0 14px;
 }
 
-.npcink-cloud-overview-panel {
-	background: #fff;
-	border: 1px solid #dcdcde;
-	box-sizing: border-box;
-	max-width: 880px;
-}
-
 .npcink-cloud-overview-panel__header {
 	align-items: center;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px 12px;
-	padding: 14px 20px;
+	padding: 2px 0 14px;
+}
+
+.npcink-cloud-overview-heading {
+	max-width: none;
 }
 
 .npcink-cloud-overview-panel__plan {
@@ -521,18 +515,27 @@
 .npcink-cloud-overview-panel__metrics {
 	border-top: 1px solid #f0f0f1;
 	display: grid;
-	gap: 1px;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
-	background: #f0f0f1;
 }
 
 .npcink-cloud-stat {
-	background: #fff;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	min-width: 0;
-	padding: 14px 20px 16px;
+	padding: 14px 16px 16px;
+}
+
+.npcink-cloud-stat + .npcink-cloud-stat {
+	border-left: 1px solid #f0f0f1;
+}
+
+.npcink-cloud-stat:first-child {
+	padding-left: 0;
+}
+
+.npcink-cloud-stat:last-child {
+	padding-right: 0;
 }
 
 .npcink-cloud-stat[hidden] {
@@ -554,7 +557,7 @@
 
 .npcink-cloud-overview-panel__notices {
 	border-top: 1px solid #f0f0f1;
-	padding: 12px 20px 14px;
+	padding: 12px 0 2px;
 }
 
 .npcink-cloud-overview-notice {
@@ -881,6 +884,7 @@
 .npcink-cloud-site-knowledge-consent__description {
 	color: #646970;
 	line-height: 1.45;
+	max-width: 60ch;
 	overflow-wrap: anywhere;
 }
 
@@ -1056,6 +1060,17 @@
 
 	.npcink-cloud-overview-panel__metrics {
 		grid-template-columns: 1fr;
+	}
+
+	.npcink-cloud-stat,
+	.npcink-cloud-stat:first-child,
+	.npcink-cloud-stat:last-child {
+		padding: 14px 0 16px;
+	}
+
+	.npcink-cloud-stat + .npcink-cloud-stat {
+		border-left: 0;
+		border-top: 1px solid #f0f0f1;
 	}
 
 	.npcink-cloud-overview-panel__plan {
