@@ -5,6 +5,10 @@ on:
     branches:
       - master
   pull_request:
+  schedule:
+    # 19:37 UTC daily (03:37 Beijing time): nightly master-HEAD matrix run for
+    # compatibility stability evidence; off the hour to avoid peak load.
+    - cron: '37 19 * * *'
 
 permissions:
   contents: read
