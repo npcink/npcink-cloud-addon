@@ -963,6 +963,55 @@
 	margin-top: 12px;
 }
 
+.npcink-cloud-checks-heading {
+	max-width: none;
+}
+
+.npcink-cloud-checks-table {
+	max-width: none;
+}
+
+.npcink-cloud-checks-table .npcink-cloud-mono-detail {
+	font-family: Consolas, Monaco, "Courier New", monospace;
+	font-size: 12px;
+}
+
+.npcink-cloud-capability-note td {
+	color: #646970;
+}
+
+.npcink-cloud-subcard {
+	align-items: start;
+	border-top: 1px solid #f0f0f1;
+	display: grid;
+	gap: 12px 24px;
+	grid-template-columns: minmax(0, 1fr) auto;
+	margin-top: 16px;
+	padding-top: 16px;
+}
+
+.npcink-cloud-subcard__copy h4 {
+	margin: 0 0 6px;
+}
+
+.npcink-cloud-subcard__copy .description {
+	margin: 0;
+	max-width: 60ch;
+}
+
+.npcink-cloud-subcard__actions {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+@media (max-width: 782px) {
+	.npcink-cloud-subcard {
+		grid-template-columns: 1fr;
+	}
+}
+
 .npcink-cloud-text-link {
 	display: inline-block;
 	line-height: 2.15384615;
