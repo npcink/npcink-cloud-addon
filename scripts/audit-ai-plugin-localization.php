@@ -106,10 +106,10 @@ function npcink_cloud_addon_ai_i18n_audit_add_string( array &$strings, string $t
  */
 function npcink_cloud_addon_ai_i18n_audit_extract_strings( string $contents, string $relative, array &$strings ): void {
 	$single_arg_patterns = array(
-		'/\b(?:__|esc_html__|esc_attr__)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])ai\3/s',
-		'/\b_x\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,.*?,\s*([\'"])ai\3/sU',
+		'/\b(?:__|esc_html__|esc_attr__|_e|esc_html_e|esc_attr_e)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])ai\3/s',
+		'/\b_x\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,.*?,\s*([\'"])ai\3/s',
 		'/\b__\)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])ai\3/s',
-		'/\b_x\)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,.*?,\s*([\'"])ai\3/sU',
+		'/\b_x\)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,.*?,\s*([\'"])ai\3/s',
 	);
 
 	foreach ( $single_arg_patterns as $pattern ) {
@@ -125,8 +125,8 @@ function npcink_cloud_addon_ai_i18n_audit_extract_strings( string $contents, str
 	}
 
 	$plural_patterns = array(
-		'/\b_n\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])((?:\\\\.|(?!\3).)*?)\3\s*,.*?,\s*([\'"])ai\5/sU',
-		'/\b_n\)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])((?:\\\\.|(?!\3).)*?)\3\s*,.*?,\s*([\'"])ai\5/sU',
+		'/\b_n\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])((?:\\\\.|(?!\3).)*?)\3\s*,.*?,\s*([\'"])ai\5/s',
+		'/\b_n\)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])((?:\\\\.|(?!\3).)*?)\3\s*,.*?,\s*([\'"])ai\5/s',
 	);
 
 	foreach ( $plural_patterns as $pattern ) {
@@ -289,82 +289,96 @@ function npcink_cloud_addon_ai_i18n_audit_print_entry( string $text, array $foun
 	}
 }
 
-$plugin_path = npcink_cloud_addon_ai_i18n_audit_resolve_path( $argv, $root );
-if ( '' === $plugin_path || ! is_dir( $plugin_path ) ) {
-	fwrite( STDERR, "AI plugin path not found. Set AI_PLUGIN_PATH=/path/to/wp-content/plugins/ai or pass --path=/path/to/ai.\n" );
-	exit( 2 );
-}
-
-$plugin_path  = rtrim( realpath( $plugin_path ) ?: $plugin_path, DIRECTORY_SEPARATOR );
-$translations = Npcink_Cloud_AI_Plugin_Localization::translations();
-$known        = array_keys( $translations );
-$found        = array();
-
-$iterator = new RecursiveIteratorIterator(
-	new RecursiveDirectoryIterator( $plugin_path, FilesystemIterator::SKIP_DOTS )
-);
-
-foreach ( $iterator as $file ) {
-	if ( ! $file instanceof SplFileInfo || ! $file->isFile() ) {
-		continue;
+/**
+ * Runs the audit and returns the process exit code.
+ *
+ * @param array<int,string> $argv CLI arguments.
+ * @param string            $root Repository root.
+ * @return int
+ */
+function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int {
+	$plugin_path = npcink_cloud_addon_ai_i18n_audit_resolve_path( $argv, $root );
+	if ( '' === $plugin_path || ! is_dir( $plugin_path ) ) {
+		fwrite( STDERR, "AI plugin path not found. Set AI_PLUGIN_PATH=/path/to/wp-content/plugins/ai or pass --path=/path/to/ai.\n" );
+		return 2;
 	}
 
-	$path = $file->getPathname();
-	if ( ! npcink_cloud_addon_ai_i18n_audit_should_scan_file( $path ) ) {
-		continue;
+	$plugin_path  = rtrim( realpath( $plugin_path ) ?: $plugin_path, DIRECTORY_SEPARATOR );
+	$translations = Npcink_Cloud_AI_Plugin_Localization::translations();
+	$known        = array_keys( $translations );
+	$found        = array();
+
+	$iterator = new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator( $plugin_path, FilesystemIterator::SKIP_DOTS )
+	);
+
+	foreach ( $iterator as $file ) {
+		if ( ! $file instanceof SplFileInfo || ! $file->isFile() ) {
+			continue;
+		}
+
+		$path = $file->getPathname();
+		if ( ! npcink_cloud_addon_ai_i18n_audit_should_scan_file( $path ) ) {
+			continue;
+		}
+
+		$contents = file_get_contents( $path );
+		if ( ! is_string( $contents ) || false === strpos( $contents, 'ai' ) ) {
+			continue;
+		}
+
+		$relative = ltrim( substr( $path, strlen( $plugin_path ) ), DIRECTORY_SEPARATOR );
+		npcink_cloud_addon_ai_i18n_audit_extract_strings( $contents, $relative, $found );
 	}
 
-	$contents = file_get_contents( $path );
-	if ( ! is_string( $contents ) || false === strpos( $contents, 'ai' ) ) {
-		continue;
+	ksort( $found );
+	$found_keys = array_keys( $found );
+	$missing    = array_values( array_diff( $found_keys, $known ) );
+	$stale      = array_values( array_diff( $known, $found_keys ) );
+	$groups     = npcink_cloud_addon_ai_i18n_audit_group_missing( $missing, $found );
+
+	echo "WordPress AI plugin localization audit\n";
+	echo 'AI plugin path: ' . $plugin_path . "\n";
+	echo 'Discovered ai-domain strings: ' . count( $found_keys ) . "\n";
+	echo 'Shim translations: ' . count( $known ) . "\n";
+	echo 'Missing strings: ' . count( $missing ) . "\n";
+	echo 'Fixed UI review candidates: ' . count( $groups['fixed_ui_candidates'] ) . "\n";
+	echo 'Possibly stale shim strings: ' . count( $stale ) . "\n\n";
+
+	echo "Missing review groups:\n";
+	foreach ( $groups as $category => $items ) {
+		echo '- ' . $category . ': ' . count( $items ) . "\n";
 	}
 
-	$relative = ltrim( substr( $path, strlen( $plugin_path ) ), DIRECTORY_SEPARATOR );
-	npcink_cloud_addon_ai_i18n_audit_extract_strings( $contents, $relative, $found );
-}
-
-ksort( $found );
-$found_keys = array_keys( $found );
-$missing    = array_values( array_diff( $found_keys, $known ) );
-$stale      = array_values( array_diff( $known, $found_keys ) );
-$groups     = npcink_cloud_addon_ai_i18n_audit_group_missing( $missing, $found );
-
-echo "WordPress AI plugin localization audit\n";
-echo 'AI plugin path: ' . $plugin_path . "\n";
-echo 'Discovered ai-domain strings: ' . count( $found_keys ) . "\n";
-echo 'Shim translations: ' . count( $known ) . "\n";
-echo 'Missing strings: ' . count( $missing ) . "\n";
-echo 'Fixed UI review candidates: ' . count( $groups['fixed_ui_candidates'] ) . "\n";
-echo 'Possibly stale shim strings: ' . count( $stale ) . "\n\n";
-
-echo "Missing review groups:\n";
-foreach ( $groups as $category => $items ) {
-	echo '- ' . $category . ': ' . count( $items ) . "\n";
-}
-
-foreach ( $groups as $category => $items ) {
-	echo "\n" . $category . ":\n";
-	if ( empty( $items ) ) {
-		echo "- none\n";
-	} else {
-		foreach ( $items as $text ) {
-			npcink_cloud_addon_ai_i18n_audit_print_entry( $text, $found, $known );
+	foreach ( $groups as $category => $items ) {
+		echo "\n" . $category . ":\n";
+		if ( empty( $items ) ) {
+			echo "- none\n";
+		} else {
+			foreach ( $items as $text ) {
+				npcink_cloud_addon_ai_i18n_audit_print_entry( $text, $found, $known );
+			}
 		}
 	}
-}
 
-echo "\nstale_review:\n";
-if ( empty( $stale ) ) {
-	echo "- none\n";
-} else {
-	foreach ( $stale as $text ) {
-		echo '- "' . $text . "\"\n";
+	echo "\nstale_review:\n";
+	if ( empty( $stale ) ) {
+		echo "- none\n";
+	} else {
+		foreach ( $stale as $text ) {
+			echo '- "' . $text . "\"\n";
+		}
 	}
+
+	echo "\nReview notes:\n";
+	echo "- Do not add dynamic ability names, descriptions, schema labels, JSON keys, slugs, provider ids, or model ids to this addon.\n";
+	echo "- Add approved fixed UI strings to Npcink_Cloud_AI_Plugin_Localization::translations() with behavior coverage.\n";
+
+	$fail_on_missing = getenv( 'AI_I18N_AUDIT_FAIL_ON_MISSING' );
+
+	return ! empty( $missing ) && '1' === $fail_on_missing ? 1 : 0;
 }
 
-echo "\nReview notes:\n";
-echo "- Do not add dynamic ability names, descriptions, schema labels, JSON keys, slugs, provider ids, or model ids to this addon.\n";
-echo "- Add approved fixed UI strings to Npcink_Cloud_AI_Plugin_Localization::translations() with behavior coverage.\n";
-
-$fail_on_missing = getenv( 'AI_I18N_AUDIT_FAIL_ON_MISSING' );
-exit( ! empty( $missing ) && '1' === $fail_on_missing ? 1 : 0 );
+if ( isset( $argv ) && is_array( $argv ) && realpath( (string) $argv[0] ) === __FILE__ ) {
+	exit( npcink_cloud_addon_ai_i18n_audit_main( $argv, dirname( __DIR__ ) ) );
+}

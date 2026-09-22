@@ -9,10 +9,34 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
 
-$fixture_root = sys_get_temp_dir() . '/npcink-cloud-addon-ai-i18n-audit-' . getmypid();
-if ( is_dir( $fixture_root ) ) {
-	exec( 'rm -rf ' . escapeshellarg( $fixture_root ) );
+/**
+ * Recursively removes a directory and its contents without shelling out.
+ *
+ * @param string $dir Directory path.
+ * @return void
+ */
+function npcink_cloud_addon_ai_i18n_audit_test_rm_dir( string $dir ): void {
+	if ( ! is_dir( $dir ) ) {
+		return;
+	}
+
+	$items = new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS ),
+		RecursiveIteratorIterator::CHILD_FIRST
+	);
+	foreach ( $items as $item ) {
+		if ( $item->isDir() && ! $item->isLink() ) {
+			rmdir( $item->getPathname() );
+		} else {
+			unlink( $item->getPathname() );
+		}
+	}
+
+	rmdir( $dir );
 }
+
+$fixture_root = sys_get_temp_dir() . '/npcink-cloud-addon-ai-i18n-audit-' . getmypid();
+npcink_cloud_addon_ai_i18n_audit_test_rm_dir( $fixture_root );
 mkdir( $fixture_root . '/includes', 0777, true );
 mkdir( $fixture_root . '/includes/Abilities/Demo', 0777, true );
 mkdir( $fixture_root . '/build-scripts/admin', 0777, true );
@@ -24,6 +48,8 @@ file_put_contents(
 <?php
 esc_html__( 'Generate Image', 'ai' );
 esc_html__( 'New Audit Button', 'ai' );
+esc_html_e( 'Echoed Audit Label', 'ai' );
+esc_html_e( 'Ignore Default Domain', 'default' );
 esc_html__( 'Ignore Default Domain', 'default' );
 _n( 'One audit result', 'Many audit results', $count, 'ai' );
 PHP
@@ -45,6 +71,8 @@ file_put_contents(
 (0,wp.i18n.__)("Unicode ellipsis\u2026","ai");
 (0,wp.i18n.__)("\u2014 Unicode default \u2014","ai");
 (0,wp.i18n.__)("Ignored JS Label","default");
+(0,t._n)("First audit image.","First audit images.",d,"ai");
+(0,t._n)("Second audit image.","Second audit images.",d,"ai");
 JS
 );
 
@@ -55,11 +83,14 @@ file_put_contents(
 JS
 );
 
-$command = 'AI_PLUGIN_PATH=' . escapeshellarg( $fixture_root ) . ' php ' . escapeshellarg( MACA_TEST_ROOT . '/scripts/audit-ai-plugin-localization.php' ) . ' 2>&1';
-$output  = array();
-$status  = 0;
-exec( $command, $output, $status );
-$report = implode( "\n", $output );
+require_once MACA_TEST_ROOT . '/scripts/audit-ai-plugin-localization.php';
+
+ob_start();
+$status = npcink_cloud_addon_ai_i18n_audit_main(
+	array( 'audit-ai-plugin-localization.php', '--path=' . $fixture_root ),
+	MACA_TEST_ROOT
+);
+$report = (string) ob_get_clean();
 
 maca_assert(
 	0 === $status
@@ -73,9 +104,14 @@ maca_assert(
 	&& false !== strpos( $report, 'long_prompt_copy:' )
 	&& false !== strpos( $report, 'stale_review:' )
 	&& false !== strpos( $report, '"New Audit Button"' )
+	&& false !== strpos( $report, '"Echoed Audit Label"' )
 	&& false !== strpos( $report, '"One audit result"' )
 	&& false !== strpos( $report, '"Many audit results"' )
 	&& false !== strpos( $report, '"JS Audit Label"' )
+	&& false !== strpos( $report, '"First audit image."' )
+	&& false !== strpos( $report, '"First audit images."' )
+	&& false !== strpos( $report, '"Second audit image."' )
+	&& false !== strpos( $report, '"Second audit images."' )
 	&& false !== strpos( $report, '"Demo ability label"' )
 	&& false !== strpos( $report, '"The ID of the demo object."' )
 	&& false !== strpos( $report, '"Outpaint the image to create a wider panoramic view.' )
@@ -85,7 +121,7 @@ maca_assert(
 	&& false === strpos( $report, 'u2014 Unicode default u2014' )
 	&& false === strpos( $report, 'Ignore Default Domain' )
 	&& false === strpos( $report, 'Ignored JS Label' ),
-	'AI plugin localization audit reports missing ai-domain strings and ignores other domains.'
+	'AI plugin localization audit reports missing ai-domain strings, covers echo and minified plural forms, and ignores other domains.'
 );
 
-exec( 'rm -rf ' . escapeshellarg( $fixture_root ) );
+npcink_cloud_addon_ai_i18n_audit_test_rm_dir( $fixture_root );
