@@ -220,8 +220,11 @@ function npcink_cloud_addon_ai_i18n_audit_classify_missing( string $text, array 
 		return 'long_prompt_copy';
 	}
 
+	// "Content" also starts feature labels such as "Content Translation",
+	// so only lowercase prose like "Content of the post." is schema copy.
 	if (
-		preg_match( '/^(The|Whether|Optional|Additional|Current|Cursor|Maximum|Filter|Order|Sort|URL|ID|Attachment|Content|Post|Prompt|Generated|Imported|Information|Confidence|Toxicity)\b/', $text )
+		preg_match( '/^(The|Whether|Optional|Additional|Current|Cursor|Maximum|Filter|Order|Sort|URL|ID|Attachment|Post|Prompt|Generated|Imported|Information|Confidence|Toxicity)\b/', $text )
+		|| 1 === preg_match( '/^Content\s+[a-z]/', $text )
 		|| false !== strpos( $text, 'schema' )
 		|| false !== strpos( $text, 'JSON' )
 		|| false !== strpos( $text, 'base64' )
