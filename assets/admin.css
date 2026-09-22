@@ -68,6 +68,16 @@
 	color: #008a20;
 }
 
+.npcink-cloud-badge--info {
+	background: #e6ebfd;
+	color: #1d35b4;
+}
+
+.npcink-cloud-badge--muted {
+	background: #f0f0f1;
+	color: #646970;
+}
+
 .npcink-cloud-badge--error {
 	background: #fcf0f1;
 	color: #b32d2e;
@@ -879,58 +889,9 @@
 	margin-top: 12px;
 }
 
-.npcink-cloud-site-knowledge-consent,
 .npcink-cloud-site-knowledge-status {
 	margin: 0 0 12px;
 	max-width: 860px;
-}
-
-.npcink-cloud-site-knowledge-consent {
-	align-items: center;
-	display: grid;
-	gap: 16px;
-	grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.npcink-cloud-site-knowledge-consent__control {
-	align-items: center;
-	display: grid;
-	gap: 16px;
-	grid-template-columns: minmax(0, 1fr);
-	min-width: 0;
-}
-
-.npcink-cloud-site-knowledge-consent__copy {
-	display: grid;
-	gap: 3px;
-	min-width: 0;
-}
-
-.npcink-cloud-site-knowledge-consent__title {
-	color: #1d2327;
-	font-weight: 600;
-	line-height: 1.35;
-}
-
-.npcink-cloud-site-knowledge-consent__description {
-	color: #646970;
-	line-height: 1.45;
-	max-width: 60ch;
-	overflow-wrap: anywhere;
-}
-
-.npcink-cloud-site-knowledge-consent__state {
-	color: #646970;
-	font-size: 12px;
-	text-transform: lowercase;
-	white-space: nowrap;
-}
-
-.npcink-cloud-site-knowledge-consent__meta {
-	align-items: center;
-	display: flex;
-	gap: 16px;
-	justify-content: flex-end;
 }
 
 .npcink-cloud-site-knowledge-status th {
@@ -943,23 +904,32 @@
 }
 
 .npcink-cloud-site-knowledge-summary {
-	border-bottom: 1px solid #dcdcde;
-	margin: 18px 0 0;
-	max-width: 860px;
-	padding-bottom: 18px;
+	margin: 0;
 }
 
-.npcink-cloud-site-knowledge-summary h3,
-.npcink-cloud-site-knowledge-summary p {
-	margin-top: 0;
+.npcink-cloud-site-knowledge-heading {
+	max-width: none;
+}
+
+.npcink-cloud-site-knowledge-summary__scope {
+	color: #646970;
+	margin: 0;
+}
+
+.npcink-cloud-site-knowledge-summary__status {
+	align-items: center;
+	border-top: 1px solid #f0f0f1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 12px 0 0;
+	padding-top: 14px;
 }
 
 .npcink-cloud-site-knowledge-summary__result {
-	color: #1d2327;
-	font-size: 16px;
-	font-weight: 600;
-	line-height: 1.4;
-	margin-bottom: 4px;
+	color: #50575e;
+	font-weight: 400;
+	margin: 0;
 }
 
 .npcink-cloud-site-knowledge-summary__result--success {
@@ -970,10 +940,18 @@
 	color: #996800;
 }
 
-.npcink-cloud-site-knowledge-summary__time {
+.npcink-cloud-site-knowledge-summary__detail {
+	margin: 10px 0 0;
+	max-width: 60ch;
+}
+
+.npcink-cloud-site-knowledge-summary__meta {
 	color: #646970;
-	margin-bottom: 0;
-	margin-top: 12px;
+	display: flex;
+	flex-wrap: wrap;
+	font-size: 12px;
+	gap: 4px 20px;
+	margin: 14px 0 0;
 }
 
 .npcink-cloud-site-knowledge-summary__support {
@@ -983,30 +961,6 @@
 
 .npcink-cloud-site-knowledge-summary__action {
 	margin-top: 12px;
-}
-
-.npcink-cloud-site-knowledge-links {
-	display: flex;
-	gap: 16px;
-	margin: 12px 0 0;
-	max-width: 860px;
-}
-
-.npcink-cloud-site-knowledge-coverage {
-	margin: 20px 0;
-	max-width: 860px;
-}
-
-.npcink-cloud-site-knowledge-coverage__heading {
-	margin-bottom: 8px;
-}
-
-.npcink-cloud-site-knowledge-article-table-wrap {
-	overflow-x: auto;
-}
-
-.npcink-cloud-site-knowledge-article-table th:nth-child(2) {
-	width: 150px;
 }
 
 .npcink-cloud-text-link {
@@ -1029,7 +983,6 @@
 @media (max-width: 782px) {
 	.npcink-cloud-summary__header,
 	.npcink-cloud-local-permissions__header,
-	.npcink-cloud-site-knowledge-consent,
 	.npcink-cloud-site-knowledge-summary {
 		display: block;
 	}
@@ -1117,24 +1070,6 @@
 		margin-left: 70px;
 	}
 
-	.npcink-cloud-site-knowledge-consent {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-	}
-
-	.npcink-cloud-site-knowledge-consent__control {
-		grid-column: 1 / -1;
-	}
-
-	.npcink-cloud-site-knowledge-consent__meta {
-		grid-column: 1 / -1;
-		justify-self: end;
-	}
-
-	.npcink-cloud-site-knowledge-consent__state {
-		justify-self: end;
-	}
-
 	.npcink-cloud-site-knowledge-status th {
 		white-space: normal;
 		width: auto;
@@ -1192,21 +1127,6 @@
 
 	.npcink-cloud-site-knowledge-status td {
 		padding-top: 3px;
-	}
-
-	.npcink-cloud-site-knowledge-consent {
-		grid-template-columns: 1fr;
-	}
-
-	.npcink-cloud-site-knowledge-consent__state,
-	.npcink-cloud-site-knowledge-consent .button {
-		justify-self: start;
-	}
-
-	.npcink-cloud-site-knowledge-consent__meta {
-		flex-wrap: wrap;
-		justify-content: flex-start;
-		justify-self: start;
 	}
 
 	.npcink-cloud-local-permission__progress,
