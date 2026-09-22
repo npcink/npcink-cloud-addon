@@ -317,18 +317,13 @@ maca_assert(
 
 maca_assert(
 	'分类策略' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
-		'Taxonomy Strategy',
-		'Taxonomy Strategy',
+		'Taxonomy strategy',
+		'Taxonomy strategy',
 		'ai'
 	)
 	&& '最大建议数量' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
-		'Maximum Suggestions',
-		'Maximum Suggestions',
-		'ai'
-	)
-	&& '分类策略' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
-		'Taxonomy strategy',
-		'Taxonomy strategy',
+		'Maximum suggestions',
+		'Maximum suggestions',
 		'ai'
 	)
 	&& '仅建议现有术语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
@@ -339,11 +334,6 @@ maca_assert(
 	&& '建议%s' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Suggest %s',
 		'Suggest %s',
-		'ai'
-	)
-	&& '请添加更多内容以启用 AI 建议（约 150 个词）。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
-		'Add more content to enable AI suggestions (approximately 150 words).',
-		'Add more content to enable AI suggestions (approximately 150 words).',
 		'ai'
 	)
 	&& '添加“%s”' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
@@ -380,9 +370,24 @@ maca_assert(
 		'Regenerate',
 		'ai'
 	)
-	&& '+%d 个词' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
-		'+%d words',
-		'+%d words',
+	&& '增加 %d 个字符' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'+%d characters',
+		'+%d characters',
+		'ai'
+	)
+	&& '减少 %d 个字符' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'−%d characters',
+		'−%d characters',
+		'ai'
+	)
+	&& '增加了 %d 个字符' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'%d characters added',
+		'%d characters added',
+		'ai'
+	)
+	&& '移除了 %d 个字符' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'%d characters removed',
+		'%d characters removed',
 		'ai'
 	),
 	'AI plugin localization translates content resizing editor controls.'
@@ -514,9 +519,14 @@ maca_assert(
 		'Generate Editorial Note',
 		'ai'
 	)
-	&& '已添加 %d 条建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
-		'%d suggestions added.',
-		'%d suggestions added.',
+	&& '已添加 %d 条建议。请保存以保留更改。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'%d suggestions added. Save to keep changes.',
+		'%d suggestions added. Save to keep changes.',
+		'ai'
+	)
+	&& '已添加 %d 条建议，可在<a>此处</a>查看这些建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'%d suggestions added, view those Notes <a>here</a>.',
+		'%d suggestions added, view those Notes <a>here</a>.',
 		'ai'
 	)
 	&& '应用编辑更新' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
@@ -530,6 +540,240 @@ maca_assert(
 		'ai'
 	),
 	'AI plugin localization translates editorial note and update editor controls.'
+);
+
+maca_assert(
+	'别名生成' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Slug Generation',
+		'Slug Generation',
+		'ai'
+	)
+	&& '根据文章标题或内容生成利于 SEO 的永久链接别名建议。需要支持文本生成模型的 AI 连接器。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Suggests SEO-friendly permalink slugs from post title or content. Requires an AI connector that includes support for text generation models.',
+		'Suggests SEO-friendly permalink slugs from post title or content. Requires an AI connector that includes support for text generation models.',
+		'ai'
+	)
+	&& '内容翻译' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Content Translation',
+		'Content Translation',
+		'ai'
+	)
+	&& '将段落和标题区块翻译为其他语言。需要支持文本生成模型的 AI 连接器。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Translate paragraph and heading blocks into a different language. Requires an AI connector that includes support for text generation models.',
+		'Translate paragraph and heading blocks into a different language. Requires an AI connector that includes support for text generation models.',
+		'ai'
+	)
+	&& '自定义能力' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Custom Abilities',
+		'Custom Abilities',
+		'ai'
+	)
+	&& '注册插件的自定义 WordPress 能力，供 Abilities API 和 MCP 使用。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Register the plugin\'s custom WordPress Abilities for use via the Abilities API and MCP.',
+		'Register the plugin\'s custom WordPress Abilities for use via the Abilities API and MCP.',
+		'ai'
+	)
+	&& '已启用 %d 个实验功能' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'%d experiments enabled',
+		'%d experiments enabled',
+		'ai'
+	)
+	&& '已停用 %d 个实验功能' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'%d experiments disabled',
+		'%d experiments disabled',
+		'ai'
+	),
+	'AI plugin localization translates the 1.3.0 settings screen experiment labels.'
+);
+
+maca_assert(
+	'生成别名' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Generate Slug',
+		'Generate Slug',
+		'ai'
+	)
+	&& '正在生成建议…' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Generating suggestions…',
+		'Generating suggestions…',
+		'ai'
+	)
+	&& '文章内容至少达到 %d 个字符后可生成别名建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Slug suggestions will be available when the post content has at least %d characters.',
+		'Slug suggestions will be available when the post content has at least %d characters.',
+		'ai'
+	)
+	&& '（未设置别名）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'(no slug set)',
+		'(no slug set)',
+		'ai'
+	)
+	&& '将应用为“%s”。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Will be applied as “%s”.',
+		'Will be applied as “%s”.',
+		'ai'
+	)
+	&& '此文本不能用作别名。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'This text cannot be used as a slug.',
+		'This text cannot be used as a slug.',
+		'ai'
+	)
+	&& '生成别名失败。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Failed to generate slug.',
+		'Failed to generate slug.',
+		'ai'
+	),
+	'AI plugin localization translates the slug generation editor sidebar.'
+);
+
+maca_assert(
+	'翻译' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Translate',
+		'Translate',
+		'ai'
+	)
+	&& '翻译为' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Translate to',
+		'Translate to',
+		'ai'
+	)
+	&& '正在翻译区块…（%1$d/%2$d）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Translating blocks… (%1$d/%2$d)',
+		'Translating blocks… (%1$d/%2$d)',
+		'ai'
+	)
+	&& '同时翻译标题' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Also translate the title',
+		'Also translate the title',
+		'ai'
+	)
+	&& '文章中没有可翻译的内容。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'No translatable content found in the post.',
+		'No translatable content found in the post.',
+		'ai'
+	)
+	&& '简体中文' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Chinese (Simplified)',
+		'Chinese (Simplified)',
+		'ai'
+	)
+	&& '英语（美国）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'English (US)',
+		'English (US)',
+		'ai'
+	)
+	&& '日语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Japanese',
+		'Japanese',
+		'ai'
+	),
+	'AI plugin localization translates the content translation sidebar and language names.'
+);
+
+maca_assert(
+	'AI 插件' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'AI Plugin',
+		'AI Plugin',
+		'ai'
+	)
+	&& 'AI 已启用' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'AI enabled',
+		'AI enabled',
+		'ai'
+	)
+	&& '是' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Yes',
+		'Yes',
+		'ai'
+	)
+	&& '否' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'No',
+		'No',
+		'ai'
+	)
+	&& '插件版本' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Plugin version',
+		'Plugin version',
+		'ai'
+	)
+	&& '未配置 AI 凭据' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'No AI credentials configured',
+		'No AI credentials configured',
+		'ai'
+	)
+	&& '尚未配置任何 AI 连接器凭据。在至少设置一个连接器之前，AI 功能不会启用。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'No AI connector credentials have been configured. AI features will not be active until at least one connector is set up.',
+		'No AI connector credentials have been configured. AI features will not be active until at least one connector is set up.',
+		'ai'
+	)
+	&& '完成以下步骤即可开始使用 AI 插件：' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Complete these steps to get started with the AI plugin:',
+		'Complete these steps to get started with the AI plugin:',
+		'ai'
+	)
+	&& '提供方能力' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Provider Capabilities',
+		'Provider Capabilities',
+		'ai'
+	),
+	'AI plugin localization translates site health and dashboard status labels.'
+);
+
+maca_assert(
+	'导出设置' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Export settings',
+		'Export settings',
+		'ai'
+	)
+	&& '导入设置' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Import settings',
+		'Import settings',
+		'ai'
+	)
+	&& '正在导入设置…' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Importing settings…',
+		'Importing settings…',
+		'ai'
+	)
+	&& '导出设置失败。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Failed to export settings.',
+		'Failed to export settings.',
+		'ai'
+	)
+	&& '设置导入成功。已导入 %1$d 项设置，%2$d 项因取值无效被拒绝。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Settings imported successfully. %1$d setting(s) imported, %2$d rejected due to invalid values.',
+		'Settings imported successfully. %1$d setting(s) imported, %2$d rejected due to invalid values.',
+		'ai'
+	)
+	&& '这将覆盖你现有的 AI 设置。确定继续吗？' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'This will overwrite your existing AI settings. Are you sure?',
+		'This will overwrite your existing AI settings. Are you sure?',
+		'ai'
+	),
+	'AI plugin localization translates the settings import and export surface.'
+);
+
+maca_assert(
+	'已达到批量处理上限，未能处理 %d 张图片。请减少所选图片后重试。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'%d images were not processed because the bulk limit was reached. Select fewer images and run the action again.',
+		'%d images were not processed because the bulk limit was reached. Select fewer images and run the action again.',
+		'ai'
+	)
+	&& '已跳过 %d 篇文章，其内容太短，无法生成摘要。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'%d posts were skipped because their content is too short to summarize.',
+		'%d posts were skipped because their content is too short to summarize.',
+		'ai'
+	)
+	&& '当前环境不支持嵌入生成。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Embedding generation is not available in this environment.',
+		'Embedding generation is not available in this environment.',
+		'ai'
+	)
+	&& '不支持的日志类型：%1$s。支持的类型为：%2$s。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Unsupported log type: %1$s. Supported types are: %2$s.',
+		'Unsupported log type: %1$s. Supported types are: %2$s.',
+		'ai'
+	),
+	'AI plugin localization translates 1.3.0 bulk notices and helper messages.'
 );
 
 maca_assert(
@@ -906,8 +1150,12 @@ maca_assert(
 	&& '分析情绪和毒性' === ( $locale_data['Analyze Sentiment and Toxicity'][0] ?? '' )
 	&& 'SEO 描述' === ( $locale_data['Meta Description'][0] ?? '' )
 	&& '建议%s' === ( $locale_data['Suggest %s'][0] ?? '' )
-	&& '请添加更多内容以启用 AI 建议（约 150 个词）。' === ( $locale_data['Add more content to enable AI suggestions (approximately 150 words).'][0] ?? '' )
 	&& '添加“%s”' === ( $locale_data['Add "%s"'][0] ?? '' )
+	&& '别名生成' === ( $locale_data['Slug Generation'][0] ?? '' )
+	&& '自定义能力' === ( $locale_data['Custom Abilities'][0] ?? '' )
+	&& '文章内容至少达到 %d 个字符后可生成别名建议。' === ( $locale_data['Slug suggestions will be available when the post content has at least %d characters.'][0] ?? '' )
+	&& '简体中文' === ( $locale_data['Chinese (Simplified)'][0] ?? '' )
+	&& '设置导入成功。' === ( $locale_data['Settings imported successfully.'][0] ?? '' )
 	&& '调整内容长度' === ( $locale_data['Resize Content'][0] ?? '' )
 	&& '替代文本' === ( $locale_data['Alt text'][0] ?? '' )
 	&& '应用编辑更新' === ( $locale_data['Apply Editorial Updates'][0] ?? '' )
