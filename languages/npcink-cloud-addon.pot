@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-22T12:12:56+00:00\n"
+"POT-Creation-Date: 2026-09-22T13:24:18+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -90,7 +90,8 @@ msgid "Settings"
 msgstr ""
 
 #: includes/class-cloud-addon-settings.php:227
-#: includes/class-cloud-settings-page.php:1996
+#: includes/class-cloud-settings-page.php:1833
+#: includes/class-cloud-settings-page.php:2021
 msgid "Not configured"
 msgstr ""
 
@@ -119,7 +120,6 @@ msgid "This site is bound and its connection credential is stored, but Cloud run
 msgstr ""
 
 #: includes/class-cloud-addon-settings.php:267
-#: includes/class-cloud-settings-page.php:1891
 msgid "Unavailable"
 msgstr ""
 
@@ -171,7 +171,7 @@ msgstr ""
 #: includes/class-cloud-entitlement-summary.php:227
 #: includes/class-cloud-settings-page.php:96
 #: includes/class-cloud-settings-page.php:164
-#: includes/class-cloud-settings-page.php:2900
+#: includes/class-cloud-settings-page.php:2925
 msgid "Plan and entitlement are temporarily unavailable."
 msgstr ""
 
@@ -521,7 +521,7 @@ msgstr ""
 
 #: includes/class-cloud-observability-collector.php:1182
 #: includes/class-cloud-settings-page.php:224
-#: includes/class-cloud-settings-page.php:2002
+#: includes/class-cloud-settings-page.php:2027
 msgid "Cloud Addon"
 msgstr ""
 
@@ -1198,15 +1198,15 @@ msgid "%1$s %2$s."
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:623
-#: includes/class-cloud-settings-page.php:2524
-#: includes/class-cloud-settings-page.php:3026
+#: includes/class-cloud-settings-page.php:2549
+#: includes/class-cloud-settings-page.php:3051
 msgid "enabled"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:623
-#: includes/class-cloud-settings-page.php:2524
-#: includes/class-cloud-settings-page.php:3027
-#: includes/class-cloud-settings-page.php:3078
+#: includes/class-cloud-settings-page.php:2549
+#: includes/class-cloud-settings-page.php:3052
+#: includes/class-cloud-settings-page.php:3103
 msgid "disabled"
 msgstr ""
 
@@ -1292,7 +1292,7 @@ msgstr ""
 
 #: includes/class-cloud-settings-page.php:1191
 #: includes/class-cloud-settings-page.php:1514
-#: includes/class-cloud-settings-page.php:2108
+#: includes/class-cloud-settings-page.php:2133
 msgid "Cloud Base URL"
 msgstr ""
 
@@ -1389,13 +1389,13 @@ msgid "Open Cloud sites"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1383
-#: includes/class-cloud-settings-page.php:2859
-#: includes/class-cloud-settings-page.php:2891
+#: includes/class-cloud-settings-page.php:2884
+#: includes/class-cloud-settings-page.php:2916
 msgid "Not checked"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1389
-#: includes/class-cloud-settings-page.php:2188
+#: includes/class-cloud-settings-page.php:2213
 msgid "Needs attention"
 msgstr ""
 
@@ -1503,7 +1503,7 @@ msgstr ""
 
 #: includes/class-cloud-settings-page.php:1621
 #: includes/class-cloud-settings-page.php:1659
-#: includes/class-cloud-settings-page.php:2010
+#: includes/class-cloud-settings-page.php:2035
 msgid "Retry"
 msgstr ""
 
@@ -1557,7 +1557,7 @@ msgid "Runtime allowance"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1696
-#: includes/class-cloud-settings-page.php:2505
+#: includes/class-cloud-settings-page.php:2530
 msgid "Monitoring needs attention"
 msgstr ""
 
@@ -1629,11 +1629,9 @@ msgid "Credentials"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1833
-msgid "saved"
-msgstr ""
-
-#: includes/class-cloud-settings-page.php:1833
-msgid "missing"
+#: includes/class-cloud-settings-page.php:1834
+#: includes/class-cloud-settings-page.php:1835
+msgid "Healthy"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1834
@@ -1641,11 +1639,7 @@ msgid "Cloud connection"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1834
-msgid "verified"
-msgstr ""
-
-#: includes/class-cloud-settings-page.php:1834
-msgid "not verified"
+msgid "Not verified"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1835
@@ -1653,657 +1647,645 @@ msgid "Hosted Runtime"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1835
-msgid "reported"
-msgstr ""
-
-#: includes/class-cloud-settings-page.php:1835
-msgid "not returned"
+msgid "Not provided"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1838
 msgid "Readiness result"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1856
+#: includes/class-cloud-settings-page.php:1858
 msgid "WordPress AI generation tests"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1857
+#: includes/class-cloud-settings-page.php:1859
 msgid "Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1860
+#: includes/class-cloud-settings-page.php:1863
 msgid "Open text generation test"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1860
+#: includes/class-cloud-settings-page.php:1863
 msgid "Open image generation test"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1860
+#: includes/class-cloud-settings-page.php:1863
 msgid "Open image understanding test"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1868
+#: includes/class-cloud-settings-page.php:1871
 msgid "View recent AI requests"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1871
+#: includes/class-cloud-settings-page.php:1874
 msgid "Open WordPress AI settings for tests and request logging"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1885
+#: includes/class-cloud-settings-page.php:1889
 msgid "Text generation"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1886
+#: includes/class-cloud-settings-page.php:1890
 msgid "Image generation"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1887
+#: includes/class-cloud-settings-page.php:1891
 msgid "Image understanding"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1890
-msgid "Configuration confirmed"
-msgstr ""
-
-#: includes/class-cloud-settings-page.php:1892
-msgid "Unknown"
-msgstr ""
-
-#: includes/class-cloud-settings-page.php:1895
+#: includes/class-cloud-settings-page.php:1899
 msgid "Cloud configuration and site entitlement are confirmed. Generation has not been tested by this check."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1896
+#: includes/class-cloud-settings-page.php:1900
 msgid "Activate this site in Cloud."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1897
+#: includes/class-cloud-settings-page.php:1901
 msgid "This site has no Cloud subscription."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1898
+#: includes/class-cloud-settings-page.php:1902
 msgid "Subscription renewal or grace needs a runtime check."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1899
+#: includes/class-cloud-settings-page.php:1903
 msgid "Cloud has no active entitlement for this site."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1900
+#: includes/class-cloud-settings-page.php:1904
 msgid "Cloud did not provide complete entitlement evidence."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1901
+#: includes/class-cloud-settings-page.php:1905
 msgid "This site is not entitled to this capability."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1902
+#: includes/class-cloud-settings-page.php:1906
 msgid "Cloud has no executable provider configured."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1903
+#: includes/class-cloud-settings-page.php:1907
 msgid "The required Cloud runtime profile is not configured."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1904
+#: includes/class-cloud-settings-page.php:1908
 msgid "Cloud has no eligible model or current capability evidence. Check Cloud service detail."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1905
+#: includes/class-cloud-settings-page.php:1909
 msgid "The Cloud runtime profile does not match this capability."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1906
+#: includes/class-cloud-settings-page.php:1910
 msgid "The previous capability check has expired. Run the connection checks to refresh it."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1907
+#: includes/class-cloud-settings-page.php:1911
 msgid "The latest Cloud check failed. Previous evidence is not current."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1911
+#: includes/class-cloud-settings-page.php:1917
 msgid "Capability evidence is unavailable. Run the connection checks; older Cloud versions may not report it."
 msgstr ""
 
 #. translators: %s: last capability check in the site timezone.
-#: includes/class-cloud-settings-page.php:1915
+#: includes/class-cloud-settings-page.php:1921
 #, php-format
 msgid "Checked: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1951
+#: includes/class-cloud-settings-page.php:1976
 msgid "Run readiness test"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1976
-#: includes/class-cloud-settings-page.php:2000
+#: includes/class-cloud-settings-page.php:2001
+#: includes/class-cloud-settings-page.php:2025
 msgid "not run"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1992
-#: includes/class-cloud-settings-page.php:2197
+#: includes/class-cloud-settings-page.php:2017
+#: includes/class-cloud-settings-page.php:2222
 msgid "Ready"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1994
+#: includes/class-cloud-settings-page.php:2019
 msgid "Failed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1998
+#: includes/class-cloud-settings-page.php:2023
 msgid "Partial"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2004
-#: includes/class-cloud-settings-page.php:2084
+#: includes/class-cloud-settings-page.php:2029
+#: includes/class-cloud-settings-page.php:2109
 msgid "Cloud"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2006
+#: includes/class-cloud-settings-page.php:2031
 msgid "Operator"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2008
+#: includes/class-cloud-settings-page.php:2033
 msgid "continue"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2012
+#: includes/class-cloud-settings-page.php:2037
 msgid "Check Cloud status"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2014
+#: includes/class-cloud-settings-page.php:2039
 msgid "Open settings"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2017
-#: includes/class-cloud-settings-page.php:2425
-#: includes/class-cloud-settings-page.php:2426
-#: includes/class-cloud-settings-page.php:2879
-#: includes/class-cloud-settings-page.php:3106
-#: includes/class-cloud-settings-page.php:3117
-#: includes/class-cloud-settings-page.php:3156
+#: includes/class-cloud-settings-page.php:2042
+#: includes/class-cloud-settings-page.php:2450
+#: includes/class-cloud-settings-page.php:2451
+#: includes/class-cloud-settings-page.php:2904
+#: includes/class-cloud-settings-page.php:3131
+#: includes/class-cloud-settings-page.php:3142
+#: includes/class-cloud-settings-page.php:3181
 msgid "unavailable"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2029
+#: includes/class-cloud-settings-page.php:2054
 msgid "Use Run readiness test to execute the liveness and signed-read checks."
 msgstr ""
 
 #. translators: 1: owner label, 2: next action, 3: blocked reason.
-#: includes/class-cloud-settings-page.php:2039
+#: includes/class-cloud-settings-page.php:2064
 #, php-format
 msgid "Owner: %1$s. Next safe action: %2$s. Blocked reason: %3$s"
 msgstr ""
 
 #. translators: 1: owner label, 2: next action.
-#: includes/class-cloud-settings-page.php:2048
+#: includes/class-cloud-settings-page.php:2073
 #, php-format
 msgid "Owner: %1$s. Next safe action: %2$s."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2062
+#: includes/class-cloud-settings-page.php:2087
 msgid "Cloud entitlement did not return hosted runtime detail. Re-verify or open Cloud status detail."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2065
+#: includes/class-cloud-settings-page.php:2090
 msgid "Cloud reported the hosted runtime entitlement."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2078
+#: includes/class-cloud-settings-page.php:2103
 msgid "Connection context"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2080
+#: includes/class-cloud-settings-page.php:2105
 msgid "Connection"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2088
+#: includes/class-cloud-settings-page.php:2113
 msgid "Current site"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2093
+#: includes/class-cloud-settings-page.php:2118
 msgid "Add this site in Npcink Cloud"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2094
+#: includes/class-cloud-settings-page.php:2119
 msgid "Cloud will create or activate this site connection and return here with a one-time authorization code."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2095
+#: includes/class-cloud-settings-page.php:2120
 msgid "After connection, the WordPress AI connector is enabled by default. You can turn it off later in Overview under Local permissions."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2096
+#: includes/class-cloud-settings-page.php:2121
 msgid "Review Cloud privacy and data retention information"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2097
+#: includes/class-cloud-settings-page.php:2122
 msgid "Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2101
+#: includes/class-cloud-settings-page.php:2126
 msgid "Advanced connection"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2102
+#: includes/class-cloud-settings-page.php:2127
 msgid "Self-hosted Cloud endpoint"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2119
+#: includes/class-cloud-settings-page.php:2144
 msgid "Authorize with this endpoint"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2122
+#: includes/class-cloud-settings-page.php:2147
 msgid "For compatible Npcink Cloud deployments only. Cloud still owns site activation and key issuance."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2123
+#: includes/class-cloud-settings-page.php:2148
 msgid "This does not manage Cloud sites, keys, billing, models, router, workflows, or runtime policy."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2157
+#: includes/class-cloud-settings-page.php:2182
 msgid "Site Knowledge delivery starts after the connector verifies successfully."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2191
+#: includes/class-cloud-settings-page.php:2216
 msgid "Updating"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2194
+#: includes/class-cloud-settings-page.php:2219
 msgid "Up to date"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2203
+#: includes/class-cloud-settings-page.php:2228
 msgid "Back to Site Knowledge"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2211
+#: includes/class-cloud-settings-page.php:2236
 msgid "Knowledge base status"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2213
+#: includes/class-cloud-settings-page.php:2238
 msgid "Knowledge base maintenance"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2214
+#: includes/class-cloud-settings-page.php:2239
 msgid "View Cloud details"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2217
+#: includes/class-cloud-settings-page.php:2242
 msgid "AI can reference your public posts and pages. WordPress content and search engine settings are not changed."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2221
+#: includes/class-cloud-settings-page.php:2246
 msgid "Knowledge base update needs attention"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2223
+#: includes/class-cloud-settings-page.php:2248
 msgid "Some content is outside the knowledge base limit"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2225
+#: includes/class-cloud-settings-page.php:2250
 msgid "Updating the knowledge base"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2227
+#: includes/class-cloud-settings-page.php:2252
 msgid "All public content is up to date"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2229
+#: includes/class-cloud-settings-page.php:2254
 msgid "Automatic updates are ready"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2233
+#: includes/class-cloud-settings-page.php:2258
 msgid "Automatic updates are delayed. Check the site scheduler in advanced troubleshooting."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2233
+#: includes/class-cloud-settings-page.php:2258
 msgid "The system will keep trying automatically."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2234
-#: includes/class-cloud-settings-page.php:2267
+#: includes/class-cloud-settings-page.php:2259
+#: includes/class-cloud-settings-page.php:2292
 msgid "View advanced troubleshooting"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2235
+#: includes/class-cloud-settings-page.php:2260
 msgid "Update again"
 msgstr ""
 
 #. translators: %d: content count skipped by Cloud quota.
-#: includes/class-cloud-settings-page.php:2239
+#: includes/class-cloud-settings-page.php:2264
 #, php-format
 msgid "%d public items were not included. Review the plan details in Cloud."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2243
+#: includes/class-cloud-settings-page.php:2268
 msgid "Updates will appear here after public content changes."
 msgstr ""
 
 #. translators: %d: number of content updates waiting for automatic processing.
-#: includes/class-cloud-settings-page.php:2250
+#: includes/class-cloud-settings-page.php:2275
 #, php-format
 msgid "Updates waiting: %d"
 msgstr ""
 
 #. translators: %s: date and time of the most recent knowledge base update.
-#: includes/class-cloud-settings-page.php:2257
+#: includes/class-cloud-settings-page.php:2282
 #, php-format
 msgid "Last updated: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2265
+#: includes/class-cloud-settings-page.php:2290
 msgid "Delivery is off; refresh controls and routine delivery rows are hidden."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2307
+#: includes/class-cloud-settings-page.php:2332
 msgid "Knowledge base delivery"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2311
+#: includes/class-cloud-settings-page.php:2336
 msgid "Last success"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2316
+#: includes/class-cloud-settings-page.php:2341
 msgid "Last error code"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2320
+#: includes/class-cloud-settings-page.php:2345
 msgid "Last error time"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2326
+#: includes/class-cloud-settings-page.php:2351
 msgid "WP-Cron disabled"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2327
+#: includes/class-cloud-settings-page.php:2352
 msgid "yes"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2327
+#: includes/class-cloud-settings-page.php:2352
 msgid "no"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2330
+#: includes/class-cloud-settings-page.php:2355
 msgid "Manual flush command"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2348
+#: includes/class-cloud-settings-page.php:2373
 msgid "Index operations"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2349
+#: includes/class-cloud-settings-page.php:2374
 msgid "Use only for initial indexing, rebuilds, or explicit Cloud index cleanup."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2351
+#: includes/class-cloud-settings-page.php:2376
 #: includes/class-cloud-site-knowledge-change-bridge.php:480
 msgid "Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2357
+#: includes/class-cloud-settings-page.php:2382
 msgid "These actions send intent only; WordPress content is not changed."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2359
+#: includes/class-cloud-settings-page.php:2384
 msgid "These actions send local administrator delivery intent and bounded public WordPress content for Cloud-owned Site Knowledge operations. Cloud performs indexing, rebuild, deletion, and diagnostics; WordPress content is not changed."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2365
-#: includes/class-cloud-settings-page.php:2367
+#: includes/class-cloud-settings-page.php:2390
+#: includes/class-cloud-settings-page.php:2392
 msgid "Start indexing"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2369
+#: includes/class-cloud-settings-page.php:2394
 msgid "Send a public post and page manifest."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2375
-#: includes/class-cloud-settings-page.php:2378
+#: includes/class-cloud-settings-page.php:2400
+#: includes/class-cloud-settings-page.php:2403
 msgid "Rebuild index"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2377
+#: includes/class-cloud-settings-page.php:2402
 msgid "Type REBUILD"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2380
+#: includes/class-cloud-settings-page.php:2405
 msgid "Ask Cloud to clear and rebuild the site index."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2386
-#: includes/class-cloud-settings-page.php:2389
+#: includes/class-cloud-settings-page.php:2411
+#: includes/class-cloud-settings-page.php:2414
 msgid "Delete site index"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2388
+#: includes/class-cloud-settings-page.php:2413
 msgid "Type DELETE"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2391
+#: includes/class-cloud-settings-page.php:2416
 msgid "Ask Cloud to delete the site index only."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2414
+#: includes/class-cloud-settings-page.php:2439
 msgid "Renews"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2421
+#: includes/class-cloud-settings-page.php:2446
 msgid "AI credit period"
 msgstr ""
 
 #. translators: 1: credit period start, 2: credit period end.
-#: includes/class-cloud-settings-page.php:2424
+#: includes/class-cloud-settings-page.php:2449
 #, php-format
 msgid "%1$s to %2$s"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2433
+#: includes/class-cloud-settings-page.php:2458
 msgid "Run limit"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2434
+#: includes/class-cloud-settings-page.php:2459
 msgid "Token limit"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2435
+#: includes/class-cloud-settings-page.php:2460
 msgid "Site limit"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2436
+#: includes/class-cloud-settings-page.php:2461
 msgid "Active run limit"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2437
+#: includes/class-cloud-settings-page.php:2462
 msgid "Batch item limit"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2450
+#: includes/class-cloud-settings-page.php:2475
 msgid "Cost limit"
 msgstr ""
 
 #. translators: %s: USD cost limit.
-#: includes/class-cloud-settings-page.php:2453
+#: includes/class-cloud-settings-page.php:2478
 #, php-format
 msgid "%s USD"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2461
+#: includes/class-cloud-settings-page.php:2486
 msgid "Execution tiers"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2466
+#: includes/class-cloud-settings-page.php:2491
 msgid "No additional entitlement parameters were returned by Cloud."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2472
+#: includes/class-cloud-settings-page.php:2497
 msgid "Entitlement details"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2474
+#: includes/class-cloud-settings-page.php:2499
 msgid "View AI credit details in Cloud"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2489
+#: includes/class-cloud-settings-page.php:2514
 msgid "AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2523
+#: includes/class-cloud-settings-page.php:2548
 msgid "Collection"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2527
+#: includes/class-cloud-settings-page.php:2552
 msgid "Buffered events"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2531
+#: includes/class-cloud-settings-page.php:2556
 msgid "Last upload status"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2537
+#: includes/class-cloud-settings-page.php:2562
 msgid "never"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2539
-#: includes/class-cloud-settings-page.php:3082
+#: includes/class-cloud-settings-page.php:2564
+#: includes/class-cloud-settings-page.php:3107
 msgid "ok"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2539
+#: includes/class-cloud-settings-page.php:2564
 msgid "failed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2546
+#: includes/class-cloud-settings-page.php:2571
 msgid "Last upload error"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2567
+#: includes/class-cloud-settings-page.php:2592
 msgid "Connection status"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2571
+#: includes/class-cloud-settings-page.php:2596
 msgid "Cloud error classification"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2575
+#: includes/class-cloud-settings-page.php:2600
 msgid "Last failure"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2591
+#: includes/class-cloud-settings-page.php:2616
 msgid "The site is connected, but Cloud service is not active yet. Activate this site in Npcink Cloud, then check activation again here."
 msgstr ""
 
 #. translators: %s: liveness error.
-#: includes/class-cloud-settings-page.php:2597
+#: includes/class-cloud-settings-page.php:2622
 #, php-format
 msgid "Live check failed: %s"
 msgstr ""
 
 #. translators: %s: signed verification error.
-#: includes/class-cloud-settings-page.php:2604
+#: includes/class-cloud-settings-page.php:2629
 #, php-format
 msgid "Signed verification failed: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2611
+#: includes/class-cloud-settings-page.php:2636
 msgid "Cloud verification failed."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2863
-#: includes/class-cloud-settings-page.php:2908
+#: includes/class-cloud-settings-page.php:2888
+#: includes/class-cloud-settings-page.php:2933
 msgid "available"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2868
+#: includes/class-cloud-settings-page.php:2893
 msgid "not refreshed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2872
-#: includes/class-cloud-settings-page.php:3076
+#: includes/class-cloud-settings-page.php:2897
+#: includes/class-cloud-settings-page.php:3101
 msgid "not configured"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2876
+#: includes/class-cloud-settings-page.php:2901
 msgid "read failed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2896
+#: includes/class-cloud-settings-page.php:2921
 msgid "Loading plan and entitlement…"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2905
+#: includes/class-cloud-settings-page.php:2930
 msgid "Available"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2919
+#: includes/class-cloud-settings-page.php:2944
 msgid "Free plan"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2920
+#: includes/class-cloud-settings-page.php:2945
 msgid "Pro plan"
 msgstr ""
 
 #. translators: 1: remaining credits, 2: credit limit, 3: remaining percentage.
-#: includes/class-cloud-settings-page.php:2963
+#: includes/class-cloud-settings-page.php:2988
 #, php-format
 msgid "%1$s / %2$s · %3$d%% remaining"
 msgstr ""
 
 #. translators: 1: used credits, 2: remaining credits, 3: credit limit.
-#: includes/class-cloud-settings-page.php:2971
+#: includes/class-cloud-settings-page.php:2996
 #, php-format
 msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
 msgstr ""
 
 #. translators: %s: remaining credits.
-#: includes/class-cloud-settings-page.php:2979
+#: includes/class-cloud-settings-page.php:3004
 #, php-format
 msgid "%s remaining"
 msgstr ""
 
 #. translators: 1: remaining runtime runs, 2: runtime run limit.
-#: includes/class-cloud-settings-page.php:2996
+#: includes/class-cloud-settings-page.php:3021
 #, php-format
 msgid "%1$d of %2$d runs remaining"
 msgstr ""
 
 #. translators: 1: monitoring state, 2: buffered event count.
-#: includes/class-cloud-settings-page.php:3032
+#: includes/class-cloud-settings-page.php:3057
 #, php-format
 msgid "%1$s, %2$d buffered"
 msgstr ""
 
 #. translators: %d: buffered public change count.
-#: includes/class-cloud-settings-page.php:3054
+#: includes/class-cloud-settings-page.php:3079
 #, php-format
 msgid "%d public changes awaiting delivery"
 msgstr ""
 
 #. translators: 1: bridge status, 2: buffered public change count.
-#: includes/class-cloud-settings-page.php:3061
+#: includes/class-cloud-settings-page.php:3086
 #, php-format
 msgid "%1$s, %2$d public changes buffered"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3075
+#: includes/class-cloud-settings-page.php:3100
 msgid "idle"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3077
+#: includes/class-cloud-settings-page.php:3102
 msgid "unverified"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3079
+#: includes/class-cloud-settings-page.php:3104
 msgid "error"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3080
+#: includes/class-cloud-settings-page.php:3105
 msgid "pending"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3081
+#: includes/class-cloud-settings-page.php:3106
 msgid "queued"
 msgstr ""
 
