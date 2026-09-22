@@ -7,12 +7,13 @@
 
 declare(strict_types=1);
 
-$performance_guard_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-performance-guards.php' );
-passthru( $performance_guard_command, $performance_guard_status );
-if ( 0 !== $performance_guard_status ) {
-	exit( $performance_guard_status );
-}
-
+// Two sandboxes must stay in subprocesses because their process-global
+// replacements cannot coexist with the shared-process tests below:
+// - the alt-text handoff test replaces current_user_can/get_post and the two
+//   plugin seam functions with signatures the real plugin code and the
+//   settings-page and site-knowledge sandboxes cannot share;
+// - the site-knowledge admin actions test substitutes the bridge class name,
+//   which behavior-site-knowledge-change-bridge.php needs as the real class.
 $alt_text_handoff_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-wordpress-ai-alt-text-artifact-handoff.php' );
 passthru( $alt_text_handoff_command, $alt_text_handoff_status );
 if ( 0 !== $alt_text_handoff_status ) {
@@ -25,24 +26,9 @@ if ( 0 !== $site_knowledge_admin_actions_status ) {
 	exit( $site_knowledge_admin_actions_status );
 }
 
-$custom_cleanup_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-cleanup-custom-option.php' );
-passthru( $custom_cleanup_command, $custom_cleanup_status );
-if ( 0 !== $custom_cleanup_status ) {
-	exit( $custom_cleanup_status );
-}
-
-$public_api_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-public-api.php' );
-passthru( $public_api_command, $public_api_status );
-if ( 0 !== $public_api_status ) {
-	exit( $public_api_status );
-}
-
-
-$pr_body_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-pr-body-contract.php' );
-passthru( $pr_body_command, $pr_body_status );
-if ( 0 !== $pr_body_status ) {
-	exit( $pr_body_status );
-}
+require __DIR__ . '/behavior-performance-guards.php';
+require __DIR__ . '/behavior-public-api.php';
+require __DIR__ . '/behavior-pr-body-contract.php';
 
 require __DIR__ . '/static-contracts.php';
 require __DIR__ . '/behavior-runtime-endpoint-policy.php';
@@ -70,3 +56,8 @@ require __DIR__ . '/behavior-customer-journey.php';
 require __DIR__ . '/behavior-editor-assist-quality.php';
 require __DIR__ . '/behavior-site-knowledge-change-bridge.php';
 require __DIR__ . '/behavior-site-knowledge-runtime-bridge.php';
+
+// Must stay last: it defines NPCINK_CLOUD_ADDON_OPTION_NAME for the whole
+// process, and constants cannot be undefined, so any earlier run would make
+// later settings and cleanup tests exercise the custom option name.
+require __DIR__ . '/behavior-cleanup-custom-option.php';

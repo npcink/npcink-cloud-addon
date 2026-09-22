@@ -20,6 +20,12 @@ if ( ! function_exists( 'plugin_basename' ) ) {
 	}
 }
 
+// The plugin load evaluates includes/class-cloud-wordpress-ai-connector.php,
+// whose provider bundle only declares behind AI client SDK class_exists
+// guards; declare the shared empty stubs first so the bundle is available to
+// behavior-wordpress-ai-connector-result.php in this shared process.
+require_once __DIR__ . '/wordpress-ai-client-stubs.php';
+
 require_once MACA_TEST_ROOT . '/npcink-cloud-addon.php';
 
 maca_assert(
