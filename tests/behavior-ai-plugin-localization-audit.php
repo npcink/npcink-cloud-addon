@@ -51,6 +51,8 @@ esc_html__( 'New Audit Button', 'ai' );
 esc_html_e( 'Echoed Audit Label', 'ai' );
 esc_html_e( 'Ignore Default Domain', 'default' );
 esc_html__( 'Ignore Default Domain', 'default' );
+esc_html__( 'Content Wizard', 'ai' );
+esc_html__( 'Content of the demo object.', 'ai' );
 _n( 'One audit result', 'Many audit results', $count, 'ai' );
 PHP
 );
@@ -93,6 +95,15 @@ $status = npcink_cloud_addon_ai_i18n_audit_main(
 );
 $report = (string) ob_get_clean();
 
+// Detail section headers start at a line beginning; the summary list at the
+// top of the report prefixes the same names with "- ".
+$fixed_ui_offset = strpos( $report, "\nfixed_ui_candidates:" );
+$ability_offset  = strpos( $report, "\nability_error_notices:" );
+$schema_offset   = strpos( $report, "\nschema_or_json_fields:" );
+$prompt_offset   = strpos( $report, "\nlong_prompt_copy:" );
+$label_offset    = strpos( $report, '"Content Wizard"' );
+$prose_offset    = strpos( $report, '"Content of the demo object."' );
+
 maca_assert(
 	0 === $status
 	&& false !== strpos( $report, 'WordPress AI plugin localization audit' )
@@ -116,6 +127,16 @@ maca_assert(
 	&& false !== strpos( $report, '"Second audit images."' )
 	&& false !== strpos( $report, '"Demo ability label"' )
 	&& false !== strpos( $report, '"Demo ability failed. Please ensure it is configured."' )
+	&& false !== $fixed_ui_offset
+	&& false !== $ability_offset
+	&& false !== $schema_offset
+	&& false !== $prompt_offset
+	&& false !== $label_offset
+	&& $label_offset > $fixed_ui_offset
+	&& $label_offset < $ability_offset
+	&& false !== $prose_offset
+	&& $prose_offset > $schema_offset
+	&& $prose_offset < $prompt_offset
 	&& false !== strpos( $report, '"The ID of the demo object."' )
 	&& false !== strpos( $report, '"Outpaint the image to create a wider panoramic view.' )
 	&& false !== strpos( $report, '"Unicode ellipsis…"' )
