@@ -116,9 +116,9 @@ maca_assert(
 		'Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits.',
 		'npcink-cloud-addon'
 	)
-	&& '剩余 %d%%' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'%d%% remaining',
-		'%d%% remaining',
+	&& '%1$s / %2$s · 剩余 %3$d%%' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'%1$s / %2$s · %3$d%% remaining',
+		'%1$s / %2$s · %3$d%% remaining',
 		'npcink-cloud-addon'
 	)
 	&& '权益详情' === Npcink_Cloud_Addon_Localization::filter_gettext(

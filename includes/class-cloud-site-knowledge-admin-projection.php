@@ -65,12 +65,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Projection' ) ) {
 
 			$projection['available'] = true;
 			$projection['value_label'] = self::format_number( $remaining ) . ' / ' . self::format_number( $limit );
-			$projection['status_label'] = sprintf(
-				/* translators: %d: remaining percentage. */
-				__( '%d%% remaining', 'npcink-cloud-addon' ),
-				$remaining_percent
-			);
-			$projection['label'] = $projection['value_label'] . ' · ' . $projection['status_label'];
+			$projection['status_label'] = '';
+			$projection['label'] = $projection['value_label'];
 			$projection['tooltip'] = sprintf(
 				/* translators: 1: indexed documents, 2: remaining documents, 3: document limit. */
 				__( 'Indexed %1$s documents; remaining %2$s documents; limit %3$s documents.', 'npcink-cloud-addon' ),
