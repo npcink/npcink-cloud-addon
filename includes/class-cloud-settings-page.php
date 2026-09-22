@@ -1222,7 +1222,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				),
 			'monitoring_enabled' => array(
 				'label'       => __( 'Send anonymous diagnostics', 'npcink-cloud-addon' ),
-				'description' => __( 'Send metadata-only events about feature steps, outcomes, timing, and machine-readable error codes to improve reliability. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.', 'npcink-cloud-addon' ),
+				'description' => __( 'Send metadata-only diagnostic events (feature steps, outcomes, timing, and error codes) to improve reliability. Never includes prompts, content, user or post IDs, emails, URLs, or credentials. Off by default.', 'npcink-cloud-addon' ),
+				'more'        => __( 'Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.', 'npcink-cloud-addon' ),
 			),
 			);
 		}
@@ -1277,7 +1278,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php self::render_local_permission_switch( 'site_knowledge_delivery_enabled', $definitions['site_knowledge_delivery_enabled'], ! empty( $settings['site_knowledge_delivery_enabled'] ), $feedback ); ?>
 				</div>
 				<details class="npcink-cloud-advanced-detail npcink-cloud-local-permissions__more"<?php echo 'monitoring_enabled' === (string) ( $feedback['permission'] ?? '' ) ? ' open' : ''; ?>>
-					<summary><?php esc_html_e( 'Privacy settings', 'npcink-cloud-addon' ); ?></summary>
+					<summary><?php esc_html_e( 'Privacy settings', 'npcink-cloud-addon' ); ?><span class="npcink-cloud-permissions-summary__state"> · <?php echo esc_html( sprintf(
+						/* translators: %s: diagnostics on or off state. */
+						__( 'Anonymous diagnostics %s', 'npcink-cloud-addon' ),
+						! empty( $settings['monitoring_enabled'] ) ? __( 'on', 'npcink-cloud-addon' ) : __( 'off', 'npcink-cloud-addon' )
+					) ); ?></span></summary>
 					<div class="npcink-cloud-advanced-detail__body">
 						<?php self::render_local_permission_switch( 'monitoring_enabled', $definitions['monitoring_enabled'], ! empty( $settings['monitoring_enabled'] ), $feedback ); ?>
 					</div>
@@ -1319,7 +1324,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						</span>
 					</span>
 					<span class="npcink-cloud-local-permission__copy">
-						<span class="npcink-cloud-local-permission__title"><?php echo esc_html( $definition['label'] ); ?></span>
+						<span class="npcink-cloud-local-permission__title"><?php echo esc_html( $definition['label'] ); ?><?php
+						if ( '' !== (string) ( $definition['more'] ?? '' ) ) :
+							?><span class="npcink-cloud-info-hint" tabindex="0" title="<?php echo esc_attr( (string) $definition['more'] ); ?>"><?php esc_html_e( 'i', 'npcink-cloud-addon' ); ?></span><?php
+						endif;
+						?></span>
 						<span class="npcink-cloud-local-permission__description"><?php echo esc_html( $definition['description'] ); ?></span>
 					</span>
 				</label>
