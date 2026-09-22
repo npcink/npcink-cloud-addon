@@ -201,6 +201,37 @@
 	overflow-wrap: anywhere;
 }
 
+.npcink-cloud-info-hint {
+	align-items: center;
+	border: 1px solid #c3c4c7;
+	border-radius: 999px;
+	box-sizing: border-box;
+	color: #646970;
+	cursor: help;
+	display: inline-flex;
+	font-size: 11px;
+	font-weight: 600;
+	height: 16px;
+	justify-content: center;
+	line-height: 1;
+	margin-left: 6px;
+	text-transform: lowercase;
+	vertical-align: -3px;
+	width: 16px;
+}
+
+.npcink-cloud-info-hint:hover,
+.npcink-cloud-info-hint:focus {
+	border-color: #3858e9;
+	color: #3858e9;
+	outline: none;
+}
+
+.npcink-cloud-permissions-summary__state {
+	color: #646970;
+	font-weight: 400;
+}
+
 .npcink-cloud-local-permission__description {
 	color: #646970;
 	line-height: 1.45;
