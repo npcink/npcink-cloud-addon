@@ -7,27 +7,6 @@
 
 declare(strict_types=1);
 
-namespace WordPress\AiClient\Providers {
-	abstract class AbstractProvider {}
-}
-
-namespace WordPress\AiClient\Providers\Contracts {
-	interface ProviderAvailabilityInterface {}
-	interface ModelMetadataDirectoryInterface {}
-}
-
-namespace WordPress\AiClient\Providers\Models\Contracts {
-	interface ModelInterface {}
-}
-
-namespace WordPress\AiClient\Providers\Models\TextGeneration\Contracts {
-	interface TextGenerationModelInterface {}
-}
-
-namespace WordPress\AiClient\Providers\Models\ImageGeneration\Contracts {
-	interface ImageGenerationModelInterface {}
-}
-
 namespace WordPress\AiClient\Common\Exception {
 	class RuntimeException extends \RuntimeException {}
 }
@@ -59,6 +38,9 @@ namespace WordPress\AI\Abilities\Image {
 namespace {
 	require_once __DIR__ . '/helpers.php';
 
+	// SDK stubs first: the connector provider bundle declares only behind
+	// class_exists guards on these shared empty classes.
+	require_once __DIR__ . '/wordpress-ai-client-stubs.php';
 	maca_load_addon_classes();
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
 

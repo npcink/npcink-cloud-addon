@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
 
-$validator = MACA_TEST_ROOT . '/scripts/validate-pr-body.php';
+require_once MACA_TEST_ROOT . '/scripts/validate-pr-body.php';
 $valid_body = <<<'MARKDOWN'
 ## Scope
 
@@ -50,10 +50,9 @@ MARKDOWN;
 foreach ( array( 'valid' => $valid_body, 'placeholder' => $placeholder_body ) as $case => $body ) {
 	$path = tempnam( sys_get_temp_dir(), 'maca-pr-body-' );
 	maca_assert( is_string( $path ) && false !== file_put_contents( $path, $body ), 'Fixture: ' . $case . ' PR body is created.' );
-	$command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $validator ) . ' ' . escapeshellarg( $path );
-	$output = array();
-	$exit_code = 0;
-	exec( $command, $output, $exit_code );
+	ob_start();
+	$exit_code = npcink_cloud_addon_validate_pr_body_main( array( 'validate-pr-body.php', $path ) );
+	ob_end_clean();
 	unlink( $path );
 	maca_assert(
 		( 'valid' === $case && 0 === $exit_code ) || ( 'placeholder' === $case && 0 !== $exit_code ),

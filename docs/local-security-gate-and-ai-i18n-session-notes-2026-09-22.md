@@ -44,13 +44,29 @@ what that doc does not cover.
   set `MIMOSA_HOOK_PROJECT=1` in the launch environment so cross-file
   findings become non-blocking hints, or disable the plugin and open a
   new task.
-- Known debt left in place (not blocking while the gate is off):
-  eleven `exec`/`passthru` call sites in `tests/run.php`,
-  `tests/behavior-pr-body-contract.php`, `scripts/check-pot-freshness.php`,
-  `scripts/describe-local-runtime.php`, `scripts/run-plugin-check.php`,
-  and `scripts/run-wp-cli.php`. Seven are in-process candidates; four
-  genuinely require subprocesses. Escapes proper `escapeshellarg`
-  handling today.
+- Shell execution debt reduced on 2026-09-22: the `tests/run.php` passthru
+  blocks for the performance guards, public API, PR body contract, and
+  custom-option cleanup tests now run in process, as does the
+  `tests/behavior-pr-body-contract.php` exec of `scripts/validate-pr-body.php`
+  (the validator keeps its CLI entry for `composer pr:publish` and CI). The
+  custom-option test moved to the end of the runner because its
+  `NPCINK_CLOUD_ADDON_OPTION_NAME` define persists for the process.
+- Two `tests/run.php` passthru blocks remain subprocesses on purpose: the
+  alt-text handoff sandbox replaces `current_user_can`/`get_post` and the two
+  plugin seam functions with signatures the settings-page and site-knowledge
+  sandboxes cannot share, and the site-knowledge admin actions test
+  substitutes the bridge class name that
+  `behavior-site-knowledge-change-bridge.php` needs as the real class.
+- Known debt left in place (not blocking while the gate is off): four
+  `exec`/`passthru` call sites that must spawn subprocesses with runtime
+  paths, which the scanner cannot accept as fully literal commands:
+  `scripts/check-pot-freshness.php` (WP-CLI make-pot),
+  `scripts/describe-local-runtime.php` (git against a runtime worktree),
+  `scripts/run-plugin-check.php` (WordPress.org plugin-check through
+  WP-CLI), and `scripts/run-wp-cli.php` (WP-CLI binary at a runtime
+  path). These are a policy retention, not an oversight. While Mimosa is
+  enabled, launch with `MIMOSA_HOOK_PROJECT=1` so cross-file findings
+  become non-blocking hints, or keep the plugin disabled.
 
 ## Cross-Session Handoff Convention
 
