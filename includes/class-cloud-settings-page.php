@@ -2183,15 +2183,20 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				|| '' !== (string) ( $site_knowledge['last_error_code'] ?? '' );
 			$capacity_needs_attention = $quota_skipped_count > 0;
 			$update_in_progress = $maintenance_active || $waiting_count > 0;
+			if ( $local_delivery_needs_attention || $capacity_needs_attention ) {
+				$badge_class = 'pending';
+				$badge_label = __( 'Needs attention', 'npcink-cloud-addon' );
+			} elseif ( $update_in_progress ) {
+				$badge_class = 'info';
+				$badge_label = __( 'Updating', 'npcink-cloud-addon' );
+			} elseif ( ! empty( $status_summary['available'] ) ) {
+				$badge_class = 'ok';
+				$badge_label = __( 'Up to date', 'npcink-cloud-addon' );
+			} else {
+				$badge_class = 'muted';
+				$badge_label = __( 'Ready', 'npcink-cloud-addon' );
+			}
 			?>
-			<div class="npcink-cloud-site-knowledge-consent npcink-cloud-site-knowledge-consent--readonly">
-				<div class="npcink-cloud-site-knowledge-consent__control" aria-describedby="npcink-cloud-site-knowledge-delivery-summary">
-					<span class="npcink-cloud-site-knowledge-consent__copy">
-						<span class="npcink-cloud-site-knowledge-consent__title"><?php esc_html_e( 'Site Knowledge', 'npcink-cloud-addon' ); ?></span>
-						<span id="npcink-cloud-site-knowledge-delivery-summary" class="npcink-cloud-site-knowledge-consent__description"><?php esc_html_e( 'AI can reference your public posts and pages. WordPress content and search engine settings are not changed.', 'npcink-cloud-addon' ); ?></span>
-					</span>
-				</div>
-			</div>
 			<?php
 			if ( 'index' === $active_view ) {
 						?>
@@ -2201,55 +2206,73 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						return;
 					}
 					?>
-					<section class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title">
-						<div class="npcink-cloud-site-knowledge-summary__heading">
-			<h3 id="npcink-cloud-site-knowledge-status-title"><?php esc_html_e( 'Knowledge base status', 'npcink-cloud-addon' ); ?></h3>
+					<section class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title" aria-describedby="npcink-cloud-site-knowledge-delivery-summary">
+						<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-heading">
+							<h3 id="npcink-cloud-site-knowledge-status-title"><?php esc_html_e( 'Knowledge base status', 'npcink-cloud-addon' ); ?></h3>
+							<div class="npcink-cloud-summary__actions">
+								<a class="button button-secondary" href="<?php echo esc_url( self::tab_view_url( 'site_knowledge', 'index' ) ); ?>"><?php esc_html_e( 'Knowledge base maintenance', 'npcink-cloud-addon' ); ?></a>
+								<a class="button button-secondary" href="<?php echo esc_url( $cloud_site_knowledge_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View Cloud details', 'npcink-cloud-addon' ); ?></a>
+							</div>
+						</div>
+						<p id="npcink-cloud-site-knowledge-delivery-summary" class="npcink-cloud-site-knowledge-summary__scope"><?php esc_html_e( 'AI can reference your public posts and pages. WordPress content and search engine settings are not changed.', 'npcink-cloud-addon' ); ?></p>
+						<div class="npcink-cloud-site-knowledge-summary__status">
+							<span class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( $badge_class ); ?>"><?php echo esc_html( $badge_label ); ?></span>
 							<?php if ( $local_delivery_needs_attention ) : ?>
 								<p class="npcink-cloud-site-knowledge-summary__result npcink-cloud-site-knowledge-summary__result--warning"><?php esc_html_e( 'Knowledge base update needs attention', 'npcink-cloud-addon' ); ?></p>
-									<p class="description"><?php echo ! empty( $site_knowledge['reconcile_overdue'] ) ? esc_html__( 'Automatic updates are delayed. Check the site scheduler in advanced troubleshooting.', 'npcink-cloud-addon' ) : esc_html__( 'The system will keep trying automatically.', 'npcink-cloud-addon' ); ?></p>
-									<p class="npcink-cloud-site-knowledge-summary__support"><a href="<?php echo esc_url( self::tab_view_url( 'advanced', 'checks' ) ); ?>"><?php esc_html_e( 'View advanced troubleshooting', 'npcink-cloud-addon' ); ?></a></p>
-									<?php self::render_site_knowledge_refresh_form( __( 'Update again', 'npcink-cloud-addon' ) ); ?>
 							<?php elseif ( $capacity_needs_attention ) : ?>
 								<p class="npcink-cloud-site-knowledge-summary__result npcink-cloud-site-knowledge-summary__result--warning"><?php esc_html_e( 'Some content is outside the knowledge base limit', 'npcink-cloud-addon' ); ?></p>
-								<p class="description"><?php echo esc_html( sprintf( /* translators: %d: content count skipped by Cloud quota. */ __( '%d public items were not included. Review the plan details in Cloud.', 'npcink-cloud-addon' ), $quota_skipped_count ) ); ?></p>
 							<?php elseif ( $update_in_progress ) : ?>
-							<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Updating the knowledge base', 'npcink-cloud-addon' ); ?></p>
-							<p class="description"><?php echo esc_html( sprintf(
-								/* translators: %d: number of content updates waiting for automatic processing. */
-								__( 'Updates waiting: %d', 'npcink-cloud-addon' ),
-								$waiting_count
-							) ); ?></p>
-						<?php elseif ( ! empty( $status_summary['available'] ) ) : ?>
-							<p class="npcink-cloud-site-knowledge-summary__result npcink-cloud-site-knowledge-summary__result--success"><?php esc_html_e( 'All public content is up to date', 'npcink-cloud-addon' ); ?></p>
-						<?php else : ?>
-							<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Automatic updates are ready', 'npcink-cloud-addon' ); ?></p>
-							<p class="description"><?php esc_html_e( 'Updates will appear here after public content changes.', 'npcink-cloud-addon' ); ?></p>
-						<?php endif; ?>
-						<?php if ( '' !== (string) ( $site_knowledge['last_delivery_at'] ?? '' ) ) : ?>
-							<p class="npcink-cloud-site-knowledge-summary__time"><?php echo esc_html( sprintf(
-								/* translators: %s: date and time of the most recent knowledge base update. */
-								__( 'Last updated: %s', 'npcink-cloud-addon' ),
-									self::format_compact_datetime_value( (string) $site_knowledge['last_delivery_at'] )
-							) ); ?></p>
-						<?php endif; ?>
-						</div>
-						</section>
-						<div class="npcink-cloud-site-knowledge-links">
-							<a href="<?php echo esc_url( self::tab_view_url( 'site_knowledge', 'index' ) ); ?>"><?php esc_html_e( 'Knowledge base maintenance', 'npcink-cloud-addon' ); ?></a>
-							<a href="<?php echo esc_url( $cloud_site_knowledge_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View Cloud details', 'npcink-cloud-addon' ); ?></a>
-						</div>
-					<?php if ( ! $delivery_enabled ) : ?>
-						<p class="description npcink-cloud-site-knowledge-disabled-note"><?php esc_html_e( 'Delivery is off; refresh controls and routine delivery rows are hidden.', 'npcink-cloud-addon' ); ?></p>
-							<?php if ( $local_delivery_needs_attention ) : ?>
-								<p><a href="<?php echo esc_url( self::tab_view_url( 'advanced', 'checks' ) ); ?>"><?php esc_html_e( 'View advanced troubleshooting', 'npcink-cloud-addon' ); ?></a></p>
+								<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Updating the knowledge base', 'npcink-cloud-addon' ); ?></p>
+							<?php elseif ( ! empty( $status_summary['available'] ) ) : ?>
+								<p class="npcink-cloud-site-knowledge-summary__result npcink-cloud-site-knowledge-summary__result--success"><?php esc_html_e( 'All public content is up to date', 'npcink-cloud-addon' ); ?></p>
+							<?php else : ?>
+								<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Automatic updates are ready', 'npcink-cloud-addon' ); ?></p>
 							<?php endif; ?>
-						<?php
-						return;
-						endif;
-						?>
-							<?php self::render_site_knowledge_article_coverage( $status_summary ); ?>
-						<span hidden data-npcink-site-knowledge-refresh data-npcink-site-knowledge-state="<?php echo esc_attr( (string) ( $cloud_usage['state'] ?? 'not_refreshed' ) ); ?>"></span>
+						</div>
+						<?php if ( $local_delivery_needs_attention ) : ?>
+							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php echo ! empty( $site_knowledge['reconcile_overdue'] ) ? esc_html__( 'Automatic updates are delayed. Check the site scheduler in advanced troubleshooting.', 'npcink-cloud-addon' ) : esc_html__( 'The system will keep trying automatically.', 'npcink-cloud-addon' ); ?></p>
+							<p class="npcink-cloud-site-knowledge-summary__support"><a href="<?php echo esc_url( self::tab_view_url( 'advanced', 'checks' ) ); ?>"><?php esc_html_e( 'View advanced troubleshooting', 'npcink-cloud-addon' ); ?></a></p>
+							<?php self::render_site_knowledge_refresh_form( __( 'Update again', 'npcink-cloud-addon' ) ); ?>
+						<?php elseif ( $capacity_needs_attention ) : ?>
+							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php echo esc_html( sprintf(
+								/* translators: %d: content count skipped by Cloud quota. */
+								__( '%d public items were not included. Review the plan details in Cloud.', 'npcink-cloud-addon' ),
+								$quota_skipped_count
+							) ); ?></p>
+						<?php elseif ( ! $update_in_progress && empty( $status_summary['available'] ) ) : ?>
+							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php esc_html_e( 'Updates will appear here after public content changes.', 'npcink-cloud-addon' ); ?></p>
+						<?php endif; ?>
+						<?php if ( $waiting_count > 0 || '' !== (string) ( $site_knowledge['last_delivery_at'] ?? '' ) ) : ?>
+						<p class="npcink-cloud-site-knowledge-summary__meta">
+							<?php if ( $waiting_count > 0 ) : ?>
+								<span><?php echo esc_html( sprintf(
+									/* translators: %d: number of content updates waiting for automatic processing. */
+									__( 'Updates waiting: %d', 'npcink-cloud-addon' ),
+									$waiting_count
+								) ); ?></span>
+							<?php endif; ?>
+							<?php if ( '' !== (string) ( $site_knowledge['last_delivery_at'] ?? '' ) ) : ?>
+								<span><?php echo esc_html( sprintf(
+									/* translators: %s: date and time of the most recent knowledge base update. */
+									__( 'Last updated: %s', 'npcink-cloud-addon' ),
+										self::format_compact_datetime_value( (string) $site_knowledge['last_delivery_at'] )
+								) ); ?></span>
+							<?php endif; ?>
+						</p>
+						<?php endif; ?>
+					</section>
+				<?php if ( ! $delivery_enabled ) : ?>
+					<p class="description npcink-cloud-site-knowledge-disabled-note"><?php esc_html_e( 'Delivery is off; refresh controls and routine delivery rows are hidden.', 'npcink-cloud-addon' ); ?></p>
+						<?php if ( $local_delivery_needs_attention ) : ?>
+							<p><a href="<?php echo esc_url( self::tab_view_url( 'advanced', 'checks' ) ); ?>"><?php esc_html_e( 'View advanced troubleshooting', 'npcink-cloud-addon' ); ?></a></p>
+						<?php endif; ?>
 					<?php
+					return;
+					endif;
+					?>
+					<?php self::render_site_knowledge_article_coverage( $status_summary ); ?>
+					<span hidden data-npcink-site-knowledge-refresh data-npcink-site-knowledge-state="<?php echo esc_attr( (string) ( $cloud_usage['state'] ?? 'not_refreshed' ) ); ?>"></span>
+		<?php
 		}
 
 		/** Renders the recovery-only full knowledge base update action. */
@@ -2265,62 +2288,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<?php
 		}
 
-		/** Renders the bounded article-level Cloud index comparison. */
+		/** Renders the JS anchor for the article-level Cloud index comparison. */
 		private static function render_site_knowledge_article_coverage( array $summary ): void {
-			$coverage = is_array( $summary['article_coverage'] ?? null ) ? $summary['article_coverage'] : array();
-			$rows = array_values(
-				array_filter(
-					Npcink_Cloud_Site_Knowledge_Runtime_Bridge::article_index_statuses( $summary ),
-					static function ( array $row ): bool {
-						return 'not_indexed' === (string) ( $row['status'] ?? '' );
-					}
-				)
-			);
-			$pending_count = absint( $coverage['not_indexed_count'] ?? 0 );
-			if ( empty( $summary['available'] ) || $pending_count < 1 || empty( $rows ) ) {
-				?><span hidden data-npcink-site-knowledge-article-coverage></span><?php
-				return;
-			}
-			$visible_rows = array_slice( $rows, 0, 50 );
-			?>
-			<section class="npcink-cloud-site-knowledge-coverage" data-npcink-site-knowledge-article-coverage>
-				<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-coverage__heading">
-					<h3><?php echo esc_html( sprintf(
-						/* translators: %d: number of public posts or pages waiting for knowledge base processing. */
-						__( 'Pending content (%d)', 'npcink-cloud-addon' ),
-						$pending_count
-					) ); ?></h3>
-				</div>
-				<?php if ( count( $rows ) > count( $visible_rows ) ) : ?>
-					<p class="description"><?php esc_html_e( 'Showing the first 50 pending items.', 'npcink-cloud-addon' ); ?></p>
-				<?php endif; ?>
-				<?php self::render_site_knowledge_article_table( $visible_rows ); ?>
-			</section>
-			<?php
-		}
-
-		/** Renders one page of article-level status rows. */
-		private static function render_site_knowledge_article_table( array $rows ): void {
-			?>
-			<div class="npcink-cloud-site-knowledge-article-table-wrap">
-				<table class="widefat striped npcink-cloud-site-knowledge-article-table">
-					<thead><tr>
-						<th scope="col"><?php esc_html_e( 'Article', 'npcink-cloud-addon' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'Last modified', 'npcink-cloud-addon' ); ?></th>
-					</tr></thead>
-					<tbody>
-					<?php foreach ( $rows as $row ) :
-						$title = '' !== (string) ( $row['title'] ?? '' ) ? (string) $row['title'] : __( '(no title)', 'npcink-cloud-addon' );
-					?>
-						<tr>
-							<td><a href="<?php echo esc_url( (string) ( $row['url'] ?? '' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $title ); ?></a></td>
-							<td><?php echo esc_html( self::format_datetime_value( (string) ( $row['modified_gmt'] ?? '' ) ) ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-					</tbody>
-				</table>
-			</div>
-			<?php
+			unset( $summary );
+			?><span hidden data-npcink-site-knowledge-article-coverage></span><?php
 		}
 
 		/**
