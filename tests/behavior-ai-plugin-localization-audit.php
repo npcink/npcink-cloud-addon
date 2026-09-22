@@ -61,6 +61,7 @@ file_put_contents(
 <?php
 esc_html__( 'Demo ability label', 'ai' );
 esc_html__( 'The ID of the demo object.', 'ai' );
+esc_html__( 'Demo ability failed. Please ensure it is configured.', 'ai' );
 PHP
 );
 
@@ -99,6 +100,7 @@ maca_assert(
 	&& false !== strpos( $report, 'Fixed UI review candidates' )
 	&& false !== strpos( $report, 'Missing review groups' )
 	&& false !== strpos( $report, 'fixed_ui_candidates:' )
+	&& false !== strpos( $report, 'ability_error_notices:' )
 	&& false !== strpos( $report, 'dynamic_ability_metadata:' )
 	&& false !== strpos( $report, 'schema_or_json_fields:' )
 	&& false !== strpos( $report, 'long_prompt_copy:' )
@@ -113,6 +115,7 @@ maca_assert(
 	&& false !== strpos( $report, '"Second audit image."' )
 	&& false !== strpos( $report, '"Second audit images."' )
 	&& false !== strpos( $report, '"Demo ability label"' )
+	&& false !== strpos( $report, '"Demo ability failed. Please ensure it is configured."' )
 	&& false !== strpos( $report, '"The ID of the demo object."' )
 	&& false !== strpos( $report, '"Outpaint the image to create a wider panoramic view.' )
 	&& false !== strpos( $report, '"Unicode ellipsis…"' )

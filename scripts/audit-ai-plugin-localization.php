@@ -229,6 +229,23 @@ function npcink_cloud_addon_ai_i18n_audit_classify_missing( string $text, array 
 		return 'schema_or_json_fields';
 	}
 
+	// Admin-facing failure notices inside ability files are fixed UI copy,
+	// not ability metadata. Surface them separately for review instead of
+	// dropping them into the never-translate group below.
+	if (
+		npcink_cloud_addon_ai_i18n_audit_file_starts_with(
+			$files,
+			array(
+				'includes/Abilities/',
+				'includes/Features/',
+			)
+		)
+		&& preg_match( '/\b(failed|could not be generated)\b/i', $text )
+		&& false !== strpos( $text, 'Please' )
+	) {
+		return 'ability_error_notices';
+	}
+
 	if (
 		npcink_cloud_addon_ai_i18n_audit_file_starts_with(
 			$files,
@@ -255,6 +272,7 @@ function npcink_cloud_addon_ai_i18n_audit_classify_missing( string $text, array 
 function npcink_cloud_addon_ai_i18n_audit_group_missing( array $missing, array $found ): array {
 	$groups = array(
 		'fixed_ui_candidates'      => array(),
+		'ability_error_notices'    => array(),
 		'dynamic_ability_metadata' => array(),
 		'schema_or_json_fields'    => array(),
 		'long_prompt_copy'         => array(),

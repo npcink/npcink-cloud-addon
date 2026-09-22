@@ -777,6 +777,69 @@ maca_assert(
 );
 
 maca_assert(
+	'无法生成回复建议。请确保已连接支持文本生成的提供方。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Reply suggestion could not be generated. Please ensure you have a connected provider that supports text generation.',
+		'Reply suggestion could not be generated. Please ensure you have a connected provider that supports text generation.',
+		'ai'
+	)
+	&& '别名生成失败。请确保已连接支持文本生成的提供方。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Slug generation failed. Please ensure you have a connected provider that supports text generation.',
+		'Slug generation failed. Please ensure you have a connected provider that supports text generation.',
+		'ai'
+	)
+	&& '替代文本生成失败。请确保已连接同时支持文本生成和视觉能力的提供方。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Alt text generation failed. Please ensure you have a connected provider that supports both text generation and vision capabilities.',
+		'Alt text generation failed. Please ensure you have a connected provider that supports both text generation and vision capabilities.',
+		'ai'
+	)
+	&& '图片优化失败。请确保已连接支持图片优化（而不仅是图片生成）的提供方。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Image refinement failed. Please ensure you have a connected provider that supports image refinement, not just image generation.',
+		'Image refinement failed. Please ensure you have a connected provider that supports image refinement, not just image generation.',
+		'ai'
+	),
+	'AI plugin localization translates admin-facing ability failure notices.'
+);
+
+maca_assert(
+	'%d 条评论已加入分析队列。' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'%d comment queued for analysis.',
+		'%d comment queued for analysis.',
+		'%d comments queued for analysis.',
+		1,
+		'ai'
+	)
+	&& '%d 条评论已加入分析队列。' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'%d comment queued for analysis.',
+		'%d comment queued for analysis.',
+		'%d comments queued for analysis.',
+		5,
+		'ai'
+	)
+	&& '%d 个插件或主题正在请求访问 AI 连接器。' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'%d plugin or theme is requesting access to an AI connector.',
+		'%d plugin or theme is requesting access to an AI connector.',
+		'%d plugins or themes are requesting access to AI connectors.',
+		3,
+		'ai'
+	)
+	&& 'Unknown plural source' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'Unknown plural source',
+		'Unknown plural source',
+		'Unknown plural sources',
+		2,
+		'ai'
+	)
+	&& 'Already resolved plural' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'Already resolved plural',
+		'One default item',
+		'Many default items',
+		2,
+		'default'
+	),
+	'AI plugin localization translates server-rendered plural strings through ngettext.'
+);
+
+maca_assert(
 	'最近 24 小时' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Last 24 Hours',
 		'Last 24 Hours',
@@ -1171,6 +1234,8 @@ maca_assert(
 	&& '无效的 JSON 输入' === ( $locale_data['Invalid JSON input'][0] ?? '' )
 	&& '建议回复' === ( $locale_data['Suggest Reply'][0] ?? '' )
 	&& '更改回复语气' === ( $locale_data['Change reply tone'][0] ?? '' )
-	&& '正在生成 AI 回复…' === ( $locale_data['Generating AI reply…'][0] ?? '' ),
+	&& '正在生成 AI 回复…' === ( $locale_data['Generating AI reply…'][0] ?? '' )
+	&& '无法生成回复建议。请确保已连接支持文本生成的提供方。' === ( $locale_data['Reply suggestion could not be generated. Please ensure you have a connected provider that supports text generation.'][0] ?? '' )
+	&& '%d 条评论已加入分析队列。' === ( $locale_data['%d comment queued for analysis.'][0] ?? '' ),
 	'AI plugin localization enqueues an asset-backed wp.i18n locale data shim for JS admin screens.'
 );
