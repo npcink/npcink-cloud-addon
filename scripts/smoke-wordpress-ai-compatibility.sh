@@ -93,7 +93,8 @@ PLAYGROUND_WP_CACHE_FILE="${PLAYGROUND_CACHE_ROOT}/${PLAYGROUND_WP_CACHE_KEY}.zi
 mkdir -p "${PLAYGROUND_CACHE_ROOT}"
 if [ ! -f "${PLAYGROUND_WP_CACHE_FILE}" ] || ! unzip -tqq "${PLAYGROUND_WP_CACHE_FILE}" >/dev/null 2>&1; then
 	echo "[prepare] Downloading WordPress ${WP_VERSION} into the persistent Playground cache."
-	curl --location --fail --silent --show-error --retry 4 --retry-all-errors --connect-timeout 15 --max-time 180 "${WP_URL}" --output "${PLAYGROUND_WP_CACHE_FILE}.partial"
+	# WordPress.org 403 rate limiting can outlast a fast retry burst; keep retries spread over minutes, not seconds.
+	curl --location --fail --silent --show-error --retry 8 --retry-delay 20 --retry-max-time 900 --retry-all-errors --connect-timeout 15 --max-time 180 "${WP_URL}" --output "${PLAYGROUND_WP_CACHE_FILE}.partial"
 	unzip -tqq "${PLAYGROUND_WP_CACHE_FILE}.partial" >/dev/null 2>&1 || fail "WordPress ${WP_VERSION} archive failed ZIP verification."
 	mv "${PLAYGROUND_WP_CACHE_FILE}.partial" "${PLAYGROUND_WP_CACHE_FILE}"
 fi
@@ -103,7 +104,7 @@ AI_CACHE_FILE="${PLAYGROUND_CACHE_ROOT}/${AI_CACHE_KEY}.zip"
 AI_ZIP="${TEMP_DIR}/ai.zip"
 AI_UNPACKED="${TEMP_DIR}/ai-unpacked"
 if [ ! -f "${AI_CACHE_FILE}" ] || ! unzip -tqq "${AI_CACHE_FILE}" >/dev/null 2>&1; then
-	curl --location --fail --silent --show-error --retry 4 --retry-all-errors --connect-timeout 15 --max-time 180 -H 'Accept: application/octet-stream' "${AI_URL}" --output "${AI_CACHE_FILE}.partial" || {
+	curl --location --fail --silent --show-error --retry 8 --retry-delay 20 --retry-max-time 900 --retry-all-errors --connect-timeout 15 --max-time 180 -H 'Accept: application/octet-stream' "${AI_URL}" --output "${AI_CACHE_FILE}.partial" || {
 		if [ "${GATE}" = 'non_blocking_warning' ]; then
 			warn "Could not download WordPress AI ${AI_VERSION}; upstream lane remains warning-only."
 			exit 0
