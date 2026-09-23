@@ -918,18 +918,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		}
 
 		/**
-		 * Returns the requested Site Knowledge subview.
-		 *
-		 * @return string
-		 */
-		private static function site_knowledge_view_from_request(): string {
-			$raw = filter_input( INPUT_GET, 'view', FILTER_UNSAFE_RAW );
-			$view = is_string( $raw ) ? sanitize_key( wp_unslash( $raw ) ) : '';
-
-			return in_array( $view, array( 'overview', 'index' ), true ) ? $view : 'overview';
-		}
-
-		/**
 		 * Returns the requested diagnostics subview.
 		 *
 		 * @return string
@@ -2193,7 +2181,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				$cloud_site_knowledge_url .= '/sites/' . rawurlencode( $site_id ) . '#site-knowledge';
 			}
 			$delivery_enabled = ! empty( $site_knowledge['delivery_enabled'] );
-			$active_view = self::site_knowledge_view_from_request();
 			$last_delivery_error = (string) ( $site_knowledge['last_delivery_error'] ?? '' );
 			$status_summary = $delivery_enabled ? Npcink_Cloud_Site_Knowledge_Runtime_Bridge::get_cached_status_summary() : array();
 			$cloud_usage = $delivery_enabled
@@ -2223,22 +2210,22 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				$badge_class = 'muted';
 				$badge_label = __( 'Ready', 'npcink-cloud-addon' );
 			}
+			// The initial full-index manifest is the bootstrap for existing
+			// content; offer it once, while the index has never been built.
+			$show_start_indexing = $delivery_enabled
+				&& ! empty( $status_summary['available'] )
+				&& ! $update_in_progress
+				&& ! $local_delivery_needs_attention
+				&& ! $capacity_needs_attention
+				&& 0 === absint( $status_summary['indexed_documents'] ?? 0 );
+			if ( $show_start_indexing ) {
+				$badge_class = 'muted';
+				$badge_label = __( 'Ready', 'npcink-cloud-addon' );
+			}
 			?>
-			<?php
-			if ( 'index' === $active_view ) {
-						?>
-						<p><a href="<?php echo esc_url( self::tab_url( 'site_knowledge' ) ); ?>">&larr; <?php esc_html_e( 'Back to Site Knowledge', 'npcink-cloud-addon' ); ?></a></p>
-						<?php
-						self::render_site_knowledge_index_operations( $delivery_enabled );
-						return;
-					}
-					?>
-					<section class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title" aria-describedby="npcink-cloud-site-knowledge-delivery-summary">
+			<section class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title" aria-describedby="npcink-cloud-site-knowledge-delivery-summary">
 						<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-heading">
 							<h3 id="npcink-cloud-site-knowledge-status-title"><?php esc_html_e( 'Knowledge base status', 'npcink-cloud-addon' ); ?></h3>
-							<div class="npcink-cloud-summary__actions">
-								<a class="button button-secondary" href="<?php echo esc_url( self::tab_view_url( 'site_knowledge', 'index' ) ); ?>"><?php esc_html_e( 'Knowledge base maintenance', 'npcink-cloud-addon' ); ?></a>
-							</div>
 						</div>
 						<p id="npcink-cloud-site-knowledge-delivery-summary" class="npcink-cloud-site-knowledge-summary__scope"><?php esc_html_e( 'AI can reference your public posts and pages. WordPress content and search engine settings are not changed.', 'npcink-cloud-addon' ); ?></p>
 						<div class="npcink-cloud-site-knowledge-summary__status">
@@ -2249,6 +2236,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 								<p class="npcink-cloud-site-knowledge-summary__result npcink-cloud-site-knowledge-summary__result--warning"><?php esc_html_e( 'Some content is outside the knowledge base limit', 'npcink-cloud-addon' ); ?></p>
 							<?php elseif ( $update_in_progress ) : ?>
 								<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Updating the knowledge base', 'npcink-cloud-addon' ); ?></p>
+							<?php elseif ( $show_start_indexing ) : ?>
+								<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Automatic updates are ready', 'npcink-cloud-addon' ); ?></p>
 							<?php elseif ( ! empty( $status_summary['available'] ) ) : ?>
 								<p class="npcink-cloud-site-knowledge-summary__result npcink-cloud-site-knowledge-summary__result--success"><?php esc_html_e( 'All public content is up to date', 'npcink-cloud-addon' ); ?></p>
 							<?php else : ?>
@@ -2267,6 +2256,17 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							) ); ?></p>
 						<?php elseif ( ! $update_in_progress && empty( $status_summary['available'] ) ) : ?>
 							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php esc_html_e( 'Updates will appear here after public content changes.', 'npcink-cloud-addon' ); ?></p>
+						<?php endif; ?>
+						<?php if ( $show_start_indexing ) : ?>
+						<div class="npcink-cloud-site-knowledge-summary__action">
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+								<?php wp_nonce_field( self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>
+								<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>" />
+								<input type="hidden" name="site_knowledge_index_action" value="start" />
+								<button type="submit" class="button button-primary"><?php esc_html_e( 'Start indexing', 'npcink-cloud-addon' ); ?></button>
+							</form>
+							<p class="description"><?php esc_html_e( 'Send a public post and page manifest so existing content enters the knowledge base.', 'npcink-cloud-addon' ); ?></p>
+						</div>
 						<?php endif; ?>
 						<?php if ( $waiting_count > 0 || '' !== (string) ( $site_knowledge['last_delivery_at'] ?? '' ) ) : ?>
 						<p class="npcink-cloud-site-knowledge-summary__meta">
@@ -2369,59 +2369,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param bool $delivery_enabled Whether local delivery is enabled.
 		 * @return void
 		 */
-		private static function render_site_knowledge_index_operations( bool $delivery_enabled ): void {
-			?>
-			<section class="npcink-cloud-site-knowledge-index-panel" aria-labelledby="npcink-cloud-site-knowledge-index-title">
-				<h3 id="npcink-cloud-site-knowledge-index-title"><?php esc_html_e( 'Index operations', 'npcink-cloud-addon' ); ?></h3>
-				<p class="description"><?php esc_html_e( 'Use only for initial indexing, rebuilds, or explicit Cloud index cleanup.', 'npcink-cloud-addon' ); ?></p>
-				<?php if ( ! $delivery_enabled ) : ?>
-					<p class="description npcink-cloud-site-knowledge-disabled-note"><?php esc_html_e( 'Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index.', 'npcink-cloud-addon' ); ?></p>
-				<?php endif; ?>
-				<div class="npcink-cloud-index-actions">
-					<details class="npcink-cloud-inline-note npcink-cloud-index-actions__note">
-						<summary>
-							<span aria-hidden="true" class="npcink-cloud-inline-note__icon">!</span>
-							<?php esc_html_e( 'These actions send intent only; WordPress content is not changed.', 'npcink-cloud-addon' ); ?>
-						</summary>
-						<p><?php esc_html_e( 'These actions send local administrator delivery intent and bounded public WordPress content for Cloud-owned Site Knowledge operations. Cloud performs indexing, rebuild, deletion, and diagnostics; WordPress content is not changed.', 'npcink-cloud-addon' ); ?></p>
-					</details>
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-						<?php wp_nonce_field( self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>
-						<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>" />
-						<input type="hidden" name="site_knowledge_index_action" value="start" />
-						<p><strong><?php esc_html_e( 'Start indexing', 'npcink-cloud-addon' ); ?></strong></p>
-						<div class="npcink-cloud-index-action__controls">
-							<button type="submit" class="button button-secondary" <?php disabled( ! $delivery_enabled ); ?>><?php esc_html_e( 'Start indexing', 'npcink-cloud-addon' ); ?></button>
-						</div>
-						<p class="description"><?php esc_html_e( 'Send a public post and page manifest.', 'npcink-cloud-addon' ); ?></p>
-					</form>
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-						<?php wp_nonce_field( self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>
-						<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>" />
-						<input type="hidden" name="site_knowledge_index_action" value="rebuild" />
-						<p><strong><?php esc_html_e( 'Rebuild index', 'npcink-cloud-addon' ); ?></strong></p>
-						<div class="npcink-cloud-index-action__controls">
-							<input type="text" name="site_knowledge_confirmation" placeholder="<?php esc_attr_e( 'Type REBUILD', 'npcink-cloud-addon' ); ?>" />
-							<button type="submit" class="button button-secondary" <?php disabled( ! $delivery_enabled ); ?>><?php esc_html_e( 'Rebuild index', 'npcink-cloud-addon' ); ?></button>
-						</div>
-						<p class="description"><?php esc_html_e( 'Ask Cloud to clear and rebuild the site index.', 'npcink-cloud-addon' ); ?></p>
-					</form>
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-						<?php wp_nonce_field( self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>
-						<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>" />
-						<input type="hidden" name="site_knowledge_index_action" value="delete" />
-						<p><strong><?php esc_html_e( 'Delete site index', 'npcink-cloud-addon' ); ?></strong></p>
-						<div class="npcink-cloud-index-action__controls">
-							<input type="text" name="site_knowledge_confirmation" placeholder="<?php esc_attr_e( 'Type DELETE', 'npcink-cloud-addon' ); ?>" />
-							<button type="submit" class="button button-secondary npcink-cloud-button-danger"><?php esc_html_e( 'Delete site index', 'npcink-cloud-addon' ); ?></button>
-						</div>
-						<p class="description"><?php esc_html_e( 'Ask Cloud to delete the site index only.', 'npcink-cloud-addon' ); ?></p>
-					</form>
-				</div>
-			</section>
-			<?php
-		}
-
 		/**
 		 * Renders read-only account and usage projections for the Status tab.
 		 *

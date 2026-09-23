@@ -159,6 +159,14 @@ jobs:
       - name: JavaScript syntax
         run: composer run check:js
 
+      - name: Capture generated POT
+        run: WP_CLI_BIN="$(command -v wp)" wp i18n make-pot . /tmp/generated.pot --slug=npcink-cloud-addon --domain=npcink-cloud-addon --exclude=build,dist,sj,tests,scripts --skip-js
+      - name: Upload generated POT
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-pot
+          path: /tmp/generated.pot
       - name: POT freshness
         run: WP_CLI_BIN="$(command -v wp)" composer run i18n:check
 

@@ -109,6 +109,10 @@ buffer -> cursor -> runtime run -> retryability -> vector lifecycle
 - 索引阶段、Worker、Provider、重试次数等技术字段；
 - 本地重建、删除、生命周期管理控制台。
 
+落地记录（2026-09-23）：「知识库维护」二级页与重建、删除入口已从
+WordPress 移除，重建与删除归 Cloud 运营端；「开始收录」（初始全量
+manifest 投递）移入知识库状态卡，仅在索引从未建立时出现一次。
+
 ### 3.3 高级与排查
 
 只保留低频且确实由 WordPress 负责的内容：
