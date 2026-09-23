@@ -604,7 +604,6 @@ maca_assert(
 		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-site-knowledge-quota-detail' )
 		&& false === strpos( $site_knowledge_rendered, 'data-npcink-site-knowledge-detail="chunks"' )
 		&& false === strpos( $site_knowledge_rendered, 'title="More actions"' )
-	&& false !== strpos( $site_knowledge_rendered, 'Knowledge base maintenance' )
 	&& false !== strpos( $site_knowledge_rendered, 'https://cloud.example.test/portal/sites/site_test#site-knowledge' )
 	&& false === strpos( $site_knowledge_rendered, 'Automatic updates on' )
 	&& false === strpos( $site_knowledge_rendered, 'Change settings' )
@@ -623,6 +622,58 @@ maca_assert(
 		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-inline-info' )
 		&& $http_before_site_knowledge === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: healthy Site Knowledge keeps maintenance and Cloud links, removes the duplicate Settings link, and hides manual recovery without Cloud HTTP.'
+);
+
+$status_cache_key = 'npcink_cloud_site_knowledge_status_' . md5(
+	implode(
+		'|',
+		array(
+			(string) Npcink_Cloud_Addon_Settings::get_settings()['base_url'],
+			(string) Npcink_Cloud_Addon_Settings::get_settings()['site_id'],
+			(string) Npcink_Cloud_Addon_Settings::get_settings()['key_id'],
+		)
+	)
+);
+$GLOBALS['maca_transients'][ $status_cache_key ] = array(
+	'available' => true,
+	'state' => 'fresh',
+	'indexed_documents' => 0,
+	'max_documents' => 10000,
+	'remaining_documents' => 10000,
+	'document_percent' => 0,
+	'quota_status' => 'ok',
+	'fresh_until' => gmdate( 'Y-m-d H:i:s', time() + 1800 ) . ' UTC',
+);
+ob_start();
+$site_knowledge_renderer->invoke(
+	null,
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot(),
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	true
+);
+$empty_index_rendered = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $empty_index_rendered, 'Start indexing' )
+	&& false === strpos( $empty_index_rendered, 'Knowledge base maintenance' )
+	&& false === strpos( $empty_index_rendered, 'Rebuild index' )
+	&& false === strpos( $empty_index_rendered, 'Delete site index' ),
+	'Behavior: an unbuilt knowledge base offers the initial indexing bootstrap only, with rebuild and delete lifecycle intents left to Cloud.'
+);
+
+$GLOBALS['maca_transients'][ $status_cache_key ]['indexed_documents'] = 500;
+$GLOBALS['maca_transients'][ $status_cache_key ]['remaining_documents'] = 9500;
+ob_start();
+$site_knowledge_renderer->invoke(
+	null,
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot(),
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	true
+);
+$built_index_rendered = (string) ob_get_clean();
+maca_assert(
+	false === strpos( $built_index_rendered, 'Start indexing' )
+	&& false !== strpos( $built_index_rendered, 'All public content is up to date' ),
+	'Behavior: the initial indexing bootstrap disappears once the knowledge base has been built.'
 );
 
 $test_links = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_generation_test_links' );
