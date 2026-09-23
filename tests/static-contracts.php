@@ -1801,7 +1801,7 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'Rebuild index' )
 	&& false !== strpos( $settings_page, 'Delete site index' )
 	&& false !== strpos( $settings_page, 'site_knowledge_confirmation' )
-	&& false !== strpos( $settings_page, 'View Cloud details' )
+	&& false !== strpos( $settings_page, 'View details in Cloud' )
 	&& false !== strpos( $settings_page, "\$base_url . '/portal'" )
 	&& false !== strpos( $settings_page, "'/sites/' . rawurlencode( \$site_id ) . '#site-knowledge'" )
 	&& false === strpos( $settings_page, "'/portal/site-knowledge'" )

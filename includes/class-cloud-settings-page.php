@@ -1817,10 +1817,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<h3><?php esc_html_e( 'Checks', 'npcink-cloud-addon' ); ?></h3>
 				<div class="npcink-cloud-summary__actions">
 					<?php self::render_manual_readiness_test_form(); ?>
-					<a class="button button-secondary" href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud status detail', 'npcink-cloud-addon' ); ?></a>
 				</div>
 			</div>
-			<p class="description"><?php esc_html_e( 'Run the bounded connection checks or open Cloud for service detail.', 'npcink-cloud-addon' ); ?></p>
+			<p class="description">
+				<?php esc_html_e( 'Run the bounded connection checks, or', 'npcink-cloud-addon' ); ?>
+				<a href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud status detail', 'npcink-cloud-addon' ); ?></a>.
+			</p>
 			<table class="widefat striped npcink-cloud-checks-table">
 				<thead>
 					<tr>
@@ -1891,9 +1893,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'vision' => __( 'Image understanding', 'npcink-cloud-addon' ),
 			);
 			$words = array(
-				'configured' => array( 'Healthy', 'ok' ),
-				'unavailable' => array( 'Unavailable', 'error' ),
-				'unknown' => array( 'Expired', 'pending' ),
+				'configured' => array( __( 'Healthy', 'npcink-cloud-addon' ), 'ok' ),
+				'unavailable' => array( __( 'Unavailable', 'npcink-cloud-addon' ), 'error' ),
+				'unknown' => array( __( 'Expired', 'npcink-cloud-addon' ), 'pending' ),
 			);
 			$reasons = array(
 				'configured' => __( 'Cloud configuration and site entitlement are confirmed. Generation has not been tested by this check.', 'npcink-cloud-addon' ),
@@ -1913,7 +1915,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$items = array();
 			foreach ( $labels as $key => $label ) {
 				$item = $snapshot['capabilities'][ $key ];
-				list( $word, $badge ) = $words[ $item['state'] ] ?? array( 'Expired', 'pending' );
+				list( $word, $badge ) = $words[ $item['state'] ] ?? array( __( 'Expired', 'npcink-cloud-addon' ), 'pending' );
 				$detail = $reasons[ $item['reason_code'] ] ?? __( 'Capability evidence is unavailable. Run the connection checks; older Cloud versions may not report it.', 'npcink-cloud-addon' );
 				if ( '' !== $snapshot['checked_at'] ) {
 					$detail .= ' ' . sprintf(
@@ -2236,7 +2238,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							<h3 id="npcink-cloud-site-knowledge-status-title"><?php esc_html_e( 'Knowledge base status', 'npcink-cloud-addon' ); ?></h3>
 							<div class="npcink-cloud-summary__actions">
 								<a class="button button-secondary" href="<?php echo esc_url( self::tab_view_url( 'site_knowledge', 'index' ) ); ?>"><?php esc_html_e( 'Knowledge base maintenance', 'npcink-cloud-addon' ); ?></a>
-								<a class="button button-secondary" href="<?php echo esc_url( $cloud_site_knowledge_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View Cloud details', 'npcink-cloud-addon' ); ?></a>
 							</div>
 						</div>
 						<p id="npcink-cloud-site-knowledge-delivery-summary" class="npcink-cloud-site-knowledge-summary__scope"><?php esc_html_e( 'AI can reference your public posts and pages. WordPress content and search engine settings are not changed.', 'npcink-cloud-addon' ); ?></p>
@@ -2285,6 +2286,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							<?php endif; ?>
 						</p>
 						<?php endif; ?>
+						<p class="npcink-cloud-site-knowledge-summary__meta"><a class="npcink-cloud-text-link" href="<?php echo esc_url( $cloud_site_knowledge_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View details in Cloud', 'npcink-cloud-addon' ); ?></a></p>
 					</section>
 				<?php if ( ! $delivery_enabled ) : ?>
 					<p class="description npcink-cloud-site-knowledge-disabled-note"><?php esc_html_e( 'Delivery is off; refresh controls and routine delivery rows are hidden.', 'npcink-cloud-addon' ); ?></p>
@@ -2496,7 +2498,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<div class="npcink-cloud-section-heading">
 				<h3><?php esc_html_e( 'Entitlement details', 'npcink-cloud-addon' ); ?></h3>
 				<?php if ( '' !== $credit_url ) : ?>
-					<a class="button button-secondary" href="<?php echo esc_url( $credit_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View AI credit details in Cloud', 'npcink-cloud-addon' ); ?></a>
+					<a class="npcink-cloud-text-link" href="<?php echo esc_url( $credit_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View AI credit details in Cloud', 'npcink-cloud-addon' ); ?></a>
 				<?php endif; ?>
 			</div>
 			<?php if ( ! empty( $rows ) ) : ?>

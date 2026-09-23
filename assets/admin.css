@@ -717,6 +717,11 @@
 	max-width: 860px;
 }
 
+.npcink-cloud-text-link {
+	font-size: 13px;
+	line-height: 1.4;
+}
+
 .npcink-cloud-section-heading h3 {
 	margin: 0;
 }
