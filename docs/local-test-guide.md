@@ -28,6 +28,15 @@ git diff --check
   parent public post for Cloud refresh transport.
 - `tests/helpers.php` contains shared assertions, stubs, and fixtures.
 
+Any test that pins a process-global (a constant such as
+`NPCINK_CLOUD_ADDON_OPTION_NAME`, or a function replacement) must run in its
+own subprocess, because `behavior-performance-guards.php` loads the plugin
+file in the shared process and constants cannot be redefined. Such a test must
+also fail loudly (`[fail]` to STDERR, exit 1) if it is ever included after
+that global is already defined, instead of silently exercising the default
+state. See `tests/run.php` sandbox entries and the
+[test-suite vacuity retrospective](test-suite-vacuity-retrospective-2026-09-23.md).
+
 Before expanding addon scope, read `docs/cloud-addon-complexity-budget.md`.
 
 Boundary checks:
