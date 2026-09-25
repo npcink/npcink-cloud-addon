@@ -989,6 +989,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			if ( '' === $text ) {
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector requires text scene input.' );
 			}
+			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
 
 			$scene_input = array(
 				'response_format'    => $this->response_format_hint( $task ),
@@ -1005,6 +1006,14 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			} else {
 				$scene_input['prompt'] = $text;
 			}
+			if ( 'title_generation' === $task ) {
+				$context_input = is_array( $ability_context['input'] ?? null ) ? $ability_context['input'] : array();
+				$context_post_id = absint( $context_input['context'] ?? 0 );
+				$context_post = $context_post_id > 0 ? get_post( $context_post_id ) : null;
+				if ( $context_post instanceof \WP_Post && '' !== trim( (string) $context_post->post_title ) ) {
+					$scene_input['existing_title'] = self::bounded_text( wp_strip_all_tags( (string) $context_post->post_title ), 160 );
+				}
+			}
 			$system_instruction = (string) ( $this->config->getSystemInstruction() ?? '' );
 			if ( '' !== trim( $system_instruction ) ) {
 				$scene_input['system_instruction'] = $system_instruction;
@@ -1017,7 +1026,6 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 			}
 
-			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
 			$journey_input = $ability_name === (string) ( $ability_context['ability_id'] ?? '' )
 				&& is_array( $ability_context['input'] ?? null )
 				? $ability_context['input']

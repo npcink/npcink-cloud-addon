@@ -2470,6 +2470,16 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 						array( 'status' => 413 )
 					);
 				}
+				if ( array_key_exists( 'existing_title', $scene_request ) ) {
+					if ( 'title_generation' !== $task || ! is_string( $scene_request['existing_title'] ) ) {
+						return new WP_Error(
+							'cloud_wp_ai_connector_existing_title_invalid',
+							__( 'WordPress AI existing_title context is supported only for title generation.', 'npcink-cloud-addon' ),
+							array( 'status' => 400 )
+						);
+					}
+					$scene_request['existing_title'] = $this->bounded_text( wp_strip_all_tags( $scene_request['existing_title'] ), 160 );
+				}
 				if ( array_key_exists( 'system_instruction', $scene_request ) ) {
 					if ( ! is_string( $scene_request['system_instruction'] ) ) {
 						return new WP_Error(

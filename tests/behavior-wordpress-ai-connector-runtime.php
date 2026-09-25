@@ -81,6 +81,7 @@ $result = $client->execute_wordpress_ai_connector_runtime(
 		'title_generation',
 		array(
 			'source_text'       => '<content>A concise article about the verified Cloud connector.</content>',
+			'existing_title'   => '当前文章标题',
 			'system_instruction' => 'Return one concise title.',
 			'site_knowledge_reference' => array(
 				'enabled' => true,
@@ -127,6 +128,7 @@ maca_assert(
 	&& 'wordpress_operation.v1' === (string) ( $request_body['input']['operation_contract']['contract_version'] ?? '' )
 	&& 'title_generation' === (string) ( $request_body['input']['operation_contract']['task'] ?? '' )
 	&& '<content>A concise article about the verified Cloud connector.</content>' === (string) ( $request_body['input']['operation_contract']['request']['source_text'] ?? '' )
+	&& '当前文章标题' === (string) ( $request_body['input']['operation_contract']['request']['existing_title'] ?? '' )
 	&& 'Return one concise title.' === (string) ( $request_body['input']['operation_contract']['request']['system_instruction'] ?? '' )
 	&& true === (bool) ( $request_body['input']['operation_contract']['request']['site_knowledge_reference']['enabled'] ?? false )
 	&& 'site_title_style' === (string) ( $request_body['input']['operation_contract']['request']['site_knowledge_reference']['mode'] ?? '' )
