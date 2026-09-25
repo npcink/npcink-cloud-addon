@@ -1011,7 +1011,10 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$context_post_id = absint( $context_input['context'] ?? 0 );
 				$context_post = $context_post_id > 0 ? get_post( $context_post_id ) : null;
 				if ( $context_post instanceof \WP_Post && '' !== trim( (string) $context_post->post_title ) ) {
-					$scene_input['existing_title'] = self::bounded_text( wp_strip_all_tags( (string) $context_post->post_title ), 160 );
+					$existing_title = wp_strip_all_tags( (string) $context_post->post_title );
+					$scene_input['existing_title'] = function_exists( 'mb_substr' )
+						? mb_substr( $existing_title, 0, 160 )
+						: substr( $existing_title, 0, 160 );
 				}
 			}
 			$system_instruction = (string) ( $this->config->getSystemInstruction() ?? '' );
