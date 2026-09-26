@@ -138,6 +138,34 @@ maca_assert(
 	'Behavior: WordPress AI connector runtime projects a scene-bound no-chat no-write Cloud payload and leaves provider fallback policy to Cloud.'
 );
 
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array(
+				'status' => 'error',
+				'error_code' => 'provider.output_quality_rejected',
+				'error_message' => 'provider returned no usable WordPress AI connector text',
+				'error_stage' => 'provider_output',
+			),
+		)
+	),
+);
+$projected_failure = $client->execute_wordpress_ai_connector_runtime(
+	maca_wordpress_operation_request( 'content_translation', array( 'source_text' => '<content>固定内容</content>' ) ),
+	'trace-wp-ai-failure',
+	'wp-ai-failure-idempotency'
+);
+$projected_failure_data = is_wp_error( $projected_failure ) ? $projected_failure->get_error_data() : array();
+maca_assert(
+	is_wp_error( $projected_failure)
+	&& 'cloud_provider_output_quality_rejected' === $projected_failure->get_error_code()
+	&& 'provider.output_quality_rejected' === (string) ( $projected_failure_data['cloud_error_code'] ?? '' )
+	&& 'provider_output' === (string) ( $projected_failure_data['cloud_error_data']['error_stage'] ?? '' ),
+	'Behavior: WordPress AI connector projects Cloud runtime failures with a stable local code and diagnostic Cloud evidence.'
+);
+
 $personal_data_examples = array(
 	'Contact the editor at writer@example.com before publishing.',
 	'Call the editor at +1 415-555-2671 before publishing.',

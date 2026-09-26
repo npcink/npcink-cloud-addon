@@ -1,0 +1,149 @@
+<?php
+/** Acceptance checks only; no runtime, transport, or WordPress writes. */
+
+/** Preserve case evidence independently from the overall acceptance outcome. */
+function npcink_cloud_acceptance_finalize_report( array $report ): array {
+	$report['cases'] = $report['cases'] ?? array();
+	$passed = 0;
+	foreach ( $report['cases'] as &$case ) {
+		$quality_passed = 'passed' === ( $case['quality_status'] ?? '' );
+		$passed += $quality_passed ? 1 : 0;
+		$write_detected = $case['write_detected'] ?? null;
+		if ( ! $quality_passed || true === $write_detected ) {
+			$case['evidence_state'] = 'local_failed';
+		} elseif ( false === $write_detected ) {
+			$case['evidence_state'] = 'local_verified';
+		} else {
+			$case['evidence_state'] = 'local_executed';
+		}
+	}
+	unset( $case );
+	$report['passed'] = $passed;
+	$report['failed'] = count( $report['cases'] ) - $passed;
+	$report['quality_status'] = ! empty( $report['cases'] ) && 0 === $report['failed'] ? 'passed' : 'failed';
+	$states = array_column( $report['cases'], 'evidence_state' );
+	if ( empty( $states ) || in_array( 'local_failed', $states, true ) || true === ( $report['write_detected'] ?? null ) ) {
+		$report['evidence_state'] = 'local_failed';
+	} elseif ( in_array( 'local_executed', $states, true ) || false !== ( $report['write_detected'] ?? null ) ) {
+		$report['evidence_state'] = 'local_executed';
+	} else {
+		$report['evidence_state'] = 'local_verified';
+	}
+	return $report;
+}
+
+function npcink_cloud_acceptance_string( $value ) {
+	if ( is_string( $value ) ) {
+		return trim( $value );
+	}
+	if ( is_array( $value ) ) {
+		if ( isset( $value['description']['text'] ) && is_string( $value['description']['text'] ) ) {
+			return trim( $value['description']['text'] );
+		}
+		foreach ( array( 'text', 'content', 'summary', 'title', 'description', 'slug' ) as $key ) {
+			if ( isset( $value[ $key ] ) && is_string( $value[ $key ] ) ) {
+				return trim( $value[ $key ] );
+			}
+		}
+	}
+	return '';
+}
+
+function npcink_cloud_acceptance_shape_valid( $schema, $data ) {
+	if ( ! is_array( $schema ) || empty( $schema ) || ! function_exists( 'rest_validate_value_from_schema' ) ) {
+		return false;
+	}
+	return true === rest_validate_value_from_schema( $data, $schema, 'output' );
+}
+
+function npcink_cloud_acceptance_has_result( $ability, $data ) {
+	if ( 'ai/editorial-notes' === $ability ) {
+		return is_array( $data ) && ! empty( $data['suggestions'] );
+	}
+	if ( 'ai/comment-analysis' === $ability ) {
+		return is_array( $data )
+			&& array_key_exists( 'comment_id', $data )
+			&& isset( $data['sentiment'] )
+			&& array_key_exists( 'toxicity_score', $data );
+	}
+	if ( 'ai/alt-text-generation' === $ability ) {
+		return is_array( $data )
+			&& isset( $data['alt_text'] )
+			&& is_string( $data['alt_text'] )
+			&& array_key_exists( 'is_decorative', $data );
+	}
+	if ( 'ai/content-classification' === $ability ) {
+		return is_array( $data ) && ! empty( $data['suggestions'] ) && is_array( $data['suggestions'] );
+	}
+	return '' !== npcink_cloud_acceptance_string( $data ) || ( is_array( $data ) && ! empty( $data['slugs'] ) );
+}
+
+function npcink_cloud_acceptance_failure_code( $status, $data, $shape_valid ) {
+	if ( 401 === $status || 403 === $status ) {
+		return 'permission_denied';
+	}
+	if ( 404 === $status ) {
+		return 'ability_not_found';
+	}
+	if ( is_array( $data ) ) {
+		$error_code = (string) ( $data['code'] ?? $data['error'] ?? '' );
+		if ( 'ability_invalid_input' === $error_code ) {
+			return 'input_projection_invalid';
+		}
+		if ( false !== strpos( $error_code, 'provider' ) || 'unsupported_model' === $error_code || 'no_provider' === $error_code ) {
+			return 'provider_unavailable';
+		}
+	}
+	if ( $status >= 500 ) {
+		return 'provider_execution_failed';
+	}
+	if ( ! $shape_valid ) {
+		return 'empty_or_invalid_output';
+	}
+	return null;
+}
+
+/** Fixed-fixture quality checks; passing these is not human acceptance. */
+function npcink_cloud_acceptance_quality_failure( $ability, $data ) {
+	if ( ! npcink_cloud_acceptance_has_result( $ability, $data ) ) {
+		return 'empty_result';
+	}
+	$text = npcink_cloud_acceptance_string( $data );
+	if ( 'ai/content-translation' === $ability && preg_match( '/[\x{4e00}-\x{9fff}]/u', $text ) ) {
+		return 'target_language_mismatch';
+	}
+	if ( 'ai/editorial-updates' === $ability && preg_match( '/(?:please|could you|can you)\s+(?:provide|share|send|paste)|(?:no|without)\s+(?:paragraph|source|content)\b|(?:no specific|missing).{0,20}(?:block|content|notes)|\[no specific block content|请.{0,8}(?:提供|发送|粘贴).{0,8}(?:原文|段落|内容)/iu', $text ) ) {
+		return 'task_not_completed';
+	}
+	if ( 'ai/slug-generation' === $ability ) {
+		foreach ( $data['slugs'] ?? array() as $slug ) {
+			if ( ! is_string( $slug ) || 1 !== preg_match( '/^(?=.*[a-z])[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug ) ) {
+				return 'slug_format_invalid';
+			}
+		}
+	}
+	if ( 'ai/comment-analysis' === $ability ) {
+		if ( ! is_array( $data ) || ! in_array( (string) ( $data['sentiment'] ?? '' ), array( 'positive', 'neutral', 'negative' ), true ) ) {
+			return 'comment_analysis_invalid';
+		}
+		$toxicity = $data['toxicity_score'] ?? null;
+		if ( ! is_numeric( $toxicity ) || (float) $toxicity < 0.0 || (float) $toxicity > 1.0 ) {
+			return 'comment_analysis_invalid';
+		}
+	}
+	if ( 'ai/content-classification' === $ability ) {
+		foreach ( $data['suggestions'] ?? array() as $suggestion ) {
+			if ( ! is_array( $suggestion ) || '' === trim( (string) ( $suggestion['term'] ?? '' ) ) ) {
+				return 'classification_suggestion_invalid';
+			}
+			$confidence = $suggestion['confidence'] ?? null;
+			if ( null !== $confidence && ( ! is_numeric( $confidence ) || (float) $confidence < 0.0 || (float) $confidence > 1.0 ) ) {
+				return 'classification_confidence_invalid';
+			}
+		}
+	}
+	if ( 'ai/alt-text-generation' === $ability && ( ! is_array( $data ) || ! is_bool( $data['is_decorative'] ?? null ) ) ) {
+		return 'alt_text_output_invalid';
+	}
+	return null;
+}

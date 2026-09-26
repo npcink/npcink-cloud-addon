@@ -41,6 +41,40 @@ namespace {
 	$GLOBALS['maca_alt_text_permissions'] = array();
 	$GLOBALS['maca_alt_text_replace_on_mime'] = array();
 	$GLOBALS['maca_alt_text_client'] = null;
+	$GLOBALS['maca_alt_text_resize_error'] = false;
+	$GLOBALS['maca_alt_text_saved_paths'] = array();
+
+	function maca_alt_text_png( int $width, int $height ): string {
+		$chunk = static function ( string $type, string $data ): string {
+			return pack( 'N', strlen( $data ) ) . $type . $data . pack( 'N', crc32( $type . $data ) );
+		};
+		return "\x89PNG\r\n\x1a\n"
+			. $chunk( 'IHDR', pack( 'NNCCCCC', $width, $height, 8, 2, 0, 0, 0 ) )
+			. $chunk( 'IDAT', gzcompress( str_repeat( "\0" . str_repeat( "\xff\0\0", $width ), $height ) ) )
+			. $chunk( 'IEND', '' );
+	}
+
+	function wp_get_image_editor( string $path ) {
+		return new class( $path ) {
+			private $size;
+			public function __construct( string $path ) { $this->size = getimagesize( $path ); }
+			public function resize( int $width, int $height, bool $crop ) {
+				if ( $GLOBALS['maca_alt_text_resize_error'] ) { return new WP_Error( 'resize_failed' ); }
+				$scale = min( $width / $this->size[0], $height / $this->size[1] );
+				$this->size = $crop ? array( $width, $height ) : array( (int) round( $this->size[0] * $scale ), (int) round( $this->size[1] * $scale ) );
+				return true;
+			}
+			public function save( string $path, string $mime ): array {
+				$path .= '.png'; // WordPress may return a path different from the requested path.
+				file_put_contents( $path, maca_alt_text_png( $this->size[0], $this->size[1] ) );
+				$GLOBALS['maca_alt_text_saved_paths'][] = $path;
+				return array( 'path' => $path );
+			}
+		};
+	}
+
+	function wp_tempnam( string $path ): string { return tempnam( sys_get_temp_dir(), 'npcink-alt-test-' ); }
+	function wp_delete_file( string $path ): void { unlink( $path ); }
 
 	function current_user_can( string $capability, int $attachment_id ): bool {
 		return 'edit_post' === $capability && true === ( $GLOBALS['maca_alt_text_permissions'][ $attachment_id ] ?? false );
@@ -204,6 +238,10 @@ namespace {
 		&& false === strpos( wp_json_encode( $scene_request ), 'base64' ),
 		'Behavior: execute receives only the source artifact id and bounded text context.'
 	);
+	maca_assert(
+		'vision.ai' === (string) ( $execute_call['request']['profile_id'] ?? '' ),
+		'Behavior: alt-text execution selects the vision.ai routing profile explicitly.'
+	);
 
 	$long_context = 'X' . str_repeat( '这是关于无障碍旅行规划的文章上下文。', 40 ) . 'FULL_ARTICLE_END_SENTINEL';
 	$upstream_prompt = 'Generate alt text for this image. Ensure the alt text you return matches the language of the content in the <additional-context> tag.'
@@ -339,7 +377,25 @@ namespace {
 		'Behavior: invalid Cloud artifact identity prevents runtime execute.'
 	);
 
-	foreach ( array( $source_path, $outside_path, $png_path, $gif_path, $large_path, $changed_path ) as $fixture_file ) {
+	$wide_path = $upload_root . '/wide.png';
+	$wide_bytes = maca_alt_text_png( 1200, 600 );
+	file_put_contents( $wide_path, $wide_bytes );
+	maca_seed_alt_text_attachment( 131, $wide_path );
+	$resize_client = new Maca_Alt_Text_Client_Stub();
+	$GLOBALS['maca_alt_text_client'] = $resize_client;
+	Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::dispatch( 131, 'Describe the entire scene.' );
+	$dimensions = getimagesizefromstring( $resize_client->calls[0]['file']['contents'] );
+	maca_assert( 768 === $dimensions[0] && 384 === $dimensions[1], 'Behavior: vision resizing preserves the entire image aspect ratio instead of cropping.' );
+	maca_assert( $wide_bytes === file_get_contents( $wide_path ), 'Behavior: vision resizing leaves the original attachment unchanged.' );
+	maca_assert( array() === array_filter( $GLOBALS['maca_alt_text_saved_paths'], 'file_exists' ), 'Behavior: resized temporary output files are removed.' );
+	$GLOBALS['maca_alt_text_resize_error'] = true;
+	$saves_before = count( $GLOBALS['maca_alt_text_saved_paths'] );
+	$failed_resize_client = new Maca_Alt_Text_Client_Stub();
+	$GLOBALS['maca_alt_text_client'] = $failed_resize_client;
+	Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::dispatch( 131, 'Describe the entire scene.' );
+	maca_assert( $saves_before === count( $GLOBALS['maca_alt_text_saved_paths'] ) && $wide_bytes === $failed_resize_client->calls[0]['file']['contents'], 'Behavior: failed resizing skips save and retains the already validated source bytes.' );
+
+	foreach ( array( $source_path, $outside_path, $png_path, $gif_path, $large_path, $changed_path, $wide_path ) as $fixture_file ) {
 		unlink( $fixture_file );
 	}
 	rmdir( $upload_root );

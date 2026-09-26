@@ -99,10 +99,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			if ( 'ai/alt-text-generation' === $ability_name && is_array( $input ) ) {
 				self::$alt_text_ability_context = $input;
 			}
-			if (
-				is_array( $input )
-				&& in_array( $ability_name, array( 'ai/title-generation', 'ai/summarization', 'ai/content-resizing' ), true )
-			) {
+			if ( is_array( $input ) && self::is_text_scene_ability( $ability_name ) ) {
 				self::$text_ability_context = array(
 					'ability_id' => $ability_name,
 					'input'      => $input,
@@ -124,10 +121,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			if ( 'ai/alt-text-generation' === $ability_name ) {
 				self::$alt_text_ability_context = array();
 			}
-			if (
-				in_array( $ability_name, array( 'ai/title-generation', 'ai/summarization', 'ai/content-resizing' ), true )
-				&& $ability_name === (string) ( self::$text_ability_context['ability_id'] ?? '' )
-			) {
+			if ( self::is_text_scene_ability( $ability_name ) && $ability_name === (string) ( self::$text_ability_context['ability_id'] ?? '' ) ) {
 				self::$text_ability_context = array();
 			}
 		}
@@ -636,6 +630,34 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 				return substr( $value, 0, $max_length );
 			}
+
+		/**
+		 * Returns whether the current WordPress AI call is a supported text scene.
+		 *
+		 * @param string $ability_name Registered Ability name.
+		 * @return bool
+		 */
+			private static function is_text_scene_ability( string $ability_name ): bool {
+				return in_array(
+					$ability_name,
+					array(
+						'ai/comment-analysis',
+						'ai/content-classification',
+						'ai/content-resizing',
+						'ai/content-translation',
+						'ai/editorial-notes',
+						'ai/editorial-updates',
+						'ai/excerpt-generation',
+						'ai/image-prompt-generation',
+						'ai/meta-description',
+						'ai/slug-generation',
+						'ai/suggest-reply',
+						'ai/summarization',
+						'ai/title-generation',
+					),
+					true
+				);
+			}
 		}
 	}
 
@@ -992,7 +1014,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
 
 			$scene_input = array(
-				'response_format'    => $this->response_format_hint( $task ),
+				'response_format'    => $this->response_format_hint( $task, $task_contract ),
 				'candidate_count'    => $this->config->getCandidateCount(),
 				'max_tokens'         => $this->config->getMaxTokens(),
 				'temperature'        => $this->config->getTemperature(),
@@ -1001,10 +1023,39 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					'task'   => $task,
 				),
 			);
-			if ( in_array( $task, array( 'title_generation', 'content_summary', 'content_rewrite' ), true ) ) {
+			if ( in_array( $task, array( 'title_generation', 'content_summary', 'content_rewrite', 'content_translation', 'editorial_updates' ), true ) ) {
 				$scene_input['source_text'] = $text;
 			} else {
 				$scene_input['prompt'] = $text;
+			}
+			$context_input = is_array( $ability_context['input'] ?? null ) ? $ability_context['input'] : array();
+			if ( 'content_translation' === $task ) {
+				$target_language = sanitize_key( (string) ( $context_input['target_language'] ?? '' ) );
+				$content = trim( (string) ( $context_input['content'] ?? '' ) );
+				if ( '' !== $content ) {
+					$scene_input['source_text'] = $content;
+				}
+				if ( '' !== $target_language ) {
+					$scene_input['target_language'] = substr( $target_language, 0, 20 );
+				}
+			}
+			if ( 'editorial_updates' === $task ) {
+				$block_content = trim( (string) ( $context_input['block_content'] ?? '' ) );
+				$notes = is_array( $context_input['notes'] ?? null ) ? $context_input['notes'] : array();
+				// Keep the official Ability prompt: it already contains the block,
+				// context, and note framing. Replacing it with block_content alone
+				// makes the Provider believe no Notes were supplied.
+				if ( '' === trim( (string) $scene_input['source_text'] ) && '' !== $block_content ) {
+					$scene_input['source_text'] = $block_content;
+				}
+				if ( ! empty( $notes ) ) {
+					$scene_input['editorial_notes_instruction'] = 'Editorial notes to apply: ' . implode( ' | ', array_map( 'sanitize_text_field', $notes ) );
+				}
+			}
+			if ( 'editorial_notes' === $task ) {
+				$block_content = trim( (string) ( $context_input['block_content'] ?? '' ) );
+				$review_types = is_array( $context_input['review_types'] ?? null ) ? $context_input['review_types'] : array();
+				$scene_input['prompt'] = trim( $text . ( '' !== $block_content ? "\n\nBlock content:\n" . $block_content : '' ) . ( ! empty( $review_types ) ? "\nReview types: " . implode( ', ', array_map( 'sanitize_key', $review_types ) ) : '' ) );
 			}
 			if ( 'title_generation' === $task ) {
 				$context_input = is_array( $ability_context['input'] ?? null ) ? $ability_context['input'] : array();
@@ -1020,6 +1071,12 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$system_instruction = (string) ( $this->config->getSystemInstruction() ?? '' );
 			if ( '' !== trim( $system_instruction ) ) {
 				$scene_input['system_instruction'] = $system_instruction;
+			}
+			if ( 'editorial_updates' === $task && '' !== (string) ( $scene_input['editorial_notes_instruction'] ?? '' ) ) {
+				$scene_input['system_instruction'] = trim(
+					(string) ( $scene_input['system_instruction'] ?? '' ) . "\n\n" . $scene_input['editorial_notes_instruction']
+				);
+				unset( $scene_input['editorial_notes_instruction'] );
 			}
 			$site_knowledge_reference_mode = $this->site_knowledge_reference_mode( $task );
 			if ( '' !== $site_knowledge_reference_mode && Npcink_Cloud_Addon_Settings::is_site_knowledge_generation_reference_enabled() ) {
@@ -1067,7 +1124,21 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					$duration_ms,
 					$response->get_error_code()
 				);
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
+				$error_code = sanitize_key( (string) $response->get_error_code() );
+				$error_data = $response->get_error_data();
+				$cloud_code = is_array( $error_data ) ? sanitize_text_field( (string) ( $error_data['cloud_error_code'] ?? '' ) ) : '';
+				$error_stage = is_array( $error_data ) && is_array( $error_data['cloud_error_data'] ?? null )
+					? sanitize_text_field( (string) ( $error_data['cloud_error_data']['error_stage'] ?? '' ) )
+					: '';
+				$diagnostic = '' !== $cloud_code ? $cloud_code : $error_code;
+				if ( '' !== $error_stage ) {
+					$diagnostic .= ':' . $error_stage;
+				}
+				$message = esc_html( $response->get_error_message() );
+				if ( '' !== $diagnostic ) {
+					$message = sprintf( 'Npcink Cloud runtime failed (%s): %s', $diagnostic, $message );
+				}
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( $message );
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), $task );
@@ -1155,11 +1226,13 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		/**
 		 * Returns a shallow response-format hint for Cloud-side scene projection.
 		 *
-		 * @param string $task WordPress AI ability task.
+		 * @param string $task          WordPress AI ability task.
+		 * @param array  $task_contract Projected local Ability contract.
 		 * @return string
 		 */
-		private function response_format_hint( string $task ): string {
-			return in_array( $task, array( 'content_classification', 'comment_moderation' ), true ) ? 'json' : 'text';
+		private function response_format_hint( string $task, array $task_contract = array() ): string {
+			$constraints = is_array( $task_contract['constraints'] ?? null ) ? $task_contract['constraints'] : array();
+			return in_array( 'json_object', $constraints, true ) || in_array( $task, array( 'content_classification', 'comment_moderation' ), true ) ? 'json' : 'text';
 		}
 
 		/**
@@ -1191,10 +1264,12 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'WordPress\\AI\\Abilities\\Content_Classification\\Content_Classification' => 'ai/content-classification',
 				'WordPress\\AI\\Abilities\\Comment_Moderation\\Comment_Analysis'           => 'ai/comment-analysis',
 				'WordPress\\AI\\Abilities\\Content_Resizing\\Content_Resizing'              => 'ai/content-resizing',
+				'WordPress\\AI\\Abilities\\Content_Translation\\Content_Translation'        => 'ai/content-translation',
 				'WordPress\\AI\\Abilities\\Editorial_Updates\\Editorial_Updates'            => 'ai/editorial-updates',
 				'WordPress\\AI\\Abilities\\Editorial_Notes\\Editorial_Notes'                => 'ai/editorial-notes',
 				'WordPress\\AI\\Abilities\\Excerpt_Generation\\Excerpt_Generation'          => 'ai/excerpt-generation',
 				'WordPress\\AI\\Abilities\\Meta_Description\\Meta_Description'              => 'ai/meta-description',
+				'WordPress\\AI\\Abilities\\Slug_Generation\\Slug_Generation'                => 'ai/slug-generation',
 				'WordPress\\AI\\Abilities\\Suggest_Reply\\Suggest_Reply'                    => 'ai/suggest-reply',
 				'WordPress\\AI\\Abilities\\Title_Generation\\Title_Generation'              => 'ai/title-generation',
 				'WordPress\\AI\\Abilities\\Summarization\\Summarization'                    => 'ai/summarization',
@@ -1307,9 +1382,19 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					array( 'status' => 502 )
 				);
 			}
+			$task_contract = function_exists( 'npcink_cloud_addon_project_ai_task_contract' )
+				? npcink_cloud_addon_project_ai_task_contract( 'ai/alt-text-generation' )
+				: null;
+			if ( is_wp_error( $task_contract ) ) {
+				return $task_contract;
+			}
+			if ( null !== $task_contract && ! is_array( $task_contract ) ) {
+				return new WP_Error( 'cloud_wp_ai_alt_text_task_contract_invalid', __( 'Npcink Cloud could not project the alt-text Ability contract.', 'npcink-cloud-addon' ), array( 'status' => 500 ) );
+			}
 
 			$request = array(
 				'contract_version'   => 'cloud_connector_runtime.v1',
+				'profile_id'         => 'vision.ai',
 				'operation_contract' => array(
 					'contract_version' => 'wordpress_operation.v1',
 					'task'             => 'alt_text_suggest',
@@ -1327,6 +1412,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'retention_ttl'      => 86400,
 				'retry_max'          => 0,
 			);
+			if ( is_array( $task_contract ) ) {
+				$request['operation_contract']['request'] = array( 'task_contract' => $task_contract ) + $request['operation_contract']['request'];
+			}
 
 			return npcink_cloud_addon_execute_wordpress_ai_connector_runtime(
 				$request,
@@ -1423,6 +1511,30 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$detected_mime = is_array( $image_info ) ? sanitize_mime_type( (string) ( $image_info['mime'] ?? '' ) ) : '';
 			if ( $stored_mime !== $detected_mime || ! in_array( $detected_mime, self::ALLOWED_MIME_TYPES, true ) ) {
 				return self::source_error( 'cloud_wp_ai_alt_text_attachment_mime_invalid', 'The local attachment image type is not supported for Cloud alt text generation.' );
+			}
+
+			// Keep real editor images inside small vision models' context budgets.
+			// The original attachment remains untouched; only the transient artifact
+			// sent to Cloud is bounded to 768px on its longest edge.
+			if ( is_array( $image_info ) && max( absint( $image_info[0] ?? 0 ), absint( $image_info[1] ?? 0 ) ) > 768 && function_exists( 'wp_get_image_editor' ) ) {
+				$editor = wp_get_image_editor( $real_path );
+				if ( ! is_wp_error( $editor ) && ! is_wp_error( $editor->resize( 768, 768, false ) ) ) {
+					$temp_path = function_exists( 'wp_tempnam' ) ? wp_tempnam( $real_path ) : tempnam( sys_get_temp_dir(), 'npcink-alt-' );
+					$saved = is_string( $temp_path ) && '' !== $temp_path ? $editor->save( $temp_path, $detected_mime ) : false;
+					$saved_path = is_array( $saved ) ? (string) ( $saved['path'] ?? '' ) : '';
+					if ( '' !== $saved_path && ! is_wp_error( $saved ) && is_readable( $saved_path ) ) {
+						$bounded_contents = file_get_contents( $saved_path );
+						$bounded_info = is_string( $bounded_contents ) ? @getimagesizefromstring( $bounded_contents ) : false;
+						if ( is_array( $bounded_info ) && ( $bounded_info['mime'] ?? '' ) === $detected_mime && strlen( $bounded_contents ) <= self::MAX_SOURCE_BYTES ) {
+							$contents = $bounded_contents;
+						}
+					}
+					foreach ( array( $temp_path, $saved_path ) as $temporary_file ) {
+						if ( is_string( $temporary_file ) && '' !== $temporary_file && is_file( $temporary_file ) ) {
+							wp_delete_file( $temporary_file );
+						}
+					}
+				}
 			}
 
 			return array(

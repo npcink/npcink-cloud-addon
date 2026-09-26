@@ -47,6 +47,26 @@ $GLOBALS['maca_abilities']['ai/image-prompt-generation'] = new Maca_AI_Task_Test
 	array( 'type' => 'string' )
 );
 $image_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( 'ai/image-prompt-generation' );
+
+$GLOBALS['maca_abilities']['ai/alt-text-generation'] = new Maca_AI_Task_Test_Ability(
+	'ai/alt-text-generation',
+	array( 'type' => 'object', 'properties' => array( 'attachment_id' => array( 'type' => 'integer' ) ) ),
+	array(
+		'type'       => 'object',
+		'properties' => array(
+			'alt_text'      => array( 'type' => 'string' ),
+			'is_decorative' => array( 'type' => 'boolean' ),
+		),
+	)
+);
+$alt_text_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( 'ai/alt-text-generation' );
+maca_assert(
+	is_array( $alt_text_contract )
+	&& 'alt_text_suggest' === (string) ( $alt_text_contract['task'] ?? '' )
+	&& 0 === strpos( (string) ( $alt_text_contract['schema_hash'] ?? '' ), 'sha256:' )
+	&& 'suggestion_only' === (string) ( $alt_text_contract['write_posture'] ?? '' ),
+	'Behavior: alt-text generation reuses the registered Ability schema contract.'
+);
 maca_assert(
 	is_array( $image_contract )
 	&& 'image_prompt_generation' === (string) ( $image_contract['task'] ?? '' )
@@ -66,6 +86,8 @@ maca_assert(
 	&& 'ai_task_contract.v1' === (string) ( $title_contract['contract_version'] ?? '' )
 	&& 'title_generation' === (string) ( $title_contract['task'] ?? '' )
 	&& 'generation' === (string) ( $title_contract['task_family'] ?? '' )
+	&& is_array( $title_contract['input_schema'] ?? null )
+	&& 0 === strpos( (string) ( $title_contract['schema_hash'] ?? '' ), 'sha256:' )
 	&& 'suggestion_only' === (string) ( $title_contract['write_posture'] ?? '' ),
 	'Behavior: ai-wp-admin title generation receives a bounded compatibility task projection.'
 );
@@ -83,6 +105,35 @@ maca_assert(
 	&& array( 'current_content' ) === ( $suggest_reply_contract['context_requirements'] ?? null )
 	&& 'suggestion_only' === (string) ( $suggest_reply_contract['write_posture'] ?? '' ),
 	'Behavior: ai-wp-admin suggest reply receives a bounded suggestion-only comment reply task projection.'
+);
+
+$GLOBALS['maca_abilities']['ai/slug-generation'] = new Maca_AI_Task_Test_Ability(
+	'ai/slug-generation',
+	array(),
+	array( 'type' => 'object', 'properties' => array( 'slugs' => array( 'type' => 'array' ) ) )
+);
+$slug_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( 'ai/slug-generation' );
+maca_assert(
+	is_array( $slug_contract )
+	&& 'slug_generation' === (string) ( $slug_contract['task'] ?? '' )
+	&& in_array( 'json_object', $slug_contract['constraints'] ?? array(), true ),
+	'Behavior: slug generation keeps its structured Ability output contract.'
+);
+
+$GLOBALS['maca_abilities']['ai/editorial-notes'] = new Maca_AI_Task_Test_Ability(
+	'ai/editorial-notes',
+	array(),
+	array(
+		'type'       => 'object',
+		'properties' => array( 'suggestions' => array( 'type' => 'array' ) ),
+	)
+);
+$editorial_notes_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( 'ai/editorial-notes' );
+maca_assert(
+	is_array( $editorial_notes_contract )
+	&& 'editorial_notes' === (string) ( $editorial_notes_contract['task'] ?? '' )
+	&& in_array( 'json_object', $editorial_notes_contract['constraints'] ?? array(), true ),
+	'Behavior: editorial notes preserves the structured Ability result instead of falling back to summary text.'
 );
 
 $GLOBALS['maca_abilities']['example/seo-headline'] = new Maca_AI_Task_Test_Ability(
@@ -118,6 +169,14 @@ $invalid_contract = Npcink_Cloud_AI_Task_Contract::normalize(
 maca_assert(
 	is_wp_error( $invalid_contract ) && 'cloud_ai_task_contract_identity_invalid' === $invalid_contract->get_error_code(),
 	'Behavior: task projections fail closed on an unsupported open-ended task family.'
+);
+
+$mismatched_hash_contract              = $custom_contract;
+$mismatched_hash_contract['schema_hash'] = 'sha256:' . str_repeat( '0', 64 );
+$mismatched_hash_result                = Npcink_Cloud_AI_Task_Contract::normalize( $mismatched_hash_contract );
+maca_assert(
+	is_wp_error( $mismatched_hash_result ) && 'cloud_ai_task_schema_hash_mismatch' === $mismatched_hash_result->get_error_code(),
+	'Behavior: task projections fail closed when the schema hash does not match the projected schemas.'
 );
 
 maca_seed_settings( true );
