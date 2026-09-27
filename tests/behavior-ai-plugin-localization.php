@@ -529,6 +529,11 @@ maca_assert(
 		'%d suggestions added, view those Notes <a>here</a>.',
 		'ai'
 	)
+	&& '未生成分类建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'No taxonomy suggestions were generated.',
+		'No taxonomy suggestions were generated.',
+		'ai'
+	)
 	&& '应用编辑更新' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Apply Editorial Updates',
 		'Apply Editorial Updates',
@@ -1238,4 +1243,9 @@ maca_assert(
 	&& '无法生成回复建议。请确保已连接支持文本生成的提供方。' === ( $locale_data['Reply suggestion could not be generated. Please ensure you have a connected provider that supports text generation.'][0] ?? '' )
 	&& '%d 条评论已加入分析队列。' === ( $locale_data['%d comment queued for analysis.'][0] ?? '' ),
 	'AI plugin localization enqueues an asset-backed wp.i18n locale data shim for JS admin screens.'
+);
+maca_assert(
+	'已添加 %d 条建议，可在<a>此处</a>查看这些建议。' === ( $locale_data['%d suggestions added, view those Notes <a>here</a>.'][1] ?? '' )
+	&& '未生成分类建议。' === ( $locale_data['No taxonomy suggestions were generated.'][0] ?? '' ),
+	'AI plugin localization supplies plural and taxonomy translations to wp.i18n.'
 );

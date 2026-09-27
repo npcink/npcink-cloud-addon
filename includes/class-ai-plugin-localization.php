@@ -87,7 +87,10 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				),
 			);
 			foreach ( self::translations() as $source => $translation ) {
-				$locale_data[ $source ] = array( $translation );
+				// wp.i18n plural lookups expect both singular and plural entries.
+				// Chinese uses the same translated string for either count, while
+				// providing both entries prevents the English plural fallback.
+				$locale_data[ $source ] = array( $translation, $translation );
 			}
 
 			$handle = 'npcink-cloud-addon-ai-plugin-localization';
@@ -441,6 +444,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'%d suggestion added, view those Notes <a>here</a>.' => '已添加 %d 条建议，可在<a>此处</a>查看这些建议。',
 				'%d suggestions added, view those Notes <a>here</a>.' => '已添加 %d 条建议，可在<a>此处</a>查看这些建议。',
 				'No new suggestions found.' => '未找到新建议。',
+				'No taxonomy suggestions were generated.' => '未生成分类建议。',
 				'Editorial Notes will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可生成编辑建议。',
 				'Reviewing…' => '正在检查…',
 				'Reviewing blocks… (%1$d of %2$d)' => '正在检查区块…（%1$d/%2$d）',
