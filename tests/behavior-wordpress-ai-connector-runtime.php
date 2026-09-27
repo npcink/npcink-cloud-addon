@@ -81,6 +81,7 @@ $result = $client->execute_wordpress_ai_connector_runtime(
 		'title_generation',
 		array(
 			'source_text'       => '<content>A concise article about the verified Cloud connector.</content>',
+			'existing_title'   => '当前文章标题',
 			'system_instruction' => 'Return one concise title.',
 			'site_knowledge_reference' => array(
 				'enabled' => true,
@@ -127,6 +128,7 @@ maca_assert(
 	&& 'wordpress_operation.v1' === (string) ( $request_body['input']['operation_contract']['contract_version'] ?? '' )
 	&& 'title_generation' === (string) ( $request_body['input']['operation_contract']['task'] ?? '' )
 	&& '<content>A concise article about the verified Cloud connector.</content>' === (string) ( $request_body['input']['operation_contract']['request']['source_text'] ?? '' )
+	&& '当前文章标题' === (string) ( $request_body['input']['operation_contract']['request']['existing_title'] ?? '' )
 	&& 'Return one concise title.' === (string) ( $request_body['input']['operation_contract']['request']['system_instruction'] ?? '' )
 	&& true === (bool) ( $request_body['input']['operation_contract']['request']['site_knowledge_reference']['enabled'] ?? false )
 	&& 'site_title_style' === (string) ( $request_body['input']['operation_contract']['request']['site_knowledge_reference']['mode'] ?? '' )
@@ -134,6 +136,34 @@ maca_assert(
 	&& ! isset( $request_body['input']['operation_contract']['request']['post_title'] )
 	&& ! isset( $request_body['input']['operation_contract']['request']['post_excerpt'] ),
 	'Behavior: WordPress AI connector runtime projects a scene-bound no-chat no-write Cloud payload and leaves provider fallback policy to Cloud.'
+);
+
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array(
+				'status' => 'error',
+				'error_code' => 'provider.output_quality_rejected',
+				'error_message' => 'provider returned no usable WordPress AI connector text',
+				'error_stage' => 'provider_output',
+			),
+		)
+	),
+);
+$projected_failure = $client->execute_wordpress_ai_connector_runtime(
+	maca_wordpress_operation_request( 'content_translation', array( 'source_text' => '<content>固定内容</content>' ) ),
+	'trace-wp-ai-failure',
+	'wp-ai-failure-idempotency'
+);
+$projected_failure_data = is_wp_error( $projected_failure ) ? $projected_failure->get_error_data() : array();
+maca_assert(
+	is_wp_error( $projected_failure)
+	&& 'cloud_provider_output_quality_rejected' === $projected_failure->get_error_code()
+	&& 'provider.output_quality_rejected' === (string) ( $projected_failure_data['cloud_error_code'] ?? '' )
+	&& 'provider_output' === (string) ( $projected_failure_data['cloud_error_data']['error_stage'] ?? '' ),
+	'Behavior: WordPress AI connector projects Cloud runtime failures with a stable local code and diagnostic Cloud evidence.'
 );
 
 $personal_data_examples = array(

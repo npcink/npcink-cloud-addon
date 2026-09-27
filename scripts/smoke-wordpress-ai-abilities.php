@@ -12,8 +12,6 @@
  * @package NpcinkCloudAddon
  */
 
-declare(strict_types=1);
-
 if ( ! defined( 'ABSPATH' ) ) {
 	fwrite( STDERR, "[fail] Run this file through WP-CLI eval-file inside a WordPress install.\n" );
 	exit( 1 );

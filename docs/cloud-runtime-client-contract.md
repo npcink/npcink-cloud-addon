@@ -453,10 +453,12 @@ The nested operation contract has exactly `contract_version`, `task`, and
 `request`. Platform identity stays in the connector envelope; WordPress task
 semantics stay in `wordpress_operation.v1`. For `title_generation`,
 `content_summary`, and `content_rewrite`, `request.source_text` is the actual
-single AI Client user message. `request.system_instruction` is optional. Those
-three tasks reject legacy `prompt`, `post_title`, and `post_excerpt` fields;
-embedded content tags are transported as opaque text. Other bounded tasks such
-as alt text may keep their task-specific prompt field.
+single AI Client user message. `request.system_instruction` is optional. Title
+generation may also carry a bounded `request.existing_title` read-only context
+from the current WordPress post; Cloud uses it to reject an unchanged title.
+Those three tasks reject legacy `prompt`, `post_title`, and `post_excerpt`
+fields; embedded content tags are transported as opaque text. Other bounded
+tasks such as alt text may keep their task-specific prompt field.
 
 The method rejects generic chat or provider-control fields such as `messages`,
 `conversation_id`, `session_id`, `thread_id`, `tools`, `tool_calls`,

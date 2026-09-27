@@ -29,6 +29,12 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		 * @var array<string,array<string,mixed>>
 		 */
 		private const AI_PLUGIN_COMPATIBILITY = array(
+			'ai/alt-text-generation' => array(
+				'task'                 => 'alt_text_suggest',
+				'task_family'         => 'generation',
+				'context_requirements' => array(),
+				'constraints'          => array( 'single_value', 'source_grounded' ),
+			),
 			'ai/image-prompt-generation' => array(
 				'task'                 => 'image_prompt_generation',
 				'task_family'         => 'generation',
@@ -46,6 +52,18 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 				'task_family'          => 'generation',
 				'context_requirements' => array( 'current_content', 'site_style_profile' ),
 				'constraints'          => array( 'single_value', 'source_grounded', 'no_new_numbers' ),
+			),
+			'ai/content-translation' => array(
+				'task'                 => 'content_translation',
+				'task_family'          => 'transformation',
+				'context_requirements' => array( 'current_content' ),
+				'constraints'          => array( 'single_value', 'source_grounded' ),
+			),
+			'ai/slug-generation' => array(
+				'task'                 => 'slug_generation',
+				'task_family'          => 'generation',
+				'context_requirements' => array( 'current_content' ),
+				'constraints'          => array( 'json_object', 'source_grounded' ),
 			),
 			'ai/meta-description' => array(
 				'task'                 => 'meta_description',
@@ -72,16 +90,16 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 				'constraints'          => array( 'single_value', 'source_grounded', 'no_new_numbers' ),
 			),
 			'ai/editorial-updates' => array(
-				'task'                 => 'content_rewrite',
+				'task'                 => 'editorial_updates',
 				'task_family'          => 'transformation',
 				'context_requirements' => array( 'current_content' ),
 				'constraints'          => array( 'single_value', 'source_grounded', 'no_new_numbers' ),
 			),
 			'ai/editorial-notes' => array(
-				'task'                 => 'content_summary',
+				'task'                 => 'editorial_notes',
 				'task_family'          => 'analysis',
 				'context_requirements' => array( 'current_content' ),
-				'constraints'          => array( 'single_value', 'source_grounded', 'no_new_numbers' ),
+				'constraints'          => array( 'json_object', 'source_grounded' ),
 			),
 			'ai/comment-analysis' => array(
 				'task'                 => 'comment_moderation',
@@ -135,7 +153,18 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 
 			$projection['contract_version'] = self::VERSION;
 			$projection['ability_name']     = (string) $ability->get_name();
+			$input_schema = method_exists( $ability, 'get_input_schema' ) ? $ability->get_input_schema() : array();
+			$projection['input_schema']     = is_array( $input_schema ) ? $input_schema : array();
 			$projection['output_schema']    = $ability->get_output_schema();
+			$projection['schema_hash']      = 'sha256:' . hash(
+				'sha256',
+				(string) wp_json_encode(
+					array(
+						'input_schema'  => $projection['input_schema'],
+						'output_schema' => is_array( $projection['output_schema'] ) ? $projection['output_schema'] : array(),
+					)
+				)
+			);
 			$projection['write_posture']    = 'suggestion_only';
 
 			return self::normalize( $projection );
@@ -168,9 +197,28 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			}
 
 			$output_schema = is_array( $projection['output_schema'] ?? null ) ? $projection['output_schema'] : array();
+			$input_schema  = is_array( $projection['input_schema'] ?? null ) ? $projection['input_schema'] : array();
+			$schema_hash  = (string) ( $projection['schema_hash'] ?? '' );
+			if ( '' !== $schema_hash && 1 !== preg_match( '/^sha256:[a-f0-9]{64}$/', $schema_hash ) ) {
+				return self::error( 'cloud_ai_task_schema_hash_invalid', 'AI task contracts require a stable sha256 schema hash.' );
+			}
 			$encoded       = wp_json_encode( $output_schema );
 			if ( ! is_string( $encoded ) || strlen( $encoded ) > 12000 ) {
 				return self::error( 'cloud_ai_task_output_schema_invalid', 'The Ability output schema is too large for runtime projection.' );
+			}
+			if ( '' !== $schema_hash ) {
+				$expected_hash = 'sha256:' . hash(
+					'sha256',
+					(string) wp_json_encode(
+						array(
+							'input_schema'  => $input_schema,
+							'output_schema' => $output_schema,
+						)
+					)
+				);
+				if ( $expected_hash !== $schema_hash ) {
+					return self::error( 'cloud_ai_task_schema_hash_mismatch', 'The AI task contract schema hash does not match its input and output schemas.' );
+				}
 			}
 
 			return array(
@@ -180,7 +228,9 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 				'task_family'          => $family,
 				'context_requirements' => $contexts,
 				'constraints'          => $constraints,
+				'input_schema'         => $input_schema,
 				'output_schema'        => $output_schema,
+				'schema_hash'          => $schema_hash,
 				'write_posture'        => 'suggestion_only',
 			);
 		}

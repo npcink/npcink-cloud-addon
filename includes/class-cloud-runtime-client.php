@@ -133,16 +133,21 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			'alt_text_suggest',
 			'comment_moderation',
 			'comment_reply_suggest',
+			'content_translation',
 			'content_classification',
 			'content_rewrite',
 			'content_summary',
+			'editorial_notes',
+			'editorial_updates',
 			'excerpt_generation',
 			'meta_description',
+			'slug_generation',
 			'title_generation',
 		);
 		private const WP_AI_CONNECTOR_SOURCE_TEXT_TASKS = array(
 			'content_rewrite',
 			'content_summary',
+			'editorial_updates',
 			'title_generation',
 		);
 		private const WP_AI_CONNECTOR_FORBIDDEN_KEYS = array(
@@ -319,7 +324,8 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				$idempotency_key = 'wp_ai_connector_' . wp_generate_uuid4();
 			}
 
-			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+			$response = $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+			return $this->project_runtime_execute_failure( $response );
 		}
 
 		/**
@@ -2470,6 +2476,16 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 						array( 'status' => 413 )
 					);
 				}
+				if ( array_key_exists( 'existing_title', $scene_request ) ) {
+					if ( 'title_generation' !== $task || ! is_string( $scene_request['existing_title'] ) ) {
+						return new WP_Error(
+							'cloud_wp_ai_connector_existing_title_invalid',
+							__( 'WordPress AI existing_title context is supported only for title generation.', 'npcink-cloud-addon' ),
+							array( 'status' => 400 )
+						);
+					}
+					$scene_request['existing_title'] = $this->bounded_text( wp_strip_all_tags( $scene_request['existing_title'] ), 160 );
+				}
 				if ( array_key_exists( 'system_instruction', $scene_request ) ) {
 					if ( ! is_string( $scene_request['system_instruction'] ) ) {
 						return new WP_Error(
@@ -2620,7 +2636,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		private function normalize_wordpress_ai_alt_text_request( array $request ) {
-			$allowed_fields = array( 'source_artifact_id', 'prompt', 'filename', 'title', 'existing_alt', 'existing_caption', 'locale', 'max_tokens' );
+			$allowed_fields = array( 'source_artifact_id', 'prompt', 'filename', 'title', 'existing_alt', 'existing_caption', 'locale', 'max_tokens', 'task_contract' );
 			if ( array() !== array_diff( array_keys( $request ), $allowed_fields ) ) {
 				return new WP_Error(
 					'cloud_wp_ai_alt_text_request_fields_not_allowed',
@@ -2651,6 +2667,16 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'source_artifact_id' => $source_artifact_id,
 				'prompt'              => trim( $prompt ),
 			);
+			if ( array_key_exists( 'task_contract', $request ) ) {
+				if ( ! is_array( $request['task_contract'] ) ) {
+					return new WP_Error(
+						'cloud_wp_ai_alt_text_task_contract_invalid',
+						__( 'WordPress AI alt-text task_contract must be a normalized object.', 'npcink-cloud-addon' ),
+						array( 'status' => 400 )
+					);
+				}
+				$normalized['task_contract'] = $request['task_contract'];
+			}
 			$field_limits = array(
 				'filename'         => 160,
 				'title'            => 160,
