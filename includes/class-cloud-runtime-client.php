@@ -2394,6 +2394,19 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 
 			$task          = sanitize_key( (string) ( $operation_contract['task'] ?? '' ) );
 			$scene_request = $operation_contract['request'];
+			if (
+				is_string( $scene_request['prompt'] ?? null )
+				&& in_array( $task, array( 'content_classification', 'editorial_notes' ), true )
+			) {
+				// Classification and editorial-note prompts are assembled by the
+				// official Ability and may contain long UTF-8 content plus candidate
+				// terms. Fit only these suggestion-only prompts to the existing byte
+				// envelope; do not relax the runtime boundary or truncate source-text
+				// transformation tasks.
+				$scene_request['prompt'] = $this->fit_wordpress_ai_prompt_to_request_limit( $request, $scene_request );
+				$operation_contract['request'] = $scene_request;
+				$request['operation_contract'] = $operation_contract;
+			}
 			$task_contract = null;
 			if ( is_array( $scene_request['task_contract'] ?? null ) ) {
 				$task_contract = Npcink_Cloud_AI_Task_Contract::normalize( $scene_request['task_contract'] );
@@ -4144,6 +4157,79 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			}
 
 			return strlen( $value ) > $max_chars ? substr( $value, 0, $max_chars ) : $value;
+		}
+
+		/**
+		 * Fits one suggestion prompt to the existing connector request byte limit.
+		 *
+		 * The official AI plugin may combine Chinese content and a taxonomy
+		 * candidate pool in one prompt. Character limits alone are insufficient
+		 * because UTF-8 content occupies multiple bytes. Preserve both the prompt
+		 * head and tail so content framing and candidate terms remain available.
+		 *
+		 * @param array<string,mixed> $request       Raw connector request.
+		 * @param array<string,mixed> $scene_request Scene request containing prompt.
+		 * @return string
+		 */
+		private function fit_wordpress_ai_prompt_to_request_limit( array $request, array $scene_request ): string {
+			$prompt = trim( (string) ( $scene_request['prompt'] ?? '' ) );
+			if ( '' === $prompt ) {
+				return '';
+			}
+
+			$measure = static function ( string $candidate ) use ( $request, $scene_request ): int {
+				$probe_request = $request;
+				$probe_scene   = $scene_request;
+				$probe_scene['prompt'] = $candidate;
+				$probe_request['operation_contract']['request'] = $probe_scene;
+				$encoded = wp_json_encode( $probe_request );
+
+				return is_string( $encoded ) ? strlen( $encoded ) : PHP_INT_MAX;
+			};
+
+			// Leave room for the normalized outer runtime envelope added after
+			// this scene request is validated.
+			$target_bytes = self::WP_AI_CONNECTOR_MAX_REQUEST_BYTES - 2048;
+			if ( $measure( $prompt ) <= $target_bytes ) {
+				return $prompt;
+			}
+
+			$low  = 256;
+			$high = strlen( $prompt );
+			$best = '';
+			while ( $low <= $high ) {
+				$mid       = intdiv( $low + $high, 2 );
+				$candidate = $this->bounded_utf8_prompt( $prompt, $mid );
+				if ( $measure( $candidate ) <= $target_bytes ) {
+					$best = $candidate;
+					$low  = $mid + 1;
+				} else {
+					$high = $mid - 1;
+				}
+			}
+
+			return '' !== $best ? $best : $this->bounded_utf8_prompt( $prompt, 256 );
+		}
+
+		/**
+		 * Truncates a UTF-8 prompt by bytes while retaining its head and tail.
+		 *
+		 * @param string $value     Prompt text.
+		 * @param int    $max_bytes Maximum encoded prompt bytes.
+		 * @return string
+		 */
+		private function bounded_utf8_prompt( string $value, int $max_bytes ): string {
+			$marker = "\n…[内容已按场景大小限制截取，中间部分省略]…\n";
+			if ( $max_bytes <= 0 || strlen( $value ) <= $max_bytes ) {
+				return $value;
+			}
+			$available = max( 1, $max_bytes - strlen( $marker ) );
+			$head_len  = (int) floor( $available * 0.65 );
+			$tail_len  = $available - $head_len;
+			$head      = function_exists( 'mb_strcut' ) ? mb_strcut( $value, 0, $head_len, 'UTF-8' ) : substr( $value, 0, $head_len );
+			$tail      = function_exists( 'mb_strcut' ) ? mb_strcut( $value, max( 0, strlen( $value ) - $tail_len ), $tail_len, 'UTF-8' ) : substr( $value, -$tail_len );
+
+			return rtrim( $head ) . $marker . ltrim( $tail );
 		}
 
 		/**

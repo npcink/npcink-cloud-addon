@@ -353,6 +353,50 @@ maca_assert(
 	'Behavior: WordPress AI connector runtime rejects oversized source text for rewrite tasks.'
 );
 
+foreach ( array( 'content_classification', 'editorial_notes' ) as $bounded_prompt_task ) {
+	$GLOBALS['maca_http_response_queue'][] = array(
+		'response' => array( 'code' => 200 ),
+		'body'     => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data'   => array(
+					'run_id' => 'run_wp_ai_connector_bounded_' . $bounded_prompt_task,
+				),
+			)
+		),
+	);
+	$bounded_prompt_result = $client->execute_wordpress_ai_connector_runtime(
+		maca_wordpress_operation_request(
+			$bounded_prompt_task,
+			array(
+				'prompt'        => str_repeat( '中文文章内容需要保留上下文。', 1800 ),
+				'task_contract' => array(
+					'contract_version'    => 'ai_task_contract.v1',
+					'ability_name'        => 'ai/' . ( 'content_classification' === $bounded_prompt_task ? 'content-classification' : 'editorial-notes' ),
+					'task'                => $bounded_prompt_task,
+					'task_family'         => 'content_classification' === $bounded_prompt_task ? 'classification' : 'analysis',
+					'context_requirements' => array( 'current_content' ),
+					'constraints'          => array( 'json_object', 'source_grounded' ),
+					'output_schema'        => array( 'type' => 'object', 'properties' => array( 'suggestions' => array( 'type' => 'array' ) ) ),
+					'write_posture'       => 'suggestion_only',
+				),
+			)
+		),
+		'trace-wp-ai-bounded-' . $bounded_prompt_task,
+		'wp-ai-bounded-' . $bounded_prompt_task
+	);
+	$bounded_prompt_request = end( $GLOBALS['maca_http_requests'] );
+	$bounded_prompt_body    = json_decode( (string) ( $bounded_prompt_request['args']['body'] ?? '' ), true );
+	$bounded_prompt         = (string) ( $bounded_prompt_body['input']['operation_contract']['request']['prompt'] ?? '' );
+
+	maca_assert(
+		is_array( $bounded_prompt_result )
+		&& false !== strpos( $bounded_prompt, '内容已按场景大小限制截取' )
+		&& strlen( (string) ( $bounded_prompt_request['args']['body'] ?? '' ) ) <= 24000,
+		'Behavior: ' . $bounded_prompt_task . ' keeps UTF-8 scene requests within the existing byte envelope.'
+	);
+}
+
 $legacy_text_shape = $client->execute_wordpress_ai_connector_runtime(
 	maca_wordpress_operation_request(
 		'title_generation',

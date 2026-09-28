@@ -1055,7 +1055,13 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			if ( 'editorial_notes' === $task ) {
 				$block_content = trim( (string) ( $context_input['block_content'] ?? '' ) );
 				$review_types = is_array( $context_input['review_types'] ?? null ) ? $context_input['review_types'] : array();
-				$scene_input['prompt'] = trim( $text . ( '' !== $block_content ? "\n\nBlock content:\n" . $block_content : '' ) . ( ! empty( $review_types ) ? "\nReview types: " . implode( ', ', array_map( 'sanitize_key', $review_types ) ) : '' ) );
+				// The official Ability prompt already contains <block-content>. Only
+				// append the local context when an upstream connector omitted it;
+				// duplicating a long block is enough to trip the scene byte limit.
+				$block_context = '' !== $block_content && false === stripos( $text, '<block-content>' )
+					? "\n\nBlock content:\n" . $block_content
+					: '';
+				$scene_input['prompt'] = trim( $text . $block_context . ( ! empty( $review_types ) ? "\nReview types: " . implode( ', ', array_map( 'sanitize_key', $review_types ) ) : '' ) );
 			}
 			if ( 'title_generation' === $task ) {
 				$context_input = is_array( $ability_context['input'] ?? null ) ? $ability_context['input'] : array();
