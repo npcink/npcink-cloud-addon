@@ -473,6 +473,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'direct_wordpress_write'     => false,
 				'content_storage'            => 'omitted_metadata_only',
 			);
+			$context = array_merge( $context, self::translation_request_diagnostic( $task, $event, $response, $error ) );
 
 			$log_data = array(
 				// WordPress AI log types describe the caller, not the content modality.
@@ -631,12 +632,66 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				return substr( $value, 0, $max_length );
 			}
 
-		/**
-		 * Returns whether the current WordPress AI call is a supported text scene.
-		 *
-		 * @param string $ability_name Registered Ability name.
-		 * @return bool
-		 */
+			/**
+			 * Adds content-free diagnostics for one official block translation request.
+			 *
+			 * The official Content Translation feature invokes the Ability once per
+			 * eligible block. Short or unsupported blocks never reach this connector;
+			 * submitted blocks can therefore be correlated by status and Cloud run ID
+			 * without storing their source or translated text.
+			 *
+			 * @param string              $task Cloud task key.
+			 * @param array<string,mixed> $event Runtime event metadata.
+			 * @param mixed               $response Runtime response.
+			 * @param mixed               $error Validation or transport error.
+			 * @return array<string,mixed>
+			 */
+			private static function translation_request_diagnostic( string $task, array $event, $response, $error ): array {
+			if ( 'content_translation' !== $task ) {
+				return array();
+			}
+
+			$ability_input = is_array( $event['ability_input'] ?? null ) ? $event['ability_input'] : array();
+			$content = trim( (string) ( $ability_input['content'] ?? '' ) );
+			$source_length = function_exists( 'mb_strlen' ) ? mb_strlen( $content, 'UTF-8' ) : strlen( $content );
+			$diagnostic_code = '';
+			if ( is_wp_error( $error ) ) {
+				$error_data = $error->get_error_data();
+				if ( is_array( $error_data ) ) {
+					$diagnostic_code = (string) ( $error_data['cloud_error_code'] ?? $error_data['error_code'] ?? '' );
+					if ( '' === $diagnostic_code && is_array( $error_data['cloud_error_data'] ?? null ) ) {
+						$diagnostic_code = (string) ( $error_data['cloud_error_data']['output_quality_reason'] ?? $error_data['cloud_error_data']['error_code'] ?? '' );
+					}
+				}
+				if ( '' === $diagnostic_code ) {
+					$diagnostic_code = (string) $error->get_error_code();
+				}
+			}
+			$diagnostic_code = self::clean_log_value( $diagnostic_code, 120 );
+			$is_quality_rejection = false !== strpos( $diagnostic_code, 'translation_' )
+				|| false !== strpos( $diagnostic_code, 'output_quality_rejected' );
+			$status = is_wp_error( $error )
+				? ( $is_quality_rejection ? 'output_quality_rejected' : 'provider_failed' )
+				: 'translated';
+			if ( isset( $event['validation_error'] ) ) {
+				$status = 'output_empty_or_invalid';
+			}
+
+			return array(
+				'translation_block_status'    => $status,
+				'translation_source_length'   => max( 0, (int) $source_length ),
+				'translation_target_language' => self::clean_log_value( sanitize_key( (string) ( $ability_input['target_language'] ?? '' ) ), 20 ),
+				'translation_diagnostic_code' => '' !== $diagnostic_code ? $diagnostic_code : null,
+				'translation_content_storage' => 'omitted_metadata_only',
+			);
+			}
+
+			/**
+			 * Returns whether the current WordPress AI call is a supported text scene.
+			 *
+			 * @param string $ability_name Registered Ability name.
+			 * @return bool
+			 */
 			private static function is_text_scene_ability( string $ability_name ): bool {
 				return in_array(
 					$ability_name,
@@ -1118,6 +1173,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					'contract_version'           => 'cloud_connector_runtime.v1',
 					'operation_contract_version' => 'wordpress_operation.v1',
 					'response'                   => $response,
+					'ability_input'              => $context_input,
 					'duration_ms'                => $duration_ms,
 					'fallback_model_id'          => Npcink_Cloud_WordPress_AI_Connector::MODEL_ID,
 				);

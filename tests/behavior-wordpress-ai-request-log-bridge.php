@@ -207,6 +207,44 @@ namespace {
 		'Behavior: vision uses the official AI Client log type and preserves modality in context.'
 	);
 
+	$translation_source_sentinel = 'PRIVATE_TRANSLATION_BLOCK_MUST_NOT_REACH_REQUEST_LOG';
+	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
+		array(
+			'type'             => 'text',
+			'operation'        => 'npcink-cloud/connector-runtime',
+			'task'             => 'content_translation',
+			'contract_version' => 'cloud_connector_runtime.v1',
+			'operation_contract_version' => 'wordpress_operation.v1',
+			'ability_input'   => array(
+				'content'        => $translation_source_sentinel,
+				'target_language' => 'en-us',
+			),
+			'response'        => new \WP_Error(
+				'cloud_wp_ai_connector_runtime_failed',
+				'Cloud rejected the translated block.',
+				array(
+					'cloud_error_code' => 'provider.output_quality_rejected',
+					'cloud_error_data' => array( 'output_quality_reason' => 'translation_structure_drift' ),
+				)
+			),
+			'duration_ms'      => 789,
+			'fallback_model_id' => Npcink_Cloud_WordPress_AI_Connector::MODEL_ID,
+		)
+	);
+	$translation_log = $GLOBALS['maca_wpai_request_logs'][4] ?? array();
+	$translation_context = is_array( $translation_log['context'] ?? null ) ? $translation_log['context'] : array();
+	maca_assert(
+		5 === count( $GLOBALS['maca_wpai_request_logs'] )
+		&& 'error' === (string) ( $translation_log['status'] ?? '' )
+		&& 'content_translation' === (string) ( $translation_context['task'] ?? '' )
+		&& 'output_quality_rejected' === (string) ( $translation_context['translation_block_status'] ?? '' )
+		&& 'en-us' === (string) ( $translation_context['translation_target_language'] ?? '' )
+		&& strlen( $translation_source_sentinel ) === (int) ( $translation_context['translation_source_length'] ?? 0 )
+		&& 'provider.output_quality_rejected' === (string) ( $translation_context['translation_diagnostic_code'] ?? '' )
+		&& false === strpos( wp_json_encode( $translation_log ), $translation_source_sentinel ),
+		'Behavior: translation request evidence records block status and Cloud reason without source content.'
+	);
+
 	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
 		array(
 			'type' => 'image',
@@ -214,7 +252,7 @@ namespace {
 			'validation_error' => new \WP_Error( 'invalid_output', 'Image verification failed.' ),
 		)
 	);
-	$invalid_log = $GLOBALS['maca_wpai_request_logs'][4] ?? array();
+	$invalid_log = $GLOBALS['maca_wpai_request_logs'][5] ?? array();
 	maca_assert(
 		'error' === ( $invalid_log['status'] ?? '' )
 		&& 'run_invalid_image' === ( $invalid_log['context']['cloud_run_id'] ?? '' )

@@ -26,6 +26,36 @@ system, or writer to make acceptance easier.
 6. Correlate the actual model, run, official request log, delivered output, and
    reviewed draft save. Report each proven step separately.
 
+## Translation Block Diagnostics
+
+The official Content Translation ability is block-scoped: it submits only
+`core/paragraph` and `core/heading` blocks whose trimmed content is at least
+five characters, in batches of four. The official plugin owns the aggregate
+editor notice; the Addon must not replace it with a second user-facing error
+surface.
+
+For development acceptance, enable the optional block report explicitly:
+
+```bash
+WP_AI_ACCEPTANCE_DIAGNOSTICS=1 composer run acceptance:wp-ai-provider
+```
+
+The report adds `wordpress_ai_translation_block_diagnostics.v1` and classifies
+each fixture as `translated`, `skipped_too_short`, `unsupported_block`,
+`provider_failed`, `output_quality_rejected`, `output_empty_or_invalid`, or
+`request_failed`. It records only block type, source length, target language,
+bounded machine codes, HTTP status, and Cloud run ID; source and translated
+content are omitted. The report therefore explains messages such as “some
+blocks were skipped” without changing the official result shape or exposing
+diagnostics to editors.
+
+The optional WordPress AI request log uses the same metadata-only posture for
+real translation calls. Cloud quality subtypes such as
+`translation_structure_drift` remain runtime evidence, while the Addon maps
+them to the bounded `output_quality_rejected` block status. Do not treat a
+successful HTTP response as a successful translation until the output schema,
+non-empty result, and quality checks pass.
+
 The compatibility lanes are declared in
 `tests/fixtures/wp-ai-compatibility-matrix.json`: WordPress 7.0.4 with
 WordPress AI 1.3.0 is the primary stable lane, WordPress 7.1.1 with AI 1.2.0

@@ -13,6 +13,13 @@
  * A bounded subset can be run while diagnosing one ability:
  *   WP_AI_ACCEPTANCE_ABILITIES=ai/editorial-updates composer run acceptance:wp-ai-provider
  *
+ * Developer-only translation block evidence can be enabled with:
+ *   WP_AI_ACCEPTANCE_DIAGNOSTICS=1 composer run acceptance:wp-ai-provider
+ *
+ * The optional diagnostic section contains block type, source length, status,
+ * machine failure code, and Cloud run correlation only. It never changes the
+ * official WordPress AI result or adds a user-facing editor surface.
+ *
  * Without those variables, comment and vision cases are reported as skipped;
  * they are never represented as passing coverage.
  *
@@ -50,6 +57,53 @@ function npcink_cloud_acceptance_request( $ability, array $input ) {
 }
 
 require_once __DIR__ . '/wordpress-ai-provider-acceptance-functions.php';
+
+/**
+ * Executes one translation fixture and returns a content-free diagnostic row.
+ *
+ * @param array<string,mixed> $input Fixed block input.
+ * @return array<string,mixed>
+ */
+function npcink_cloud_acceptance_translation_block_runner( array $input ) {
+	$ability   = 'ai/content-translation';
+	$response  = npcink_cloud_acceptance_request( $ability, $input );
+	$status    = (int) $response->get_status();
+	$data      = $response->get_data();
+	$registered = wp_get_ability( $ability );
+	$schema    = $registered ? $registered->get_output_schema() : array();
+	$shape_valid = 200 === $status && npcink_cloud_acceptance_shape_valid( $schema, $data );
+	$has_result  = $shape_valid && npcink_cloud_acceptance_has_result( $ability, $data );
+
+	return array(
+		'http_status'        => $status,
+		'data'               => $data,
+		'output_shape_valid' => $shape_valid,
+		'non_empty_result'   => $has_result,
+		'failure_code'       => $has_result ? null : ( $shape_valid ? 'empty_result' : npcink_cloud_acceptance_failure_code( $status, $data, $shape_valid ) ),
+		'diagnostic_code'    => npcink_cloud_acceptance_diagnostic_code( $status, $data ),
+		'provider_run_id'    => is_array( $data ) ? ( $data['run_id'] ?? ( $data['data']['run_id'] ?? null ) ) : null,
+	);
+}
+
+function npcink_cloud_acceptance_diagnostics_enabled() {
+	return in_array( strtolower( trim( (string) getenv( 'WP_AI_ACCEPTANCE_DIAGNOSTICS' ) ) ), array( '1', 'true', 'yes', 'on' ), true );
+}
+
+/** @return array<int,array<string,mixed>> */
+function npcink_cloud_acceptance_translation_fixture_blocks() {
+	$raw = (string) getenv( 'WP_AI_ACCEPTANCE_TRANSLATION_BLOCKS_JSON' );
+	$blocks = '' !== trim( $raw ) ? json_decode( $raw, true ) : null;
+	if ( is_array( $blocks ) && ! empty( $blocks ) ) {
+		return array_values( array_filter( $blocks, 'is_array' ) );
+	}
+
+	return array(
+		array( 'block_type' => 'core/heading', 'content' => 'WordPress 翻译验收标题' ),
+		array( 'block_type' => 'core/paragraph', 'content' => '这是一个足够长的固定翻译验收段落。' ),
+		array( 'block_type' => 'core/paragraph', 'content' => '短' ),
+		array( 'block_type' => 'core/image', 'content' => '不参与区块翻译的图片说明' ),
+	);
+}
 
 function npcink_cloud_acceptance_wordpress_state() {
 	global $wpdb;
@@ -133,6 +187,7 @@ foreach ( $cases as $ability => $input ) {
 		'write_evidence_state' => 'not_measured',
 		'quality_status'     => 'failed',
 		'failure_code'       => null,
+		'diagnostic_code'    => null,
 		'output'             => null,
 	);
 
@@ -154,6 +209,7 @@ foreach ( $cases as $ability => $input ) {
 	$case['non_empty_result'] = $has_result;
 	$case['output']       = $data;
 	$case['failure_code']  = $has_result ? null : ( $shape_valid ? 'empty_result' : npcink_cloud_acceptance_failure_code( $status, $data, $shape_valid ) );
+	$case['diagnostic_code'] = npcink_cloud_acceptance_diagnostic_code( $status, $data );
 	if ( $shape_valid ) {
 		$case['failure_code'] = npcink_cloud_acceptance_quality_failure( $ability, $data );
 	}
@@ -162,6 +218,24 @@ foreach ( $cases as $ability => $input ) {
 		$case['provider_run_id'] = $data['run_id'] ?? ( $data['data']['run_id'] ?? null );
 	}
 	$report['cases'][] = $case;
+}
+
+if ( npcink_cloud_acceptance_diagnostics_enabled() ) {
+	if ( isset( $cases['ai/content-translation'] ) ) {
+		$report['translation_block_diagnostics'] = npcink_cloud_acceptance_translation_block_diagnostics(
+			npcink_cloud_acceptance_translation_fixture_blocks(),
+			'npcink_cloud_acceptance_translation_block_runner',
+			(string) ( $cases['ai/content-translation']['target_language'] ?? 'en-us' ),
+			5
+		);
+	} else {
+		$report['translation_block_diagnostics'] = array(
+			'contract_version' => 'wordpress_ai_translation_block_diagnostics.v1',
+			'source'           => 'official_wordpress_ai_content_translation_projection',
+			'status'           => 'skipped',
+			'reason'           => 'ai/content-translation not selected by WP_AI_ACCEPTANCE_ABILITIES',
+		);
+	}
 }
 if ( 0 === $comment_id ) {
 	$report['optional_capabilities_skipped'][] = array( 'ability' => 'ai/comment-analysis', 'reason' => 'set WP_AI_ACCEPTANCE_COMMENT_ID' );

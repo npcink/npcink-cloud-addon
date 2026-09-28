@@ -17,6 +17,59 @@ maca_assert( 'classification_suggestion_invalid' === npcink_cloud_acceptance_qua
 maca_assert( 'classification_confidence_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array( array( 'term' => 'WordPress', 'confidence' => 1.5 ) ) ) ), 'Acceptance rejects out-of-range classification confidence.' );
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array( array( 'term' => 'WordPress', 'confidence' => 0.9 ) ) ) ), 'Acceptance allows bounded classification suggestions.' );
 
+maca_assert(
+	'output_quality_rejected' === npcink_cloud_acceptance_translation_block_status(
+		502,
+		array( 'code' => 'provider.output_quality_rejected', 'data' => array( 'output_quality_reason' => 'translation_structure_drift' ) ),
+		false,
+		false
+	),
+	'Acceptance distinguishes Cloud translation quality rejection from a generic request failure.'
+);
+maca_assert(
+	'provider_failed' === npcink_cloud_acceptance_translation_block_status( 502, array( 'code' => 'provider.timeout' ), false, false ),
+	'Acceptance distinguishes provider execution failure from output validation failure.'
+);
+$translation_diagnostics = npcink_cloud_acceptance_translation_block_diagnostics(
+	array(
+		array( 'block_type' => 'core/paragraph', 'content' => '这是一个足够长的段落。' ),
+		array( 'block_type' => 'core/paragraph', 'content' => '短' ),
+		array( 'block_type' => 'core/image', 'content' => '媒体说明不参与翻译。' ),
+		array( 'block_type' => 'core/heading', 'content' => '另一个标题' ),
+	),
+	static function ( array $input ) {
+		if ( false !== strpos( (string) $input['content'], '另一个' ) ) {
+			return array(
+				'http_status'        => 502,
+				'data'               => array( 'code' => 'provider.output_quality_rejected', 'data' => array( 'output_quality_reason' => 'translation_untranslated_source' ) ),
+				'output_shape_valid' => false,
+				'non_empty_result'   => false,
+				'provider_run_id'    => 'run_rejected',
+			);
+		}
+		return array(
+			'http_status'        => 200,
+			'data'               => 'A translated paragraph.',
+			'output_shape_valid' => true,
+			'non_empty_result'   => true,
+			'provider_run_id'    => 'run_translated',
+		);
+	},
+	'en-us',
+	5
+);
+maca_assert(
+	4 === $translation_diagnostics['summary']['total_blocks']
+	&& 2 === $translation_diagnostics['summary']['eligible_blocks']
+	&& 1 === $translation_diagnostics['summary']['translated']
+	&& 1 === $translation_diagnostics['summary']['skipped_too_short']
+	&& 1 === $translation_diagnostics['summary']['unsupported_block']
+	&& 1 === $translation_diagnostics['summary']['output_quality_rejected']
+	&& 'translation_untranslated_source' === $translation_diagnostics['blocks'][3]['diagnostic_code']
+	&& ! isset( $translation_diagnostics['blocks'][0]['content'] ),
+	'Acceptance reports block-level translation states without retaining source content.'
+);
+
 $good = array( 'quality_status' => 'passed', 'write_detected' => false );
 $bad = array( 'quality_status' => 'failed', 'write_detected' => false );
 $mixed = npcink_cloud_acceptance_finalize_report( array( 'write_detected' => false, 'cases' => array( $good, $bad ) ) );
