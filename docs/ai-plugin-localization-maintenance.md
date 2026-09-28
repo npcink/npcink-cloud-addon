@@ -168,6 +168,28 @@ rg "/v1/runtime/workflows/runs|wp_insert_post|wp_update_post" --glob '*.php' --g
 For audit tooling, also run the audit command against the local AI plugin when
 the plugin is installed.
 
+## Completion Gate For User-Facing Changes
+
+Passing source and contract tests is not enough to report a localization fix
+as complete. Before closing a user-facing change, verify the path that the
+operator will actually use:
+
+1. Confirm the active WordPress site loads the changed Addon checkout or
+   package revision, rather than relying on the local Git worktree alone.
+2. Exercise the real REST or editor request that renders the affected string.
+   For AI Ability errors, verify both the REST response and the editor notice.
+3. Check browser cache and script loading when the change includes JavaScript
+   locale data; a cached asset is not evidence that the new mapping failed.
+4. Report each environment separately. A local verification, an M4 candidate,
+   and a packaged or production install are different evidence levels.
+5. If an environment was not exercised, report it as `not verified` instead of
+   saying the change is complete.
+
+This gate exists because the Addon can pass deterministic tests while the
+WordPress REST request still returns an untranslated fixed error, or while the
+editor is loading an older cached asset. The final claim must follow the
+strongest evidence actually collected.
+
 ## Future AI Checklist
 
 When the user reports untranslated WordPress AI plugin text:

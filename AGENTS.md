@@ -44,6 +44,11 @@ runtime truth rules here beyond addon-owned connector contracts.
 - Before staging, inspect `git status --short --branch` and `git diff --stat`.
   Stage only files changed for the current task. Do not use `git add -A` in a
   mixed worktree.
+- Do not report a user-facing fix as complete from source tests alone. Verify
+  the real runtime request and the actual product surface that renders the
+  result; check the loaded checkout/package revision and browser asset cache.
+  Report local, M4, packaged, and production evidence separately, and label
+  any environment that was not exercised as `not verified`.
 - Do not run `git reset --hard`, `git checkout -- .`, or equivalent destructive
   cleanup unless the user explicitly asks for that exact operation.
 - Before committing, verify `git diff --cached --stat` and
