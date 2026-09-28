@@ -32,6 +32,23 @@ function npcink_cloud_acceptance_finalize_report( array $report ): array {
 	return $report;
 }
 
+/**
+ * Classifies contract projection state for the development-only report.
+ *
+ * @param mixed $contract Projected contract or WP_Error.
+ * @return string
+ */
+function npcink_cloud_acceptance_contract_status( $contract ): string {
+	if ( is_array( $contract ) ) {
+		return (string) ( $contract['verification_state'] ?? 'mapping_current' );
+	}
+	if ( is_wp_error( $contract ) ) {
+		$code = (string) $contract->get_error_code();
+		return ( false !== strpos( $code, 'contract' ) || false !== strpos( $code, 'schema' ) ) ? 'contract_drift' : 'unsupported';
+	}
+	return 'unsupported';
+}
+
 function npcink_cloud_acceptance_string( $value ) {
 	if ( is_string( $value ) ) {
 		return trim( $value );

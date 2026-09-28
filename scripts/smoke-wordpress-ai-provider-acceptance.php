@@ -182,7 +182,7 @@ foreach ( $cases as $ability => $input ) {
 		'ability_registered' => (bool) wp_get_ability( $ability ),
 		'cloud_task'         => is_array( $contract ) ? (string) ( $contract['task'] ?? '' ) : null,
 		'contract_source'    => is_array( $contract ) ? (string) ( $contract['contract_source'] ?? '' ) : null,
-		'contract_status'    => is_array( $contract ) ? (string) ( $contract['verification_state'] ?? '' ) : ( is_wp_error( $contract ) ? ( false !== strpos( $contract->get_error_code(), 'schema' ) || false !== strpos( $contract->get_error_code(), 'contract' ) ? 'contract_drift' : 'unsupported' ) : null ),
+		'contract_status'    => npcink_cloud_acceptance_contract_status( $contract ),
 		'verification_state' => is_array( $contract ) ? (string) ( $contract['verification_state'] ?? '' ) : null,
 		'contract_version'   => is_array( $contract ) ? (string) ( $contract['contract_version'] ?? '' ) : null,
 		'schema_hash'       => is_array( $contract ) ? (string) ( $contract['schema_hash'] ?? '' ) : null,
@@ -199,7 +199,8 @@ foreach ( $cases as $ability => $input ) {
 	);
 
 	if ( is_wp_error( $contract ) ) {
-		$case['failure_code'] = 'ability_contract_invalid';
+		$case['failure_code'] = npcink_cloud_acceptance_contract_status( $contract );
+		$case['diagnostic_code'] = $contract->get_error_code();
 		$report['cases'][]    = $case;
 		continue;
 	}

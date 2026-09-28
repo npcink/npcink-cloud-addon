@@ -91,3 +91,6 @@ $empty = npcink_cloud_acceptance_finalize_report( array( 'write_detected' => fal
 maca_assert( 'local_failed' === $empty['evidence_state'] && 'failed' === $empty['quality_status'], 'Acceptance cannot pass an empty capability list.' );
 $all_good = npcink_cloud_acceptance_finalize_report( array( 'write_detected' => false, 'cases' => array( $good, $good ) ) );
 maca_assert( 'local_verified' === $all_good['evidence_state'] && 2 === $all_good['passed'], 'Acceptance verifies the batch only when every case has passing evidence.' );
+maca_assert( 'mapping_current' === npcink_cloud_acceptance_contract_status( array( 'verification_state' => 'mapping_current' ) ), 'Acceptance preserves a current contract status.' );
+$contract_drift = new WP_Error( 'cloud_ai_task_schema_hash_mismatch', 'drift' );
+maca_assert( 'contract_drift' === npcink_cloud_acceptance_contract_status( $contract_drift ), 'Acceptance distinguishes contract drift before Cloud execution.' );
