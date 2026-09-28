@@ -21,6 +21,8 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		private const ALLOWED_FAMILIES = array( 'generation', 'classification', 'transformation', 'analysis' );
 		private const ALLOWED_CONTEXTS = array( 'current_content', 'site_style_profile', 'taxonomy_candidates', 'none' );
 		private const ALLOWED_CONSTRAINTS = array( 'single_value', 'source_grounded', 'no_new_numbers', 'json_object', 'existing_terms_only' );
+		private const ALLOWED_SOURCES = array( 'wordpress_abilities_api', 'npcink_abilities_toolkit' );
+		private const ALLOWED_VERIFICATION_STATES = array( 'registered', 'mapped', 'schema_valid', 'mapping_current', 'contract_drift', 'unsupported' );
 
 		/**
 		 * Temporary compatibility projection for ai-wp-admin abilities that do not
@@ -153,6 +155,20 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 
 			$projection['contract_version'] = self::VERSION;
 			$projection['ability_name']     = (string) $ability->get_name();
+			$projection['ability_id']       = $projection['ability_name'];
+			$projection['contract_source']  = 0 === strpos( $ability_name, 'npcink-abilities-toolkit/' )
+				? 'npcink_abilities_toolkit'
+				: 'wordpress_abilities_api';
+			$toolkit_contract = null;
+			if ( 'npcink_abilities_toolkit' === $projection['contract_source'] && function_exists( 'npcink_abilities_toolkit_get_registered' ) ) {
+				$toolkit_contract = self::toolkit_contract( $ability_name );
+				if ( is_wp_error( $toolkit_contract ) ) {
+					return $toolkit_contract;
+				}
+			}
+			$projection['risk_level']       = self::risk_level( $meta );
+			$projection['requires_approval'] = self::requires_approval( $meta );
+			$projection['verification_state'] = 'mapping_current';
 			$input_schema = method_exists( $ability, 'get_input_schema' ) ? $ability->get_input_schema() : array();
 			$projection['input_schema']     = is_array( $input_schema ) ? $input_schema : array();
 			$projection['output_schema']    = $ability->get_output_schema();
@@ -166,6 +182,9 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 				)
 			);
 			$projection['write_posture']    = 'suggestion_only';
+			if ( is_array( $toolkit_contract ) && $toolkit_contract['schema_hash'] !== $projection['schema_hash'] ) {
+				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit Ability schema differs from the registered WordPress Ability schema.' );
+			}
 
 			return self::normalize( $projection );
 		}
@@ -182,12 +201,20 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			}
 
 			$ability_name = trim( (string) ( $projection['ability_name'] ?? '' ) );
+			$ability_id   = trim( (string) ( $projection['ability_id'] ?? $ability_name ) );
+			$source       = sanitize_key( (string) ( $projection['contract_source'] ?? 'wordpress_abilities_api' ) );
+			$verification_state = sanitize_key( (string) ( $projection['verification_state'] ?? 'mapping_current' ) );
 			$raw_task     = (string) ( $projection['task'] ?? '' );
 			$task         = sanitize_key( $raw_task );
 			$family       = sanitize_key( (string) ( $projection['task_family'] ?? '' ) );
 			$valid_ability_name = 1 === preg_match( '/^[a-z0-9_-]+\/[a-z0-9_-]+$/', $ability_name );
-			if ( ! $valid_ability_name || '' === $task || $task !== $raw_task || strlen( $task ) > 64 || ! in_array( $family, self::ALLOWED_FAMILIES, true ) ) {
+			if ( ! $valid_ability_name || $ability_id !== $ability_name || ! in_array( $source, self::ALLOWED_SOURCES, true ) || ! in_array( $verification_state, self::ALLOWED_VERIFICATION_STATES, true ) || '' === $task || $task !== $raw_task || strlen( $task ) > 64 || ! in_array( $family, self::ALLOWED_FAMILIES, true ) ) {
 				return self::error( 'cloud_ai_task_contract_identity_invalid', 'AI task contracts require a registered ability, task, and supported task family.' );
+			}
+			$risk_level = sanitize_key( (string) ( $projection['risk_level'] ?? 'read' ) );
+			$requires_approval = (bool) ( $projection['requires_approval'] ?? false );
+			if ( ! in_array( $risk_level, array( 'read', 'write', 'destructive' ), true ) ) {
+				return self::error( 'cloud_ai_task_contract_risk_invalid', 'AI task contracts require a supported risk level.' );
 			}
 
 			$contexts    = self::normalize_list( $projection['context_requirements'] ?? array(), self::ALLOWED_CONTEXTS );
@@ -223,7 +250,12 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 
 			return array(
 				'contract_version'     => self::VERSION,
+				'ability_id'           => $ability_id,
+				'contract_source'      => $source,
 				'ability_name'         => $ability_name,
+				'risk_level'           => $risk_level,
+				'requires_approval'    => $requires_approval,
+				'verification_state'   => $verification_state,
 				'task'                 => $task,
 				'task_family'          => $family,
 				'context_requirements' => $contexts,
@@ -232,6 +264,33 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 				'output_schema'        => $output_schema,
 				'schema_hash'          => $schema_hash,
 				'write_posture'        => 'suggestion_only',
+			);
+		}
+
+		private static function risk_level( array $meta ): string {
+			$npcink = is_array( $meta['npcink'] ?? null ) ? $meta['npcink'] : array();
+			$value = sanitize_key( (string) ( $npcink['risk_level'] ?? ( $meta['risk_level'] ?? 'read' ) ) );
+			return in_array( $value, array( 'read', 'write', 'destructive' ), true ) ? $value : 'read';
+		}
+
+		private static function requires_approval( array $meta ): bool {
+			$npcink = is_array( $meta['npcink'] ?? null ) ? $meta['npcink'] : array();
+			return (bool) ( $npcink['requires_approval'] ?? ( $meta['requires_approval'] ?? false ) );
+		}
+
+		/** @return array<string,mixed>|WP_Error */
+		private static function toolkit_contract( string $ability_name ) {
+			$registered = npcink_abilities_toolkit_get_registered();
+			if ( ! is_array( $registered ) || ! isset( $registered[ $ability_name ] ) || ! is_array( $registered[ $ability_name ] ) ) {
+				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit Ability is not present in its local contract catalog.' );
+			}
+			$definition = $registered[ $ability_name ];
+			$input_schema = is_array( $definition['input_schema'] ?? null ) ? $definition['input_schema'] : array();
+			$output_schema = is_array( $definition['output_schema'] ?? null ) ? $definition['output_schema'] : array();
+			return array(
+				'input_schema' => $input_schema,
+				'output_schema' => $output_schema,
+				'schema_hash' => 'sha256:' . hash( 'sha256', (string) wp_json_encode( array( 'input_schema' => $input_schema, 'output_schema' => $output_schema ) ) ),
 			);
 		}
 

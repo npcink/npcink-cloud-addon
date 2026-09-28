@@ -68,6 +68,13 @@ maca_assert(
 	'Behavior: alt-text generation reuses the registered Ability schema contract.'
 );
 maca_assert(
+	is_array( $alt_text_contract )
+	&& 'ai/alt-text-generation' === (string) ( $alt_text_contract['ability_id'] ?? '' )
+	&& 'wordpress_abilities_api' === (string) ( $alt_text_contract['contract_source'] ?? '' )
+	&& 'mapping_current' === (string) ( $alt_text_contract['verification_state'] ?? '' ),
+	'Behavior: official AI abilities identify the WordPress Abilities API contract source.'
+);
+maca_assert(
 	is_array( $image_contract )
 	&& 'image_prompt_generation' === (string) ( $image_contract['task'] ?? '' )
 	&& 'generation' === (string) ( $image_contract['task_family'] ?? '' )
@@ -177,6 +184,13 @@ $mismatched_hash_result                = Npcink_Cloud_AI_Task_Contract::normaliz
 maca_assert(
 	is_wp_error( $mismatched_hash_result ) && 'cloud_ai_task_schema_hash_mismatch' === $mismatched_hash_result->get_error_code(),
 	'Behavior: task projections fail closed when the schema hash does not match the projected schemas.'
+);
+$invalid_source = $custom_contract;
+$invalid_source['contract_source'] = 'cloud_registry';
+$invalid_source_result = Npcink_Cloud_AI_Task_Contract::normalize( $invalid_source );
+maca_assert(
+	is_wp_error( $invalid_source_result ) && 'cloud_ai_task_contract_identity_invalid' === $invalid_source_result->get_error_code(),
+	'Behavior: task projections reject a Cloud-owned contract source.'
 );
 
 maca_seed_settings( true );
