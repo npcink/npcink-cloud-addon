@@ -17,6 +17,8 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 	 */
 	final class Npcink_Cloud_AI_Task_Contract {
 		public const VERSION = 'ai_task_contract.v1';
+		private const CONTRACT_SOURCE_WORDPRESS = 'wordpress_abilities_api';
+		private const CONTRACT_SOURCE_TOOLKIT = 'npcink_abilities_toolkit';
 
 		private const ALLOWED_FAMILIES = array( 'generation', 'classification', 'transformation', 'analysis' );
 		private const ALLOWED_CONTEXTS = array( 'current_content', 'site_style_profile', 'taxonomy_candidates', 'none' );
@@ -153,6 +155,9 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 
 			$projection['contract_version'] = self::VERSION;
 			$projection['ability_name']     = (string) $ability->get_name();
+			$projection['ability_id']       = $projection['ability_name'];
+			$projection['contract_source']  = str_starts_with( $projection['ability_name'], 'npcink/' ) || str_starts_with( $projection['ability_name'], 'npcink-' ) ? self::CONTRACT_SOURCE_TOOLKIT : self::CONTRACT_SOURCE_WORDPRESS;
+			$projection['verification_state'] = 'mapping_current';
 			$input_schema = method_exists( $ability, 'get_input_schema' ) ? $ability->get_input_schema() : array();
 			$projection['input_schema']     = is_array( $input_schema ) ? $input_schema : array();
 			$projection['output_schema']    = $ability->get_output_schema();
@@ -182,11 +187,14 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			}
 
 			$ability_name = trim( (string) ( $projection['ability_name'] ?? '' ) );
+			$ability_id = trim( (string) ( $projection['ability_id'] ?? $ability_name ) );
+			$contract_source = trim( (string) ( $projection['contract_source'] ?? self::CONTRACT_SOURCE_WORDPRESS ) );
+			$verification_state = trim( (string) ( $projection['verification_state'] ?? 'mapping_current' ) );
 			$raw_task     = (string) ( $projection['task'] ?? '' );
 			$task         = sanitize_key( $raw_task );
 			$family       = sanitize_key( (string) ( $projection['task_family'] ?? '' ) );
 			$valid_ability_name = 1 === preg_match( '/^[a-z0-9_-]+\/[a-z0-9_-]+$/', $ability_name );
-			if ( ! $valid_ability_name || '' === $task || $task !== $raw_task || strlen( $task ) > 64 || ! in_array( $family, self::ALLOWED_FAMILIES, true ) ) {
+			if ( ! $valid_ability_name || $ability_id !== $ability_name || ! in_array( $contract_source, array( self::CONTRACT_SOURCE_WORDPRESS, self::CONTRACT_SOURCE_TOOLKIT ), true ) || ! in_array( $verification_state, array( 'registered', 'mapped', 'schema_valid', 'mapping_current', 'contract_drift', 'unsupported' ), true ) || '' === $task || $task !== $raw_task || strlen( $task ) > 64 || ! in_array( $family, self::ALLOWED_FAMILIES, true ) ) {
 				return self::error( 'cloud_ai_task_contract_identity_invalid', 'AI task contracts require a registered ability, task, and supported task family.' );
 			}
 
@@ -223,6 +231,8 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 
 			return array(
 				'contract_version'     => self::VERSION,
+				'ability_id'           => $ability_id,
+				'contract_source'      => $contract_source,
 				'ability_name'         => $ability_name,
 				'task'                 => $task,
 				'task_family'          => $family,
@@ -231,6 +241,9 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 				'input_schema'         => $input_schema,
 				'output_schema'        => $output_schema,
 				'schema_hash'          => $schema_hash,
+				'risk_level'           => in_array( (string) ( $projection['risk_level'] ?? 'read' ), array( 'read', 'write', 'destructive' ), true ) ? (string) ( $projection['risk_level'] ?? 'read' ) : 'read',
+				'requires_approval'    => (bool) ( $projection['requires_approval'] ?? false ),
+				'verification_state'   => $verification_state,
 				'write_posture'        => 'suggestion_only',
 			);
 		}
