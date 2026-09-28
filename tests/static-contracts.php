@@ -796,6 +796,7 @@ maca_assert(
 	&& false !== strpos( $ai_plugin_localization, "add_action( 'admin_enqueue_scripts'" )
 	&& false !== strpos( $ai_plugin_localization, 'wp_localize_script' )
 	&& false !== strpos( $ai_plugin_localization_js, 'wp.i18n.setLocaleData' )
+	&& false !== strpos( $ai_plugin_localization_js, 'setTimeout( applyLocaleData, 0 )' )
 	&& false !== strpos( $ai_plugin_localization, "'Generate Image' => '生成图片'" )
 	&& false !== strpos( $ai_plugin_localization, "'Generate featured image' => '生成特色图片'" )
 	&& false !== strpos( $ai_plugin_localization, "'Brush size' => '画笔大小'" )
