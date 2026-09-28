@@ -102,6 +102,10 @@ function npcink_cloud_acceptance_translation_fixture_blocks() {
 		array( 'block_type' => 'core/paragraph', 'content' => '这是一个足够长的固定翻译验收段落。' ),
 		array( 'block_type' => 'core/paragraph', 'content' => '短' ),
 		array( 'block_type' => 'core/image', 'content' => '不参与区块翻译的图片说明' ),
+		array( 'block_type' => 'core/list', 'content' => '不参与普通文本翻译的列表' ),
+		array( 'block_type' => 'core/list-item', 'content' => '不参与普通文本翻译的列表项' ),
+		array( 'block_type' => 'core/gallery', 'content' => '不参与普通文本翻译的画廊' ),
+		array( 'block_type' => 'core/heading', 'content' => '功能特点' ),
 	);
 }
 

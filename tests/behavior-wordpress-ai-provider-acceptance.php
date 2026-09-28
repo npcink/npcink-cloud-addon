@@ -36,6 +36,10 @@ $translation_diagnostics = npcink_cloud_acceptance_translation_block_diagnostics
 		array( 'block_type' => 'core/paragraph', 'content' => '短' ),
 		array( 'block_type' => 'core/image', 'content' => '媒体说明不参与翻译。' ),
 		array( 'block_type' => 'core/heading', 'content' => '另一个标题' ),
+		array( 'block_type' => 'core/heading', 'content' => '功能特点' ),
+		array( 'block_type' => 'core/list', 'content' => '列表不走普通文本翻译。' ),
+		array( 'block_type' => 'core/list-item', 'content' => '列表项不走普通文本翻译。' ),
+		array( 'block_type' => 'core/gallery', 'content' => '画廊不走普通文本翻译。' ),
 	),
 	static function ( array $input ) {
 		if ( false !== strpos( (string) $input['content'], '另一个' ) ) {
@@ -59,12 +63,14 @@ $translation_diagnostics = npcink_cloud_acceptance_translation_block_diagnostics
 	5
 );
 maca_assert(
-	4 === $translation_diagnostics['summary']['total_blocks']
+	8 === $translation_diagnostics['summary']['total_blocks']
 	&& 2 === $translation_diagnostics['summary']['eligible_blocks']
 	&& 1 === $translation_diagnostics['summary']['translated']
-	&& 1 === $translation_diagnostics['summary']['skipped_too_short']
-	&& 1 === $translation_diagnostics['summary']['unsupported_block']
+	&& 2 === $translation_diagnostics['summary']['skipped_too_short']
+	&& 4 === $translation_diagnostics['summary']['unsupported_block']
 	&& 1 === $translation_diagnostics['summary']['output_quality_rejected']
+	&& 'unsupported_block_type' === $translation_diagnostics['blocks'][2]['failure_code']
+	&& 'below_minimum_length' === $translation_diagnostics['blocks'][4]['failure_code']
 	&& 'translation_untranslated_source' === $translation_diagnostics['blocks'][3]['diagnostic_code']
 	&& ! isset( $translation_diagnostics['blocks'][0]['content'] ),
 	'Acceptance reports block-level translation states without retaining source content.'

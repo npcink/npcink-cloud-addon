@@ -261,6 +261,7 @@ function npcink_cloud_acceptance_translation_block_diagnostics( array $blocks, c
 
 		if ( ! in_array( $block_type, array( 'core/paragraph', 'core/heading' ), true ) ) {
 			$record['status'] = 'unsupported_block';
+			$record['failure_code'] = 'unsupported_block_type';
 			$summary['unsupported_block']++;
 			$records[] = $record;
 			continue;
