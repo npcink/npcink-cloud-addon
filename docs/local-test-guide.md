@@ -405,6 +405,18 @@ Run a read-only paired evaluation across real published posts:
 composer run eval:wp-ai-generation-reference
 ```
 
+The development-only provider acceptance report can be passed to the Eval Lab
+offline gate after a real WP-CLI run. The gate checks contract status, schema
+hashes, output shape, deterministic quality status, and no-write evidence; it
+does not call a Provider or modify WordPress:
+
+```bash
+composer run acceptance:wp-ai-provider > /tmp/wordpress-ai-provider-acceptance.json
+composer --working-dir="${NPCINK_EVAL_LAB_PATH:-../npcink-eval-lab}" \
+  eval:wordpress-ai-provider -- \
+  input=/tmp/wordpress-ai-provider-acceptance.json
+```
+
 Override the bounded sample with `WP_AI_EVAL_POST_IDS=1,2,3`. The evaluator
 alternates baseline/reference order, runs title, excerpt, summary, meta
 description, and classification abilities, and restores the original local
