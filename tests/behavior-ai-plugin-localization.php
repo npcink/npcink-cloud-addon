@@ -529,7 +529,7 @@ maca_assert(
 		'%d suggestions added, view those Notes <a>here</a>.',
 		'ai'
 	)
-	&& '未生成分类建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+	&& '未生成分类或标签建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'No taxonomy suggestions were generated.',
 		'No taxonomy suggestions were generated.',
 		'ai'
@@ -1194,7 +1194,7 @@ maca_assert(
 
 define( 'REST_REQUEST', true );
 maca_assert(
-	'未生成分类建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+	'未生成分类或标签建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'No taxonomy suggestions were generated.',
 		'No taxonomy suggestions were generated.',
 		'ai'
@@ -1256,6 +1256,6 @@ maca_assert(
 );
 maca_assert(
 	'已添加 %d 条建议，可在<a>此处</a>查看这些建议。' === ( $locale_data['%d suggestions added, view those Notes <a>here</a>.'][1] ?? '' )
-	&& '未生成分类建议。' === ( $locale_data['No taxonomy suggestions were generated.'][0] ?? '' ),
+	&& '未生成分类或标签建议。' === ( $locale_data['No taxonomy suggestions were generated.'][0] ?? '' ),
 	'AI plugin localization supplies plural and taxonomy translations to wp.i18n.'
 );

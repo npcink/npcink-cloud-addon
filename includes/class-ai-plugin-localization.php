@@ -446,7 +446,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'%d suggestion added, view those Notes <a>here</a>.' => '已添加 %d 条建议，可在<a>此处</a>查看这些建议。',
 				'%d suggestions added, view those Notes <a>here</a>.' => '已添加 %d 条建议，可在<a>此处</a>查看这些建议。',
 				'No new suggestions found.' => '未找到新建议。',
-				'No taxonomy suggestions were generated.' => '未生成分类建议。',
+				'No taxonomy suggestions were generated.' => '未生成分类或标签建议。',
 				'Editorial Notes will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可生成编辑建议。',
 				'Reviewing…' => '正在检查…',
 				'Reviewing blocks… (%1$d of %2$d)' => '正在检查区块…（%1$d/%2$d）',
