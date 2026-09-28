@@ -1192,6 +1192,16 @@ maca_assert(
 	'AI plugin localization is inactive outside wp-admin.'
 );
 
+define( 'REST_REQUEST', true );
+maca_assert(
+	'未生成分类建议。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'No taxonomy suggestions were generated.',
+		'No taxonomy suggestions were generated.',
+		'ai'
+	),
+	'AI plugin localization remains active for AI ability REST error responses.'
+);
+
 $GLOBALS['maca_is_admin'] = true;
 Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data();
 $enqueued_script = $GLOBALS['maca_enqueued_scripts'][0] ?? array();

@@ -793,6 +793,7 @@ maca_assert(
 	&& false !== strpos( $bootstrap, 'Npcink_Cloud_AI_Plugin_Localization::register()' )
 	&& false !== strpos( $ai_plugin_localization, "private const AI_TEXT_DOMAIN = 'ai'" )
 	&& false !== strpos( $ai_plugin_localization, "add_filter( 'gettext'" )
+	&& false !== strpos( $ai_plugin_localization, "defined( 'REST_REQUEST' ) && REST_REQUEST" )
 	&& false !== strpos( $ai_plugin_localization, "add_action( 'admin_enqueue_scripts'" )
 	&& false !== strpos( $ai_plugin_localization, 'wp_localize_script' )
 	&& false !== strpos( $ai_plugin_localization_js, 'wp.i18n.setLocaleData' )

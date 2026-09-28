@@ -44,7 +44,9 @@ The active shim lives in:
 
 The implementation is intentionally static:
 
-- It only runs in `wp-admin`.
+- It runs in `wp-admin` and in the authenticated REST requests used by the AI
+  plugin abilities, so fixed ability error messages can be localized before
+  the editor displays them.
 - It only runs for Chinese locales (`zh_*`).
 - It only targets text domain `ai`.
 - It feeds PHP gettext, PHP ngettext (Chinese locales have no plural

@@ -114,7 +114,9 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		 * @return bool
 		 */
 		public static function should_localize(): bool {
-			if ( function_exists( 'is_admin' ) && ! is_admin() ) {
+			$is_admin_request = ! function_exists( 'is_admin' ) || is_admin();
+			$is_rest_request  = defined( 'REST_REQUEST' ) && REST_REQUEST;
+			if ( ! $is_admin_request && ! $is_rest_request ) {
 				return false;
 			}
 
