@@ -64,6 +64,31 @@ function npcink_cloud_acceptance_string( $value ) {
 }
 
 /**
+ * Projects payload-free runtime failure evidence into one acceptance case.
+ *
+ * Keeping this normalization outside the WP-CLI loop makes the diagnostic
+ * contract directly testable without coupling tests to source formatting.
+ *
+ * @param array<string,mixed> $case             Acceptance case.
+ * @param array<string,mixed> $failure_evidence Connector failure evidence.
+ * @return array<string,mixed>
+ */
+function npcink_cloud_acceptance_attach_failure_evidence( array $case, array $failure_evidence ): array {
+	if ( empty( $failure_evidence ) ) {
+		return $case;
+	}
+
+	if ( empty( $case['provider_run_id'] ) ) {
+		$case['provider_run_id'] = (string) ( $failure_evidence['run_id'] ?? '' ) ?: null;
+	}
+	$case['failure_stage']    = ( (string) ( $failure_evidence['error_stage'] ?? '' ) ) ?: null;
+	$case['quality_reason']   = ( (string) ( $failure_evidence['quality_reason'] ?? '' ) ) ?: null;
+	$case['cloud_error_code'] = ( (string) ( $failure_evidence['cloud_error_code'] ?? '' ) ) ?: null;
+
+	return $case;
+}
+
+/**
  * Build non-secret context for development quality reports.
  * Article text, prompts, credentials, and generated output are excluded.
  */

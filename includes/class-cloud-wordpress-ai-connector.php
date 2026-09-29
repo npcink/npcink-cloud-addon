@@ -48,6 +48,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		private static $last_cloud_run_id = '';
 
 		/**
+		 * Payload-free evidence for the last failed Cloud runtime call.
+		 *
+		 * This is consumed only by development acceptance tooling. It is never
+		 * projected into an official WordPress AI result or user-facing message.
+		 *
+		 * @var array<string,mixed>
+		 */
+		private static $last_runtime_failure_evidence = array();
+
+		/**
 		 * Registers hooks.
 		 *
 		 * @return void
@@ -166,6 +176,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			self::$alt_text_ability_context = array();
 			self::$text_ability_context = array();
 			self::$last_cloud_run_id         = '';
+			self::reset_runtime_failure_evidence();
 		}
 
 		/**
@@ -185,6 +196,122 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 */
 		public static function record_cloud_run_id( string $run_id ): void {
 			self::$last_cloud_run_id = sanitize_text_field( $run_id );
+		}
+
+		/**
+		 * Clears the request-scoped runtime failure evidence.
+		 *
+		 * @return void
+		 */
+		public static function reset_runtime_failure_evidence(): void {
+			self::$last_runtime_failure_evidence = array();
+		}
+
+		/**
+		 * Records bounded, payload-free evidence for the last failed runtime call.
+		 *
+		 * @param array<string,mixed> $evidence Failure evidence fields.
+		 * @return void
+		 */
+		public static function record_runtime_failure_evidence( array $evidence ): void {
+			$fields = array(
+				'run_id'           => self::normalize_runtime_failure_field( $evidence['run_id'] ?? '' ),
+				'cloud_error_code' => self::normalize_runtime_failure_field( $evidence['cloud_error_code'] ?? '' ),
+				'error_stage'      => self::normalize_runtime_failure_field( $evidence['error_stage'] ?? '' ),
+				'quality_reason'   => self::normalize_runtime_failure_field( $evidence['quality_reason'] ?? '' ),
+			);
+			if ( '' === implode( '', $fields ) ) {
+				return;
+			}
+			self::$last_runtime_failure_evidence = $fields;
+		}
+
+		/**
+		 * Records bounded evidence from a Cloud WP_Error and returns the normalized fields.
+		 *
+		 * @param WP_Error $error Cloud runtime error.
+		 * @return array<string,string>
+		 */
+		public static function record_runtime_failure_from_wp_error( WP_Error $error ): array {
+			$error_data        = $error->get_error_data();
+			$error_data        = is_array( $error_data ) ? $error_data : array();
+			$cloud_error_data  = is_array( $error_data['cloud_error_data'] ?? null ) ? $error_data['cloud_error_data'] : array();
+			$run_state         = is_array( $cloud_error_data['run_state'] ?? null ) ? $cloud_error_data['run_state'] : array();
+			$run_state_error   = is_array( $run_state['error'] ?? null ) ? $run_state['error'] : array();
+			$cloud_run_id = self::first_response_string(
+				$cloud_error_data,
+				array( 'run_id', 'data.run_id', 'data.result.run_id', 'result.run_id' ),
+				''
+			);
+			$cloud_error_stage = self::normalize_runtime_failure_field( $cloud_error_data['error_stage'] ?? '' );
+			$run_state_stage   = self::normalize_runtime_failure_field( $run_state_error['error_stage'] ?? '' );
+			$evidence = array(
+				'run_id'           => self::normalize_runtime_failure_field( $cloud_run_id ),
+				'cloud_error_code' => self::normalize_runtime_failure_field( $error_data['cloud_error_code'] ?? '' ),
+				'error_stage'      => '' !== $cloud_error_stage ? $cloud_error_stage : $run_state_stage,
+				'quality_reason'   => self::normalize_runtime_failure_field( $cloud_error_data['quality_reason'] ?? ( $run_state_error['quality_reason'] ?? '' ) ),
+			);
+			$local_error_code = sanitize_key( (string) $error->get_error_code() );
+			if ( '' === implode( '', $evidence ) ) {
+				$evidence['error_stage'] = '' !== $local_error_code ? 'local_' . $local_error_code : 'transport';
+				$evidence['synthetic_error_stage'] = '1';
+			}
+			self::record_cloud_run_id( $evidence['run_id'] );
+			self::record_runtime_failure_evidence( $evidence );
+			return $evidence;
+		}
+
+		/**
+		 * Normalizes one bounded diagnostic field without losing dotted Cloud codes.
+		 *
+		 * @param mixed $value Raw diagnostic field.
+		 * @return string
+		 */
+		private static function normalize_runtime_failure_field( $value ): string {
+			$value = is_scalar( $value ) ? (string) $value : '';
+			if ( function_exists( 'wp_check_invalid_utf8' ) ) {
+				$value = wp_check_invalid_utf8( $value );
+			} elseif ( function_exists( 'mb_convert_encoding' ) ) {
+				$converted = mb_convert_encoding( $value, 'UTF-8', 'UTF-8' );
+				$value     = is_string( $converted ) ? $converted : '';
+			} elseif ( function_exists( 'iconv' ) ) {
+				$converted = iconv( 'UTF-8', 'UTF-8//IGNORE', $value );
+				$value     = is_string( $converted ) ? $converted : '';
+			}
+			$value = sanitize_text_field( $value );
+			$filtered = preg_replace( '/[^\p{L}\p{N}\p{P}\p{S}\s]+/u', ' ', $value );
+			$filtered = is_string( $filtered ) ? $filtered : '';
+			$collapsed = preg_replace( '/\s+/', ' ', $filtered );
+			$value = is_string( $collapsed ) ? $collapsed : $filtered;
+			$value = trim( $value );
+			if ( function_exists( 'mb_substr' ) ) {
+				return mb_substr( $value, 0, 120, 'UTF-8' );
+			}
+			$truncated = preg_replace( '/^(.{0,120}).*/us', '$1', $value );
+			return is_string( $truncated ) ? $truncated : substr( $value, 0, 120 );
+		}
+
+		/**
+		 * Returns bounded, payload-free evidence for the last failed runtime call.
+		 *
+		 * @return array<string,mixed>
+		 */
+		public static function current_runtime_failure_evidence(): array {
+			return self::$last_runtime_failure_evidence;
+		}
+
+		/**
+		 * Extracts a Cloud run ID from every supported runtime response envelope.
+		 *
+		 * @param mixed $response Runtime response.
+		 * @return string
+		 */
+		public static function cloud_run_id_from_response( $response ): string {
+			return self::first_response_string(
+				is_array( $response ) ? $response : array(),
+				array( 'run_id', 'data.run_id', 'data.result.run_id', 'result.run_id' ),
+				''
+			);
 		}
 
 		/**
@@ -488,7 +615,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$run_id   = self::first_response_string(
 				$response_array,
 				array( 'run_id', 'data.run_id', 'data.result.run_id', 'result.run_id' ),
-				''
+				(string) ( $event['cloud_run_id'] ?? self::current_cloud_run_id() )
 			);
 
 			$context = array(
@@ -1022,6 +1149,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			// Clear a prior ability's evidence before any validation or runtime call.
 			// A failed request must never inherit the previous Cloud run ID.
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
+			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 			$ability_name = $this->detect_scene_ability_name();
 			if ( '' === $ability_name ) {
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector only accepts known WordPress AI ability scene calls.' );
@@ -1164,6 +1292,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 
 			if ( is_wp_error( $response ) ) {
+				$error_code = sanitize_key( (string) $response->get_error_code() );
+				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
+				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				Npcink_Cloud_Customer_Journey::capture_generation_failure(
 					$task,
@@ -1171,14 +1302,10 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					$duration_ms,
 					$response->get_error_code()
 				);
-				$error_code = sanitize_key( (string) $response->get_error_code() );
-				$error_data = $response->get_error_data();
-				$cloud_code = is_array( $error_data ) ? sanitize_text_field( (string) ( $error_data['cloud_error_code'] ?? '' ) ) : '';
-				$error_stage = is_array( $error_data ) && is_array( $error_data['cloud_error_data'] ?? null )
-					? sanitize_text_field( (string) ( $error_data['cloud_error_data']['error_stage'] ?? '' ) )
-					: '';
+				$cloud_code = $evidence['cloud_error_code'];
+				$error_stage = $evidence['error_stage'];
 				$diagnostic = '' !== $cloud_code ? $cloud_code : $error_code;
-				if ( '' !== $error_stage ) {
+				if ( '' !== $error_stage && empty( $evidence['synthetic_error_stage'] ) ) {
 					$diagnostic .= ':' . $error_stage;
 				}
 				$message = esc_html( $response->get_error_message() );
@@ -1190,6 +1317,13 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), $task );
 			if ( '' === $output_text ) {
+				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
+				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
+				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
+					'run_id'         => $cloud_run_id,
+					'error_stage'    => 'output_validation',
+					'quality_reason' => 'output_missing',
+				) );
 				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_output_missing', 'Cloud response did not include valid text output.' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				Npcink_Cloud_Customer_Journey::capture_generation_failure(
@@ -1202,7 +1336,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-			$cloud_run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? '' ) );
+			$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 			$run_id = '' !== $cloud_run_id ? $cloud_run_id : wp_generate_uuid4();
 			Npcink_Cloud_Customer_Journey::capture_generation(
@@ -1721,6 +1855,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		public function generateTextResult( array $prompt ): \WordPress\AiClient\Results\DTO\GenerativeAiResult {
 			// Clear a prior ability's evidence before any validation or runtime call.
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
+			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 			$ability_input = Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context();
 			if ( array() === $ability_input ) {
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI vision connector only accepts WordPress AI alt text generation scene calls.' );
@@ -1758,19 +1893,28 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 
 			if ( is_wp_error( $response ) ) {
+				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
+				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), 'alt_text_suggest' );
 			if ( '' === $output_text ) {
+				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
+				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
+				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
+					'run_id'         => $cloud_run_id,
+					'error_stage'    => 'output_validation',
+					'quality_reason' => 'output_missing',
+				) );
 				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_output_missing', 'Cloud response did not include valid alt text output.' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI vision connector response did not include alt text output.' );
 			}
 
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-			$cloud_run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? '' ) );
+			$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 			$run_id = '' !== $cloud_run_id ? $cloud_run_id : wp_generate_uuid4();
 			return new \WordPress\AiClient\Results\DTO\GenerativeAiResult(
@@ -1952,6 +2096,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return \WordPress\AiClient\Results\DTO\GenerativeAiResult
 		 */
 		public function generateImageResult( array $prompt ): \WordPress\AiClient\Results\DTO\GenerativeAiResult {
+			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
+			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 			if ( 1 !== count( $prompt ) ) {
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector does not support chat history.' );
 			}
@@ -1994,6 +2140,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 
 			if ( is_wp_error( $response ) ) {
+				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
+				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
 			}
@@ -2005,6 +2153,13 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector response did not include image output.' );
 				}
 			} catch ( \Throwable $error ) {
+				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
+				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
+				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
+					'run_id'         => $cloud_run_id,
+					'error_stage'    => 'artifact_validation',
+					'quality_reason' => 'image_output_invalid',
+				) );
 				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_image_output_invalid', 'Cloud image output could not be downloaded or verified.' );
 				$log_event['duration_ms'] = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
@@ -2013,8 +2168,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 			$log_event['duration_ms'] = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started );
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
+			$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 			return new \WordPress\AiClient\Results\DTO\GenerativeAiResult(
-				(string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) ),
+				'' !== $cloud_run_id ? $cloud_run_id : wp_generate_uuid4(),
 				$candidates,
 				new \WordPress\AiClient\Results\DTO\TokenUsage( 0, 0, 0 ),
 				$this->provider_metadata,

@@ -174,6 +174,9 @@ foreach ( $cases as $case_definition ) {
 		'write_evidence_state' => 'not_measured',
 		'quality_status'     => 'failed',
 		'failure_code'       => null,
+		'failure_stage'      => null,
+		'quality_reason'     => null,
+		'cloud_error_code'   => null,
 		'output'             => null,
 	);
 
@@ -183,6 +186,12 @@ foreach ( $cases as $case_definition ) {
 		continue;
 	}
 
+	if ( class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
+		Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
+		if ( method_exists( 'Npcink_Cloud_WordPress_AI_Connector', 'reset_runtime_failure_evidence' ) ) {
+			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
+		}
+	}
 	$response            = npcink_cloud_acceptance_request( $ability, $input );
 	$status              = (int) $response->get_status();
 	$data                = $response->get_data();
@@ -208,6 +217,12 @@ foreach ( $cases as $case_definition ) {
 	}
 	if ( empty( $case['provider_run_id'] ) && class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		$case['provider_run_id'] = Npcink_Cloud_WordPress_AI_Connector::current_cloud_run_id() ?: null;
+	}
+	if ( null !== $case['failure_code'] && class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) && method_exists( 'Npcink_Cloud_WordPress_AI_Connector', 'current_runtime_failure_evidence' ) ) {
+		$failure_evidence = Npcink_Cloud_WordPress_AI_Connector::current_runtime_failure_evidence();
+		if ( is_array( $failure_evidence ) ) {
+			$case = npcink_cloud_acceptance_attach_failure_evidence( $case, $failure_evidence );
+		}
 	}
 	$report['cases'][] = $case;
 }

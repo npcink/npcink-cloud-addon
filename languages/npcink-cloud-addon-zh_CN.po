@@ -2256,55 +2256,55 @@ msgstr "无法编码站点知识库运行时 payload。"
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr "站点知识库运行时 payload 超过传输大小限制。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:251
+#: includes/class-cloud-wordpress-ai-connector.php:378
 msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr "使用已验证的 Npcink Cloud 设置，为 WordPress AI 的固定编辑场景提供云端建议能力。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:737
+#: includes/class-cloud-wordpress-ai-connector.php:864
 msgid "Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
 msgstr "通过已验证的 Npcink Cloud 设置处理受限的 WordPress AI 场景任务。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1413
+#: includes/class-cloud-wordpress-ai-connector.php:1547
 msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
 msgstr "WordPress AI 替代文本生成需要经过验证的 Npcink Cloud 设置。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1430
+#: includes/class-cloud-wordpress-ai-connector.php:1564
 msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
 msgstr "Npcink Cloud 未返回有效的替代文本生成源工件。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1607
+#: includes/class-cloud-wordpress-ai-connector.php:1741
 msgid "WordPress AI alt text generation requires a local WordPress attachment."
 msgstr "WordPress AI 替代文本生成需要本地 WordPress 附件。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1608
+#: includes/class-cloud-wordpress-ai-connector.php:1742
 msgid "WordPress AI alt text generation requires one bounded attachment prompt."
 msgstr "WordPress AI 替代文本生成需要一个有边界的附件提示词。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1609
+#: includes/class-cloud-wordpress-ai-connector.php:1743
 msgid "You are not allowed to use this attachment for Cloud alt text generation."
 msgstr "您无权使用此附件进行 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1610
+#: includes/class-cloud-wordpress-ai-connector.php:1744
 msgid "WordPress AI alt text generation requires a local media attachment."
 msgstr "WordPress AI 替代文本生成需要本地媒体附件。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1611
+#: includes/class-cloud-wordpress-ai-connector.php:1745
 msgid "The local attachment file is unavailable for Cloud alt text generation."
 msgstr "本地附件文件无法用于 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1612
+#: includes/class-cloud-wordpress-ai-connector.php:1746
 msgid "The local attachment exceeds the Cloud alt text source size limit."
 msgstr "本地附件超出 Cloud 替代文本源大小限制。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1613
+#: includes/class-cloud-wordpress-ai-connector.php:1747
 msgid "The local attachment could not be read for Cloud alt text generation."
 msgstr "无法读取本地附件以进行 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1614
+#: includes/class-cloud-wordpress-ai-connector.php:1748
 msgid "The local attachment changed before it could be read for Cloud alt text generation."
 msgstr "本地附件在读取前已发生变化，无法进行 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1615
+#: includes/class-cloud-wordpress-ai-connector.php:1749
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr "本地附件图像类型不受 Cloud 替代文本生成支持。"
 
@@ -2488,6 +2488,6 @@ msgstr "WordPress AI existing_title 上下文仅支持标题生成。"
 msgid "WordPress AI alt-text task_contract must be a normalized object."
 msgstr "WordPress AI 替代文本 task_contract 必须是规范化对象。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1441
+#: includes/class-cloud-wordpress-ai-connector.php:1575
 msgid "Npcink Cloud could not project the alt-text Ability contract."
 msgstr "Npcink Cloud 无法投影替代文本 Ability 合同。"
