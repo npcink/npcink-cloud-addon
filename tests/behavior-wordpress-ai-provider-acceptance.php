@@ -72,6 +72,19 @@ maca_assert(
 	'Runtime failure evidence preserves the Cloud run ID, dotted code, stage, and valid UTF-8 diagnostics.'
 );
 maca_assert(
+	'validation/failed[retry]' === Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error(
+		new WP_Error(
+			'cloud_wp_ai_connector_diagnostic',
+			'bounded runtime failure',
+			array(
+				'cloud_error_data' => array( 'error_stage' => 'validation/failed[retry]' ),
+			)
+		)
+	)['error_stage'],
+	'Runtime failure evidence preserves common punctuation in Cloud diagnostic stages.'
+);
+maca_assert( '中文诊断' === wp_check_invalid_utf8( '中文诊断' ), 'Pure-PHP UTF-8 guard preserves valid non-ASCII diagnostics.' );
+maca_assert(
 	'run_nested_123' === Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( array( 'data' => array( 'result' => array( 'run_id' => 'run_nested_123' ) ) ) ),
 	'Cloud run ID extraction accepts the nested runtime result envelope used by the connector log bridge.'
 );

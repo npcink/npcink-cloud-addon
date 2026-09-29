@@ -179,7 +179,10 @@ if ( ! function_exists( 'wp_check_invalid_utf8' ) ) {
 			$converted = mb_convert_encoding( $value, 'UTF-8', 'UTF-8' );
 			return is_string( $converted ) ? $converted : '';
 		}
-		return preg_replace( '/[^\x00-\x7F]/', '', $value ) ?? '';
+		if ( 1 === preg_match( '//u', $value ) ) {
+			return $value;
+		}
+		return preg_replace( '/[\x80-\xFF]/', '', $value ) ?? '';
 	}
 }
 

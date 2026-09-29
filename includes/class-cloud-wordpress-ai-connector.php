@@ -243,15 +243,18 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				array( 'run_id', 'data.run_id', 'data.result.run_id', 'result.run_id' ),
 				''
 			);
+			$cloud_error_stage = self::normalize_runtime_failure_field( $cloud_error_data['error_stage'] ?? '' );
+			$run_state_stage   = self::normalize_runtime_failure_field( $run_state_error['error_stage'] ?? '' );
 			$evidence = array(
 				'run_id'           => self::normalize_runtime_failure_field( $cloud_run_id ),
 				'cloud_error_code' => self::normalize_runtime_failure_field( $error_data['cloud_error_code'] ?? '' ),
-				'error_stage'      => self::normalize_runtime_failure_field( $cloud_error_data['error_stage'] ?? ( $run_state_error['error_stage'] ?? '' ) ),
+				'error_stage'      => '' !== $cloud_error_stage ? $cloud_error_stage : $run_state_stage,
 				'quality_reason'   => self::normalize_runtime_failure_field( $cloud_error_data['quality_reason'] ?? ( $run_state_error['quality_reason'] ?? '' ) ),
 			);
 			$local_error_code = sanitize_key( (string) $error->get_error_code() );
 			if ( '' === implode( '', $evidence ) ) {
 				$evidence['error_stage'] = '' !== $local_error_code ? 'local_' . $local_error_code : 'transport';
+				$evidence['synthetic_error_stage'] = '1';
 			}
 			self::record_cloud_run_id( $evidence['run_id'] );
 			self::record_runtime_failure_evidence( $evidence );
@@ -276,7 +279,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$value     = is_string( $converted ) ? $converted : '';
 			}
 			$value = sanitize_text_field( $value );
-			$filtered = preg_replace( '/[^\p{L}\p{N}_.:\s-]+/u', ' ', $value );
+			$filtered = preg_replace( '/[^\p{L}\p{N}\p{P}\p{S}\s]+/u', ' ', $value );
 			$filtered = is_string( $filtered ) ? $filtered : '';
 			$collapsed = preg_replace( '/\s+/', ' ', $filtered );
 			$value = is_string( $collapsed ) ? $collapsed : $filtered;
@@ -1302,7 +1305,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$cloud_code = $evidence['cloud_error_code'];
 				$error_stage = $evidence['error_stage'];
 				$diagnostic = '' !== $cloud_code ? $cloud_code : $error_code;
-				if ( '' !== $error_stage && 'local_' . $error_code !== $error_stage && 'transport' !== $error_stage ) {
+				if ( '' !== $error_stage && empty( $evidence['synthetic_error_stage'] ) ) {
 					$diagnostic .= ':' . $error_stage;
 				}
 				$message = esc_html( $response->get_error_message() );
