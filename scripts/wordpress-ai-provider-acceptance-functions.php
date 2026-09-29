@@ -84,11 +84,14 @@ function npcink_cloud_acceptance_quality_context( $ability, array $input, $data 
 		$context['review_types'] = array_values( array_filter( array_map( 'strval', $input['review_types'] ) ) );
 	}
 	if ( 'ai/content-translation' === $ability && isset( $input['content'] ) && is_string( $input['content'] ) && function_exists( 'parse_blocks' ) && false !== strpos( $input['content'], '<!-- wp:' ) ) {
+		$context['structure_kind'] = 'gutenberg_blocks';
 		$translated = npcink_cloud_acceptance_string( $data );
 		if ( false !== strpos( $translated, '<!-- wp:' ) ) {
 			$context['expected_block_count']   = count( parse_blocks( $input['content'] ) );
 			$context['translated_block_count'] = count( parse_blocks( $translated ) );
 		}
+	} elseif ( 'ai/content-translation' === $ability && isset( $input['content'] ) && is_string( $input['content'] ) ) {
+		$context['structure_kind'] = preg_match( '/<\/?[a-z][^>]*>/i', $input['content'] ) ? 'html' : 'plain_text';
 	}
 	$output_text = npcink_cloud_acceptance_string( $data );
 	if ( '' !== $output_text ) {

@@ -50,7 +50,9 @@ $quality_context = npcink_cloud_acceptance_quality_context(
 	array( 'content' => '<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->', 'target_language' => 'en-us' ),
 	'<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->'
 );
-maca_assert( 'en-us' === ( $quality_context['target_language'] ?? null ) && 2 === (int) ( $quality_context['expected_block_count'] ?? 0 ) && 2 === (int) ( $quality_context['translated_block_count'] ?? 0 ), 'Acceptance records target language and block-count evidence without recording article text.' );
+maca_assert( 'en-us' === ( $quality_context['target_language'] ?? null ) && 'gutenberg_blocks' === ( $quality_context['structure_kind'] ?? null ) && 2 === (int) ( $quality_context['expected_block_count'] ?? 0 ) && 2 === (int) ( $quality_context['translated_block_count'] ?? 0 ), 'Acceptance records target language and block-count evidence without recording article text.' );
+$plain_quality_context = npcink_cloud_acceptance_quality_context( 'ai/content-translation', array( 'content' => '这是一个普通文本段落。', 'target_language' => 'en-us' ), 'This is a plain text paragraph.' );
+maca_assert( 'plain_text' === ( $plain_quality_context['structure_kind'] ?? null ) && ! array_key_exists( 'expected_block_count', $plain_quality_context ), 'Acceptance distinguishes plain-text translation from block-structured translation.' );
 
 $good = array( 'quality_status' => 'passed', 'write_detected' => false );
 $bad = array( 'quality_status' => 'failed', 'write_detected' => false );
