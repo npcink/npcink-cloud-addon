@@ -89,6 +89,34 @@ IDs as `SHA-256(site_id|event_id)` and does not persist the raw value. Empty
 buffer, an hourly schedule, or a previous manual flush is not natural-delivery
 evidence.
 
+## WordPress AI Acceptance and Quality Report
+
+Use the combined local command when the candidate Addon is mounted in the
+target WordPress site:
+
+```bash
+composer run acceptance:wp-ai-provider:quality
+```
+
+It writes the read-only Addon report and the Eval Lab quality report under
+`wordpress-ai-provider/generated/`. The command returns `0` only when the
+acceptance report and deterministic quality report both pass; `2` means the
+report requires review or the Addon could not close its evidence state; `1`
+means a deterministic or command failure. It never saves, publishes, or
+applies a WordPress result.
+
+For offline CI and regression tests, provide an existing acceptance report:
+
+```bash
+WP_AI_ACCEPTANCE_INPUT=/path/to/acceptance.json \
+WP_AI_ACCEPTANCE_REPORT=/tmp/wp-ai-acceptance.json \
+WP_AI_ACCEPTANCE_QUALITY_REPORT=/tmp/wp-ai-quality.json \
+composer run acceptance:wp-ai-provider:quality
+```
+
+This mode never invokes WP-CLI or a Provider. Keep real local acceptance and
+offline CI evidence as separate evidence states.
+
 ## Shared Work and Historical Records
 
 Read related task records and compare run IDs before repeating acceptance.
