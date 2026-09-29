@@ -186,7 +186,7 @@ foreach ( $cases as $case_definition ) {
 		$case['failure_code'] = 'taxonomy_empty';
 	}
 	if ( $shape_valid ) {
-		$case['failure_code'] = npcink_cloud_acceptance_quality_failure( $ability, $data );
+		$case['failure_code'] = npcink_cloud_acceptance_quality_failure( $ability, $data, $input );
 	}
 	$case['quality_status'] = null === $case['failure_code'] ? 'passed' : 'failed';
 	if ( is_array( $data ) ) {
