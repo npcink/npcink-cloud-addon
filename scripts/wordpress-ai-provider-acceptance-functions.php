@@ -84,12 +84,10 @@ function npcink_cloud_acceptance_quality_context( $ability, array $input, $data 
 		$context['review_types'] = array_values( array_filter( array_map( 'strval', $input['review_types'] ) ) );
 	}
 	if ( 'ai/content-translation' === $ability && isset( $input['content'] ) && is_string( $input['content'] ) && function_exists( 'parse_blocks' ) && false !== strpos( $input['content'], '<!-- wp:' ) ) {
-		$context['structure_kind'] = 'gutenberg_blocks';
-		$translated = npcink_cloud_acceptance_string( $data );
-		if ( false !== strpos( $translated, '<!-- wp:' ) ) {
-			$context['expected_block_count']   = count( parse_blocks( $input['content'] ) );
-			$context['translated_block_count'] = count( parse_blocks( $translated ) );
-		}
+		$context['structure_kind']        = 'gutenberg_blocks';
+		$context['expected_block_count']  = count( parse_blocks( $input['content'] ) );
+		$translated                       = npcink_cloud_acceptance_string( $data );
+		$context['translated_block_count'] = false !== strpos( $translated, '<!-- wp:' ) ? count( parse_blocks( $translated ) ) : 0;
 	} elseif ( 'ai/content-translation' === $ability && isset( $input['content'] ) && is_string( $input['content'] ) ) {
 		$context['structure_kind'] = preg_match( '/<\/?[a-z][^>]*>/i', $input['content'] ) ? 'html' : 'plain_text';
 	}
@@ -182,10 +180,16 @@ function npcink_cloud_acceptance_quality_failure( $ability, $data ) {
 		return 'task_not_completed';
 	}
 	if ( 'ai/slug-generation' === $ability ) {
+		$seen_slugs = array();
 		foreach ( $data['slugs'] ?? array() as $slug ) {
 			if ( ! is_string( $slug ) || 1 !== preg_match( '/^(?=.*[a-z])[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug ) ) {
 				return 'slug_format_invalid';
 			}
+			$normalized_slug = strtolower( $slug );
+			if ( isset( $seen_slugs[ $normalized_slug ] ) ) {
+				return 'slug_duplicate';
+			}
+			$seen_slugs[ $normalized_slug ] = true;
 		}
 	}
 	if ( 'ai/comment-analysis' === $ability ) {
