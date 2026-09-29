@@ -113,14 +113,20 @@ $report = array(
 	'write_detected'   => null,
 	'write_evidence_state' => 'not_measured',
 	'generated_at'     => gmdate( 'c' ),
+	'fixture_id'       => 'wordpress-ai-acceptance-fixed-v1',
 	'optional_capabilities_skipped' => array(),
 	'cases'            => array(),
 );
 
 foreach ( $cases as $ability => $input ) {
 	$contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( $ability );
+	$input_json = wp_json_encode( $input, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION );
+	$input_fields = array_keys( $input );
+	sort( $input_fields );
 	$case     = array(
 		'ability'            => $ability,
+		'input_fingerprint'  => false === $input_json ? null : 'sha256:' . hash( 'sha256', $input_json ),
+		'input_fields'       => $input_fields,
 		'ability_registered' => (bool) wp_get_ability( $ability ),
 		'cloud_task'         => is_array( $contract ) ? (string) ( $contract['task'] ?? '' ) : null,
 		'contract_version'   => is_array( $contract ) ? (string) ( $contract['contract_version'] ?? '' ) : null,

@@ -7,7 +7,9 @@ $acceptance_smoke_source = (string) file_get_contents( dirname( __DIR__ ) . '/sc
 maca_assert(
 	false !== strpos( $acceptance_smoke_source, "'contract_source'" )
 	&& false !== strpos( $acceptance_smoke_source, "'contract_status'" )
-	&& false !== strpos( $acceptance_smoke_source, "'verification_state'" ),
+	&& false !== strpos( $acceptance_smoke_source, "'verification_state'" )
+	&& false !== strpos( $acceptance_smoke_source, "'input_fingerprint'" )
+	&& false !== strpos( $acceptance_smoke_source, "'input_fields'" ),
 	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
 );
 maca_assert( 'contract_drift' === npcink_cloud_acceptance_contract_status( new WP_Error( 'cloud_ai_task_schema_hash_mismatch', 'drift' ) ), 'Acceptance classifies schema drift separately from provider failures.' );
