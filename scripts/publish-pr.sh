@@ -194,7 +194,6 @@ match = re.search(r"[:/]([^/:]+)/([^/]+?)(?:\.git)?$", url)
 print(f"{match.group(1)}/{match.group(2)}")
 PY
 )"
-merge_head_sha="${head_sha}"
 push_and_verify() {
 	retry_network git push -u origin "${branch}"
 	local remote_sha
@@ -289,21 +288,17 @@ for commit in unpushed:
 
 gh(f"repos/{repo}/git/refs/heads/{branch}", {"sha": parent}, method="PATCH")
 final = gh(f"repos/{repo}/git/refs/heads/{branch}")["object"]["sha"]
-if final == head:
-	print(f"replayed-identical {final}")
-else:
-	print(f"replayed-divergent {final}")
+print(("replayed-identical" if final == head else "sha-mismatch") + " " + final)
 PY
 	)" || fail 'Git Data API fallback failed'
 	case "$fallback_result" in
-		replayed-identical*)
+		replayed-identical\ *)
 			echo '[pr-publish] fallback: commits replayed through the Git Data API with matching SHAs'
 			;;
-		replayed-divergent\ *)
-			merge_head_sha="${fallback_result#replayed-divergent }"
-			echo "[pr-publish] fallback: branch updated to ${merge_head_sha}; squash will reconcile the differing history"
-			;;
 		already-synced)
+			;;
+		sha-mismatch\ *)
+			fail "the API replay landed ${fallback_result#sha-mismatch } instead of ${head_sha}; the branch was updated, but reconcile locally (git pull --rebase) before publishing"
 			;;
 		diverged)
 			fail 'local and remote histories diverged; the API fallback cannot fast-forward'
@@ -313,7 +308,7 @@ PY
 			;;
 	esac
 	remote_sha="$(gh api "repos/${github_repo}/git/refs/heads/${branch}" --jq '.object.sha' 2>/dev/null || true)"
-	[ "$remote_sha" = "$merge_head_sha" ] || fail 'the fallback could not update the remote branch'
+	[ "$remote_sha" = "$head_sha" ] || fail 'the fallback could not update the remote branch'
 }
 
 push_and_verify
@@ -325,7 +320,7 @@ pr_url="$(
 		--body-file "${body_path}"
 )"
 
-retry_network gh pr merge "${pr_url}" --auto --squash --match-head-commit "${merge_head_sha}"
+retry_network gh pr merge "${pr_url}" --auto --squash --match-head-commit "${head_sha}"
 
 echo "[pr-publish] pull_request=${pr_url}"
 echo '[pr-publish] auto_merge=squash_requested'
