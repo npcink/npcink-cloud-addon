@@ -21,6 +21,8 @@ maca_assert(
 	&& false !== strpos( $acceptance_smoke_source, "'scenario_id'" )
 	&& false !== strpos( $acceptance_smoke_source, 'classification-post-tag-existing-only' )
 	&& false !== strpos( $acceptance_smoke_source, 'classification-category-existing-only' )
+	&& false !== strpos( $acceptance_smoke_source, 'content-translation-blocks-en-us' )
+	&& false !== strpos( $acceptance_smoke_source, 'slug-generation-mixed-language' )
 	&& false !== strpos( $acceptance_smoke_source, "'quality_context'" )
 	&& false !== strpos( $acceptance_smoke_source, 'current_cloud_run_id' ),
 	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
@@ -49,6 +51,7 @@ maca_assert( 'taxonomy_empty' === npcink_cloud_acceptance_quality_failure( 'ai/c
 maca_assert( npcink_cloud_acceptance_is_empty_taxonomy_error( 'ai/content-classification', array( 'code' => 'no_results', 'message' => 'No taxonomy suggestions were generated.' ) ) && 'taxonomy_empty' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'code' => 'no_results' ) ), 'Acceptance classifies the official no-results taxonomy response as an empty semantic result.' );
 maca_assert( 'slug_format_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/slug-generation', array( 'slugs' => array( 'valid-slug', 'Invalid slug' ) ) ), 'Acceptance checks every slug, not only the first.' );
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/slug-generation', array( 'slugs' => array( 'first-slug', 'second-slug' ) ) ), 'Acceptance allows valid slug candidates.' );
+maca_assert( 'slug_duplicate' === npcink_cloud_acceptance_quality_failure( 'ai/slug-generation', array( 'slugs' => array( 'same-slug', 'same-slug' ) ) ), 'Acceptance rejects duplicate slug candidates.' );
 maca_assert( 'target_language_mismatch' === npcink_cloud_acceptance_quality_failure( 'ai/content-translation', '这是未翻译的固定样本。' ), 'Acceptance rejects untranslated Chinese for the English target fixture.' );
 maca_assert( false === npcink_cloud_acceptance_shape_valid( array(), array() ), 'Acceptance fails closed without an output schema.' );
 
@@ -63,6 +66,8 @@ $quality_context = npcink_cloud_acceptance_quality_context(
 	'<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->'
 );
 maca_assert( 'en-us' === ( $quality_context['target_language'] ?? null ) && 'gutenberg_blocks' === ( $quality_context['structure_kind'] ?? null ) && 2 === (int) ( $quality_context['expected_block_count'] ?? 0 ) && 2 === (int) ( $quality_context['translated_block_count'] ?? 0 ), 'Acceptance records target language and block-count evidence without recording article text.' );
+$missing_block_context = npcink_cloud_acceptance_quality_context( 'ai/content-translation', array( 'content' => '<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph -->', 'target_language' => 'en-us' ), 'Translated text without block markers.' );
+maca_assert( 1 === (int) ( $missing_block_context['expected_block_count'] ?? 0 ) && 0 === (int) ( $missing_block_context['translated_block_count'] ?? -1 ), 'Acceptance records a missing translated block marker as zero blocks instead of unknown.' );
 $plain_quality_context = npcink_cloud_acceptance_quality_context( 'ai/content-translation', array( 'content' => '这是一个普通文本段落。', 'target_language' => 'en-us' ), 'This is a plain text paragraph.' );
 maca_assert( 'plain_text' === ( $plain_quality_context['structure_kind'] ?? null ) && ! array_key_exists( 'expected_block_count', $plain_quality_context ), 'Acceptance distinguishes plain-text translation from block-structured translation.' );
 

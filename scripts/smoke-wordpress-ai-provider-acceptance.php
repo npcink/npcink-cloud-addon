@@ -71,11 +71,13 @@ npcink_cloud_acceptance_set_user();
 $wordpress_state_before = npcink_cloud_acceptance_wordpress_state();
 
 $cases = array(
-	array( 'scenario_id' => 'excerpt-default', 'ability' => 'ai/excerpt-generation', 'input' => array( 'content' => 'A short article about reliable WordPress AI provider contracts.', 'length' => 'short' ) ),
+	array( 'scenario_id' => 'excerpt-default', 'ability' => 'ai/excerpt-generation', 'input' => array( 'content' => 'A short article about reliable WordPress AI provider contracts.', 'context' => 'Keep it concise and factual.' ) ),
 	array( 'scenario_id' => 'meta-description-default', 'ability' => 'ai/meta-description', 'input' => array( 'content' => 'A short article about reliable WordPress AI provider contracts.', 'title' => 'Provider contracts' ) ),
 	array( 'scenario_id' => 'content-translation-en-us', 'ability' => 'ai/content-translation', 'input' => array( 'content' => '这是一个用于验证翻译能力的固定测试段落。', 'target_language' => 'en-us' ) ),
+	array( 'scenario_id' => 'content-translation-blocks-en-us', 'ability' => 'ai/content-translation', 'input' => array( 'content' => '<!-- wp:paragraph --><p>这是第一个需要保留结构的段落。</p><!-- /wp:paragraph --><!-- wp:list --><ul><li>第一项</li><li>第二项</li></ul><!-- /wp:list -->', 'target_language' => 'en-us' ) ),
 	array( 'scenario_id' => 'summarization-short', 'ability' => 'ai/summarization', 'input' => array( 'content' => 'This fixed article explains how a WordPress Ability reaches a hosted provider through a bounded connector contract.', 'context' => 'Keep the summary factual.', 'length' => 'short' ) ),
-	array( 'scenario_id' => 'slug-generation-default', 'ability' => 'ai/slug-generation', 'input' => array( 'title' => 'WordPress AI provider compatibility guide', 'content' => 'A guide to stable provider contracts.' ) ),
+	array( 'scenario_id' => 'slug-generation-default', 'ability' => 'ai/slug-generation', 'input' => array( 'title' => 'WordPress AI provider compatibility guide', 'content' => 'A guide to stable provider contracts.', 'number_of_suggestions' => 3 ) ),
+	array( 'scenario_id' => 'slug-generation-mixed-language', 'ability' => 'ai/slug-generation', 'input' => array( 'title' => 'TheBiz：双平台微信小程序与百度智能小程序解决方案', 'content' => '企业小程序双平台解决方案与部署说明。', 'number_of_suggestions' => 3 ) ),
 	array( 'scenario_id' => 'content-resizing-short', 'ability' => 'ai/content-resizing', 'input' => array( 'content' => 'This fixed paragraph repeats the same idea and needs a shorter, clearer version for an article.', 'action' => 'shorten' ) ),
 	array( 'scenario_id' => 'editorial-notes-readability-grammar', 'ability' => 'ai/editorial-notes', 'input' => array( 'block_type' => 'core/paragraph', 'block_content' => 'These sentence are hard to reads. It repeats the same point again and repeats the same point again.', 'review_types' => array( 'readability', 'grammar' ) ) ),
 	array( 'scenario_id' => 'editorial-updates-with-notes', 'ability' => 'ai/editorial-updates', 'input' => array( 'block_type' => 'core/paragraph', 'block_content' => 'This paragraph needs a concise editorial update.', 'notes' => array( 'Make the paragraph clearer.' ) ) ),
