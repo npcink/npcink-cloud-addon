@@ -33,9 +33,12 @@ maca_assert(
 maca_assert(
 	false !== strpos( $quality_runner_source, 'acceptance:wp-ai-provider' )
 	&& false !== strpos( $quality_runner_source, 'wordpress-ai-provider/evaluate.php' )
+	&& false !== strpos( $quality_runner_source, 'wordpress-ai-provider/run.php' )
+	&& false !== strpos( $quality_runner_source, 'capability-matrix.v1.json' )
+	&& false !== strpos( $quality_runner_source, 'allow_partial=1' )
 	&& false !== strpos( $quality_runner_source, 'WP_AI_ACCEPTANCE_INPUT' )
 	&& false !== strpos( $quality_runner_source, 'human_review_required' ),
-	'Combined WordPress AI acceptance runner preserves the WP-CLI, Eval Lab, offline fixture, and review-state boundaries.'
+	'Combined WordPress AI acceptance runner applies the Eval Lab capability gate before quality review and preserves bounded partial diagnostics.'
 );
 maca_assert(
 	false !== strpos( $acceptance_smoke_source, "null !== \$case['failure_code']" )

@@ -154,10 +154,18 @@ composer run acceptance:wp-ai-provider:quality
 
 It writes the read-only Addon report and the Eval Lab quality report under
 `wordpress-ai-provider/generated/`. The command returns `0` only when the
-acceptance report and deterministic quality report both pass; `2` means the
-report requires review or the Addon could not close its evidence state; `1`
-means a deterministic or command failure. It never saves, publishes, or
-applies a WordPress result.
+acceptance report, Eval Lab capability matrix, and deterministic quality report
+all pass; `2` means the report requires review or the Addon could not close its
+evidence state; `1` means a deterministic, capability-contract, or command
+failure. The generated directory also contains the matrix gate report and its
+stdout receipt. It never saves, publishes, or applies a WordPress result.
+
+The matrix gate runs before semantic quality evaluation. A full acceptance run
+requires every required scenario from the versioned Eval Lab matrix. When the
+runner is intentionally filtered with `WP_AI_ACCEPTANCE_ABILITIES`, the bridge
+passes `allow_partial=1`; the gate then records `coverage_status=partial` and
+lists the missing scenarios instead of treating a diagnostic subset as a full
+acceptance.
 
 For offline CI and regression tests, provide an existing acceptance report:
 
