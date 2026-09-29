@@ -224,9 +224,9 @@ foreach ( $cases as $case_definition ) {
 			if ( empty( $case['provider_run_id'] ) ) {
 				$case['provider_run_id'] = (string) ( $failure_evidence['run_id'] ?? '' ) ?: null;
 			}
-			$case['failure_stage'] = (string) ( $failure_evidence['error_stage'] ?? '' );
-			$case['quality_reason'] = (string) ( $failure_evidence['quality_reason'] ?? '' );
-			$case['cloud_error_code'] = (string) ( $failure_evidence['cloud_error_code'] ?? '' );
+			$case['failure_stage']   = ( (string) ( $failure_evidence['error_stage'] ?? '' ) ) ?: null;
+			$case['quality_reason']  = ( (string) ( $failure_evidence['quality_reason'] ?? '' ) ) ?: null;
+			$case['cloud_error_code'] = ( (string) ( $failure_evidence['cloud_error_code'] ?? '' ) ) ?: null;
 		}
 	}
 	$report['cases'][] = $case;

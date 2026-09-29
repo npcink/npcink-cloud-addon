@@ -244,23 +244,18 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$cloud_run_id = sanitize_text_field( (string) ( $cloud_error_reply['run_id'] ?? '' ) );
 			}
 			$evidence = array(
-				'run_id'           => $cloud_run_id,
-				'cloud_error_code' => (string) ( $error_data['cloud_error_code'] ?? '' ),
-				'error_stage'      => (string) ( $cloud_error_data['error_stage'] ?? ( $run_state_error['error_stage'] ?? '' ) ),
-				'quality_reason'   => (string) ( $cloud_error_data['quality_reason'] ?? ( $run_state_error['quality_reason'] ?? '' ) ),
+				'run_id'           => self::normalize_runtime_failure_field( $cloud_run_id ),
+				'cloud_error_code' => self::normalize_runtime_failure_field( $error_data['cloud_error_code'] ?? '' ),
+				'error_stage'      => self::normalize_runtime_failure_field( $cloud_error_data['error_stage'] ?? ( $run_state_error['error_stage'] ?? '' ) ),
+				'quality_reason'   => self::normalize_runtime_failure_field( $cloud_error_data['quality_reason'] ?? ( $run_state_error['quality_reason'] ?? '' ) ),
 			);
 			$local_error_code = sanitize_key( (string) $error->get_error_code() );
-			if ( '' === implode( '', array( $evidence['run_id'], $evidence['cloud_error_code'], $evidence['error_stage'], $evidence['quality_reason'] ) ) ) {
+			if ( '' === implode( '', $evidence ) ) {
 				$evidence['error_stage'] = '' !== $local_error_code ? 'local_' . $local_error_code : 'transport';
 			}
-			self::record_cloud_run_id( $cloud_run_id );
+			self::record_cloud_run_id( $evidence['run_id'] );
 			self::record_runtime_failure_evidence( $evidence );
-			return array(
-				'run_id'           => self::normalize_runtime_failure_field( $evidence['run_id'] ),
-				'cloud_error_code' => self::normalize_runtime_failure_field( $evidence['cloud_error_code'] ),
-				'error_stage'      => self::normalize_runtime_failure_field( $evidence['error_stage'] ),
-				'quality_reason'   => self::normalize_runtime_failure_field( $evidence['quality_reason'] ),
-			);
+			return $evidence;
 		}
 
 		/**
@@ -1276,7 +1271,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$cloud_code = $evidence['cloud_error_code'];
 				$error_stage = $evidence['error_stage'];
 				$diagnostic = '' !== $cloud_code ? $cloud_code : $error_code;
-				if ( '' !== $error_stage ) {
+				if ( '' !== $error_stage && 'local_' . $error_code !== $error_stage && 'transport' !== $error_stage ) {
 					$diagnostic .= ':' . $error_stage;
 				}
 				$message = esc_html( $response->get_error_message() );
