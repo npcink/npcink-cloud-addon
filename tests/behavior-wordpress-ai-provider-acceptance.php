@@ -10,6 +10,7 @@ maca_assert(
 	&& false !== strpos( $acceptance_smoke_source, "'verification_state'" ),
 	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
 );
+maca_assert( 'contract_drift' === npcink_cloud_acceptance_contract_status( new WP_Error( 'cloud_ai_task_schema_hash_mismatch', 'drift' ) ), 'Acceptance classifies schema drift separately from provider failures.' );
 
 maca_assert( 'task_not_completed' === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', "Please provide the original paragraph you'd like revised." ), 'Acceptance rejects the observed request-for-source reply.' );
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', 'The revised paragraph is clearer.' ), 'Acceptance keeps an ordinary completed edit eligible for review.' );

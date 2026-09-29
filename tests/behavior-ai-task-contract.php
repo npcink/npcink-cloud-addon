@@ -203,6 +203,14 @@ maca_assert(
 	'Behavior: task projections fail closed when the schema hash does not match the projected schemas.'
 );
 
+$stale_contract = $custom_contract;
+$stale_contract['verification_state'] = 'contract_drift';
+$stale_result = Npcink_Cloud_AI_Task_Contract::normalize( $stale_contract );
+maca_assert(
+	is_wp_error( $stale_result ) && 'cloud_ai_task_contract_not_current' === $stale_result->get_error_code(),
+	'Behavior: a drifted contract stops before the Cloud request.'
+);
+
 maca_seed_settings( true );
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 200 ),
