@@ -75,7 +75,7 @@ function npcink_cloud_acceptance_quality_context( $ability, array $input, $data 
 		'source_characters' => isset( $input['content'] ) && is_string( $input['content'] ) ? ( function_exists( 'mb_strlen' ) ? mb_strlen( $input['content'] ) : strlen( $input['content'] ) ) : null,
 	);
 	sort( $context['input_fields'] );
-	foreach ( array( 'target_language', 'source_language', 'taxonomy', 'max_suggestions' ) as $key ) {
+	foreach ( array( 'target_language', 'source_language', 'taxonomy', 'strategy', 'max_suggestions', 'tone' ) as $key ) {
 		if ( array_key_exists( $key, $input ) && ( is_scalar( $input[ $key ] ) || null === $input[ $key ] ) ) {
 			$context[ $key ] = $input[ $key ];
 		}
@@ -159,7 +159,7 @@ function npcink_cloud_acceptance_is_empty_taxonomy_error( $ability, $data ): boo
 		&& 'no_results' === (string) ( $data['code'] ?? '' );
 }
 
-function npcink_cloud_acceptance_quality_failure( $ability, $data ) {
+function npcink_cloud_acceptance_quality_failure( $ability, $data, array $input = array() ) {
 	if ( npcink_cloud_acceptance_is_empty_taxonomy_error( $ability, $data ) ) {
 		return 'taxonomy_empty';
 	}
@@ -202,9 +202,17 @@ function npcink_cloud_acceptance_quality_failure( $ability, $data ) {
 		}
 	}
 	if ( 'ai/content-classification' === $ability ) {
+		$max_suggestions = isset( $input['max_suggestions'] ) && is_numeric( $input['max_suggestions'] ) ? (int) $input['max_suggestions'] : 0;
+		if ( 0 < $max_suggestions && count( $data['suggestions'] ?? array() ) > $max_suggestions ) {
+			return 'classification_too_many';
+		}
+		$existing_only = 'existing_only' === (string) ( $input['strategy'] ?? 'existing_only' );
 		foreach ( $data['suggestions'] ?? array() as $suggestion ) {
 			if ( ! is_array( $suggestion ) || '' === trim( (string) ( $suggestion['term'] ?? '' ) ) ) {
 				return 'classification_suggestion_invalid';
+			}
+			if ( $existing_only && array_key_exists( 'is_new', $suggestion ) && true === $suggestion['is_new'] ) {
+				return 'classification_new_term';
 			}
 			$confidence = $suggestion['confidence'] ?? null;
 			if ( null !== $confidence && ( ! is_numeric( $confidence ) || (float) $confidence < 0.0 || (float) $confidence > 1.0 ) ) {

@@ -117,6 +117,17 @@ includes English and mixed-language titles and requires lowercase ASCII
 hyphenated candidates. These are deterministic transport and structure checks,
 not an automatic judgment that the generated prose is publishable.
 
+Structured coverage keeps the official Ability semantics visible in the
+development report. Taxonomy scenarios record the requested taxonomy,
+strategy, and maximum suggestion count; `existing_only` rejects any returned
+term marked as new, and output above the requested limit fails with a distinct
+`classification_too_many` code. Editorial notes require a review type and
+actionable text, while editorial updates and comment replies remain suggestion
+strings. Comment analysis validates the returned comment ID, sentiment, and
+bounded toxicity score. These checks never change the official plugin response
+or write to WordPress; they only make malformed or semantically empty
+structured results diagnosable before human review.
+
 Use the combined local command when the candidate Addon is mounted in the
 target WordPress site:
 
