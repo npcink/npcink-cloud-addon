@@ -38,6 +38,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		private static $text_ability_context = array();
 
 		/**
+		 * Cloud run ID returned by the current text runtime call, when present.
+		 *
+		 * This request-scoped value is development evidence only. It is never
+		 * added to an official WordPress Ability result.
+		 *
+		 * @var string
+		 */
+		private static $last_cloud_run_id = '';
+
+		/**
 		 * Registers hooks.
 		 *
 		 * @return void
@@ -155,6 +165,26 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		public static function reset_wordpress_ai_ability_context(): void {
 			self::$alt_text_ability_context = array();
 			self::$text_ability_context = array();
+			self::$last_cloud_run_id         = '';
+		}
+
+		/**
+		 * Returns the actual Cloud run ID from the current request, if available.
+		 *
+		 * @return string
+		 */
+		public static function current_cloud_run_id(): string {
+			return self::$last_cloud_run_id;
+		}
+
+		/**
+		 * Records an actual Cloud run ID for same-request acceptance evidence.
+		 *
+		 * @param string $run_id Cloud-provided run ID.
+		 * @return void
+		 */
+		public static function record_cloud_run_id( string $run_id ): void {
+			self::$last_cloud_run_id = sanitize_text_field( $run_id );
 		}
 
 		/**
@@ -1155,7 +1185,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-			$run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) );
+			$cloud_run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? '' ) );
+			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
+			$run_id = '' !== $cloud_run_id ? $cloud_run_id : wp_generate_uuid4();
 			Npcink_Cloud_Customer_Journey::capture_generation(
 				$task,
 				'succeeded',
