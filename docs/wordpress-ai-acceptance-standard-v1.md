@@ -160,6 +160,9 @@ evidence state; `1` means a deterministic, capability-contract, or command
 failure. The generated directory also contains the matrix gate report and its
 stdout receipt. It never saves, publishes, or applies a WordPress result.
 
+The matrix gate report is diagnostic evidence for development and does not
+change the official WordPress AI response format or write posture.
+
 The matrix gate runs before semantic quality evaluation. A full acceptance run
 requires every required scenario from the versioned Eval Lab matrix. When the
 runner is intentionally filtered with `WP_AI_ACCEPTANCE_ABILITIES`, the bridge
