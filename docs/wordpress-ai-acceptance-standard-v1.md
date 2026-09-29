@@ -109,6 +109,14 @@ Ability-based and must retain every matching scenario. This prevents a
 successful tag check from masking an untested category path and keeps the
 official WordPress plugin response format unchanged.
 
+The ordinary-text baseline uses the same public connector path for title,
+excerpt, SEO description, summary, resizing, translation, Slug, and editorial
+assistance. Translation has separate plain-text and Gutenberg-block scenarios;
+the latter records both expected and returned block counts. Slug coverage
+includes English and mixed-language titles and requires lowercase ASCII
+hyphenated candidates. These are deterministic transport and structure checks,
+not an automatic judgment that the generated prose is publishable.
+
 Use the combined local command when the candidate Addon is mounted in the
 target WordPress site:
 
