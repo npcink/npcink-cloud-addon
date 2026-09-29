@@ -91,6 +91,24 @@ evidence.
 
 ## WordPress AI Acceptance and Quality Report
 
+### Scenario identity
+
+The acceptance runner records a stable `scenario_id` for every case. The
+scenario identifies the concrete input and contract path being exercised; it
+is intentionally more specific than the official Ability name. The same
+Ability may therefore appear more than once when its runtime semantics differ,
+for example:
+
+- `classification-post-tag-existing-only` for existing post tags;
+- `classification-category-existing-only` for existing categories.
+
+Consumers must de-duplicate and report cases by `scenario_id`, while still
+retaining the Ability name for grouping. A missing or duplicated scenario ID is
+an acceptance-contract error. Filtering by `WP_AI_ACCEPTANCE_ABILITIES` is
+Ability-based and must retain every matching scenario. This prevents a
+successful tag check from masking an untested category path and keeps the
+official WordPress plugin response format unchanged.
+
 Use the combined local command when the candidate Addon is mounted in the
 target WordPress site:
 
