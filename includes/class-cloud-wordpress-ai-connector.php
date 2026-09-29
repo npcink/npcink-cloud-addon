@@ -1019,6 +1019,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return \WordPress\AiClient\Results\DTO\GenerativeAiResult
 		 */
 		public function generateTextResult( array $prompt ): \WordPress\AiClient\Results\DTO\GenerativeAiResult {
+			// Clear a prior ability's evidence before any validation or runtime call.
+			// A failed request must never inherit the previous Cloud run ID.
+			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 			$ability_name = $this->detect_scene_ability_name();
 			if ( '' === $ability_name ) {
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector only accepts known WordPress AI ability scene calls.' );
@@ -1702,6 +1705,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return \WordPress\AiClient\Results\DTO\GenerativeAiResult
 		 */
 		public function generateTextResult( array $prompt ): \WordPress\AiClient\Results\DTO\GenerativeAiResult {
+			// Clear a prior ability's evidence before any validation or runtime call.
+			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 			$ability_input = Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context();
 			if ( array() === $ability_input ) {
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI vision connector only accepts WordPress AI alt text generation scene calls.' );
@@ -1751,8 +1756,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
+			$cloud_run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? '' ) );
+			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
+			$run_id = '' !== $cloud_run_id ? $cloud_run_id : wp_generate_uuid4();
 			return new \WordPress\AiClient\Results\DTO\GenerativeAiResult(
-				(string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) ),
+				$run_id,
 				array(
 					new \WordPress\AiClient\Results\DTO\Candidate(
 						new \WordPress\AiClient\Messages\DTO\ModelMessage(
