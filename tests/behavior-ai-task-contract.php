@@ -260,6 +260,10 @@ $GLOBALS['maca_toolkit_registered'][ $toolkit_ability ]['schema_hash'] = $toolki
 $GLOBALS['maca_toolkit_registered'][ $toolkit_ability ]['contract_version'] = 'v2';
 $toolkit_version_drift = Npcink_Cloud_AI_Task_Contract::project_registered_ability( $toolkit_ability );
 maca_assert( is_wp_error( $toolkit_version_drift ) && 'cloud_ai_task_contract_drift' === $toolkit_version_drift->get_error_code(), 'Behavior: Toolkit contract version drift fails before Cloud execution.' );
+$GLOBALS['maca_toolkit_registered'][ $toolkit_ability ]['contract_version'] = 'v1';
+$GLOBALS['maca_abilities'][ $toolkit_ability ] = new Maca_AI_Task_Test_Ability( $toolkit_ability, array( 'npcink' => array( 'risk_level' => 'write', 'requires_approval' => true ), 'npcink_ai_task_contract' => array( 'task' => 'toolkit_example', 'task_family' => 'generation' ) ), $toolkit_output, $toolkit_input );
+$toolkit_permission_drift = Npcink_Cloud_AI_Task_Contract::project_registered_ability( $toolkit_ability );
+maca_assert( is_wp_error( $toolkit_permission_drift ) && 'cloud_ai_task_contract_drift' === $toolkit_permission_drift->get_error_code(), 'Behavior: Toolkit permission drift fails before Cloud execution.' );
 
 maca_seed_settings( true );
 $GLOBALS['maca_http_response_queue'][] = array(
