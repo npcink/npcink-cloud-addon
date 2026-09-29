@@ -189,6 +189,9 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			if ( ! $valid_ability_name || $ability_id !== $ability_name || ! in_array( $contract_source, array( self::CONTRACT_SOURCE_WORDPRESS, self::CONTRACT_SOURCE_TOOLKIT ), true ) || ! in_array( $verification_state, array( 'registered', 'mapped', 'schema_valid', 'mapping_current', 'contract_drift', 'unsupported' ), true ) || '' === $task || $task !== $raw_task || strlen( $task ) > 64 || ! in_array( $family, self::ALLOWED_FAMILIES, true ) ) {
 				return self::error( 'cloud_ai_task_contract_identity_invalid', 'AI task contracts require a registered ability, task, and supported task family.' );
 			}
+			if ( 'mapping_current' !== $verification_state ) {
+				return self::error( 'cloud_ai_task_contract_not_current', 'AI task contract verification must be mapping_current before Cloud execution.' );
+			}
 
 			$contexts    = self::normalize_list( $projection['context_requirements'] ?? array(), self::ALLOWED_CONTEXTS );
 			$constraints = self::normalize_list( $projection['constraints'] ?? array(), self::ALLOWED_CONSTRAINTS );
