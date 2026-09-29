@@ -41,6 +41,44 @@ maca_assert(
 	&& false !== strpos( $quality_runner_source, 'human_review_required' ),
 	'Combined WordPress AI acceptance runner applies the Eval Lab capability gate before quality review and preserves bounded partial diagnostics.'
 );
+$gate_probe_root = sys_get_temp_dir() . '/npcink-wp-ai-gate-' . bin2hex( random_bytes( 4 ) );
+$gate_probe_eval = $gate_probe_root . '/eval-lab/wordpress-ai-provider';
+mkdir( $gate_probe_eval, 0777, true );
+$gate_probe_marker = $gate_probe_root . '/quality-called';
+$gate_probe_stdout = $gate_probe_root . '/gate.json.stdout';
+file_put_contents( $gate_probe_root . '/input.json', '{}' );
+file_put_contents( $gate_probe_root . '/matrix.json', '{}' );
+file_put_contents( $gate_probe_eval . '/run.php', "<?php fwrite(STDERR, 'synthetic gate failure\\n'); exit(7);" );
+file_put_contents( $gate_probe_eval . '/evaluate.php', "<?php file_put_contents(" . var_export( $gate_probe_marker, true ) . ", 'called'); exit(0);" );
+$gate_probe_command = 'NPCINK_EVAL_LAB_PATH=' . escapeshellarg( dirname( $gate_probe_eval ) )
+	. ' WP_AI_ACCEPTANCE_INPUT=' . escapeshellarg( $gate_probe_root . '/input.json' )
+	. ' WP_AI_ACCEPTANCE_MATRIX=' . escapeshellarg( $gate_probe_root . '/matrix.json' )
+	. ' WP_AI_ACCEPTANCE_REPORT=' . escapeshellarg( $gate_probe_root . '/acceptance.json' )
+	. ' WP_AI_ACCEPTANCE_GATE_REPORT=' . escapeshellarg( $gate_probe_root . '/gate.json' )
+	. ' WP_AI_ACCEPTANCE_QUALITY_REPORT=' . escapeshellarg( $gate_probe_root . '/quality.json' )
+	. ' bash ' . escapeshellarg( dirname( __DIR__ ) . '/scripts/evaluate-wordpress-ai-provider-acceptance.sh' )
+	. ' >' . escapeshellarg( $gate_probe_root . '/runner.stdout' ) . ' 2>&1';
+exec( $gate_probe_command, $gate_probe_output, $gate_probe_status );
+$gate_probe_evidence = is_file( $gate_probe_stdout ) ? (string) file_get_contents( $gate_probe_stdout ) : '';
+maca_assert(
+	7 === $gate_probe_status
+	&& false !== strpos( $gate_probe_evidence, 'synthetic gate failure' )
+	&& ! is_file( $gate_probe_marker ),
+	'Acceptance runner stops on a capability-gate failure, preserves gate diagnostics, and skips quality evaluation.'
+);
+@unlink( $gate_probe_root . '/input.json' );
+@unlink( $gate_probe_root . '/matrix.json' );
+@unlink( $gate_probe_root . '/acceptance.json' );
+@unlink( $gate_probe_root . '/gate.json' );
+@unlink( $gate_probe_root . '/gate.json.stdout' );
+@unlink( $gate_probe_root . '/quality.json' );
+@unlink( $gate_probe_root . '/runner.stdout' );
+@unlink( $gate_probe_marker );
+@unlink( $gate_probe_eval . '/run.php' );
+@unlink( $gate_probe_eval . '/evaluate.php' );
+@rmdir( $gate_probe_eval );
+@rmdir( dirname( $gate_probe_eval ) );
+@rmdir( $gate_probe_root );
 maca_assert(
 	false !== strpos( $acceptance_smoke_source, "null !== \$case['failure_code']" )
 	&& false !== strpos( $acceptance_smoke_source, "npcink_cloud_acceptance_attach_failure_evidence( \$case, \$failure_evidence )" ),
