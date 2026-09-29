@@ -19,6 +19,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		public const VERSION = 'ai_task_contract.v1';
 		private const CONTRACT_SOURCE_WORDPRESS = 'wordpress_abilities_api';
 		private const CONTRACT_SOURCE_TOOLKIT = 'npcink_abilities_toolkit';
+		private const TOOLKIT_CONTRACT_VERSION = 'v1';
 
 		private const ALLOWED_FAMILIES = array( 'generation', 'classification', 'transformation', 'analysis' );
 		private const ALLOWED_CONTEXTS = array( 'current_content', 'site_style_profile', 'taxonomy_candidates', 'none' );
@@ -156,7 +157,8 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			$projection['contract_version'] = self::VERSION;
 			$projection['ability_name']     = (string) $ability->get_name();
 			$projection['ability_id']       = $projection['ability_name'];
-			$projection['contract_source']  = str_starts_with( $projection['ability_name'], 'npcink-abilities-toolkit/' ) ? self::CONTRACT_SOURCE_TOOLKIT : self::CONTRACT_SOURCE_WORDPRESS;
+			$is_toolkit_ability = str_starts_with( $projection['ability_name'], 'npcink-abilities-toolkit/' );
+			$projection['contract_source']  = $is_toolkit_ability ? self::CONTRACT_SOURCE_TOOLKIT : self::CONTRACT_SOURCE_WORDPRESS;
 			$projection['verification_state'] = 'mapping_current';
 			$input_schema = method_exists( $ability, 'get_input_schema' ) ? $ability->get_input_schema() : array();
 			$projection['input_schema']     = is_array( $input_schema ) ? $input_schema : array();
@@ -164,7 +166,59 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			$projection['schema_hash']      = self::schema_hash( $projection['input_schema'], is_array( $projection['output_schema'] ) ? $projection['output_schema'] : array() );
 			$projection['write_posture']    = 'suggestion_only';
 
+			if ( $is_toolkit_ability ) {
+				$toolkit_check = self::validate_toolkit_contract( $projection['ability_name'], $projection['input_schema'], $projection['output_schema'] );
+				if ( is_wp_error( $toolkit_check ) ) {
+					return $toolkit_check;
+				}
+			}
+
 			return self::normalize( $projection );
+		}
+
+		/**
+		 * Verifies that a Toolkit-owned Ability still matches its local contract.
+		 *
+		 * The Toolkit remains the source of truth for its own schemas and posture;
+		 * Addon only projects that contract into the Cloud runtime envelope.
+		 *
+		 * @param string               $ability_name Ability identifier.
+		 * @param array<string,mixed>  $input_schema Registered input schema.
+		 * @param array<string,mixed>  $output_schema Registered output schema.
+		 * @return true|WP_Error
+		 */
+		private static function validate_toolkit_contract( string $ability_name, array $input_schema, array $output_schema ) {
+			if ( ! function_exists( 'npcink_abilities_toolkit_get_registered' ) ) {
+				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract source is unavailable for this Ability.' );
+			}
+
+			$registered = npcink_abilities_toolkit_get_registered();
+			$toolkit    = is_array( $registered ) && is_array( $registered[ $ability_name ] ?? null ) ? $registered[ $ability_name ] : null;
+			if ( ! is_array( $toolkit ) ) {
+				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract is missing for this Ability.' );
+			}
+
+			$toolkit_input  = is_array( $toolkit['input_schema'] ?? null ) ? $toolkit['input_schema'] : array();
+			$toolkit_output = is_array( $toolkit['output_schema'] ?? null ) ? $toolkit['output_schema'] : array();
+			$toolkit_hash   = (string) ( $toolkit['schema_hash'] ?? self::schema_hash( $toolkit_input, $toolkit_output ) );
+			if ( self::schema_hash( $input_schema, $output_schema ) !== $toolkit_hash || self::schema_hash( $toolkit_input, $toolkit_output ) !== $toolkit_hash ) {
+				return self::error( 'cloud_ai_task_contract_drift', 'The WordPress Ability schema does not match the Toolkit contract.' );
+			}
+
+			if ( self::TOOLKIT_CONTRACT_VERSION !== (string) ( $toolkit['contract_version'] ?? '' ) || (string) ( $toolkit['ability_id'] ?? $ability_name ) !== $ability_name ) {
+				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract version or Ability identity is invalid.' );
+			}
+
+			$risk_level        = (string) ( $toolkit['risk_level'] ?? 'read' );
+			$requires_approval = (bool) ( $toolkit['requires_approval'] ?? false );
+			$expected_approval = in_array( $risk_level, array( 'write', 'destructive' ), true );
+			$implementation    = is_array( $toolkit['implementation_posture'] ?? null ) ? $toolkit['implementation_posture'] : array();
+			$write_posture     = (string) ( $toolkit['write_posture'] ?? $implementation['write_posture'] ?? ( 'read' === $risk_level ? 'read_only' : '' ) );
+			if ( ! in_array( $risk_level, array( 'read', 'write', 'destructive' ), true ) || $requires_approval !== $expected_approval || ! in_array( $write_posture, array( 'read_only', 'host_governed_dry_run_first' ), true ) ) {
+				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract permission or write posture is incompatible with the local Ability.' );
+			}
+
+			return true;
 		}
 
 		/**

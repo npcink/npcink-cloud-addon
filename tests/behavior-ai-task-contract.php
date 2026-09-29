@@ -15,14 +15,22 @@ if ( ! function_exists( 'wp_get_ability' ) ) {
 	}
 }
 
+if ( ! function_exists( 'npcink_abilities_toolkit_get_registered' ) ) {
+	function npcink_abilities_toolkit_get_registered(): array {
+		return $GLOBALS['maca_toolkit_registered'] ?? array();
+	}
+}
+
 final class Maca_AI_Task_Test_Ability {
 	private string $name;
 	private array $meta;
+	private array $input_schema;
 	private array $output_schema;
 
-	public function __construct( string $name, array $meta, array $output_schema ) {
+	public function __construct( string $name, array $meta, array $output_schema, array $input_schema = array() ) {
 		$this->name          = $name;
 		$this->meta          = $meta;
+		$this->input_schema  = $input_schema;
 		$this->output_schema = $output_schema;
 	}
 
@@ -36,6 +44,10 @@ final class Maca_AI_Task_Test_Ability {
 
 	public function get_output_schema(): array {
 		return $this->output_schema;
+	}
+
+	public function get_input_schema(): array {
+		return $this->input_schema;
 	}
 }
 
@@ -210,6 +222,44 @@ maca_assert(
 	is_wp_error( $stale_result ) && 'cloud_ai_task_contract_not_current' === $stale_result->get_error_code(),
 	'Behavior: a drifted contract stops before the Cloud request.'
 );
+
+$toolkit_input  = array( 'type' => 'object', 'properties' => array( 'content' => array( 'type' => 'string' ) ) );
+$toolkit_output = array( 'type' => 'string' );
+$toolkit_ability = 'npcink-abilities-toolkit/example';
+$toolkit_canonicalize = static function ( $value ) use ( &$toolkit_canonicalize ) {
+	if ( ! is_array( $value ) ) {
+		return $value;
+	}
+	foreach ( $value as $key => $child ) {
+		$value[ $key ] = $toolkit_canonicalize( $child );
+	}
+	if ( array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) {
+		ksort( $value, SORT_STRING );
+	}
+	return $value;
+};
+$toolkit_hash = 'sha256:' . hash( 'sha256', wp_json_encode( $toolkit_canonicalize( array( 'input_schema' => $toolkit_input, 'output_schema' => $toolkit_output ) ) ) );
+$GLOBALS['maca_toolkit_registered'][ $toolkit_ability ] = array(
+	'ability_id'         => $toolkit_ability,
+	'contract_version'   => 'v1',
+	'input_schema'       => $toolkit_input,
+	'output_schema'      => $toolkit_output,
+	'schema_hash'        => $toolkit_hash,
+	'risk_level'         => 'read',
+	'requires_approval'  => false,
+	'write_posture'      => 'read_only',
+);
+$GLOBALS['maca_abilities'][ $toolkit_ability ] = new Maca_AI_Task_Test_Ability( $toolkit_ability, array( 'npcink_ai_task_contract' => array( 'task' => 'toolkit_example', 'task_family' => 'generation' ) ), $toolkit_output, $toolkit_input );
+$toolkit_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( $toolkit_ability );
+maca_assert( is_array( $toolkit_contract ) && 'npcink_abilities_toolkit' === (string) ( $toolkit_contract['contract_source'] ?? '' ), 'Behavior: Toolkit-owned abilities use the Toolkit contract source.' );
+$GLOBALS['maca_toolkit_registered'][ $toolkit_ability ]['output_schema'] = array( 'type' => 'object' );
+$toolkit_drift = Npcink_Cloud_AI_Task_Contract::project_registered_ability( $toolkit_ability );
+maca_assert( is_wp_error( $toolkit_drift ) && 'cloud_ai_task_contract_drift' === $toolkit_drift->get_error_code(), 'Behavior: Toolkit schema drift fails before Cloud execution.' );
+$GLOBALS['maca_toolkit_registered'][ $toolkit_ability ]['output_schema'] = $toolkit_output;
+$GLOBALS['maca_toolkit_registered'][ $toolkit_ability ]['schema_hash'] = $toolkit_hash;
+$GLOBALS['maca_toolkit_registered'][ $toolkit_ability ]['contract_version'] = 'v2';
+$toolkit_version_drift = Npcink_Cloud_AI_Task_Contract::project_registered_ability( $toolkit_ability );
+maca_assert( is_wp_error( $toolkit_version_drift ) && 'cloud_ai_task_contract_drift' === $toolkit_version_drift->get_error_code(), 'Behavior: Toolkit contract version drift fails before Cloud execution.' );
 
 maca_seed_settings( true );
 $GLOBALS['maca_http_response_queue'][] = array(
