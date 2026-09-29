@@ -268,6 +268,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$value = (string) $value;
 			if ( function_exists( 'wp_check_invalid_utf8' ) ) {
 				$value = wp_check_invalid_utf8( $value );
+			} elseif ( function_exists( 'mb_convert_encoding' ) ) {
+				$converted = mb_convert_encoding( $value, 'UTF-8', 'UTF-8' );
+				$value     = is_string( $converted ) ? $converted : '';
 			} elseif ( function_exists( 'iconv' ) ) {
 				$converted = iconv( 'UTF-8', 'UTF-8//IGNORE', $value );
 				$value     = is_string( $converted ) ? $converted : '';

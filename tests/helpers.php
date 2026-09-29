@@ -160,6 +160,29 @@ if ( ! function_exists( 'sanitize_text_field' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_check_invalid_utf8' ) ) {
+	/**
+	 * Minimal WordPress UTF-8 guard for pure-PHP behavior tests.
+	 *
+	 * @param mixed $value Raw text.
+	 * @param bool  $strip Optional WordPress compatibility argument.
+	 * @return string
+	 */
+	function wp_check_invalid_utf8( $value, bool $strip = false ): string {
+		unset( $strip );
+		$value = (string) $value;
+		if ( function_exists( 'iconv' ) ) {
+			$converted = iconv( 'UTF-8', 'UTF-8//IGNORE', $value );
+			return is_string( $converted ) ? $converted : '';
+		}
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$converted = mb_convert_encoding( $value, 'UTF-8', 'UTF-8' );
+			return is_string( $converted ) ? $converted : '';
+		}
+		return preg_replace( '/[^\x00-\x7F]/', '', $value ) ?? '';
+	}
+}
+
 if ( ! function_exists( 'sanitize_key' ) ) {
 	function sanitize_key( $value ): string {
 		return strtolower( preg_replace( '/[^a-zA-Z0-9_-]/', '', (string) $value ) );
