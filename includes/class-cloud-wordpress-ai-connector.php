@@ -1062,6 +1062,20 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$scene_input['prompt'] = $text;
 			}
 			$context_input = is_array( $ability_context['input'] ?? null ) ? $ability_context['input'] : array();
+			if ( 'content_classification' === $task ) {
+				$taxonomy = sanitize_key( (string) ( $context_input['taxonomy'] ?? '' ) );
+				$strategy = sanitize_key( (string) ( $context_input['strategy'] ?? '' ) );
+				$max_suggestions = absint( $context_input['max_suggestions'] ?? 0 );
+				if ( '' !== $taxonomy ) {
+					$scene_input['taxonomy'] = substr( $taxonomy, 0, 64 );
+				}
+				if ( in_array( $strategy, array( 'existing_only', 'allow_new' ), true ) ) {
+					$scene_input['strategy'] = $strategy;
+				}
+				if ( 0 < $max_suggestions ) {
+					$scene_input['max_suggestions'] = min( 10, $max_suggestions );
+				}
+			}
 			if ( 'content_translation' === $task ) {
 				$target_language = sanitize_key( (string) ( $context_input['target_language'] ?? '' ) );
 				$content = trim( (string) ( $context_input['content'] ?? '' ) );
