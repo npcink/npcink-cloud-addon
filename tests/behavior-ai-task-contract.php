@@ -107,6 +107,30 @@ maca_assert(
 	'Behavior: ai-wp-admin suggest reply receives a bounded suggestion-only comment reply task projection.'
 );
 
+$canonical_schema = array(
+	'input_schema'  => array( 'properties' => array( 'body' => array( 'type' => 'string' ), 'title' => array( 'type' => 'string' ) ), 'type' => 'object' ),
+	'output_schema' => array( 'type' => 'string', 'minLength' => 1 ),
+);
+$canonical_contract = array(
+	'contract_version' => 'ai_task_contract.v1',
+	'ability_name' => 'ai/canonical-hash',
+	'ability_id' => 'ai/canonical-hash',
+	'contract_source' => 'wordpress_abilities_api',
+	'verification_state' => 'mapping_current',
+	'task' => 'canonical_hash',
+	'task_family' => 'generation',
+	'input_schema' => $canonical_schema['input_schema'],
+	'output_schema' => $canonical_schema['output_schema'],
+);
+$canonical_json = '{"input_schema":{"properties":{"body":{"type":"string"},"title":{"type":"string"}},"type":"object"},"output_schema":{"minLength":1,"type":"string"}}';
+$canonical_contract['schema_hash'] = 'sha256:' . hash( 'sha256', $canonical_json );
+$first_hash = Npcink_Cloud_AI_Task_Contract::normalize( $canonical_contract );
+$canonical_contract['input_schema'] = array( 'type' => 'object', 'properties' => array( 'title' => array( 'type' => 'string' ), 'body' => array( 'type' => 'string' ) ) );
+$canonical_contract['output_schema'] = array( 'minLength' => 1, 'type' => 'string' );
+$canonical_contract['schema_hash'] = is_array( $first_hash ) ? $first_hash['schema_hash'] : '';
+$reordered_hash = Npcink_Cloud_AI_Task_Contract::normalize( $canonical_contract );
+maca_assert( is_array( $first_hash ) && is_array( $reordered_hash ) && $first_hash['schema_hash'] === $reordered_hash['schema_hash'], 'Behavior: schema hashes remain stable when object key order changes.' );
+
 $GLOBALS['maca_abilities']['ai/slug-generation'] = new Maca_AI_Task_Test_Ability(
 	'ai/slug-generation',
 	array(),
