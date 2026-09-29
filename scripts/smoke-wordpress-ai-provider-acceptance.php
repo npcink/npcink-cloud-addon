@@ -71,28 +71,33 @@ npcink_cloud_acceptance_set_user();
 $wordpress_state_before = npcink_cloud_acceptance_wordpress_state();
 
 $cases = array(
-	'ai/excerpt-generation'  => array( 'content' => 'A short article about reliable WordPress AI provider contracts.', 'length' => 'short' ),
-	'ai/meta-description'    => array( 'content' => 'A short article about reliable WordPress AI provider contracts.', 'title' => 'Provider contracts' ),
-	'ai/content-translation' => array( 'content' => '这是一个用于验证翻译能力的固定测试段落。', 'target_language' => 'en-us' ),
-	'ai/summarization'       => array( 'content' => 'This fixed article explains how a WordPress Ability reaches a hosted provider through a bounded connector contract.', 'context' => 'Keep the summary factual.', 'length' => 'short' ),
-	'ai/slug-generation'     => array( 'title' => 'WordPress AI provider compatibility guide', 'content' => 'A guide to stable provider contracts.' ),
-	'ai/content-resizing'    => array( 'content' => 'This fixed paragraph repeats the same idea and needs a shorter, clearer version for an article.', 'action' => 'shorten' ),
-	'ai/editorial-notes'     => array( 'block_type' => 'core/paragraph', 'block_content' => 'These sentence are hard to reads. It repeats the same point again and repeats the same point again.', 'review_types' => array( 'readability', 'grammar' ) ),
-	'ai/editorial-updates'   => array( 'block_type' => 'core/paragraph', 'block_content' => 'This paragraph needs a concise editorial update.', 'notes' => array( 'Make the paragraph clearer.' ) ),
-	'ai/content-classification' => array( 'content' => 'A practical guide to connecting WordPress AI abilities to a hosted provider.', 'taxonomy' => 'post_tag', 'strategy' => 'existing_only', 'max_suggestions' => 3 ),
-	'ai/image-prompt-generation' => array( 'content' => 'A calm editorial workspace showing a WordPress article moving through a reliable AI provider pipeline.', 'context' => 'Use a clean product illustration style.', 'style' => 'minimal, editorial, accessible contrast' ),
-	'ai/title-generation'    => array( 'content' => 'A guide explaining how WordPress AI abilities connect to a cloud provider.' ),
+	array( 'scenario_id' => 'excerpt-default', 'ability' => 'ai/excerpt-generation', 'input' => array( 'content' => 'A short article about reliable WordPress AI provider contracts.', 'length' => 'short' ) ),
+	array( 'scenario_id' => 'meta-description-default', 'ability' => 'ai/meta-description', 'input' => array( 'content' => 'A short article about reliable WordPress AI provider contracts.', 'title' => 'Provider contracts' ) ),
+	array( 'scenario_id' => 'content-translation-en-us', 'ability' => 'ai/content-translation', 'input' => array( 'content' => '这是一个用于验证翻译能力的固定测试段落。', 'target_language' => 'en-us' ) ),
+	array( 'scenario_id' => 'summarization-short', 'ability' => 'ai/summarization', 'input' => array( 'content' => 'This fixed article explains how a WordPress Ability reaches a hosted provider through a bounded connector contract.', 'context' => 'Keep the summary factual.', 'length' => 'short' ) ),
+	array( 'scenario_id' => 'slug-generation-default', 'ability' => 'ai/slug-generation', 'input' => array( 'title' => 'WordPress AI provider compatibility guide', 'content' => 'A guide to stable provider contracts.' ) ),
+	array( 'scenario_id' => 'content-resizing-short', 'ability' => 'ai/content-resizing', 'input' => array( 'content' => 'This fixed paragraph repeats the same idea and needs a shorter, clearer version for an article.', 'action' => 'shorten' ) ),
+	array( 'scenario_id' => 'editorial-notes-readability-grammar', 'ability' => 'ai/editorial-notes', 'input' => array( 'block_type' => 'core/paragraph', 'block_content' => 'These sentence are hard to reads. It repeats the same point again and repeats the same point again.', 'review_types' => array( 'readability', 'grammar' ) ) ),
+	array( 'scenario_id' => 'editorial-updates-with-notes', 'ability' => 'ai/editorial-updates', 'input' => array( 'block_type' => 'core/paragraph', 'block_content' => 'This paragraph needs a concise editorial update.', 'notes' => array( 'Make the paragraph clearer.' ) ) ),
+	array( 'scenario_id' => 'classification-post-tag-existing-only', 'ability' => 'ai/content-classification', 'input' => array( 'content' => 'A practical guide to connecting WordPress AI abilities to a hosted provider.', 'taxonomy' => 'post_tag', 'strategy' => 'existing_only', 'max_suggestions' => 3 ) ),
+	array( 'scenario_id' => 'classification-category-existing-only', 'ability' => 'ai/content-classification', 'input' => array( 'content' => 'A practical guide to connecting WordPress AI abilities to a hosted provider.', 'taxonomy' => 'category', 'strategy' => 'existing_only', 'max_suggestions' => 3 ) ),
+	array( 'scenario_id' => 'image-prompt-generation-default', 'ability' => 'ai/image-prompt-generation', 'input' => array( 'content' => 'A calm editorial workspace showing a WordPress article moving through a reliable AI provider pipeline.', 'context' => 'Use a clean product illustration style.', 'style' => 'minimal, editorial, accessible contrast' ) ),
+	array( 'scenario_id' => 'title-generation-default', 'ability' => 'ai/title-generation', 'input' => array( 'content' => 'A guide explaining how WordPress AI abilities connect to a cloud provider.' ) ),
 );
 $comment_id = absint( getenv( 'WP_AI_ACCEPTANCE_COMMENT_ID' ) ?: 0 );
 if ( 0 < $comment_id ) {
-	$cases['ai/comment-analysis'] = array( 'comment_id' => $comment_id );
-	$cases['ai/suggest-reply']    = array( 'comment_id' => $comment_id, 'tone' => 'friendly' );
+	$cases[] = array( 'scenario_id' => 'comment-analysis-fixed', 'ability' => 'ai/comment-analysis', 'input' => array( 'comment_id' => $comment_id ) );
+	$cases[] = array( 'scenario_id' => 'comment-reply-fixed', 'ability' => 'ai/suggest-reply', 'input' => array( 'comment_id' => $comment_id, 'tone' => 'friendly' ) );
 }
 $alt_text_attachment_id = absint( getenv( 'WP_AI_ACCEPTANCE_ALT_TEXT_ATTACHMENT_ID' ) ?: 0 );
 if ( 0 < $alt_text_attachment_id ) {
-	$cases['ai/alt-text-generation'] = array(
-		'attachment_id' => $alt_text_attachment_id,
-		'context'       => 'Describe the main subject for an accessible media-library alt text suggestion.',
+	$cases[] = array(
+		'scenario_id' => 'alt-text-generation-fixed',
+		'ability'     => 'ai/alt-text-generation',
+		'input'       => array(
+			'attachment_id' => $alt_text_attachment_id,
+			'context'       => 'Describe the main subject for an accessible media-library alt text suggestion.',
+		),
 	);
 }
 $requested_abilities = array_values(
@@ -104,7 +109,14 @@ $requested_abilities = array_values(
 	)
 );
 if ( ! empty( $requested_abilities ) ) {
-	$cases = array_intersect_key( $cases, array_flip( $requested_abilities ) );
+	$cases = array_values(
+		array_filter(
+			$cases,
+			static function ( $case ) use ( $requested_abilities ) {
+				return is_array( $case ) && in_array( (string) ( $case['ability'] ?? '' ), $requested_abilities, true );
+			}
+		)
+	);
 }
 
 $report = array(
@@ -118,12 +130,16 @@ $report = array(
 	'cases'            => array(),
 );
 
-foreach ( $cases as $ability => $input ) {
+foreach ( $cases as $case_definition ) {
+	$ability = (string) ( $case_definition['ability'] ?? '' );
+	$input = is_array( $case_definition['input'] ?? null ) ? $case_definition['input'] : array();
+	$scenario_id = sanitize_key( (string) ( $case_definition['scenario_id'] ?? $ability ) );
 	$contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( $ability );
 	$input_json = wp_json_encode( $input, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION );
 	$input_fields = array_keys( $input );
 	sort( $input_fields );
 	$case     = array(
+		'scenario_id'        => $scenario_id,
 		'ability'            => $ability,
 		'input_fingerprint'  => false === $input_json ? null : 'sha256:' . hash( 'sha256', $input_json ),
 		'input_fields'       => $input_fields,

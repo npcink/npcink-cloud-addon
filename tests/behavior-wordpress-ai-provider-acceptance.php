@@ -18,6 +18,9 @@ maca_assert(
 	&& false !== strpos( $acceptance_smoke_source, "'verification_state'" )
 	&& false !== strpos( $acceptance_smoke_source, "'input_fingerprint'" )
 	&& false !== strpos( $acceptance_smoke_source, "'input_fields'" )
+	&& false !== strpos( $acceptance_smoke_source, "'scenario_id'" )
+	&& false !== strpos( $acceptance_smoke_source, 'classification-post-tag-existing-only' )
+	&& false !== strpos( $acceptance_smoke_source, 'classification-category-existing-only' )
 	&& false !== strpos( $acceptance_smoke_source, "'quality_context'" )
 	&& false !== strpos( $acceptance_smoke_source, 'current_cloud_run_id' ),
 	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
