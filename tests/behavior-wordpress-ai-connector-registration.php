@@ -121,6 +121,16 @@ foreach ( $generated_image_filename_examples as $input_filename => $expected_fil
 
 maca_seed_settings( true );
 
+$GLOBALS['maca_options']['active_plugins'] = array( 'renamed-addon/npcink-cloud-addon.php' );
+$renamed_registry = new Maca_Connector_Registry_Stub();
+Npcink_Cloud_WordPress_AI_Connector::register_connector( $renamed_registry );
+$renamed_connector = $renamed_registry->connectors[ Npcink_Cloud_WordPress_AI_Connector::CONNECTOR_ID ] ?? array();
+maca_assert(
+	'renamed-addon/npcink-cloud-addon.php' === ( $renamed_connector['plugin']['file'] ?? '' ),
+	'WordPress connector registry follows an active renamed addon directory instead of returning the packaged fallback basename.'
+);
+$GLOBALS['maca_options']['active_plugins'] = array();
+
 $capability_fixture = array(
 	'contract_version' => 'wordpress-ai-capabilities-v1',
 	'evidence_kind' => 'configuration_snapshot',
