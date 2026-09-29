@@ -209,11 +209,11 @@ foreach ( $cases as $case_definition ) {
 	if ( empty( $case['provider_run_id'] ) && class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		$case['provider_run_id'] = Npcink_Cloud_WordPress_AI_Connector::current_cloud_run_id() ?: null;
 	}
-	if ( class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) && method_exists( 'Npcink_Cloud_WordPress_AI_Connector', 'current_runtime_failure_evidence' ) ) {
+	if ( null !== $case['failure_code'] && class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) && method_exists( 'Npcink_Cloud_WordPress_AI_Connector', 'current_runtime_failure_evidence' ) ) {
 		$failure_evidence = Npcink_Cloud_WordPress_AI_Connector::current_runtime_failure_evidence();
 		if ( is_array( $failure_evidence ) && ! empty( $failure_evidence ) ) {
 			if ( empty( $case['provider_run_id'] ) ) {
-				$case['provider_run_id'] = $failure_evidence['run_id'] ?? null;
+				$case['provider_run_id'] = (string) ( $failure_evidence['run_id'] ?? '' ) ?: null;
 			}
 			$case['failure_stage'] = (string) ( $failure_evidence['error_stage'] ?? '' );
 			$case['quality_reason'] = (string) ( $failure_evidence['quality_reason'] ?? '' );
