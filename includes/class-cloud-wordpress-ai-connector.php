@@ -265,7 +265,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return string
 		 */
 		private static function normalize_runtime_failure_field( $value ): string {
-			$value = (string) $value;
+			$value = is_scalar( $value ) ? (string) $value : '';
 			if ( function_exists( 'wp_check_invalid_utf8' ) ) {
 				$value = wp_check_invalid_utf8( $value );
 			} elseif ( function_exists( 'mb_convert_encoding' ) ) {
@@ -281,7 +281,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$collapsed = preg_replace( '/\s+/', ' ', $filtered );
 			$value = is_string( $collapsed ) ? $collapsed : $filtered;
 			$value = trim( $value );
-			return function_exists( 'mb_substr' ) ? mb_substr( $value, 0, 120, 'UTF-8' ) : substr( $value, 0, 120 );
+			if ( function_exists( 'mb_substr' ) ) {
+				return mb_substr( $value, 0, 120, 'UTF-8' );
+			}
+			$truncated = preg_replace( '/^(.{0,120}).*/us', '$1', $value );
+			return is_string( $truncated ) ? $truncated : substr( $value, 0, 120 );
 		}
 
 		/**

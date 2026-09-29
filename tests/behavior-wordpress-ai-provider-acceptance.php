@@ -71,6 +71,12 @@ maca_assert(
 	&& false !== json_encode( $runtime_report_evidence, JSON_UNESCAPED_UNICODE ),
 	'Runtime failure evidence preserves the Cloud run ID, dotted code, stage, and valid UTF-8 diagnostics.'
 );
+Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
+Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array( 'quality_reason' => array( 'nested' => true ) ) );
+maca_assert(
+	array() === Npcink_Cloud_WordPress_AI_Connector::current_runtime_failure_evidence(),
+	'Runtime failure evidence ignores non-scalar diagnostic fields without emitting array-cast warnings.'
+);
 $evidence_case = npcink_cloud_acceptance_attach_failure_evidence(
 	array(
 		'provider_run_id' => null,
