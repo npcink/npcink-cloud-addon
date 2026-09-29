@@ -3,6 +3,13 @@
 require_once __DIR__ . '/helpers.php';
 require_once dirname( __DIR__ ) . '/scripts/wordpress-ai-provider-acceptance-functions.php';
 
+if ( ! function_exists( 'parse_blocks' ) ) {
+	function parse_blocks( $content ) {
+		preg_match_all( '/<!-- wp:[^>]+-->/', (string) $content, $matches );
+		return array_fill( 0, count( $matches[0] ), array() );
+	}
+}
+
 $acceptance_smoke_source = (string) file_get_contents( dirname( __DIR__ ) . '/scripts/smoke-wordpress-ai-provider-acceptance.php' );
 maca_assert(
 	false !== strpos( $acceptance_smoke_source, "'contract_source'" )
@@ -10,6 +17,7 @@ maca_assert(
 	&& false !== strpos( $acceptance_smoke_source, "'verification_state'" )
 	&& false !== strpos( $acceptance_smoke_source, "'input_fingerprint'" )
 	&& false !== strpos( $acceptance_smoke_source, "'input_fields'" )
+	&& false !== strpos( $acceptance_smoke_source, "'quality_context'" )
 	&& false !== strpos( $acceptance_smoke_source, 'current_cloud_run_id' ),
 	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
 );
@@ -25,7 +33,8 @@ maca_assert( 'contract_drift' === npcink_cloud_acceptance_contract_status( new W
 
 maca_assert( 'task_not_completed' === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', "Please provide the original paragraph you'd like revised." ), 'Acceptance rejects the observed request-for-source reply.' );
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', 'The revised paragraph is clearer.' ), 'Acceptance keeps an ordinary completed edit eligible for review.' );
-maca_assert( 'empty_result' === npcink_cloud_acceptance_quality_failure( 'ai/editorial-notes', array( 'suggestions' => array() ) ), 'Acceptance rejects empty suggestions for the deliberately defective fixture.' );
+maca_assert( 'editorial_empty' === npcink_cloud_acceptance_quality_failure( 'ai/editorial-notes', array( 'suggestions' => array() ) ), 'Acceptance distinguishes empty editorial suggestions from runtime failure.' );
+maca_assert( 'taxonomy_empty' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array() ) ), 'Acceptance distinguishes empty taxonomy suggestions from runtime failure.' );
 maca_assert( 'slug_format_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/slug-generation', array( 'slugs' => array( 'valid-slug', 'Invalid slug' ) ) ), 'Acceptance checks every slug, not only the first.' );
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/slug-generation', array( 'slugs' => array( 'first-slug', 'second-slug' ) ) ), 'Acceptance allows valid slug candidates.' );
 maca_assert( 'target_language_mismatch' === npcink_cloud_acceptance_quality_failure( 'ai/content-translation', '这是未翻译的固定样本。' ), 'Acceptance rejects untranslated Chinese for the English target fixture.' );
@@ -36,6 +45,12 @@ maca_assert( 'task_not_completed' === npcink_cloud_acceptance_quality_failure( '
 maca_assert( 'classification_suggestion_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array( array( 'term' => '' ) ) ) ), 'Acceptance rejects empty classification terms.' );
 maca_assert( 'classification_confidence_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array( array( 'term' => 'WordPress', 'confidence' => 1.5 ) ) ) ), 'Acceptance rejects out-of-range classification confidence.' );
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array( array( 'term' => 'WordPress', 'confidence' => 0.9 ) ) ) ), 'Acceptance allows bounded classification suggestions.' );
+$quality_context = npcink_cloud_acceptance_quality_context(
+	'ai/content-translation',
+	array( 'content' => '<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->', 'target_language' => 'en-us' ),
+	'<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->'
+);
+maca_assert( 'en-us' === ( $quality_context['target_language'] ?? null ) && 2 === (int) ( $quality_context['expected_block_count'] ?? 0 ) && 2 === (int) ( $quality_context['translated_block_count'] ?? 0 ), 'Acceptance records target language and block-count evidence without recording article text.' );
 
 $good = array( 'quality_status' => 'passed', 'write_detected' => false );
 $bad = array( 'quality_status' => 'failed', 'write_detected' => false );

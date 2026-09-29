@@ -63,6 +63,40 @@ function npcink_cloud_acceptance_string( $value ) {
 	return '';
 }
 
+/**
+ * Build non-secret context for development quality reports.
+ * Article text, prompts, credentials, and generated output are excluded.
+ */
+function npcink_cloud_acceptance_quality_context( $ability, array $input, $data = null ): array {
+	$input_json = wp_json_encode( $input, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION );
+	$context    = array(
+		'input_fields'      => array_keys( $input ),
+		'input_json_bytes'  => false === $input_json ? null : strlen( $input_json ),
+		'source_characters' => isset( $input['content'] ) && is_string( $input['content'] ) ? ( function_exists( 'mb_strlen' ) ? mb_strlen( $input['content'] ) : strlen( $input['content'] ) ) : null,
+	);
+	sort( $context['input_fields'] );
+	foreach ( array( 'target_language', 'source_language', 'taxonomy', 'max_suggestions' ) as $key ) {
+		if ( array_key_exists( $key, $input ) && ( is_scalar( $input[ $key ] ) || null === $input[ $key ] ) ) {
+			$context[ $key ] = $input[ $key ];
+		}
+	}
+	if ( isset( $input['review_types'] ) && is_array( $input['review_types'] ) ) {
+		$context['review_types'] = array_values( array_filter( array_map( 'strval', $input['review_types'] ) ) );
+	}
+	if ( 'ai/content-translation' === $ability && isset( $input['content'] ) && is_string( $input['content'] ) && function_exists( 'parse_blocks' ) && false !== strpos( $input['content'], '<!-- wp:' ) ) {
+		$translated = npcink_cloud_acceptance_string( $data );
+		if ( false !== strpos( $translated, '<!-- wp:' ) ) {
+			$context['expected_block_count']   = count( parse_blocks( $input['content'] ) );
+			$context['translated_block_count'] = count( parse_blocks( $translated ) );
+		}
+	}
+	$output_text = npcink_cloud_acceptance_string( $data );
+	if ( '' !== $output_text ) {
+		$context['output_characters'] = function_exists( 'mb_strlen' ) ? mb_strlen( $output_text ) : strlen( $output_text );
+	}
+	return $context;
+}
+
 function npcink_cloud_acceptance_shape_valid( $schema, $data ) {
 	if ( ! is_array( $schema ) || empty( $schema ) || ! function_exists( 'rest_validate_value_from_schema' ) ) {
 		return false;
@@ -119,6 +153,12 @@ function npcink_cloud_acceptance_failure_code( $status, $data, $shape_valid ) {
 
 /** Fixed-fixture quality checks; passing these is not human acceptance. */
 function npcink_cloud_acceptance_quality_failure( $ability, $data ) {
+	if ( 'ai/content-classification' === $ability && is_array( $data ) && array_key_exists( 'suggestions', $data ) && empty( $data['suggestions'] ) ) {
+		return 'taxonomy_empty';
+	}
+	if ( 'ai/editorial-notes' === $ability && is_array( $data ) && array_key_exists( 'suggestions', $data ) && empty( $data['suggestions'] ) ) {
+		return 'editorial_empty';
+	}
 	if ( ! npcink_cloud_acceptance_has_result( $ability, $data ) ) {
 		return 'empty_result';
 	}
