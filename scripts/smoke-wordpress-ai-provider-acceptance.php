@@ -212,8 +212,8 @@ foreach ( $cases as $case_definition ) {
 		$case['failure_code'] = npcink_cloud_acceptance_quality_failure( $ability, $data, $input );
 	}
 	$case['quality_status'] = null === $case['failure_code'] ? 'passed' : 'failed';
-	if ( is_array( $data ) ) {
-		$case['provider_run_id'] = $data['run_id'] ?? ( $data['data']['run_id'] ?? null );
+	if ( class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) && method_exists( 'Npcink_Cloud_WordPress_AI_Connector', 'cloud_run_id_from_response' ) ) {
+		$case['provider_run_id'] = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $data ) ?: null;
 	}
 	if ( empty( $case['provider_run_id'] ) && class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		$case['provider_run_id'] = Npcink_Cloud_WordPress_AI_Connector::current_cloud_run_id() ?: null;

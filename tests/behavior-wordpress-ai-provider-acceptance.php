@@ -26,6 +26,7 @@ maca_assert(
 	&& false !== strpos( $acceptance_smoke_source, 'content-translation-blocks-en-us' )
 	&& false !== strpos( $acceptance_smoke_source, 'slug-generation-mixed-language' )
 	&& false !== strpos( $acceptance_smoke_source, "'quality_context'" )
+	&& false !== strpos( $acceptance_smoke_source, 'cloud_run_id_from_response' )
 	&& false !== strpos( $acceptance_smoke_source, 'current_cloud_run_id' ),
 	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
 );
