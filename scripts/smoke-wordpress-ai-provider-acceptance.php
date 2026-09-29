@@ -6,8 +6,9 @@
  * Run with:
  *   composer run acceptance:wp-ai-provider
  *
- * Optional real media/comment coverage:
+ * Optional real media/comment/image-generation coverage:
  *   WP_AI_ACCEPTANCE_COMMENT_ID=123 WP_AI_ACCEPTANCE_ALT_TEXT_ATTACHMENT_ID=456 \
+ *   WP_AI_ACCEPTANCE_IMAGE_GENERATION=1 \
  *   composer run acceptance:wp-ai-provider
  *
  * A bounded subset can be run while diagnosing one ability:
@@ -99,6 +100,19 @@ if ( 0 < $alt_text_attachment_id ) {
 		'input'       => array(
 			'attachment_id' => $alt_text_attachment_id,
 			'context'       => 'Describe the main subject for an accessible media-library alt text suggestion.',
+		),
+	);
+}
+$image_generation_enabled = '1' === (string) ( getenv( 'WP_AI_ACCEPTANCE_IMAGE_GENERATION' ) ?: '' );
+if ( $image_generation_enabled ) {
+	$cases[] = array(
+		'scenario_id' => 'image-generation-artifact-fixed',
+		'ability'     => 'ai/image-generation',
+		'input'       => array(
+			'prompt'        => 'A simple editorial illustration of a WordPress article moving through a reliable AI provider pipeline.',
+			'n'             => 1,
+			'aspect_ratio' => '1:1',
+			'resolution'   => 'medium',
 		),
 	);
 }
@@ -203,6 +217,9 @@ if ( 0 === $comment_id ) {
 }
 if ( 0 === $alt_text_attachment_id ) {
 	$report['optional_capabilities_skipped'][] = array( 'ability' => 'ai/alt-text-generation', 'reason' => 'set WP_AI_ACCEPTANCE_ALT_TEXT_ATTACHMENT_ID' );
+}
+if ( ! $image_generation_enabled ) {
+	$report['optional_capabilities_skipped'][] = array( 'ability' => 'ai/image-generation', 'reason' => 'set WP_AI_ACCEPTANCE_IMAGE_GENERATION=1' );
 }
 
 $wordpress_state_after = npcink_cloud_acceptance_wordpress_state();
