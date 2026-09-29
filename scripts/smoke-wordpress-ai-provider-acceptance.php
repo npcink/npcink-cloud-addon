@@ -183,6 +183,12 @@ foreach ( $cases as $case_definition ) {
 		continue;
 	}
 
+	if ( class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
+		Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
+		if ( method_exists( 'Npcink_Cloud_WordPress_AI_Connector', 'reset_runtime_failure_evidence' ) ) {
+			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
+		}
+	}
 	$response            = npcink_cloud_acceptance_request( $ability, $input );
 	$status              = (int) $response->get_status();
 	$data                = $response->get_data();
