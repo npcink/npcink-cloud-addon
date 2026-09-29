@@ -135,6 +135,16 @@ persisting the media bytes; non-decorative images must return non-empty alt text
 while decorative images may intentionally return an empty string. The runner
 never imports media, updates attachment metadata, or inserts an image.
 
+Image-generation coverage is opt-in through
+`WP_AI_ACCEPTANCE_IMAGE_GENERATION=1` because the official host feature may be
+disabled and image generation can consume paid Provider budget. When enabled,
+the runner accepts only the bounded `image_generation_result.v1` Artifact
+envelope: candidate references must be available images with positive
+dimensions and size, a SHA-256 checksum, and no inline or storage URL fields;
+the result must declare `suggestion_only=true` and
+`requires_local_review=true`. The runner records the Artifact metadata for
+quality checks but does not download, import, or write it to WordPress.
+
 Use the combined local command when the candidate Addon is mounted in the
 target WordPress site:
 

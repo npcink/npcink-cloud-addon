@@ -89,6 +89,10 @@ function npcink_cloud_acceptance_quality_context( $ability, array $input, $data 
 	} elseif ( 'ai/image-prompt-generation' === $ability ) {
 		$context['has_context'] = isset( $input['context'] ) && is_string( $input['context'] ) && '' !== trim( $input['context'] );
 		$context['has_style']   = isset( $input['style'] ) && is_string( $input['style'] ) && '' !== trim( $input['style'] );
+	} elseif ( 'ai/image-generation' === $ability ) {
+		$context['requested_count'] = isset( $input['n'] ) && is_numeric( $input['n'] ) ? (int) $input['n'] : null;
+		$context['aspect_ratio']    = isset( $input['aspect_ratio'] ) && is_scalar( $input['aspect_ratio'] ) ? (string) $input['aspect_ratio'] : null;
+		$context['resolution']      = isset( $input['resolution'] ) && is_scalar( $input['resolution'] ) ? (string) $input['resolution'] : null;
 	}
 	if ( 'ai/content-translation' === $ability && isset( $input['content'] ) && is_string( $input['content'] ) && function_exists( 'parse_blocks' ) && false !== strpos( $input['content'], '<!-- wp:' ) ) {
 		$context['structure_kind']        = 'gutenberg_blocks';
@@ -130,6 +134,9 @@ function npcink_cloud_acceptance_has_result( $ability, $data ) {
 	}
 	if ( 'ai/image-prompt-generation' === $ability ) {
 		return '' !== npcink_cloud_acceptance_string( $data );
+	}
+	if ( 'ai/image-generation' === $ability ) {
+		return is_array( $data ) && ! empty( $data['artifacts'] ) && is_array( $data['artifacts'] );
 	}
 	if ( 'ai/content-classification' === $ability ) {
 		return is_array( $data ) && ! empty( $data['suggestions'] ) && is_array( $data['suggestions'] );
@@ -181,6 +188,48 @@ function npcink_cloud_acceptance_quality_failure( $ability, $data, array $input 
 	}
 	if ( 'ai/image-prompt-generation' === $ability && '' === npcink_cloud_acceptance_string( $data ) ) {
 		return 'image_prompt_empty';
+	}
+	if ( 'ai/image-generation' === $ability ) {
+		if ( ! is_array( $data )
+			|| 'image_generation_result.v1' !== (string) ( $data['contract_version'] ?? '' )
+			|| 'image_generation_artifacts' !== (string) ( $data['artifact_type'] ?? '' )
+			|| 'image.generate.v1' !== (string) ( $data['operation'] ?? '' ) ) {
+			return 'image_generation_contract_invalid';
+		}
+		if ( true !== ( $data['suggestion_only'] ?? false ) || true !== ( $data['requires_local_review'] ?? false ) ) {
+			return 'image_generation_write_posture_invalid';
+		}
+		$artifacts = is_array( $data['artifacts'] ?? null ) ? $data['artifacts'] : array();
+		if ( empty( $artifacts ) || count( $artifacts ) > 4 ) {
+			return 'image_generation_artifact_invalid';
+		}
+		$forbidden_keys = array( 'b64_json', 'base64', 'bytes', 'download_url', 'source_url', 'storage_key', 'url' );
+		foreach ( $artifacts as $artifact ) {
+			if ( ! is_array( $artifact ) ) {
+				return 'image_generation_artifact_invalid';
+			}
+			$artifact_id  = (string) ( $artifact['artifact_id'] ?? '' );
+			$reference_id = is_array( $artifact['artifact_reference'] ?? null ) ? (string) ( $artifact['artifact_reference']['artifact_id'] ?? '' ) : '';
+			$checksum     = (string) ( $artifact['checksum'] ?? '' );
+			$valid        = '' !== $artifact_id
+				&& $artifact_id === $reference_id
+				&& 'available' === (string) ( $artifact['status'] ?? '' )
+				&& 'image' === (string) ( $artifact['media_kind'] ?? '' )
+				&& 'image.generate.v1' === (string) ( $artifact['operation'] ?? '' )
+				&& str_starts_with( strtolower( (string) ( $artifact['content_type'] ?? '' ) ), 'image/' )
+				&& is_int( $artifact['width'] ?? null ) && 0 < $artifact['width']
+				&& is_int( $artifact['height'] ?? null ) && 0 < $artifact['height']
+				&& is_int( $artifact['filesize_bytes'] ?? null ) && 0 < $artifact['filesize_bytes']
+				&& 1 === preg_match( '/^sha256:[a-f0-9]{64}$/', $checksum );
+			foreach ( $forbidden_keys as $forbidden_key ) {
+				if ( array_key_exists( $forbidden_key, $artifact ) ) {
+					$valid = false;
+				}
+			}
+			if ( ! $valid ) {
+				return 'image_generation_artifact_invalid';
+			}
+		}
 	}
 	if ( ! npcink_cloud_acceptance_has_result( $ability, $data ) ) {
 		return 'empty_result';

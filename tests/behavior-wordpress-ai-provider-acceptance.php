@@ -64,6 +64,30 @@ maca_assert( 'classification_too_many' === npcink_cloud_acceptance_quality_failu
 maca_assert( 'classification_new_term' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array( array( 'term' => 'New term', 'is_new' => true ) ) ), array( 'strategy' => 'existing_only', 'max_suggestions' => 3 ) ), 'Acceptance rejects new taxonomy terms when existing-only strategy is requested.' );
 maca_assert( 'alt_text_missing' === npcink_cloud_acceptance_quality_failure( 'ai/alt-text-generation', array( 'alt_text' => '', 'is_decorative' => false ) ), 'Acceptance rejects a non-decorative image without alternative text.' );
 maca_assert( 'image_prompt_empty' === npcink_cloud_acceptance_quality_failure( 'ai/image-prompt-generation', '' ), 'Acceptance rejects an empty image prompt.' );
+$image_artifact = array(
+	'contract_version'      => 'image_generation_result.v1',
+	'artifact_type'         => 'image_generation_artifacts',
+	'operation'             => 'image.generate.v1',
+	'suggestion_only'       => true,
+	'requires_local_review' => true,
+	'artifacts'             => array(
+		array(
+			'artifact_id'        => 'art_' . str_repeat( 'c', 32 ),
+			'artifact_reference' => array( 'artifact_id' => 'art_' . str_repeat( 'c', 32 ) ),
+			'status'             => 'available',
+			'media_kind'         => 'image',
+			'operation'          => 'image.generate.v1',
+			'content_type'       => 'image/png',
+			'width'              => 1024,
+			'height'             => 1024,
+			'filesize_bytes'     => 2048,
+			'checksum'           => 'sha256:' . str_repeat( 'd', 64 ),
+		),
+	),
+);
+maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/image-generation', $image_artifact ), 'Acceptance allows bounded image-generation Artifact results.' );
+$image_artifact['artifacts'][0]['b64_json'] = 'inline-must-fail';
+maca_assert( 'image_generation_artifact_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/image-generation', $image_artifact ), 'Acceptance rejects inline image-generation media.' );
 $media_context = npcink_cloud_acceptance_quality_context( 'ai/alt-text-generation', array( 'attachment_id' => 123, 'context' => 'Describe the subject.' ), array( 'alt_text' => 'A subject.', 'is_decorative' => false ) );
 maca_assert( 'attachment' === ( $media_context['media_input_kind'] ?? null ) && true === ( $media_context['has_context'] ?? false ), 'Acceptance records media input posture without exposing the image or URL.' );
 $quality_context = npcink_cloud_acceptance_quality_context(
