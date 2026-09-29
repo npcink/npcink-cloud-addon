@@ -167,7 +167,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			$projection['write_posture']    = 'suggestion_only';
 
 			if ( $is_toolkit_ability ) {
-				$toolkit_check = self::validate_toolkit_contract( $projection['ability_name'], $projection['input_schema'], $projection['output_schema'] );
+				$toolkit_check = self::validate_toolkit_contract( $projection['ability_name'], $projection['input_schema'], $projection['output_schema'], is_array( $meta ) ? $meta : array() );
 				if ( is_wp_error( $toolkit_check ) ) {
 					return $toolkit_check;
 				}
@@ -185,9 +185,10 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		 * @param string               $ability_name Ability identifier.
 		 * @param array<string,mixed>  $input_schema Registered input schema.
 		 * @param array<string,mixed>  $output_schema Registered output schema.
+		 * @param array<string,mixed>  $ability_meta Registered Ability metadata.
 		 * @return true|WP_Error
 		 */
-		private static function validate_toolkit_contract( string $ability_name, array $input_schema, array $output_schema ) {
+		private static function validate_toolkit_contract( string $ability_name, array $input_schema, array $output_schema, array $ability_meta ) {
 			if ( ! function_exists( 'npcink_abilities_toolkit_get_registered' ) ) {
 				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract source is unavailable for this Ability.' );
 			}
@@ -216,6 +217,14 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			$write_posture     = (string) ( $toolkit['write_posture'] ?? $implementation['write_posture'] ?? ( 'read' === $risk_level ? 'read_only' : '' ) );
 			if ( ! in_array( $risk_level, array( 'read', 'write', 'destructive' ), true ) || $requires_approval !== $expected_approval || ! in_array( $write_posture, array( 'read_only', 'host_governed_dry_run_first' ), true ) ) {
 				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract permission or write posture is incompatible with the local Ability.' );
+			}
+
+			$local_npcink = is_array( $ability_meta['npcink'] ?? null ) ? $ability_meta['npcink'] : array();
+			if ( isset( $local_npcink['risk_level'] ) && (string) $local_npcink['risk_level'] !== $risk_level ) {
+				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit risk level does not match the registered WordPress Ability.' );
+			}
+			if ( isset( $local_npcink['requires_approval'] ) && (bool) $local_npcink['requires_approval'] !== $requires_approval ) {
+				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit approval requirement does not match the registered WordPress Ability.' );
 			}
 
 			return true;
