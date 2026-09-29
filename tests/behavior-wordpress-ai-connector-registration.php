@@ -158,10 +158,11 @@ $connector = $registry->connectors[ Npcink_Cloud_WordPress_AI_Connector::CONNECT
 
 maca_assert(
 	'Npcink Cloud' === ( $connector['name'] ?? '' )
-	&& 'ai_provider' === ( $connector['type'] ?? '' )
-	&& 'api_key' === ( $connector['authentication']['method'] ?? '' )
-	&& Npcink_Cloud_WordPress_AI_Connector::SETTING_NAME === ( $connector['authentication']['setting_name'] ?? '' ),
-	'WordPress connector registry receives a fixed Npcink Cloud ai_provider card with a synthetic marker setting.'
+		&& 'ai_provider' === ( $connector['type'] ?? '' )
+		&& 'api_key' === ( $connector['authentication']['method'] ?? '' )
+		&& Npcink_Cloud_WordPress_AI_Connector::SETTING_NAME === ( $connector['authentication']['setting_name'] ?? '' )
+		&& 'npcink-cloud-addon/npcink-cloud-addon.php' === ( $connector['plugin']['file'] ?? '' ),
+	'WordPress connector registry receives a fixed Npcink Cloud ai_provider card with a stable plugin basename and synthetic marker setting.'
 );
 
 maca_assert(
@@ -173,6 +174,12 @@ $has_credentials = Npcink_Cloud_WordPress_AI_Connector::filter_has_ai_credential
 maca_assert(
 	true === $has_credentials,
 	'AI plugin credential detection sees verified Npcink Cloud settings as available credentials.'
+);
+
+$has_credentials_without_registry_card = Npcink_Cloud_WordPress_AI_Connector::filter_has_ai_credentials( false, array() );
+maca_assert(
+	true === $has_credentials_without_registry_card,
+	'AI plugin credential detection remains available when connector metadata is not present in the current availability snapshot.'
 );
 
 $preferred = Npcink_Cloud_WordPress_AI_Connector::filter_preferred_text_models(

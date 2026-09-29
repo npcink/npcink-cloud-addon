@@ -382,7 +382,10 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 						'setting_name' => self::SETTING_NAME,
 					),
 					'plugin'         => array(
-						'file'      => function_exists( 'plugin_basename' ) ? plugin_basename( NPCINK_CLOUD_ADDON_FILE ) : '',
+						// Keep the active-plugin identifier stable when the addon is loaded
+						// through a development symlink. The connector registry compares
+						// this value with the active plugin list, not with the source path.
+						'file'      => 'npcink-cloud-addon/npcink-cloud-addon.php',
 						'is_active' => '__return_true',
 					),
 				)
@@ -430,13 +433,12 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return bool
 		 */
 		public static function filter_has_ai_credentials( bool $has_credentials, array $connectors ): bool {
+			unset( $connectors );
 			if ( $has_credentials ) {
 				return true;
 			}
 
-			return isset( $connectors[ self::CONNECTOR_ID ] )
-				&& class_exists( 'Npcink_Cloud_Addon_Settings' )
-				&& Npcink_Cloud_Addon_Settings::is_wordpress_ai_connector_enabled();
+			return self::is_cloud_connector_available();
 		}
 
 		/**
