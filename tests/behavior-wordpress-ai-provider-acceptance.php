@@ -171,3 +171,5 @@ $empty = npcink_cloud_acceptance_finalize_report( array( 'write_detected' => fal
 maca_assert( 'local_failed' === $empty['evidence_state'] && 'failed' === $empty['quality_status'], 'Acceptance cannot pass an empty capability list.' );
 $all_good = npcink_cloud_acceptance_finalize_report( array( 'write_detected' => false, 'cases' => array( $good, $good ) ) );
 maca_assert( 'local_verified' === $all_good['evidence_state'] && 2 === $all_good['passed'], 'Acceptance verifies the batch only when every case has passing evidence.' );
+Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
+Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
