@@ -156,20 +156,12 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			$projection['contract_version'] = self::VERSION;
 			$projection['ability_name']     = (string) $ability->get_name();
 			$projection['ability_id']       = $projection['ability_name'];
-			$projection['contract_source']  = str_starts_with( $projection['ability_name'], 'npcink/' ) || str_starts_with( $projection['ability_name'], 'npcink-' ) ? self::CONTRACT_SOURCE_TOOLKIT : self::CONTRACT_SOURCE_WORDPRESS;
+			$projection['contract_source']  = str_starts_with( $projection['ability_name'], 'npcink-abilities-toolkit/' ) ? self::CONTRACT_SOURCE_TOOLKIT : self::CONTRACT_SOURCE_WORDPRESS;
 			$projection['verification_state'] = 'mapping_current';
 			$input_schema = method_exists( $ability, 'get_input_schema' ) ? $ability->get_input_schema() : array();
 			$projection['input_schema']     = is_array( $input_schema ) ? $input_schema : array();
 			$projection['output_schema']    = $ability->get_output_schema();
-			$projection['schema_hash']      = 'sha256:' . hash(
-				'sha256',
-				(string) wp_json_encode(
-					array(
-						'input_schema'  => $projection['input_schema'],
-						'output_schema' => is_array( $projection['output_schema'] ) ? $projection['output_schema'] : array(),
-					)
-				)
-			);
+			$projection['schema_hash']      = self::schema_hash( $projection['input_schema'], is_array( $projection['output_schema'] ) ? $projection['output_schema'] : array() );
 			$projection['write_posture']    = 'suggestion_only';
 
 			return self::normalize( $projection );
@@ -215,15 +207,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 				return self::error( 'cloud_ai_task_output_schema_invalid', 'The Ability output schema is too large for runtime projection.' );
 			}
 			if ( '' !== $schema_hash ) {
-				$expected_hash = 'sha256:' . hash(
-					'sha256',
-					(string) wp_json_encode(
-						array(
-							'input_schema'  => $input_schema,
-							'output_schema' => $output_schema,
-						)
-					)
-				);
+				$expected_hash = self::schema_hash( $input_schema, $output_schema );
 				if ( $expected_hash !== $schema_hash ) {
 					return self::error( 'cloud_ai_task_schema_hash_mismatch', 'The AI task contract schema hash does not match its input and output schemas.' );
 				}
@@ -272,6 +256,26 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 				return self::error( 'cloud_ai_task_contract_none_invalid', 'AI task contract context none cannot be combined with other values.' );
 			}
 			return $normalized;
+		}
+
+		/** @param array<string,mixed> $input_schema @param array<string,mixed> $output_schema */
+		private static function schema_hash( array $input_schema, array $output_schema ): string {
+			$schemas = self::canonicalize( array( 'input_schema' => $input_schema, 'output_schema' => $output_schema ) );
+			return 'sha256:' . hash( 'sha256', (string) wp_json_encode( $schemas ) );
+		}
+
+		/** @param mixed $value */
+		private static function canonicalize( $value ) {
+			if ( ! is_array( $value ) ) {
+				return $value;
+			}
+			if ( array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) {
+				ksort( $value );
+			}
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = self::canonicalize( $item );
+			}
+			return $value;
 		}
 
 		private static function error( string $code, string $message ): WP_Error {
