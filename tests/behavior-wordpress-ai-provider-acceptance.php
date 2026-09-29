@@ -43,7 +43,9 @@ $connector_source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/
 	&& false !== strpos( $connector_source, '$cloud_run_id' )
 	&& false !== strpos( $connector_source, 'wp_generate_uuid4()' )
 	&& 3 <= substr_count( $connector_source, "record_cloud_run_id( '' )" )
-	&& false !== strpos( $connector_source, "preg_replace( '/[^A-Za-z0-9_.:-]/'" ),
+	&& false !== strpos( $connector_source, "preg_replace( '/[^\\p{L}\\p{N}_.:\\s-]+/u'" )
+	&& false !== strpos( $connector_source, "'quality_reason'   => (string) ( \$cloud_error_data['quality_reason']" )
+	&& false !== strpos( $connector_source, "'error_stage'    => 'output_validation'" ),
 	'Acceptance correlation records only a Cloud-provided run ID and keeps local result IDs separate.'
 );
 maca_assert(
