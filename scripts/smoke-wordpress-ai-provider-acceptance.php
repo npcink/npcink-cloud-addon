@@ -174,6 +174,9 @@ foreach ( $cases as $case_definition ) {
 		'write_evidence_state' => 'not_measured',
 		'quality_status'     => 'failed',
 		'failure_code'       => null,
+		'failure_stage'      => null,
+		'quality_reason'     => null,
+		'cloud_error_code'   => null,
 		'output'             => null,
 	);
 
