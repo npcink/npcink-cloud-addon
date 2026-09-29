@@ -170,6 +170,9 @@ foreach ( $cases as $ability => $input ) {
 	if ( is_array( $data ) ) {
 		$case['provider_run_id'] = $data['run_id'] ?? ( $data['data']['run_id'] ?? null );
 	}
+	if ( empty( $case['provider_run_id'] ) && class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
+		$case['provider_run_id'] = Npcink_Cloud_WordPress_AI_Connector::current_cloud_run_id() ?: null;
+	}
 	$report['cases'][] = $case;
 }
 if ( 0 === $comment_id ) {
