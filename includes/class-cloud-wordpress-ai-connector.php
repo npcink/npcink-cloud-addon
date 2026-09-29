@@ -707,59 +707,63 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 			}
 
-			/**
-			 * Checks whether verified Cloud settings may be exposed to WordPress AI.
-			 *
-			 * @return bool
-			 */
+		/**
+		 * Checks whether verified Cloud settings may be exposed to WordPress AI.
+		 *
+		 * @return bool
+		 */
 		private static function is_cloud_connector_available(): bool {
-				return class_exists( 'Npcink_Cloud_Addon_Settings' )
-					&& Npcink_Cloud_Addon_Settings::is_wordpress_ai_connector_enabled();
+			return class_exists( 'Npcink_Cloud_Addon_Settings' )
+				&& Npcink_Cloud_Addon_Settings::is_wordpress_ai_connector_enabled();
+		}
+
+		/**
+		 * Returns the active-plugin identifier used by the connector registry.
+		 *
+		 * WordPress resolves plugin_basename() through a real-path map. A
+		 * development symlink can leave that map temporarily stale, so prefer
+		 * the actual active-plugin entry when it is available and use the stable
+		 * packaged basename as the fallback.
+		 *
+		 * @return string
+		 */
+		private static function connector_plugin_file(): string {
+			$stable_plugin_file = defined( 'NPCINK_CLOUD_ADDON_PLUGIN_BASENAME' )
+				&& is_string( NPCINK_CLOUD_ADDON_PLUGIN_BASENAME )
+				&& '' !== NPCINK_CLOUD_ADDON_PLUGIN_BASENAME
+				? NPCINK_CLOUD_ADDON_PLUGIN_BASENAME
+				: 'npcink-cloud-addon/npcink-cloud-addon.php';
+			$dynamic_plugin_file = '';
+			if ( defined( 'NPCINK_CLOUD_ADDON_FILE' ) && function_exists( 'plugin_basename' ) ) {
+				$dynamic_plugin_file = (string) plugin_basename( NPCINK_CLOUD_ADDON_FILE );
 			}
 
-			/**
-			 * Returns the active-plugin identifier used by the connector registry.
-			 *
-			 * WordPress resolves plugin_basename() through a real-path map. A
-			 * development symlink can leave that map temporarily stale, so prefer
-			 * the actual active-plugin entry when it is available and use the stable
-			 * packaged basename as the fallback.
-			 *
-			 * @return string
-			 */
-			private static function connector_plugin_file(): string {
-				$stable_plugin_file = defined( 'NPCINK_CLOUD_ADDON_PLUGIN_BASENAME' )
-					&& is_string( NPCINK_CLOUD_ADDON_PLUGIN_BASENAME )
-					&& '' !== NPCINK_CLOUD_ADDON_PLUGIN_BASENAME
-					? NPCINK_CLOUD_ADDON_PLUGIN_BASENAME
-					: 'npcink-cloud-addon/npcink-cloud-addon.php';
-				$dynamic_plugin_file = '';
-				if ( defined( 'NPCINK_CLOUD_ADDON_FILE' ) && function_exists( 'plugin_basename' ) ) {
-					$dynamic_plugin_file = (string) plugin_basename( NPCINK_CLOUD_ADDON_FILE );
-				}
+			$active_plugins = function_exists( 'get_option' ) ? get_option( 'active_plugins', array() ) : array();
+			if ( function_exists( 'get_site_option' ) ) {
+				$active_plugins = array_merge( (array) $active_plugins, array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
+			}
+			$active_plugins = array_values( array_filter( (array) $active_plugins, 'is_string' ) );
 
-				$active_plugins = function_exists( 'get_option' ) ? get_option( 'active_plugins', array() ) : array();
-				if ( function_exists( 'get_site_option' ) ) {
-					$active_plugins = array_merge( (array) $active_plugins, array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
-				}
-				$active_plugins = array_values( array_filter( (array) $active_plugins, 'is_string' ) );
-
-				if ( '' !== $dynamic_plugin_file && in_array( $dynamic_plugin_file, $active_plugins, true ) ) {
-					return $dynamic_plugin_file;
-				}
-				if ( in_array( $stable_plugin_file, $active_plugins, true ) ) {
-					return $stable_plugin_file;
-				}
-
-				$main_file = defined( 'NPCINK_CLOUD_ADDON_FILE' ) ? basename( NPCINK_CLOUD_ADDON_FILE ) : basename( $stable_plugin_file );
-				foreach ( $active_plugins as $active_plugin ) {
-					if ( $main_file === basename( $active_plugin ) ) {
-						return $active_plugin;
-					}
-				}
-
+			if ( '' !== $dynamic_plugin_file && in_array( $dynamic_plugin_file, $active_plugins, true ) ) {
+				return $dynamic_plugin_file;
+			}
+			if ( in_array( $stable_plugin_file, $active_plugins, true ) ) {
 				return $stable_plugin_file;
 			}
+
+			$main_file = defined( 'NPCINK_CLOUD_ADDON_FILE' ) ? basename( NPCINK_CLOUD_ADDON_FILE ) : basename( $stable_plugin_file );
+			$matches = array();
+			foreach ( $active_plugins as $active_plugin ) {
+				if ( $main_file === basename( $active_plugin ) ) {
+					$matches[] = $active_plugin;
+				}
+			}
+			if ( 1 === count( $matches ) ) {
+				return $matches[0];
+			}
+
+			return $stable_plugin_file;
+		}
 
 			/**
 			 * Checks whether AI request logging is enabled by the AI plugin feature flags.
