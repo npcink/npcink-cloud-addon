@@ -104,11 +104,35 @@
 ### 3.6 交付流程
 
 - `composer pr:publish` 遇到 github.com 443 超时（api.github.com 可能同
-  时可达）属间歇性网络问题，等待 60–90 秒重试即可，不要绕道改推送通道；
+  时可达）属间歇性问题，等待 60–90 秒重试即可，不要绕道改推送通道；
   本会话两次发布均重试成功。
 - squash 合并后 `git pull --ff-only` 同步本地 master，再从新基线开下一个
   分支，避免下个分支基线落后。
 - 纯展示层改动 `smoke:playground` 不适用，但必须在 PR 验证记录里写明理由。
+
+### 3.7 网络中断处置（2026-09-23 事件复盘）
+
+一次 50 分钟以上的 github.com 主站 443 阻断（ICMP 与 api.github.com 均
+正常）暴露了三个教训，已固化为脚本行为：
+
+1. **代理节点会缓存 git 响应，不可用于 push**：挂 VPN 代理执行
+   `git push` 可能收到"Everything up-to-date"的缓存应答，实际什么都没
+   推上去。任何推送都必须用权威通道（`gh api .../git/refs/heads/<branch>`
+   读远端 ref）验证，不能信 git 的本地判断。
+2. **api.github.com 与 github.com 走不同链路**：主站被断时 API 通常仍
+   可达。Git Data API（blob → tree → commit → PATCH ref）可以在不依赖
+   git 推送的情况下完成等效交付；提供与本地提交一致的 author/committer/
+   时间戳时，API 生成的提交 SHA 与本地完全一致，后续 `--match-head-commit`
+   校验仍然有效。
+3. **CI 门禁可能自身有非确定性**：同一提交两轮运行一过一挂（疑似
+   make-pot 文件遍历顺序），不要先入为主地修自己的代码；先下载失败轮次
+   的日志或产物对比。另外 `test:all` 不含 i18n 检查，改了 PHP 源码就要
+   跑 `composer i18n:refresh`，否则过期 POT 会在 Release static gates
+   才暴露。
+
+`scripts/publish-pr.sh` 现已内置：推送后读取远端 ref 验证，未落地时用
+Git Data API 逐提交重放（含精确元数据），SHA 一致则正常合并，不一致则
+降级为按实际远端 SHA 合并。
 
 ## 4. 边界与克制（本轮自检通过项）
 
