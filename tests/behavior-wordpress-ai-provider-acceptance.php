@@ -17,7 +17,8 @@ $connector_source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/
 	maca_assert(
 	false !== strpos( $connector_source, 'record_cloud_run_id' )
 	&& false !== strpos( $connector_source, '$cloud_run_id' )
-	&& false !== strpos( $connector_source, 'wp_generate_uuid4()' ),
+	&& false !== strpos( $connector_source, 'wp_generate_uuid4()' )
+	&& 2 <= substr_count( $connector_source, "record_cloud_run_id( '' )" ),
 	'Acceptance correlation records only a Cloud-provided run ID and keeps local result IDs separate.'
 );
 maca_assert( 'contract_drift' === npcink_cloud_acceptance_contract_status( new WP_Error( 'cloud_ai_task_schema_hash_mismatch', 'drift' ) ), 'Acceptance classifies schema drift separately from provider failures.' );
