@@ -239,8 +239,5 @@ function npcink_cloud_acceptance_quality_failure( $ability, $data, array $input 
 	if ( 'ai/alt-text-generation' === $ability && is_array( $data ) && false === (bool) $data['is_decorative'] && '' === trim( (string) ( $data['alt_text'] ?? '' ) ) ) {
 		return 'alt_text_missing';
 	}
-	if ( 'ai/image-prompt-generation' === $ability && '' === $text ) {
-		return 'image_prompt_empty';
-	}
 	return null;
 }
