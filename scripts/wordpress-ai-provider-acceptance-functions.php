@@ -155,7 +155,16 @@ function npcink_cloud_acceptance_failure_code( $status, $data, $shape_valid ) {
 }
 
 /** Fixed-fixture quality checks; passing these is not human acceptance. */
+function npcink_cloud_acceptance_is_empty_taxonomy_error( $ability, $data ): bool {
+	return 'ai/content-classification' === $ability
+		&& is_array( $data )
+		&& 'no_results' === (string) ( $data['code'] ?? '' );
+}
+
 function npcink_cloud_acceptance_quality_failure( $ability, $data ) {
+	if ( npcink_cloud_acceptance_is_empty_taxonomy_error( $ability, $data ) ) {
+		return 'taxonomy_empty';
+	}
 	if ( 'ai/content-classification' === $ability && is_array( $data ) && array_key_exists( 'suggestions', $data ) && empty( $data['suggestions'] ) ) {
 		return 'taxonomy_empty';
 	}

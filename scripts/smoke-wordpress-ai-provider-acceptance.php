@@ -164,6 +164,9 @@ foreach ( $cases as $ability => $input ) {
 	$case['output']       = $data;
 	$case['quality_context'] = npcink_cloud_acceptance_quality_context( $ability, $input, $data );
 	$case['failure_code']  = $has_result ? null : ( $shape_valid ? 'empty_result' : npcink_cloud_acceptance_failure_code( $status, $data, $shape_valid ) );
+	if ( npcink_cloud_acceptance_is_empty_taxonomy_error( $ability, $data ) ) {
+		$case['failure_code'] = 'taxonomy_empty';
+	}
 	if ( $shape_valid ) {
 		$case['failure_code'] = npcink_cloud_acceptance_quality_failure( $ability, $data );
 	}

@@ -4,6 +4,8 @@ build/
 dist/
 .DS_Store
 *.log
+wordpress-ai-provider/generated/*
+!wordpress-ai-provider/generated/.gitignore
 
 # Reasonix agent session artifacts
 .reasonix/

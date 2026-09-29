@@ -11,6 +11,7 @@ if ( ! function_exists( 'parse_blocks' ) ) {
 }
 
 $acceptance_smoke_source = (string) file_get_contents( dirname( __DIR__ ) . '/scripts/smoke-wordpress-ai-provider-acceptance.php' );
+$quality_runner_source = (string) file_get_contents( dirname( __DIR__ ) . '/scripts/evaluate-wordpress-ai-provider-acceptance.sh' );
 maca_assert(
 	false !== strpos( $acceptance_smoke_source, "'contract_source'" )
 	&& false !== strpos( $acceptance_smoke_source, "'contract_status'" )
@@ -20,6 +21,13 @@ maca_assert(
 	&& false !== strpos( $acceptance_smoke_source, "'quality_context'" )
 	&& false !== strpos( $acceptance_smoke_source, 'current_cloud_run_id' ),
 	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
+);
+maca_assert(
+	false !== strpos( $quality_runner_source, 'acceptance:wp-ai-provider' )
+	&& false !== strpos( $quality_runner_source, 'wordpress-ai-provider/evaluate.php' )
+	&& false !== strpos( $quality_runner_source, 'WP_AI_ACCEPTANCE_INPUT' )
+	&& false !== strpos( $quality_runner_source, 'human_review_required' ),
+	'Combined WordPress AI acceptance runner preserves the WP-CLI, Eval Lab, offline fixture, and review-state boundaries.'
 );
 $connector_source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-connector.php' );
 	maca_assert(
@@ -35,6 +43,7 @@ maca_assert( 'task_not_completed' === npcink_cloud_acceptance_quality_failure( '
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', 'The revised paragraph is clearer.' ), 'Acceptance keeps an ordinary completed edit eligible for review.' );
 maca_assert( 'editorial_empty' === npcink_cloud_acceptance_quality_failure( 'ai/editorial-notes', array( 'suggestions' => array() ) ), 'Acceptance distinguishes empty editorial suggestions from runtime failure.' );
 maca_assert( 'taxonomy_empty' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array() ) ), 'Acceptance distinguishes empty taxonomy suggestions from runtime failure.' );
+maca_assert( npcink_cloud_acceptance_is_empty_taxonomy_error( 'ai/content-classification', array( 'code' => 'no_results', 'message' => 'No taxonomy suggestions were generated.' ) ) && 'taxonomy_empty' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'code' => 'no_results' ) ), 'Acceptance classifies the official no-results taxonomy response as an empty semantic result.' );
 maca_assert( 'slug_format_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/slug-generation', array( 'slugs' => array( 'valid-slug', 'Invalid slug' ) ) ), 'Acceptance checks every slug, not only the first.' );
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/slug-generation', array( 'slugs' => array( 'first-slug', 'second-slug' ) ) ), 'Acceptance allows valid slug candidates.' );
 maca_assert( 'target_language_mismatch' === npcink_cloud_acceptance_quality_failure( 'ai/content-translation', '这是未翻译的固定样本。' ), 'Acceptance rejects untranslated Chinese for the English target fixture.' );
