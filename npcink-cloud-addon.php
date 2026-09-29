@@ -25,7 +25,10 @@ if ( ! defined( 'NPCINK_CLOUD_ADDON_FILE' ) ) {
 }
 
 if ( ! defined( 'NPCINK_CLOUD_ADDON_PLUGIN_BASENAME' ) ) {
-	define( 'NPCINK_CLOUD_ADDON_PLUGIN_BASENAME', 'npcink-cloud-addon/npcink-cloud-addon.php' );
+	define(
+		'NPCINK_CLOUD_ADDON_PLUGIN_BASENAME',
+		basename( dirname( NPCINK_CLOUD_ADDON_FILE ) ) . '/' . basename( NPCINK_CLOUD_ADDON_FILE )
+	);
 }
 
 if ( ! defined( 'NPCINK_CLOUD_ADDON_DIR' ) ) {

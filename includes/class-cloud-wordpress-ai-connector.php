@@ -427,6 +427,10 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 *
 		 * @param bool                 $has_credentials Existing credential state.
 		 * @param array<string,mixed>  $connectors Registered connectors.
+		 *
+		 * The AI plugin may query credentials from an incomplete connector snapshot
+		 * during bootstrap, so verified Cloud settings remain the availability source
+		 * while connector registration supplies the card metadata separately.
 		 * @return bool
 		 */
 		public static function filter_has_ai_credentials( bool $has_credentials, array $connectors ): bool {
@@ -696,16 +700,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				}
 			}
 
-				register_setting(
-					'npcink_cloud_addon',
-					self::SETTING_NAME,
-					array(
-						'type'         => 'string',
-						'default'      => '',
-						'show_in_rest' => false,
-					)
-				);
-			}
+			register_setting(
+				'npcink_cloud_addon',
+				self::SETTING_NAME,
+				array(
+					'type'         => 'string',
+					'default'      => '',
+					'show_in_rest' => false,
+				)
+			);
+		}
 
 		/**
 		 * Checks whether verified Cloud settings may be exposed to WordPress AI.
@@ -732,7 +736,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				&& is_string( NPCINK_CLOUD_ADDON_PLUGIN_BASENAME )
 				&& '' !== NPCINK_CLOUD_ADDON_PLUGIN_BASENAME
 				? NPCINK_CLOUD_ADDON_PLUGIN_BASENAME
-				: 'npcink-cloud-addon/npcink-cloud-addon.php';
+				: (
+					defined( 'NPCINK_CLOUD_ADDON_FILE' )
+						? basename( dirname( NPCINK_CLOUD_ADDON_FILE ) ) . '/' . basename( NPCINK_CLOUD_ADDON_FILE )
+						: ''
+				);
 			$dynamic_plugin_file = '';
 			if ( defined( 'NPCINK_CLOUD_ADDON_FILE' ) && function_exists( 'plugin_basename' ) ) {
 				$dynamic_plugin_file = (string) plugin_basename( NPCINK_CLOUD_ADDON_FILE );
@@ -765,75 +773,75 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			return $stable_plugin_file;
 		}
 
-			/**
-			 * Checks whether AI request logging is enabled by the AI plugin feature flags.
-			 *
-			 * @return bool
-			 */
-			private static function is_wordpress_ai_request_logging_enabled(): bool {
-				$global_enabled = (bool) get_option( 'wpai_features_enabled', false );
-				$feature_enabled = (bool) get_option( 'wpai_feature_ai-request-logging_enabled', false );
-				if ( function_exists( 'apply_filters' ) ) {
-					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress AI owns this feature-flag filter name.
-					$feature_enabled = (bool) apply_filters( 'wpai_feature_ai-request-logging_enabled', $feature_enabled );
-				}
-
-				return $global_enabled && $feature_enabled;
+		/**
+		 * Checks whether AI request logging is enabled by the AI plugin feature flags.
+		 *
+		 * @return bool
+		 */
+		private static function is_wordpress_ai_request_logging_enabled(): bool {
+			$global_enabled = (bool) get_option( 'wpai_features_enabled', false );
+			$feature_enabled = (bool) get_option( 'wpai_feature_ai-request-logging_enabled', false );
+			if ( function_exists( 'apply_filters' ) ) {
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress AI owns this feature-flag filter name.
+				$feature_enabled = (bool) apply_filters( 'wpai_feature_ai-request-logging_enabled', $feature_enabled );
 			}
 
-			/**
-			 * Returns the first non-empty string at one of the dot paths.
-			 *
-			 * @param array<string,mixed> $source Source array.
-			 * @param list<string>        $paths Dot paths.
-			 * @param string              $fallback Fallback.
-			 * @return string
-			 */
-			private static function first_response_string( array $source, array $paths, string $fallback ): string {
-				foreach ( $paths as $path ) {
-					$value = self::array_dot_value( $source, $path );
-					if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
-						return trim( (string) $value );
-					}
-				}
+			return $global_enabled && $feature_enabled;
+		}
 
-				return $fallback;
+		/**
+		 * Returns the first non-empty string at one of the dot paths.
+		 *
+		 * @param array<string,mixed> $source Source array.
+		 * @param list<string>        $paths Dot paths.
+		 * @param string              $fallback Fallback.
+		 * @return string
+		 */
+		private static function first_response_string( array $source, array $paths, string $fallback ): string {
+			foreach ( $paths as $path ) {
+				$value = self::array_dot_value( $source, $path );
+				if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
+					return trim( (string) $value );
+				}
 			}
 
-			/**
-			 * Returns a nested array value by dot path.
-			 *
-			 * @param array<string,mixed> $source Source array.
-			 * @param string              $path Dot path.
-			 * @return mixed
-			 */
-			private static function array_dot_value( array $source, string $path ) {
-				$value = $source;
-				foreach ( explode( '.', $path ) as $segment ) {
-					if ( ! is_array( $value ) || ! array_key_exists( $segment, $value ) ) {
-						return null;
-					}
-					$value = $value[ $segment ];
-				}
+			return $fallback;
+		}
 
+		/**
+		 * Returns a nested array value by dot path.
+		 *
+		 * @param array<string,mixed> $source Source array.
+		 * @param string              $path Dot path.
+		 * @return mixed
+		 */
+		private static function array_dot_value( array $source, string $path ) {
+			$value = $source;
+			foreach ( explode( '.', $path ) as $segment ) {
+				if ( ! is_array( $value ) || ! array_key_exists( $segment, $value ) ) {
+					return null;
+				}
+				$value = $value[ $segment ];
+			}
+
+			return $value;
+		}
+
+		/**
+		 * Sanitizes and bounds metadata values before writing optional logs.
+		 *
+		 * @param string $value Raw value.
+		 * @param int    $max_length Max length.
+		 * @return string
+		 */
+		private static function clean_log_value( string $value, int $max_length ): string {
+			$value = sanitize_text_field( $value );
+			if ( strlen( $value ) <= $max_length ) {
 				return $value;
 			}
 
-			/**
-			 * Sanitizes and bounds metadata values before writing optional logs.
-			 *
-			 * @param string $value Raw value.
-			 * @param int    $max_length Max length.
-			 * @return string
-			 */
-			private static function clean_log_value( string $value, int $max_length ): string {
-				$value = sanitize_text_field( $value );
-				if ( strlen( $value ) <= $max_length ) {
-					return $value;
-				}
-
-				return substr( $value, 0, $max_length );
-			}
+			return substr( $value, 0, $max_length );
+		}
 
 		/**
 		 * Returns whether the current WordPress AI call is a supported text scene.
@@ -841,28 +849,28 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @param string $ability_name Registered Ability name.
 		 * @return bool
 		 */
-			private static function is_text_scene_ability( string $ability_name ): bool {
-				return in_array(
-					$ability_name,
-					array(
-						'ai/comment-analysis',
-						'ai/content-classification',
-						'ai/content-resizing',
-						'ai/content-translation',
-						'ai/editorial-notes',
-						'ai/editorial-updates',
-						'ai/excerpt-generation',
-						'ai/image-prompt-generation',
-						'ai/meta-description',
-						'ai/slug-generation',
-						'ai/suggest-reply',
-						'ai/summarization',
-						'ai/title-generation',
-					),
-					true
-				);
-			}
+		private static function is_text_scene_ability( string $ability_name ): bool {
+			return in_array(
+				$ability_name,
+				array(
+					'ai/comment-analysis',
+					'ai/content-classification',
+					'ai/content-resizing',
+					'ai/content-translation',
+					'ai/editorial-notes',
+					'ai/editorial-updates',
+					'ai/excerpt-generation',
+					'ai/image-prompt-generation',
+					'ai/meta-description',
+					'ai/slug-generation',
+					'ai/suggest-reply',
+					'ai/summarization',
+					'ai/title-generation',
+				),
+				true
+			);
 		}
+	}
 	}
 
 	if (

@@ -121,6 +121,10 @@ foreach ( $generated_image_filename_examples as $input_filename => $expected_fil
 
 maca_seed_settings( true );
 
+$expected_plugin_file = defined( 'NPCINK_CLOUD_ADDON_PLUGIN_BASENAME' )
+	? NPCINK_CLOUD_ADDON_PLUGIN_BASENAME
+	: 'npcink-cloud-addon/npcink-cloud-addon.php';
+
 $GLOBALS['maca_options']['active_plugins'] = array( 'renamed-addon/npcink-cloud-addon.php' );
 $renamed_registry = new Maca_Connector_Registry_Stub();
 Npcink_Cloud_WordPress_AI_Connector::register_connector( $renamed_registry );
@@ -171,7 +175,7 @@ maca_assert(
 		&& 'ai_provider' === ( $connector['type'] ?? '' )
 		&& 'api_key' === ( $connector['authentication']['method'] ?? '' )
 		&& Npcink_Cloud_WordPress_AI_Connector::SETTING_NAME === ( $connector['authentication']['setting_name'] ?? '' )
-		&& 'npcink-cloud-addon/npcink-cloud-addon.php' === ( $connector['plugin']['file'] ?? '' ),
+		&& $expected_plugin_file === ( $connector['plugin']['file'] ?? '' ),
 	'WordPress connector registry receives a fixed Npcink Cloud ai_provider card with a stable plugin basename and synthetic marker setting.'
 );
 
