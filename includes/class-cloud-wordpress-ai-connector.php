@@ -594,7 +594,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$run_id   = self::first_response_string(
 				$response_array,
 				array( 'run_id', 'data.run_id', 'data.result.run_id', 'result.run_id' ),
-				''
+				(string) ( $event['cloud_run_id'] ?? self::current_cloud_run_id() )
 			);
 
 			$context = array(
@@ -1271,6 +1271,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 
 			if ( is_wp_error( $response ) ) {
+				$error_code = sanitize_key( (string) $response->get_error_code() );
+				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
+				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				Npcink_Cloud_Customer_Journey::capture_generation_failure(
 					$task,
@@ -1278,8 +1281,6 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					$duration_ms,
 					$response->get_error_code()
 				);
-				$error_code = sanitize_key( (string) $response->get_error_code() );
-				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
 				$cloud_code = $evidence['cloud_error_code'];
 				$error_stage = $evidence['error_stage'];
 				$diagnostic = '' !== $cloud_code ? $cloud_code : $error_code;
@@ -1871,7 +1872,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 
 			if ( is_wp_error( $response ) ) {
-				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
+				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
+				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
 			}
@@ -2117,7 +2119,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				);
 
 			if ( is_wp_error( $response ) ) {
-				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
+				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
+				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
 			}

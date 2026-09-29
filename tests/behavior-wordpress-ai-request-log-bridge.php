@@ -169,6 +169,7 @@ namespace {
 			'contract_version'           => 'cloud_connector_runtime.v1',
 			'operation_contract_version' => 'wordpress_operation.v1',
 			'response'                   => new WP_Error( 'cloud_runtime_failed', 'Provider timeout while generating text output.' ),
+			'cloud_run_id'                => 'run_error_1',
 			'duration_ms'                => 456,
 			'fallback_model_id'          => Npcink_Cloud_WordPress_AI_Connector::MODEL_ID,
 		)
@@ -189,6 +190,10 @@ namespace {
 		&& 'editor' === (string) ( $error_context['channel'] ?? '' )
 		&& 'npcink-cloud-addon' === (string) ( $error_context['connector_id'] ?? '' ),
 		'Behavior: WordPress AI request log bridge records bounded Cloud runtime errors without request content.'
+	);
+	maca_assert(
+		'run_error_1' === (string) ( $error_context['cloud_run_id'] ?? '' ),
+		'Behavior: WordPress AI request log bridge preserves a Cloud run ID supplied alongside a failed request.'
 	);
 
 	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
