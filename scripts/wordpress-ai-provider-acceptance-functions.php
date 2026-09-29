@@ -83,6 +83,13 @@ function npcink_cloud_acceptance_quality_context( $ability, array $input, $data 
 	if ( isset( $input['review_types'] ) && is_array( $input['review_types'] ) ) {
 		$context['review_types'] = array_values( array_filter( array_map( 'strval', $input['review_types'] ) ) );
 	}
+	if ( 'ai/alt-text-generation' === $ability ) {
+		$context['media_input_kind'] = array_key_exists( 'attachment_id', $input ) ? 'attachment' : ( array_key_exists( 'image_url', $input ) ? 'url' : 'missing' );
+		$context['has_context']      = isset( $input['context'] ) && is_string( $input['context'] ) && '' !== trim( $input['context'] );
+	} elseif ( 'ai/image-prompt-generation' === $ability ) {
+		$context['has_context'] = isset( $input['context'] ) && is_string( $input['context'] ) && '' !== trim( $input['context'] );
+		$context['has_style']   = isset( $input['style'] ) && is_string( $input['style'] ) && '' !== trim( $input['style'] );
+	}
 	if ( 'ai/content-translation' === $ability && isset( $input['content'] ) && is_string( $input['content'] ) && function_exists( 'parse_blocks' ) && false !== strpos( $input['content'], '<!-- wp:' ) ) {
 		$context['structure_kind']        = 'gutenberg_blocks';
 		$context['expected_block_count']  = count( parse_blocks( $input['content'] ) );
@@ -120,6 +127,9 @@ function npcink_cloud_acceptance_has_result( $ability, $data ) {
 			&& isset( $data['alt_text'] )
 			&& is_string( $data['alt_text'] )
 			&& array_key_exists( 'is_decorative', $data );
+	}
+	if ( 'ai/image-prompt-generation' === $ability ) {
+		return '' !== npcink_cloud_acceptance_string( $data );
 	}
 	if ( 'ai/content-classification' === $ability ) {
 		return is_array( $data ) && ! empty( $data['suggestions'] ) && is_array( $data['suggestions'] );
@@ -168,6 +178,9 @@ function npcink_cloud_acceptance_quality_failure( $ability, $data, array $input 
 	}
 	if ( 'ai/editorial-notes' === $ability && is_array( $data ) && array_key_exists( 'suggestions', $data ) && empty( $data['suggestions'] ) ) {
 		return 'editorial_empty';
+	}
+	if ( 'ai/image-prompt-generation' === $ability && '' === npcink_cloud_acceptance_string( $data ) ) {
+		return 'image_prompt_empty';
 	}
 	if ( ! npcink_cloud_acceptance_has_result( $ability, $data ) ) {
 		return 'empty_result';
@@ -222,6 +235,12 @@ function npcink_cloud_acceptance_quality_failure( $ability, $data, array $input 
 	}
 	if ( 'ai/alt-text-generation' === $ability && ( ! is_array( $data ) || ! is_bool( $data['is_decorative'] ?? null ) ) ) {
 		return 'alt_text_output_invalid';
+	}
+	if ( 'ai/alt-text-generation' === $ability && is_array( $data ) && false === (bool) $data['is_decorative'] && '' === trim( (string) ( $data['alt_text'] ?? '' ) ) ) {
+		return 'alt_text_missing';
+	}
+	if ( 'ai/image-prompt-generation' === $ability && '' === $text ) {
+		return 'image_prompt_empty';
 	}
 	return null;
 }

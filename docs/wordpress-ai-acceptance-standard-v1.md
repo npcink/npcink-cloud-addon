@@ -128,6 +128,13 @@ bounded toxicity score. These checks never change the official plugin response
 or write to WordPress; they only make malformed or semantically empty
 structured results diagnosable before human review.
 
+Visual coverage keeps media boundaries explicit. Image-prompt scenarios require
+a non-empty prompt string and retain only context/style presence metadata. Alt
+text scenarios record whether the input came from an attachment or URL without
+persisting the media bytes; non-decorative images must return non-empty alt text,
+while decorative images may intentionally return an empty string. The runner
+never imports media, updates attachment metadata, or inserts an image.
+
 Use the combined local command when the candidate Addon is mounted in the
 target WordPress site:
 

@@ -62,6 +62,10 @@ maca_assert( 'classification_confidence_invalid' === npcink_cloud_acceptance_qua
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array( array( 'term' => 'WordPress', 'confidence' => 0.9 ) ) ), array( 'strategy' => 'existing_only', 'max_suggestions' => 3 ) ), 'Acceptance allows bounded classification suggestions.' );
 maca_assert( 'classification_too_many' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array( array( 'term' => 'One' ), array( 'term' => 'Two' ) ) ), array( 'strategy' => 'existing_only', 'max_suggestions' => 1 ) ), 'Acceptance rejects classification output above the requested suggestion limit.' );
 maca_assert( 'classification_new_term' === npcink_cloud_acceptance_quality_failure( 'ai/content-classification', array( 'suggestions' => array( array( 'term' => 'New term', 'is_new' => true ) ) ), array( 'strategy' => 'existing_only', 'max_suggestions' => 3 ) ), 'Acceptance rejects new taxonomy terms when existing-only strategy is requested.' );
+maca_assert( 'alt_text_missing' === npcink_cloud_acceptance_quality_failure( 'ai/alt-text-generation', array( 'alt_text' => '', 'is_decorative' => false ) ), 'Acceptance rejects a non-decorative image without alternative text.' );
+maca_assert( 'image_prompt_empty' === npcink_cloud_acceptance_quality_failure( 'ai/image-prompt-generation', '' ), 'Acceptance rejects an empty image prompt.' );
+$media_context = npcink_cloud_acceptance_quality_context( 'ai/alt-text-generation', array( 'attachment_id' => 123, 'context' => 'Describe the subject.' ), array( 'alt_text' => 'A subject.', 'is_decorative' => false ) );
+maca_assert( 'attachment' === ( $media_context['media_input_kind'] ?? null ) && true === ( $media_context['has_context'] ?? false ), 'Acceptance records media input posture without exposing the image or URL.' );
 $quality_context = npcink_cloud_acceptance_quality_context(
 	'ai/content-translation',
 	array( 'content' => '<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->', 'target_language' => 'en-us' ),
