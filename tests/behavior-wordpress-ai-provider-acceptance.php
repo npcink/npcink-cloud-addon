@@ -3,6 +3,14 @@
 require_once __DIR__ . '/helpers.php';
 require_once dirname( __DIR__ ) . '/scripts/wordpress-ai-provider-acceptance-functions.php';
 
+$acceptance_smoke_source = (string) file_get_contents( dirname( __DIR__ ) . '/scripts/smoke-wordpress-ai-provider-acceptance.php' );
+maca_assert(
+	false !== strpos( $acceptance_smoke_source, "'contract_source'" )
+	&& false !== strpos( $acceptance_smoke_source, "'contract_status'" )
+	&& false !== strpos( $acceptance_smoke_source, "'verification_state'" ),
+	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
+);
+
 maca_assert( 'task_not_completed' === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', "Please provide the original paragraph you'd like revised." ), 'Acceptance rejects the observed request-for-source reply.' );
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', 'The revised paragraph is clearer.' ), 'Acceptance keeps an ordinary completed edit eligible for review.' );
 maca_assert( 'empty_result' === npcink_cloud_acceptance_quality_failure( 'ai/editorial-notes', array( 'suggestions' => array() ) ), 'Acceptance rejects empty suggestions for the deliberately defective fixture.' );
