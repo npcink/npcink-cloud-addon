@@ -102,6 +102,17 @@ git diff --check
 rg '/v1/runtime/workflows/runs|\b(?:wp_insert_post|wp_update_post|wp_insert_attachment|wp_update_attachment_metadata|update_post_meta|wp_set_post_terms|set_post_thumbnail|media_handle_sideload)\s*\(' --glob '*.php' --glob '!build/**' .
 ```
 
+Advisory AI review gate (run before `composer pr:publish`):
+
+```bash
+ocr review --from origin/master --to HEAD
+```
+
+Treat findings as a second opinion: fix real defects or record why they are
+acceptable. Follows AI Code Review Standard v1 in `npcink-workflow-toolbox`
+`docs/platform/ai-code-review-standard-v1.md`; the CI workflow posting the same
+review on pull requests is advisory and never a required check.
+
 Also run `composer run smoke:playground` when a change affects plugin bootstrap,
 activation, the public connector API, the default credential/connector state,
 or the supported WordPress/PHP compatibility baseline. It is a disposable
