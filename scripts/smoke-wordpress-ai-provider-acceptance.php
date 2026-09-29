@@ -220,13 +220,8 @@ foreach ( $cases as $case_definition ) {
 	}
 	if ( null !== $case['failure_code'] && class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) && method_exists( 'Npcink_Cloud_WordPress_AI_Connector', 'current_runtime_failure_evidence' ) ) {
 		$failure_evidence = Npcink_Cloud_WordPress_AI_Connector::current_runtime_failure_evidence();
-		if ( is_array( $failure_evidence ) && ! empty( $failure_evidence ) ) {
-			if ( empty( $case['provider_run_id'] ) ) {
-				$case['provider_run_id'] = (string) ( $failure_evidence['run_id'] ?? '' ) ?: null;
-			}
-			$case['failure_stage']   = ( (string) ( $failure_evidence['error_stage'] ?? '' ) ) ?: null;
-			$case['quality_reason']  = ( (string) ( $failure_evidence['quality_reason'] ?? '' ) ) ?: null;
-			$case['cloud_error_code'] = ( (string) ( $failure_evidence['cloud_error_code'] ?? '' ) ) ?: null;
+		if ( is_array( $failure_evidence ) ) {
+			$case = npcink_cloud_acceptance_attach_failure_evidence( $case, $failure_evidence );
 		}
 	}
 	$report['cases'][] = $case;

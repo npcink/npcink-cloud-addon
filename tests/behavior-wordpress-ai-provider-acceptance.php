@@ -1,6 +1,8 @@
 <?php
 /** Deterministic acceptance regressions; no Provider calls or content writes. */
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/wordpress-ai-client-stubs.php';
+require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-connector.php';
 require_once dirname( __DIR__ ) . '/scripts/wordpress-ai-provider-acceptance-functions.php';
 
 if ( ! function_exists( 'parse_blocks' ) ) {
@@ -34,29 +36,56 @@ maca_assert(
 	&& false !== strpos( $quality_runner_source, 'human_review_required' ),
 	'Combined WordPress AI acceptance runner preserves the WP-CLI, Eval Lab, offline fixture, and review-state boundaries.'
 );
-$connector_source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-connector.php' );
-	maca_assert(
-	false !== strpos( $connector_source, 'record_cloud_run_id' )
-	&& false !== strpos( $connector_source, 'record_runtime_failure_evidence' )
-	&& false !== strpos( $connector_source, 'record_runtime_failure_from_wp_error' )
-	&& false !== strpos( $connector_source, 'reset_runtime_failure_evidence' )
-	&& false !== strpos( $connector_source, '$cloud_run_id' )
-	&& false !== strpos( $connector_source, 'wp_generate_uuid4()' )
-	&& 3 <= substr_count( $connector_source, "record_cloud_run_id( '' )" )
-	&& false !== strpos( $connector_source, "preg_replace( '/[^\\p{L}\\p{N}_.:\\s-]+/u'" )
-	&& false !== strpos( $connector_source, "'quality_reason'   => self::normalize_runtime_failure_field( \$cloud_error_data['quality_reason']" )
-	&& false !== strpos( $connector_source, "'error_stage'    => 'output_validation'" ),
-	'Acceptance correlation records only a Cloud-provided run ID and keeps local result IDs separate.'
-);
 maca_assert(
 	false !== strpos( $acceptance_smoke_source, "null !== \$case['failure_code']" )
-	&& false !== strpos( $acceptance_smoke_source, "?: null" ),
+	&& false !== strpos( $acceptance_smoke_source, "npcink_cloud_acceptance_attach_failure_evidence( \$case, \$failure_evidence )" ),
 	'Acceptance failure evidence is attached only to the failing case and normalizes absent run IDs.'
 );
 maca_assert(
 	false !== strpos( $acceptance_smoke_source, "record_cloud_run_id( '' )" )
 	&& false !== strpos( $acceptance_smoke_source, 'reset_runtime_failure_evidence' ),
 	'Acceptance clears request-scoped run and failure evidence before every case.'
+);
+
+Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
+$runtime_evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error(
+	new WP_Error(
+		'cloud_wp_ai_connector_request_too_large',
+		'bounded runtime failure',
+		array(
+			'cloud_error_code' => 'cloud_wp_ai_connector_request_too_large',
+			'cloud_error_data' => array(
+				'run_id'        => 'run_acceptance_123',
+				'error_stage'   => 'runtime',
+				'quality_reason' => "请求过大\xB1仍应保留可诊断信息",
+			),
+		)
+	)
+);
+$runtime_report_evidence = Npcink_Cloud_WordPress_AI_Connector::current_runtime_failure_evidence();
+maca_assert(
+	'run_acceptance_123' === ( $runtime_evidence['run_id'] ?? null )
+	&& 'cloud_wp_ai_connector_request_too_large' === ( $runtime_evidence['cloud_error_code'] ?? null )
+	&& 'runtime' === ( $runtime_evidence['error_stage'] ?? null )
+	&& '' !== ( $runtime_report_evidence['quality_reason'] ?? '' )
+	&& false !== json_encode( $runtime_report_evidence, JSON_UNESCAPED_UNICODE ),
+	'Runtime failure evidence preserves the Cloud run ID, dotted code, stage, and valid UTF-8 diagnostics.'
+);
+$evidence_case = npcink_cloud_acceptance_attach_failure_evidence(
+	array(
+		'provider_run_id' => null,
+		'failure_stage'   => null,
+		'quality_reason'  => null,
+		'cloud_error_code' => null,
+	),
+	array( 'run_id' => 'run_case_123', 'error_stage' => 'output_validation' )
+);
+maca_assert(
+	'run_case_123' === $evidence_case['provider_run_id']
+	&& 'output_validation' === $evidence_case['failure_stage']
+	&& null === $evidence_case['quality_reason']
+	&& null === $evidence_case['cloud_error_code'],
+	'Acceptance failure evidence uses null for absent optional fields.'
 );
 maca_assert( 'contract_drift' === npcink_cloud_acceptance_contract_status( new WP_Error( 'cloud_ai_task_schema_hash_mismatch', 'drift' ) ), 'Acceptance classifies schema drift separately from provider failures.' );
 

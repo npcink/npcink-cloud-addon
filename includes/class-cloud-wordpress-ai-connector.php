@@ -265,10 +265,19 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return string
 		 */
 		private static function normalize_runtime_failure_field( $value ): string {
-			$value = sanitize_text_field( (string) $value );
-			$value = preg_replace( '/[^\p{L}\p{N}_.:\s-]+/u', ' ', $value );
-			$value = preg_replace( '/\s+/', ' ', (string) $value );
-			$value = trim( (string) $value );
+			$value = (string) $value;
+			if ( function_exists( 'wp_check_invalid_utf8' ) ) {
+				$value = wp_check_invalid_utf8( $value );
+			} elseif ( function_exists( 'iconv' ) ) {
+				$converted = iconv( 'UTF-8', 'UTF-8//IGNORE', $value );
+				$value     = is_string( $converted ) ? $converted : '';
+			}
+			$value = sanitize_text_field( $value );
+			$filtered = preg_replace( '/[^\p{L}\p{N}_.:\s-]+/u', ' ', $value );
+			$filtered = is_string( $filtered ) ? $filtered : '';
+			$collapsed = preg_replace( '/\s+/', ' ', $filtered );
+			$value = is_string( $collapsed ) ? $collapsed : $filtered;
+			$value = trim( $value );
 			return function_exists( 'mb_substr' ) ? mb_substr( $value, 0, 120, 'UTF-8' ) : substr( $value, 0, 120 );
 		}
 
