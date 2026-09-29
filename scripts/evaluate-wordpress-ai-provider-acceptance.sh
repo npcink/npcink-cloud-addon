@@ -15,6 +15,10 @@ if [[ ! -d "$EVAL_LAB_PATH" ]]; then
 	echo "Set NPCINK_EVAL_LAB_PATH=/path/to/npcink-eval-lab." >&2
 	exit 1
 fi
+if [[ ! -f "$MATRIX" ]]; then
+	echo "Capability matrix not found: $MATRIX" >&2
+	exit 1
+fi
 
 mkdir -p "$(dirname "$REPORT")" "$(dirname "$GATE_REPORT")" "$(dirname "$QUALITY_REPORT")"
 
@@ -38,9 +42,14 @@ if [[ -n "${WP_AI_ACCEPTANCE_ABILITIES:-}" ]]; then
 fi
 set +e
 php "$EVAL_LAB_PATH/wordpress-ai-provider/run.php" "${gate_args[@]}" \
-	>"$GATE_REPORT.stdout"
+	>"$GATE_REPORT.stdout" 2>&1
 gate_status=$?
 set -e
+
+if [[ "$gate_status" -ne 0 ]]; then
+	echo "WordPress AI capability gate failed; inspect $GATE_REPORT.stdout" >&2
+	exit "$gate_status"
+fi
 
 set +e
 php "$EVAL_LAB_PATH/wordpress-ai-provider/evaluate.php" \
@@ -66,9 +75,6 @@ php -r '$report=json_decode((string)file_get_contents($argv[1]),true); $gate=jso
 
 if [[ "$acceptance_status" -ne 0 ]]; then
 	exit "$acceptance_status"
-fi
-if [[ "$gate_status" -ne 0 ]]; then
-	exit 1
 fi
 if [[ "$quality_status" == "failed" ]]; then
 	exit 1

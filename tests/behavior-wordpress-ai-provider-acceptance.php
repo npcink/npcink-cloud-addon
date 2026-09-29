@@ -35,6 +35,7 @@ maca_assert(
 	&& false !== strpos( $quality_runner_source, 'wordpress-ai-provider/evaluate.php' )
 	&& false !== strpos( $quality_runner_source, 'wordpress-ai-provider/run.php' )
 	&& false !== strpos( $quality_runner_source, 'capability-matrix.v1.json' )
+	&& false !== strpos( $quality_runner_source, 'WP_AI_ACCEPTANCE_ABILITIES' )
 	&& false !== strpos( $quality_runner_source, 'allow_partial=1' )
 	&& false !== strpos( $quality_runner_source, 'WP_AI_ACCEPTANCE_INPUT' )
 	&& false !== strpos( $quality_runner_source, 'human_review_required' ),
