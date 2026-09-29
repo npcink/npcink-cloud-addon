@@ -71,6 +71,10 @@ maca_assert(
 	&& false !== json_encode( $runtime_report_evidence, JSON_UNESCAPED_UNICODE ),
 	'Runtime failure evidence preserves the Cloud run ID, dotted code, stage, and valid UTF-8 diagnostics.'
 );
+maca_assert(
+	'run_nested_123' === Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( array( 'data' => array( 'result' => array( 'run_id' => 'run_nested_123' ) ) ) ),
+	'Cloud run ID extraction accepts the nested runtime result envelope used by the connector log bridge.'
+);
 Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array( 'quality_reason' => array( 'nested' => true ) ) );
 maca_assert(

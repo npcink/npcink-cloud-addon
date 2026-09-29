@@ -238,11 +238,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$cloud_error_data  = is_array( $error_data['cloud_error_data'] ?? null ) ? $error_data['cloud_error_data'] : array();
 			$run_state         = is_array( $cloud_error_data['run_state'] ?? null ) ? $cloud_error_data['run_state'] : array();
 			$run_state_error   = is_array( $run_state['error'] ?? null ) ? $run_state['error'] : array();
-			$cloud_error_reply = is_array( $cloud_error_data['data'] ?? null ) ? $cloud_error_data['data'] : array();
-			$cloud_run_id      = sanitize_text_field( (string) ( $cloud_error_data['run_id'] ?? '' ) );
-			if ( '' === $cloud_run_id ) {
-				$cloud_run_id = sanitize_text_field( (string) ( $cloud_error_reply['run_id'] ?? '' ) );
-			}
+			$cloud_run_id = self::first_response_string(
+				$cloud_error_data,
+				array( 'run_id', 'data.run_id', 'data.result.run_id', 'result.run_id' ),
+				''
+			);
 			$evidence = array(
 				'run_id'           => self::normalize_runtime_failure_field( $cloud_run_id ),
 				'cloud_error_code' => self::normalize_runtime_failure_field( $error_data['cloud_error_code'] ?? '' ),
@@ -295,6 +295,20 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 */
 		public static function current_runtime_failure_evidence(): array {
 			return self::$last_runtime_failure_evidence;
+		}
+
+		/**
+		 * Extracts a Cloud run ID from every supported runtime response envelope.
+		 *
+		 * @param mixed $response Runtime response.
+		 * @return string
+		 */
+		public static function cloud_run_id_from_response( $response ): string {
+			return self::first_response_string(
+				is_array( $response ) ? $response : array(),
+				array( 'run_id', 'data.run_id', 'data.result.run_id', 'result.run_id' ),
+				''
+			);
 		}
 
 		/**
@@ -1300,7 +1314,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), $task );
 			if ( '' === $output_text ) {
-				$cloud_run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? '' ) );
+				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
 					'run_id'         => $cloud_run_id,
@@ -1319,7 +1333,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-			$cloud_run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? '' ) );
+			$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 			$run_id = '' !== $cloud_run_id ? $cloud_run_id : wp_generate_uuid4();
 			Npcink_Cloud_Customer_Journey::capture_generation(
@@ -1884,7 +1898,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), 'alt_text_suggest' );
 			if ( '' === $output_text ) {
-				$cloud_run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? '' ) );
+				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
 					'run_id'         => $cloud_run_id,
@@ -1897,7 +1911,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-			$cloud_run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? '' ) );
+			$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 			$run_id = '' !== $cloud_run_id ? $cloud_run_id : wp_generate_uuid4();
 			return new \WordPress\AiClient\Results\DTO\GenerativeAiResult(
@@ -2136,7 +2150,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector response did not include image output.' );
 				}
 			} catch ( \Throwable $error ) {
-				$cloud_run_id = (string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? '' ) );
+				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
 					'run_id'         => $cloud_run_id,
@@ -2151,8 +2165,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 			$log_event['duration_ms'] = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started );
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
+			$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 			return new \WordPress\AiClient\Results\DTO\GenerativeAiResult(
-				(string) ( $response['run_id'] ?? ( $response['data']['run_id'] ?? wp_generate_uuid4() ) ),
+				'' !== $cloud_run_id ? $cloud_run_id : wp_generate_uuid4(),
 				$candidates,
 				new \WordPress\AiClient\Results\DTO\TokenUsage( 0, 0, 0 ),
 				$this->provider_metadata,
