@@ -32,6 +32,20 @@ function npcink_cloud_acceptance_finalize_report( array $report ): array {
 	return $report;
 }
 
+/** Classify contract failures for development evidence without changing the official error shape. */
+function npcink_cloud_acceptance_contract_status( $contract ): string {
+	if ( is_array( $contract ) ) {
+		return (string) ( $contract['verification_state'] ?? 'unsupported' );
+	}
+	if ( is_wp_error( $contract ) ) {
+		$code = (string) $contract->get_error_code();
+		if ( false !== strpos( $code, 'schema_hash' ) || false !== strpos( $code, 'contract_drift' ) || 'cloud_ai_task_contract_not_current' === $code ) {
+			return 'contract_drift';
+		}
+	}
+	return 'unsupported';
+}
+
 function npcink_cloud_acceptance_string( $value ) {
 	if ( is_string( $value ) ) {
 		return trim( $value );
