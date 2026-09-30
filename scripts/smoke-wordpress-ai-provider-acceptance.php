@@ -14,7 +14,10 @@
  * A bounded subset can be run while diagnosing one ability:
  *   WP_AI_ACCEPTANCE_ABILITIES=ai/editorial-updates composer run acceptance:wp-ai-provider
  *
- * Without those variables, comment and vision cases are reported as skipped;
+ * Comment analysis is skipped by default because the official Ability stores
+ * its result in comment metadata. Set WP_AI_ACCEPTANCE_ALLOW_COMMENT_METADATA_WRITE=1
+ * only in an isolated fixture when that host-owned write is intentional.
+ * Without the other variables, comment-reply and vision cases are reported as skipped;
  * they are never represented as passing coverage.
  *
  * The script uses fixed inputs, never saves or publishes content, and emits a
@@ -52,24 +55,38 @@ function npcink_cloud_acceptance_request( $ability, array $input ) {
 
 require_once __DIR__ . '/wordpress-ai-provider-acceptance-functions.php';
 
-function npcink_cloud_acceptance_wordpress_state() {
+function npcink_cloud_acceptance_wordpress_state( $comment_id = 0 ) {
 	global $wpdb;
 	if ( ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_row' ) ) {
 		return null;
 	}
 	$row = $wpdb->get_row( "SELECT COUNT(*) AS posts, MAX(ID) AS max_post_id, MAX(post_modified_gmt) AS max_modified FROM {$wpdb->posts}", ARRAY_A );
 	$meta = $wpdb->get_row( "SELECT COUNT(*) AS postmeta, MAX(meta_id) AS max_meta_id FROM {$wpdb->postmeta}", ARRAY_A );
+	$comments = $wpdb->get_row( "SELECT COUNT(*) AS comments, MAX(comment_ID) AS max_comment_id, MAX(comment_date_gmt) AS max_comment_date FROM {$wpdb->comments}", ARRAY_A );
+	$commentmeta = $wpdb->get_row( "SELECT COUNT(*) AS commentmeta, MAX(meta_id) AS max_commentmeta_id FROM {$wpdb->commentmeta}", ARRAY_A );
+	$commentmeta_fingerprint = '';
+	if ( 0 < $comment_id ) {
+		$commentmeta_rows = $wpdb->get_results( "SELECT meta_key, meta_value FROM {$wpdb->commentmeta} WHERE comment_id = " . absint( $comment_id ) . ' ORDER BY meta_id', ARRAY_A );
+		$commentmeta_fingerprint = hash( 'sha256', serialize( is_array( $commentmeta_rows ) ? $commentmeta_rows : array() ) );
+	}
 	return array(
 		'posts' => (int) ( $row['posts'] ?? 0 ),
 		'max_post_id' => (int) ( $row['max_post_id'] ?? 0 ),
 		'max_modified' => (string) ( $row['max_modified'] ?? '' ),
 		'postmeta' => (int) ( $meta['postmeta'] ?? 0 ),
 		'max_meta_id' => (int) ( $meta['max_meta_id'] ?? 0 ),
+		'comments' => (int) ( $comments['comments'] ?? 0 ),
+		'max_comment_id' => (int) ( $comments['max_comment_id'] ?? 0 ),
+		'max_comment_date' => (string) ( $comments['max_comment_date'] ?? '' ),
+		'commentmeta' => (int) ( $commentmeta['commentmeta'] ?? 0 ),
+		'max_commentmeta_id' => (int) ( $commentmeta['max_commentmeta_id'] ?? 0 ),
+		'commentmeta_fingerprint' => $commentmeta_fingerprint,
 	);
 }
 
 npcink_cloud_acceptance_set_user();
-$wordpress_state_before = npcink_cloud_acceptance_wordpress_state();
+$comment_id = absint( getenv( 'WP_AI_ACCEPTANCE_COMMENT_ID' ) ?: 0 );
+$wordpress_state_before = npcink_cloud_acceptance_wordpress_state( $comment_id );
 
 $cases = array(
 	array( 'scenario_id' => 'excerpt-default', 'ability' => 'ai/excerpt-generation', 'input' => array( 'content' => 'A short article about reliable WordPress AI provider contracts.', 'context' => 'Keep it concise and factual.' ) ),
@@ -87,9 +104,11 @@ $cases = array(
 	array( 'scenario_id' => 'image-prompt-generation-default', 'ability' => 'ai/image-prompt-generation', 'input' => array( 'content' => 'A calm editorial workspace showing a WordPress article moving through a reliable AI provider pipeline.', 'context' => 'Use a clean product illustration style.', 'style' => 'minimal, editorial, accessible contrast' ) ),
 	array( 'scenario_id' => 'title-generation-default', 'ability' => 'ai/title-generation', 'input' => array( 'content' => 'A guide explaining how WordPress AI abilities connect to a cloud provider.' ) ),
 );
-$comment_id = absint( getenv( 'WP_AI_ACCEPTANCE_COMMENT_ID' ) ?: 0 );
+$allow_comment_metadata_write = '1' === (string) ( getenv( 'WP_AI_ACCEPTANCE_ALLOW_COMMENT_METADATA_WRITE' ) ?: '' );
 if ( 0 < $comment_id ) {
-	$cases[] = array( 'scenario_id' => 'comment-analysis-fixed', 'ability' => 'ai/comment-analysis', 'input' => array( 'comment_id' => $comment_id ) );
+	if ( $allow_comment_metadata_write ) {
+		$cases[] = array( 'scenario_id' => 'comment-analysis-fixed', 'ability' => 'ai/comment-analysis', 'input' => array( 'comment_id' => $comment_id ) );
+	}
 	$cases[] = array( 'scenario_id' => 'comment-reply-fixed', 'ability' => 'ai/suggest-reply', 'input' => array( 'comment_id' => $comment_id, 'tone' => 'friendly' ) );
 }
 $alt_text_attachment_id = absint( getenv( 'WP_AI_ACCEPTANCE_ALT_TEXT_ATTACHMENT_ID' ) ?: 0 );
@@ -229,6 +248,8 @@ foreach ( $cases as $case_definition ) {
 if ( 0 === $comment_id ) {
 	$report['optional_capabilities_skipped'][] = array( 'ability' => 'ai/comment-analysis', 'reason' => 'set WP_AI_ACCEPTANCE_COMMENT_ID' );
 	$report['optional_capabilities_skipped'][] = array( 'ability' => 'ai/suggest-reply', 'reason' => 'set WP_AI_ACCEPTANCE_COMMENT_ID' );
+} elseif ( ! $allow_comment_metadata_write ) {
+	$report['optional_capabilities_skipped'][] = array( 'ability' => 'ai/comment-analysis', 'reason' => 'official Ability stores analysis in comment metadata; set WP_AI_ACCEPTANCE_ALLOW_COMMENT_METADATA_WRITE=1 in an isolated fixture' );
 }
 if ( 0 === $alt_text_attachment_id ) {
 	$report['optional_capabilities_skipped'][] = array( 'ability' => 'ai/alt-text-generation', 'reason' => 'set WP_AI_ACCEPTANCE_ALT_TEXT_ATTACHMENT_ID' );
@@ -237,7 +258,7 @@ if ( ! $image_generation_enabled ) {
 	$report['optional_capabilities_skipped'][] = array( 'ability' => 'ai/image-generation', 'reason' => 'set WP_AI_ACCEPTANCE_IMAGE_GENERATION=1' );
 }
 
-$wordpress_state_after = npcink_cloud_acceptance_wordpress_state();
+$wordpress_state_after = npcink_cloud_acceptance_wordpress_state( $comment_id );
 if ( is_array( $wordpress_state_before ) && is_array( $wordpress_state_after ) ) {
 	$report['write_detected'] = $wordpress_state_before !== $wordpress_state_after;
 	$report['write_evidence_state'] = $report['write_detected'] ? 'content_state_changed' : 'content_state_unchanged';

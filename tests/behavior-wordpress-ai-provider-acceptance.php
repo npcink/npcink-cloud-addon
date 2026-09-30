@@ -27,7 +27,10 @@ maca_assert(
 	&& false !== strpos( $acceptance_smoke_source, 'slug-generation-mixed-language' )
 	&& false !== strpos( $acceptance_smoke_source, "'quality_context'" )
 	&& false !== strpos( $acceptance_smoke_source, 'cloud_run_id_from_response' )
-	&& false !== strpos( $acceptance_smoke_source, 'current_cloud_run_id' ),
+	&& false !== strpos( $acceptance_smoke_source, 'current_cloud_run_id' )
+	&& false !== strpos( $acceptance_smoke_source, "'commentmeta'" )
+	&& false !== strpos( $acceptance_smoke_source, "'commentmeta_fingerprint'" )
+	&& false !== strpos( $acceptance_smoke_source, 'WP_AI_ACCEPTANCE_ALLOW_COMMENT_METADATA_WRITE' ),
 	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
 );
 maca_assert(
