@@ -112,6 +112,44 @@ namespace {
 		'Behavior: text and vision connector parsers reject task, suggestion posture, connector, and operation contract mismatches.'
 	);
 
+	$projection_model = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
+	$projection_method = new \ReflectionMethod( 'Npcink_Cloud_WordPress_AI_Text_Model', 'project_short_text_scene_request' );
+	$projection_method->setAccessible( true );
+	$excerpt_projection = $projection_method->invoke(
+		$projection_model,
+		'excerpt_generation',
+		'Generate a concise excerpt.',
+		array( 'content' => '本文介绍 WordPress AI 连接器的运行边界。' )
+	);
+	$meta_projection = $projection_method->invoke(
+		$projection_model,
+		'meta_description',
+		'Generate an SEO description.',
+		array( 'content' => '本文介绍 WordPress AI 连接器的运行边界。', 'title' => '连接器运行边界' )
+	);
+	$missing_projection = $projection_method->invoke(
+		$projection_model,
+		'excerpt_generation',
+		'Generate an excerpt from the supplied content.',
+		array()
+	);
+	maca_assert(
+		'本文介绍 WordPress AI 连接器的运行边界。' === (string) ( $excerpt_projection['source_text'] ?? '' )
+			&& 'Generate a concise excerpt.' === (string) ( $excerpt_projection['system_instruction'] ?? '' )
+			&& ! isset( $excerpt_projection['prompt'] ),
+		'Behavior: excerpt generation projects validated content as source text and preserves the official instruction separately.'
+	);
+	maca_assert(
+		"Title:\n连接器运行边界\n\nContent:\n本文介绍 WordPress AI 连接器的运行边界。" === (string) ( $meta_projection['source_text'] ?? '' )
+			&& 'Generate an SEO description.' === (string) ( $meta_projection['system_instruction'] ?? '' ),
+		'Behavior: meta description generation keeps the validated title and content together as grounded source text.'
+	);
+	maca_assert(
+		'Generate an excerpt from the supplied content.' === (string) ( $missing_projection['prompt'] ?? '' )
+			&& ! isset( $missing_projection['source_text'] ),
+		'Behavior: short-text projection keeps the original prompt when the Ability provides no content.'
+	);
+
 	maca_assert(
 		'ai/suggest-reply' === ( new \WordPress\AI\Abilities\Suggest_Reply\Suggest_Reply() )->detected_scene_ability_name(),
 		'Behavior: the text connector recognizes the WordPress AI suggest reply ability as a bounded scene.'
