@@ -91,6 +91,26 @@ evidence.
 
 ## WordPress AI Acceptance and Quality Report
 
+### Read-only quota preflight
+
+Before executing cases, the runner reads the existing entitlement endpoint
+once and adds a bounded `preflight` summary to the development report. A
+confirmed exhausted `ai_credits` balance skips Ability execution. Contract
+projection still runs, so contract drift is not hidden by the quota blocker.
+Skipped cases record `failure_code=quota_exhausted`,
+`failure_stage=acceptance_preflight`, `execution_state=not_executed`, and
+`quality_status=not_evaluated`. HTTP status, Cloud error code, and Provider run
+ID stay null because no execution request occurred. The batch exits nonzero
+and is not acceptance evidence for result quality.
+
+Missing, malformed, or unavailable entitlement is recorded as `unavailable`;
+it does not imply quota exhaustion or positive admission. In that case the
+existing execution path provides the runtime diagnostic. A positive balance
+also does not guarantee admission or enough credits for the entire batch.
+The report excludes raw entitlement payloads, error messages, and secrets.
+This preflight is a development tool and does not change the official editor
+UI, connector result format, or Cloud quota ownership.
+
 ### Scenario identity
 
 The acceptance runner records a stable `scenario_id` for every case. The
