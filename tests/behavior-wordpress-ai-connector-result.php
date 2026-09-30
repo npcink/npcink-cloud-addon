@@ -44,6 +44,29 @@ namespace {
 	maca_load_addon_classes();
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
 
+	if ( ! function_exists( 'get_post' ) ) {
+		/**
+		 * Provides the post fixture needed for context-key projection coverage.
+		 *
+		 * @param int $post_id Post ID.
+		 * @return object|null
+		 */
+		function get_post( int $post_id ) {
+			if ( isset( $GLOBALS['maca_posts'][ $post_id ] ) ) {
+				return $GLOBALS['maca_posts'][ $post_id ];
+			}
+			if ( isset( $GLOBALS['maca_runtime_posts'][ $post_id ] ) ) {
+				return $GLOBALS['maca_runtime_posts'][ $post_id ];
+			}
+			return 321 === $post_id
+				? (object) array(
+					'post_title'   => 'Context-backed title',
+					'post_content' => 'Context-backed content.',
+				)
+				: null;
+		}
+	}
+
 	/**
 	 * Invokes one private connector result parser without constructing AI Client DTOs.
 	 *
@@ -127,6 +150,12 @@ namespace {
 		'Generate an SEO description.',
 		array( 'content' => '本文介绍 WordPress AI 连接器的运行边界。', 'title' => '连接器运行边界' )
 	);
+	$context_meta_projection = $projection_method->invoke(
+		$projection_model,
+		'meta_description',
+		'Generate an SEO description.',
+		array( 'context' => 321 )
+	);
 	$missing_projection = $projection_method->invoke(
 		$projection_model,
 		'excerpt_generation',
@@ -143,6 +172,10 @@ namespace {
 		"Title:\n连接器运行边界\n\nContent:\n本文介绍 WordPress AI 连接器的运行边界。" === (string) ( $meta_projection['source_text'] ?? '' )
 			&& 'Generate an SEO description.' === (string) ( $meta_projection['system_instruction'] ?? '' ),
 		'Behavior: meta description generation keeps the validated title and content together as grounded source text.'
+	);
+	maca_assert(
+		"Title:\nContext-backed title\n\nContent:\nContext-backed content." === (string) ( $context_meta_projection['source_text'] ?? '' ),
+		'Behavior: meta description generation resolves both title and content from the Ability context post reference.'
 	);
 	maca_assert(
 		'Generate an excerpt from the supplied content.' === (string) ( $missing_projection['prompt'] ?? '' )

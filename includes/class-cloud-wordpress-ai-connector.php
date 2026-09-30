@@ -1498,7 +1498,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			if ( 'meta_description' === $task ) {
 				$title = trim( (string) ( $context_input['title'] ?? '' ) );
 				if ( '' === $title && function_exists( 'get_post' ) ) {
-					$post_id = absint( $context_input['post_id'] ?? 0 );
+					$post_id = absint( $context_input['post_id'] ?? $context_input['context'] ?? 0 );
 					$post    = $post_id > 0 ? get_post( $post_id ) : null;
 					if ( is_object( $post ) ) {
 						$title = trim( (string) ( $post->post_title ?? '' ) );
