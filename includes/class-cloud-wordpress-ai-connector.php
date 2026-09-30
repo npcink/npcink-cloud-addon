@@ -1239,12 +1239,15 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					'task'   => $task,
 				),
 			);
+			$context_input = is_array( $ability_context['input'] ?? null ) ? $ability_context['input'] : array();
 			if ( in_array( $task, array( 'title_generation', 'content_summary', 'content_rewrite', 'content_translation', 'editorial_updates' ), true ) ) {
 				$scene_input['source_text'] = $text;
+			} elseif ( in_array( $task, array( 'excerpt_generation', 'meta_description' ), true ) ) {
+				$short_text_projection = $this->project_short_text_scene_request( $task, $text, $context_input );
+				$scene_input = array_merge( $scene_input, $short_text_projection );
 			} else {
 				$scene_input['prompt'] = $text;
 			}
-			$context_input = is_array( $ability_context['input'] ?? null ) ? $ability_context['input'] : array();
 			if ( 'content_classification' === $task ) {
 				$taxonomy = sanitize_key( (string) ( $context_input['taxonomy'] ?? '' ) );
 				$strategy = sanitize_key( (string) ( $context_input['strategy'] ?? '' ) );
@@ -1300,7 +1303,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 			$system_instruction = (string) ( $this->config->getSystemInstruction() ?? '' );
 			if ( '' !== trim( $system_instruction ) ) {
-				$scene_input['system_instruction'] = $system_instruction;
+				$scene_input['system_instruction'] = trim(
+					(string) ( $scene_input['system_instruction'] ?? '' ) . "\n\n" . $system_instruction
+				);
 			}
 			if ( 'editorial_updates' === $task && '' !== (string) ( $scene_input['editorial_notes_instruction'] ?? '' ) ) {
 				$scene_input['system_instruction'] = trim(
@@ -1459,6 +1464,55 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			return trim( implode( "\n\n", $parts ) );
+		}
+
+		/**
+		 * Projects the official short-text Ability input into the Cloud scene.
+		 *
+		 * Excerpt and meta-description abilities carry the actual post content in
+		 * validated Ability input, while their AI Client message is an instruction.
+		 * Keep those roles separate so Cloud can ground the result in the content
+		 * without losing the official instruction or asking the model to infer the
+		 * source from a generic prompt.
+		 *
+		 * @param string              $task Task name.
+		 * @param string              $instruction Official AI Client instruction.
+		 * @param array<string,mixed> $context_input Validated Ability input.
+		 * @return array<string,string>
+		 */
+		private function project_short_text_scene_request( string $task, string $instruction, array $context_input ): array {
+			$content = trim( (string) ( $context_input['content'] ?? '' ) );
+			if ( '' === $content && function_exists( 'get_post' ) ) {
+				$post_id = absint( $context_input['post_id'] ?? $context_input['context'] ?? 0 );
+				$post    = $post_id > 0 ? get_post( $post_id ) : null;
+				if ( is_object( $post ) ) {
+					$content = trim( (string) ( $post->post_content ?? '' ) );
+				}
+			}
+
+			if ( '' === $content ) {
+				return array( 'prompt' => $instruction );
+			}
+
+			$source_text = $content;
+			if ( 'meta_description' === $task ) {
+				$title = trim( (string) ( $context_input['title'] ?? '' ) );
+				if ( '' === $title && function_exists( 'get_post' ) ) {
+					$post_id = absint( $context_input['post_id'] ?? $context_input['context'] ?? 0 );
+					$post    = $post_id > 0 ? get_post( $post_id ) : null;
+					if ( is_object( $post ) ) {
+						$title = trim( (string) ( $post->post_title ?? '' ) );
+					}
+				}
+				if ( '' !== $title ) {
+					$source_text = "Title:\n" . $title . "\n\nContent:\n" . $content;
+				}
+			}
+
+			return array(
+				'source_text'       => $source_text,
+				'system_instruction' => $instruction,
+			);
 		}
 
 		/**
