@@ -1387,9 +1387,10 @@ const providerLedgerPlan = providerQualityValidationMode
 // patterns. A random hex token can occasionally contain a phone-like run of
 // digits, which would make the otherwise deterministic smoke classify its
 // editor payload as `pii` and fail the evidence assertion intermittently.
+const fixtureTokenLetters = 'ghijklmnop';
 const token = randomBytes(6)
 	.toString('hex')
-	.replace(/[0-9]/g, (digit) => String.fromCharCode('g'.charCodeAt(0) + Number(digit)));
+	.replace(/[0-9]/g, (digit) => fixtureTokenLetters[Number(digit)]);
 const creditMeteringPadding = creditAssertionMode
 	? ` ${'The bounded metering fixture keeps enough editorial context to stabilize the title and summary input token bucket without changing the selected rewrite paragraph. '.repeat(24).trim()}`
 	: '';
