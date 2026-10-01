@@ -161,9 +161,11 @@ $report = array(
 	'write_evidence_state' => 'not_measured',
 	'generated_at'     => gmdate( 'c' ),
 	'fixture_id'       => 'wordpress-ai-acceptance-fixed-v1',
+	'preflight'        => npcink_cloud_acceptance_quota_preflight(),
 	'optional_capabilities_skipped' => array(),
 	'cases'            => array(),
 );
+$skip_provider_calls = 'quota_exhausted' === ( $report['preflight']['state'] ?? '' );
 
 foreach ( $cases as $case_definition ) {
 	$ability = (string) ( $case_definition['ability'] ?? '' );
@@ -202,6 +204,16 @@ foreach ( $cases as $case_definition ) {
 	if ( is_wp_error( $contract ) ) {
 		$case['failure_code'] = 'ability_contract_invalid';
 		$report['cases'][]    = $case;
+		continue;
+	}
+
+	if ( $skip_provider_calls ) {
+		$case['execution_state'] = 'not_executed';
+		$case['failure_code'] = 'quota_exhausted';
+		$case['failure_stage'] = 'acceptance_preflight';
+		$case['quality_status'] = 'not_evaluated';
+		$case['non_empty_result'] = false;
+		$report['cases'][] = $case;
 		continue;
 	}
 

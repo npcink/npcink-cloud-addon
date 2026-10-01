@@ -30,7 +30,10 @@ maca_assert(
 	&& false !== strpos( $acceptance_smoke_source, 'current_cloud_run_id' )
 	&& false !== strpos( $acceptance_smoke_source, "'commentmeta'" )
 	&& false !== strpos( $acceptance_smoke_source, "'commentmeta_fingerprint'" )
-	&& false !== strpos( $acceptance_smoke_source, 'WP_AI_ACCEPTANCE_ALLOW_COMMENT_METADATA_WRITE' ),
+	&& false !== strpos( $acceptance_smoke_source, 'WP_AI_ACCEPTANCE_ALLOW_COMMENT_METADATA_WRITE' )
+	&& false !== strpos( $acceptance_smoke_source, "'preflight'" )
+	&& false !== strpos( $acceptance_smoke_source, 'quota_exhausted' )
+	&& false !== strpos( $acceptance_smoke_source, 'npcink_cloud_acceptance_quota_preflight' ),
 	'Acceptance reports expose contract provenance and verification state for development diagnostics.'
 );
 maca_assert(
@@ -157,6 +160,88 @@ maca_assert(
 	'Acceptance failure evidence uses null for absent optional fields.'
 );
 maca_assert( 'contract_drift' === npcink_cloud_acceptance_contract_status( new WP_Error( 'cloud_ai_task_schema_hash_mismatch', 'drift' ) ), 'Acceptance classifies schema drift separately from provider failures.' );
+
+$quota_exhausted = npcink_cloud_acceptance_quota_preflight_from_response(
+	array(
+		'data' => array(
+			'quota_summary' => array(
+				'ai_credit_usage_detail' => array(
+					'summary' => array( 'used' => 301, 'limit' => 301, 'remaining' => 0, 'unit' => 'ai_credits' ),
+				),
+			),
+		),
+	)
+);
+$quota_available = npcink_cloud_acceptance_quota_preflight_from_response(
+	array(
+		'data' => array(
+			'quota_summary' => array(
+				'ai_credit_usage_detail' => array(
+					'summary' => array( 'used' => 10, 'limit' => 100, 'remaining' => 90, 'unit' => 'ai_credits' ),
+				),
+			),
+		),
+	)
+);
+$quota_invalid = npcink_cloud_acceptance_quota_preflight_from_response(
+	array(
+		'data' => array(
+			'quota_summary' => array(
+				'ai_credit_usage_detail' => array(
+					'summary' => array( 'used' => 10, 'limit' => 100, 'remaining' => 90, 'unit' => 'credits' ),
+				),
+			),
+		),
+	)
+);
+maca_assert( 'quota_exhausted' === $quota_exhausted['state'] && 0.0 === $quota_exhausted['remaining'], 'Acceptance preflight detects exhausted AI credits from the bounded entitlement summary.' );
+maca_assert( 'available' === $quota_available['state'] && 90.0 === $quota_available['remaining'], 'Acceptance preflight allows Provider calls when bounded AI credits remain.' );
+maca_assert( 'unavailable' === $quota_invalid['state'] && 'invalid_entitlement_summary' === $quota_invalid['error_code'], 'Acceptance preflight treats an invalid entitlement unit as unknown without exposing raw data.' );
+$quota_error = npcink_cloud_acceptance_quota_preflight_from_response( new WP_Error( 'cloud_runtime_unconfigured', 'private diagnostics', array( 'secret' => 'must-not-appear' ) ) );
+maca_assert( 'unavailable' === $quota_error['state'] && 'cloud_runtime_unconfigured' === $quota_error['error_code'] && false === strpos( json_encode( $quota_error ), 'must-not-appear' ), 'Acceptance preflight retains only the error code, never raw error messages or payloads.' );
+$quota_missing = npcink_cloud_acceptance_quota_preflight_from_response( array() );
+maca_assert( 'unavailable' === $quota_missing['state'] && null === $quota_missing['remaining'], 'Acceptance preflight does not infer exhausted quota from a missing summary.' );
+$quota_non_numeric = npcink_cloud_acceptance_quota_preflight_from_response(
+	array( 'data' => array( 'quota_summary' => array( 'ai_credit_usage_detail' => array( 'summary' => array( 'used' => 'n/a', 'limit' => 100, 'remaining' => 90, 'unit' => 'ai_credits' ) ) ) ) )
+);
+maca_assert( 'unavailable' === $quota_non_numeric['state'] && 'invalid_entitlement_summary' === $quota_non_numeric['error_code'], 'Acceptance preflight rejects non-numeric entitlement totals.' );
+$quota_unknown_remaining = npcink_cloud_acceptance_quota_preflight_from_response(
+	array( 'data' => array( 'quota_summary' => array( 'ai_credit_usage_detail' => array( 'summary' => array( 'used' => 10, 'limit' => 100, 'remaining' => null, 'unit' => 'ai_credits' ) ) ) ) )
+);
+maca_assert( 'unavailable' === $quota_unknown_remaining['state'] && 'entitlement_remaining_unknown' === $quota_unknown_remaining['error_code'], 'Acceptance preflight distinguishes an unknown remaining balance from malformed totals.' );
+
+// Run the actual WP-CLI script in an isolated PHP host. Any Ability execution
+// exits immediately, so the assertion proves the preflight bypasses transport.
+$quota_probe_file = tempnam( sys_get_temp_dir(), 'wp-ai-quota-probe-' );
+$quota_probe_source = <<<'PHP'
+<?php
+require $argv[1] . '/tests/helpers.php';
+function get_user_by( $field, $value ) { return (object) array( 'ID' => 1 ); }
+function wp_set_current_user( $id ) {}
+function wp_get_ability( $ability ) { return true; }
+function rest_do_request( $request ) { fwrite( STDERR, 'unexpected Ability execution' ); exit(42); }
+class Npcink_Cloud_AI_Task_Contract {
+    public static function project_registered_ability( $ability ) {
+        if ( 'ai/title-generation' === $ability ) { return new WP_Error( 'contract_drift' ); }
+        return array( 'task' => 'text', 'contract_version' => 'v1', 'verification_state' => 'mapping_current' );
+    }
+}
+function npcink_cloud_addon_get_toolbox_runtime_entitlement( $trace_id ) {
+    return array( 'data' => array( 'quota_summary' => array( 'ai_credit_usage_detail' => array(
+        'summary' => array( 'used' => 301, 'limit' => 301, 'remaining' => 0, 'unit' => 'ai_credits' )
+    ) ) ) );
+}
+foreach ( array( 'WP_AI_ACCEPTANCE_ABILITIES', 'WP_AI_ACCEPTANCE_COMMENT_ID', 'WP_AI_ACCEPTANCE_ALT_TEXT_ATTACHMENT_ID', 'WP_AI_ACCEPTANCE_IMAGE_GENERATION' ) as $key ) { putenv( $key ); }
+require $argv[1] . '/scripts/smoke-wordpress-ai-provider-acceptance.php';
+PHP;
+file_put_contents( $quota_probe_file, $quota_probe_source );
+exec( escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $quota_probe_file ) . ' ' . escapeshellarg( dirname( __DIR__ ) ), $quota_probe_lines, $quota_probe_status );
+unlink( $quota_probe_file );
+$quota_probe_report = json_decode( implode( "\n", $quota_probe_lines ), true );
+$quota_probe_cases = $quota_probe_report['cases'] ?? array();
+$quota_blocked_cases = array_filter( $quota_probe_cases, static function ( $case ) { return 'quota_exhausted' === ( $case['failure_code'] ?? null ); } );
+maca_assert( 2 === $quota_probe_status && 14 === count( $quota_probe_cases ) && 13 === count( $quota_blocked_cases ), 'An exhausted-quota batch skips every Provider call but still detects a contract failure.' );
+maca_assert( 'not_executed' === $quota_probe_cases[0]['execution_state'] && 'not_evaluated' === $quota_probe_cases[0]['quality_status'] && null === $quota_probe_cases[0]['http_status'] && null === $quota_probe_cases[0]['cloud_error_code'] && null === $quota_probe_cases[0]['provider_run_id'], 'Preflight-blocked evidence never invents HTTP, Cloud execution, or quality results.' );
 
 maca_assert( 'task_not_completed' === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', "Please provide the original paragraph you'd like revised." ), 'Acceptance rejects the observed request-for-source reply.' );
 maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', 'The revised paragraph is clearer.' ), 'Acceptance keeps an ordinary completed edit eligible for review.' );

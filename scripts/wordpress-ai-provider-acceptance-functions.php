@@ -1,5 +1,5 @@
 <?php
-/** Acceptance checks only; no runtime, transport, or WordPress writes. */
+/** Development acceptance helpers; no Provider execution or WordPress writes. */
 
 /** Preserve case evidence independently from the overall acceptance outcome. */
 function npcink_cloud_acceptance_finalize_report( array $report ): array {
@@ -30,6 +30,71 @@ function npcink_cloud_acceptance_finalize_report( array $report ): array {
 		$report['evidence_state'] = 'local_verified';
 	}
 	return $report;
+}
+
+/**
+ * Normalizes the bounded AI-credit summary used by the acceptance preflight.
+ *
+ * This parser intentionally accepts only the existing entitlement projection;
+ * it does not infer quota from runtime failures or expose the raw response.
+ *
+ * @param mixed $response Read-only entitlement response.
+ * @return array<string,mixed>
+ */
+function npcink_cloud_acceptance_quota_preflight_from_response( $response ): array {
+	$unavailable = array(
+		'state'     => 'unavailable',
+		'error_code' => 'entitlement_unavailable',
+		'unit'      => '',
+		'used'      => null,
+		'limit'     => null,
+		'remaining' => null,
+	);
+	if ( is_wp_error( $response ) ) {
+		$error_code = (string) $response->get_error_code();
+		return array_merge( $unavailable, array( 'error_code' => '' !== $error_code ? sanitize_key( $error_code ) : 'entitlement_unavailable' ) );
+	}
+	$summary = is_array( $response ) ? ( $response['data']['quota_summary']['ai_credit_usage_detail']['summary'] ?? null ) : null;
+	if ( ! is_array( $summary ) || 'ai_credits' !== ( $summary['unit'] ?? null ) ) {
+		return array_merge( $unavailable, array( 'error_code' => 'invalid_entitlement_summary' ) );
+	}
+	if ( ! is_numeric( $summary['used'] ?? null ) || ! is_numeric( $summary['limit'] ?? null ) ) {
+		return array_merge( $unavailable, array( 'error_code' => 'invalid_entitlement_summary', 'unit' => 'ai_credits' ) );
+	}
+	if ( ! is_numeric( $summary['remaining'] ?? null ) ) {
+		return array_merge( $unavailable, array( 'error_code' => 'entitlement_remaining_unknown', 'unit' => 'ai_credits' ) );
+	}
+	$used      = (float) $summary['used'];
+	$limit     = (float) $summary['limit'];
+	$remaining = (float) $summary['remaining'];
+	if ( ! is_finite( $used ) || ! is_finite( $limit ) || ! is_finite( $remaining ) || $used < 0 || $limit < 0 ) {
+		return array_merge( $unavailable, array( 'error_code' => 'invalid_entitlement_summary', 'unit' => 'ai_credits' ) );
+	}
+	return array(
+		'state'      => $remaining <= 0 ? 'quota_exhausted' : 'available',
+		'error_code' => null,
+		'unit'       => 'ai_credits',
+		'used'       => $used,
+		'limit'      => $limit,
+		'remaining'  => $remaining,
+	);
+}
+
+/**
+ * Performs a read-only quota check before a batch acceptance run.
+ *
+ * An unavailable entitlement does not block the run, because the existing
+ * request path remains the source of runtime diagnostics. An exhausted quota
+ * is safe to block before any Provider call.
+ *
+ * @return array<string,mixed>
+ */
+function npcink_cloud_acceptance_quota_preflight(): array {
+	if ( ! function_exists( 'npcink_cloud_addon_get_toolbox_runtime_entitlement' ) ) {
+		return npcink_cloud_acceptance_quota_preflight_from_response( new WP_Error( 'entitlement_helper_unavailable' ) );
+	}
+	$trace_id = function_exists( 'wp_generate_uuid4' ) ? 'wp-ai-acceptance-preflight-' . wp_generate_uuid4() : 'wp-ai-acceptance-preflight';
+	return npcink_cloud_acceptance_quota_preflight_from_response( npcink_cloud_addon_get_toolbox_runtime_entitlement( $trace_id ) );
 }
 
 /** Classify contract failures for development evidence without changing the official error shape. */
