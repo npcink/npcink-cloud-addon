@@ -240,7 +240,8 @@ unlink( $quota_probe_file );
 $quota_probe_report = json_decode( implode( "\n", $quota_probe_lines ), true );
 $quota_probe_cases = $quota_probe_report['cases'] ?? array();
 $quota_blocked_cases = array_filter( $quota_probe_cases, static function ( $case ) { return 'quota_exhausted' === ( $case['failure_code'] ?? null ); } );
-maca_assert( 2 === $quota_probe_status && 14 === count( $quota_probe_cases ) && 13 === count( $quota_blocked_cases ), 'An exhausted-quota batch skips every Provider call but still detects a contract failure.' );
+$quota_contract_failures = array_filter( $quota_probe_cases, static function ( $case ) { return 'ability_contract_invalid' === ( $case['failure_code'] ?? null ); } );
+maca_assert( 2 === $quota_probe_status && count( $quota_probe_cases ) > 0 && 1 === count( $quota_contract_failures ) && count( $quota_probe_cases ) === count( $quota_blocked_cases ) + count( $quota_contract_failures ), 'An exhausted-quota batch skips every executable case but still detects each contract failure.' );
 maca_assert( 'not_executed' === $quota_probe_cases[0]['execution_state'] && 'not_evaluated' === $quota_probe_cases[0]['quality_status'] && null === $quota_probe_cases[0]['http_status'] && null === $quota_probe_cases[0]['cloud_error_code'] && null === $quota_probe_cases[0]['provider_run_id'], 'Preflight-blocked evidence never invents HTTP, Cloud execution, or quality results.' );
 
 maca_assert( 'task_not_completed' === npcink_cloud_acceptance_quality_failure( 'ai/editorial-updates', "Please provide the original paragraph you'd like revised." ), 'Acceptance rejects the observed request-for-source reply.' );
