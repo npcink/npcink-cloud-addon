@@ -12,9 +12,9 @@ translation work completed for `npcink-cloud-addon`.
 - WordPress.org plugin URL: `https://wordpress.org/plugins/npcink-cloud-addon/`
 - Plugin slug: `npcink-cloud-addon`
 - WordPress.org SVN URL: `https://plugins.svn.wordpress.org/npcink-cloud-addon/`
-- Historical local SVN working copy: `build/wporg-svn`
+- Historical local SVN working copy: `build/wporg-svn` (deleted 2026-10-01 by mistake; recreate with a fresh checkout when next needed)
 - Release package: `build/npcink-cloud-addon.zip`
-- Stable tag: `0.1.8`
+- Stable tag: `0.2.0`
 
 The plugin has passed WordPress.org review and was submitted to SVN. Later asset
 updates were submitted separately.
@@ -35,9 +35,77 @@ Known SVN revisions:
   improved connection and Site Knowledge feedback, read-only retrieval
   acceptance projection, fixed WordPress AI localization compatibility, and
   the 33-file release package.
+- `r3723719`: release `0.2.0` with release-readiness fixes: the packaged
+  local permissions asset, reachable uninstall cleanup, the narrowed deprecated
+  settings seam, and refreshed zh_CN catalogs.
 - `r3652021`: release `0.1.8` with privacy-safe customer journey delivery,
   clearer monitoring disclosure, consent-gated editor quality evidence, the
   AI image extension fix, and the current 34-file release package.
+
+## 2026-10-01 0.2.0 Release Closeout
+
+Version `0.2.0` was published to WordPress.org SVN from clean merged Addon
+`origin/master` revision `5f7dff345a99ec23b652d595bcceac77e4ceb32a` after
+release PR `#204` passed the protected PHP matrix, advisory OpenCodeReview,
+PR body contract, and Release static gates:
+
+```text
+SVN revision: r3723719
+Tag: https://plugins.svn.wordpress.org/npcink-cloud-addon/tags/0.2.0/
+Local package SHA256: bce45eaa97c02aec13da61834373026bc42edf82f4e3a2e3474f9f3b623e9257
+Official package SHA256: ebde5bc7067661b384ac25908ef648d809c7abcdfc0c22edf88a4102eea50f8a
+```
+
+WordPress.org API reported `version=0.2.0` after the release; the official
+download and the local package had different container hashes but identical
+extracted file contents (recursive comparison, 34 files).
+
+Release scope:
+
+- the packaged build now ships `assets/admin-permissions.js`, which the
+  settings page enqueues (previous packages served a 404 for it);
+- `uninstall.php` loads `Npcink_Cloud_Outbound_Policy`, so uninstall cleanup
+  completes instead of fataling, and the site knowledge reconciliation cursor
+  option is now removed;
+- the unreachable duplicate connector runtime facade in `bootstrap.php` was
+  removed (live behavior unchanged) with a static uniqueness guard;
+- the deprecated `npcink_cloud_addon_get_settings()` seam no longer returns
+  the stored secret;
+- Plugin Check strict output is clean again (the exception-message escape
+  finding from `#174` is fixed);
+- readme 0.2.0 upgrade notice and fix bullets, an author URI header, AGENTS.md
+  connection-endpoint documentation, and refreshed POT/PO catalogs.
+
+Verification evidence:
+
+- full check rollup on PR `#204` passed (PHP 8.0/8.2/8.4 contracts, WordPress
+  AI lanes, Release static gates, PR body contract, advisory code review);
+- `WP_CLI_BIN=/opt/homebrew/bin/wp WP_DB_SOCKET=<current Local socket>
+  composer run release:verify` passed on the exact merged revision
+  (test:all, i18n audit and freshness, wp.org review guard, JS checks,
+  package release/verify, strict Plugin Check);
+- `composer run smoke:playground` passed on the merged revision
+  (WordPress 7.0.4 / PHP 8.2) from a tree without `build/` packaging output;
+- the package contained exactly 34 release files.
+
+Operational notes:
+
+- run `smoke:playground` before `package:release`, or remove the generated
+  `build/npcink-cloud-addon*` output first: Playground mounts the repository
+  root and a nested packaged plugin copy breaks blueprint activation;
+- the Composer default Local MySQL socket id in `composer.json` is stale on
+  this machine; pass `WP_DB_SOCKET` explicitly for Plugin Check and
+  release verification;
+- `build/wporg-assets` was regenerated from `sj/exports/wordpress-org/`;
+  `build/translate-wordpress-org` dev/stable zh_CN import files were
+  regenerated from the committed `languages/npcink-cloud-addon-zh_CN.po`
+  (569 translated, 1 untranslated URL msgid). The stable/dev GlotPress
+  imports still need the PTE web upload; readme-set imports should follow
+  once WordPress.org re-extracts the readme projects.
+
+The release kept the addon a thin Cloud connector and added no router,
+prompt, preset, approval, proposal, workflow, scheduler, billing, WordPress
+write, or Cloud control-plane ownership.
 
 ## 2026-08-18 0.1.8 Release Closeout
 
