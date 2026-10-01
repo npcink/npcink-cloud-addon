@@ -146,6 +146,19 @@ maca_assert(
 	'Static: every asset path referenced by shipped PHP is a release-manifest.txt entry.'
 );
 
+preg_match_all( '/function (npcink_cloud_addon_[a-z0-9_]+)\(/', $bootstrap, $public_facade_matches );
+$duplicate_facade_name = '';
+foreach ( array_unique( $public_facade_matches[1] ) as $public_facade_name ) {
+	if ( substr_count( $bootstrap, 'function ' . $public_facade_name . '(' ) > 1 ) {
+		$duplicate_facade_name = $public_facade_name;
+		break;
+	}
+}
+maca_assert(
+	'' === $duplicate_facade_name,
+	'Static: each public npcink_cloud_addon facade is defined at most once so a later guarded definition can never shadow the live one.'
+);
+
 $runtime_endpoint_policy_forbidden = array(
 	'Npcink_Cloud_Runtime_Client', 'Npcink_Cloud_Outbound_Policy', 'wp_remote_', 'wp_safe_remote_', 'curl_',
 	'WP_Error', '__(', '_x(', 'esc_html__(', 'hash_hmac', 'secret', 'signature', 'nonce', 'trace',

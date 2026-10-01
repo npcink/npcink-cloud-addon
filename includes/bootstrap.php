@@ -693,14 +693,6 @@ if ( ! function_exists( 'npcink_cloud_addon_upload_wordpress_ai_alt_text_source'
 	}
 }
 
-if ( ! function_exists( 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime' ) ) {
-	/** @param array<string,mixed> $request @return array<string,mixed>|WP_Error */
-	function npcink_cloud_addon_execute_wordpress_ai_connector_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
-		$client = Npcink_Cloud_Media_Derivative_Transport::verified_client();
-		return is_wp_error( $client ) ? $client : $client->execute_wordpress_ai_connector_runtime( $request, $trace_id, $idempotency_key );
-	}
-}
-
 if ( ! function_exists( 'npcink_cloud_addon_send_agent_feedback_event' ) ) {
 	/** @param array<string,mixed> $payload @return array<string,mixed>|WP_Error */
 	function npcink_cloud_addon_send_agent_feedback_event( array $payload, string $trace_id = '', string $idempotency_key = '' ) {
