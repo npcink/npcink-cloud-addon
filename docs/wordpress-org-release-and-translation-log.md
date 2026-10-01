@@ -12,7 +12,7 @@ translation work completed for `npcink-cloud-addon`.
 - WordPress.org plugin URL: `https://wordpress.org/plugins/npcink-cloud-addon/`
 - Plugin slug: `npcink-cloud-addon`
 - WordPress.org SVN URL: `https://plugins.svn.wordpress.org/npcink-cloud-addon/`
-- Historical local SVN working copy: `build/wporg-svn` (deleted 2026-10-01 by mistake; recreate with a fresh checkout when next needed)
+- Historical local SVN working copy: `build/wporg-svn` (accidentally deleted 2026-10-01; recreated at r3723780 on 2026-10-02)
 - Release package: `build/npcink-cloud-addon.zip`
 - Stable tag: `0.2.0`
 
