@@ -82,6 +82,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 					'npcink_cloud_addon_site_knowledge_change_buffer',
 					'npcink_cloud_addon_site_knowledge_change_status',
 					'npcink_cloud_addon_site_knowledge_maintenance_cursor',
+					'npcink_cloud_addon_site_knowledge_reconciliation_cursor',
 					'npcink_cloud_addon_media_recognition_plan',
 					'npcink_cloud_addon_media_recognition_plan_lock',
 					'npcink_cloud_addon_media_continuation_cleanup_0_2_0',

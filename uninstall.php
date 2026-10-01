@@ -12,6 +12,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 require_once __DIR__ . '/includes/class-cloud-credential-store.php';
+require_once __DIR__ . '/includes/class-cloud-outbound-policy.php';
 require_once __DIR__ . '/includes/class-cloud-addon-settings.php';
 require_once __DIR__ . '/includes/class-cloud-addon-cleanup.php';
 

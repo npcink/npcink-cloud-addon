@@ -108,8 +108,42 @@ maca_assert(
 	&& false !== strpos( $cleanup, "'_refresh_lock'" )
 	&& false !== strpos( $cleanup, "'_lock'" )
 	&& false !== strpos( $uninstall, 'Npcink_Cloud_Addon_Settings::get_settings()' )
-	&& false !== strpos( $uninstall, 'Npcink_Cloud_Addon_Cleanup::delete_all' ),
-	'Static: disconnect and uninstall share one addon-owned cleanup contract with credential-scoped cache removal.'
+	&& false !== strpos( $uninstall, 'Npcink_Cloud_Addon_Cleanup::delete_all' )
+	&& false !== strpos( $cleanup, 'npcink_cloud_addon_site_knowledge_reconciliation_cursor' ),
+	'Static: disconnect and uninstall share one addon-owned cleanup contract with credential-scoped cache removal and the site knowledge reconciliation cursor.'
+);
+
+preg_match_all( "/require_once __DIR__ \. '\/includes\/([a-z0-9-]+\.php)'/", $uninstall, $uninstall_require_matches );
+$uninstall_required_files = array_fill_keys( $uninstall_require_matches[1], true );
+$uninstall_missing_class_file = '';
+foreach ( array_keys( $uninstall_required_files ) as $uninstall_required_file ) {
+	preg_match_all( '/Npcink_Cloud_[A-Za-z_]+/', maca_read( $root . '/includes/' . $uninstall_required_file ), $uninstall_class_refs );
+	foreach ( array_unique( $uninstall_class_refs[0] ) as $uninstall_class_ref ) {
+		$uninstall_class_file = 'class-' . strtolower( str_replace( '_', '-', preg_replace( '/^Npcink_/', '', $uninstall_class_ref ) ) ) . '.php';
+		if ( $uninstall_class_file !== $uninstall_required_file && empty( $uninstall_required_files[ $uninstall_class_file ] ) ) {
+			$uninstall_missing_class_file = $uninstall_class_file;
+			break 2;
+		}
+	}
+}
+maca_assert(
+	'' === $uninstall_missing_class_file,
+	'Static: uninstall.php requires every addon class its required files reference, so cleanup never fatals on a missing class.'
+);
+
+$manifest_asset_gap = '';
+foreach ( array_merge( (array) glob( $root . '/includes/*.php' ), array( $root . '/npcink-cloud-addon.php' ) ) as $shipped_php_file ) {
+	preg_match_all( '/assets\/[A-Za-z0-9._-]+/', maca_read( (string) $shipped_php_file ), $shipped_asset_matches );
+	foreach ( array_unique( $shipped_asset_matches[0] ) as $shipped_asset ) {
+		if ( false === strpos( "\n" . $release_source_manifest, "\n" . $shipped_asset . "\n" ) ) {
+			$manifest_asset_gap = $shipped_asset;
+			break 2;
+		}
+	}
+}
+maca_assert(
+	'' === $manifest_asset_gap,
+	'Static: every asset path referenced by shipped PHP is a release-manifest.txt entry.'
 );
 
 $runtime_endpoint_policy_forbidden = array(
