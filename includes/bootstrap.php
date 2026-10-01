@@ -46,16 +46,19 @@ if ( ! function_exists( 'npcink_cloud_addon_is_configured' ) ) {
 
 if ( ! function_exists( 'npcink_cloud_addon_get_settings' ) ) {
 	/**
-	 * Returns normalized Cloud addon settings.
+	 * Returns normalized Cloud addon settings without signing credentials.
 	 *
-	 * The returned array includes the stored secret for server-side callers.
-	 * Do not print this array into admin HTML or logs.
+	 * Signing callers must use the scenario-specific facades; they read
+	 * credentials through the internal runtime client factory only.
 	 *
 	 * @deprecated 0.1.7 Use npcink_cloud_addon_get_connection_state() for non-signing integrations.
 	 * @return array<string,mixed>
 	 */
 	function npcink_cloud_addon_get_settings(): array {
-		return Npcink_Cloud_Addon_Settings::get_settings();
+		$settings = Npcink_Cloud_Addon_Settings::get_settings();
+		unset( $settings['secret'], $settings['credential_envelope'] );
+
+		return $settings;
 	}
 }
 
