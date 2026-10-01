@@ -1368,11 +1368,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				if ( '' !== $error_stage && empty( $evidence['synthetic_error_stage'] ) ) {
 					$diagnostic .= ':' . $error_stage;
 				}
-				$message = esc_html( $response->get_error_message() );
+				$message = $response->get_error_message();
 				if ( '' !== $diagnostic ) {
 					$message = sprintf( 'Npcink Cloud runtime failed (%s): %s', $diagnostic, $message );
 				}
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( $message );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $message ) );
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), $task );
