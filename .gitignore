@@ -12,3 +12,8 @@ wordpress-ai-provider/generated/*
 
 # Mimosa security plugin local state
 .mimosa/
+
+# Local agent/browser CLI session artifacts
+.playwright-cli/
+reasonix.toml
+.zcodeignore

@@ -2,6 +2,7 @@ npcink-cloud-addon.php
 readme.txt
 uninstall.php
 assets/admin-entitlement.js
+assets/admin-permissions.js
 assets/admin-site-knowledge.js
 assets/admin.css
 assets/ai-plugin-localization.js

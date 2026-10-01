@@ -33,11 +33,14 @@ maca_assert(
 	'Behavior: public connection state exposes local status and permissions without credentials or identifiers.'
 );
 
+$deprecated_settings = npcink_cloud_addon_get_settings();
 maca_assert(
-	is_array( npcink_cloud_addon_get_settings() )
+	is_array( $deprecated_settings )
+	&& ! array_key_exists( 'secret', $deprecated_settings )
+	&& ! array_key_exists( 'credential_envelope', $deprecated_settings )
 	&& ! function_exists( 'npcink_cloud_addon_runtime_client' )
 	&& Npcink_Cloud_Runtime_Client_Factory::configured() instanceof Npcink_Cloud_Runtime_Client,
-	'Behavior: deprecated raw settings remain callable while the concrete runtime client seam is removed from the public API.'
+	'Behavior: the deprecated raw settings seam stays callable without exposing the signing secret, and the concrete runtime client seam is removed from the public API.'
 );
 
 $GLOBALS['maca_http_response_queue'][] = array(

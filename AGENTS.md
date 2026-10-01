@@ -15,10 +15,12 @@ runtime truth rules here beyond addon-owned connector contracts.
   scheduler truth, workflow engine, billing truth, or WordPress write ownership.
 - Bounded observability buffering and WP-Cron flushing are allowed only for
   opt-in, verified, metadata-only plugin monitoring uploads.
-- Bounded Site Knowledge change buffering, WP-Cron flushing, local delivery
-  consent, and explicit administrator delivery intents for Cloud-owned index
-  operations are allowed only for public content delivery to Cloud Site
-  Knowledge; Cloud owns index execution, lifecycle, and freshness policy.
+- Bounded Site Knowledge change buffering, WP-Cron flushing (including the
+  hourly reconciliation cursor scan that replays missed public content
+  deliveries), local delivery consent, and explicit administrator delivery
+  intents for Cloud-owned index operations are allowed only for public content
+  delivery to Cloud Site Knowledge; Cloud owns index execution, lifecycle, and
+  freshness policy.
 - Do not reintroduce `/v1/runtime/workflows/runs`.
 - Do not expose split credential fields in the UI.
 - Do not print or log the stored `secret`.
@@ -91,6 +93,14 @@ Allowed runtime/read endpoints:
 - `POST /v1/customer-journey/events`
 - `GET /v1/customer-journey/summary`
 - `GET /health/live` for unsigned liveness
+
+Connection lifecycle endpoint (outside the runtime contract, unsigned and
+bounded by the outbound policy):
+
+- `POST {base_url}/portal/v1/addon-connections/exchange` exchanges a
+  short-lived portal authorization code for the wrapped Cloud API key during
+  administrator connection setup. The portal `connect` redirect is a
+  display-only browser link; no other portal path may be requested by code.
 
 ## Local Verification
 

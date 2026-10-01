@@ -30,6 +30,7 @@ foreach (
 		'npcink_cloud_addon_site_knowledge_change_buffer',
 		'npcink_cloud_addon_site_knowledge_change_status',
 		'npcink_cloud_addon_site_knowledge_maintenance_cursor',
+		'npcink_cloud_addon_site_knowledge_reconciliation_cursor',
 		$entitlement_key . '_refresh_lock',
 		$site_knowledge_key . '_lock',
 	) as $option_name

@@ -1,6 +1,6 @@
 === Npcink Cloud Addon ===
 Contributors: muze233
-Tags: magick ai, cloud, hosted runtime
+Tags: npcink, cloud, ai, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
@@ -157,12 +157,20 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 3. Site Knowledge delivery status and bounded Cloud-owned index actions.
 4. Advanced troubleshooting with service detail, runtime runs, and connection recovery.
 
+== Upgrade Notice ==
+
+= 0.2.0 =
+Terminal callback delivery is removed and media recognition continuation moves to Workflow Toolbox. Re-verify the Cloud connection after upgrading from 0.1.x.
+
 == Changelog ==
 
 = 0.2.0 =
 * Narrowed the addon to bounded Cloud connector and artifact transport facades.
 * Moved media recognition continuation ownership to Workflow Toolbox.
 * Removed terminal callback delivery and cleared legacy media recognition state.
+* Fixed packaged builds to include the local permissions settings asset.
+* Made uninstall cleanup complete without a fatal error and removed the leftover site knowledge reconciliation cursor.
+* Kept the deprecated settings compatibility seam from returning the stored secret.
 
 = 0.1.9 =
 
