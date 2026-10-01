@@ -32,59 +32,59 @@ msgstr "用于 Npcink 托管运行时访问、签名、健康检查和权益摘�
 msgid "Npcink"
 msgstr "Npcink"
 
-#: includes/bootstrap.php:133
-#: includes/bootstrap.php:188
-#: includes/bootstrap.php:218
-#: includes/bootstrap.php:309
-#: includes/bootstrap.php:340
-#: includes/bootstrap.php:371
-#: includes/bootstrap.php:402
-#: includes/bootstrap.php:429
-#: includes/bootstrap.php:456
-#: includes/bootstrap.php:479
-#: includes/bootstrap.php:501
-#: includes/bootstrap.php:588
-#: includes/bootstrap.php:612
-#: includes/bootstrap.php:636
-#: includes/bootstrap.php:644
-#: includes/bootstrap.php:652
-#: includes/bootstrap.php:660
-#: includes/bootstrap.php:668
-#: includes/bootstrap.php:676
-#: includes/bootstrap.php:684
-#: includes/bootstrap.php:708
-#: includes/bootstrap.php:716
+#: includes/bootstrap.php:136
+#: includes/bootstrap.php:191
+#: includes/bootstrap.php:221
+#: includes/bootstrap.php:312
+#: includes/bootstrap.php:343
+#: includes/bootstrap.php:374
+#: includes/bootstrap.php:405
+#: includes/bootstrap.php:432
+#: includes/bootstrap.php:459
+#: includes/bootstrap.php:482
+#: includes/bootstrap.php:504
+#: includes/bootstrap.php:591
+#: includes/bootstrap.php:615
+#: includes/bootstrap.php:639
+#: includes/bootstrap.php:647
+#: includes/bootstrap.php:655
+#: includes/bootstrap.php:663
+#: includes/bootstrap.php:671
+#: includes/bootstrap.php:679
+#: includes/bootstrap.php:687
+#: includes/bootstrap.php:703
+#: includes/bootstrap.php:711
 #: includes/class-cloud-runtime-client.php:1211
 #: includes/class-cloud-runtime-client.php:1317
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr "Npcink Cloud 尚未配置。"
 
-#: includes/bootstrap.php:540
+#: includes/bootstrap.php:543
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr "Toolbox 运行请求超过固定大小限制。"
 
-#: includes/bootstrap.php:554
+#: includes/bootstrap.php:557
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr "Toolbox 运行请求包含固定合同之外的字段。"
 
-#: includes/bootstrap.php:562
+#: includes/bootstrap.php:565
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr "Toolbox 运行限制超出连接器固定策略。"
 
-#: includes/bootstrap.php:584
+#: includes/bootstrap.php:587
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr "Toolbox 内容支持需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:608
+#: includes/bootstrap.php:611
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr "Toolbox 站点助手需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:632
+#: includes/bootstrap.php:635
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr "夜间检查需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:900
+#: includes/bootstrap.php:895
 msgid "Settings"
 msgstr "设置"
 
@@ -2491,3 +2491,8 @@ msgstr "WordPress AI 替代文本 task_contract 必须是规范化对象。"
 #: includes/class-cloud-wordpress-ai-connector.php:1684
 msgid "Npcink Cloud could not project the alt-text Ability contract."
 msgstr "Npcink Cloud 无法投影替代文本 Ability 合同。"
+
+#. Author URI of the plugin
+#: npcink-cloud-addon.php
+msgid "https://cloud.npc.ink/"
+msgstr ""
