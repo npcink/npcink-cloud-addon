@@ -190,10 +190,12 @@ foreach ( $cases as $case_definition ) {
 		'evidence_state'     => 'local_executed',
 		'http_status'        => null,
 		'output_shape_valid' => false,
+		'execution_state'    => 'not_executed',
 		'provider_run_id'    => null,
 		'write_detected'     => null,
 		'write_evidence_state' => 'not_measured',
 		'quality_status'     => 'failed',
+		'non_empty_result'   => null,
 		'failure_code'       => null,
 		'failure_stage'      => null,
 		'quality_reason'     => null,
@@ -223,6 +225,7 @@ foreach ( $cases as $case_definition ) {
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 		}
 	}
+	$case['execution_state'] = 'executed';
 	$response            = npcink_cloud_acceptance_request( $ability, $input );
 	$status              = (int) $response->get_status();
 	$data                = $response->get_data();
