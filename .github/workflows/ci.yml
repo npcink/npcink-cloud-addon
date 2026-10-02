@@ -176,7 +176,7 @@ jobs:
         run: php scripts/run-wp-cli.php i18n make-pot . /tmp/generated.pot --slug=npcink-cloud-addon --domain=npcink-cloud-addon --exclude=build,dist,sj,tests,scripts --skip-js
       - name: Upload generated POT
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: generated-pot
           path: /tmp/generated.pot
