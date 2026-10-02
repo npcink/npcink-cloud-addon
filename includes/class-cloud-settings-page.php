@@ -501,8 +501,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						'warning',
 						sprintf(
 							/* translators: %s: entitlement refresh message. */
-						__( 'Cloud settings verified, but entitlement summary could not refresh: %s', 'npcink-cloud-addon' ),
-						self::bound_admin_error_detail( (string) ( $summary['message'] ?? __( 'Unknown entitlement refresh result.', 'npcink-cloud-addon' ) ) )
+							__( 'Cloud settings verified, but entitlement summary could not refresh: %s', 'npcink-cloud-addon' ),
+							self::bound_admin_error_detail( (string) ( $summary['message'] ?? __( 'Unknown entitlement refresh result.', 'npcink-cloud-addon' ) ) )
 						)
 					);
 					return;

@@ -899,7 +899,7 @@ if ( ! function_exists( 'npcink_cloud_addon_maybe_dismiss_activation_notice' ) )
 
 		// Post-action redirect keeps the nonce URL out of reloads and bookmarks.
 		if ( function_exists( 'wp_safe_redirect' ) && function_exists( 'remove_query_arg' ) ) {
-			wp_safe_redirect( remove_query_arg( 'npcink_cloud_addon_hide_activation_notice' ) );
+			wp_safe_redirect( remove_query_arg( array( 'npcink_cloud_addon_hide_activation_notice', '_wpnonce' ) ) );
 			exit;
 		}
 	}

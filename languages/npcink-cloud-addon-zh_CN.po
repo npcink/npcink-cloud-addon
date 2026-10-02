@@ -493,8 +493,8 @@ msgstr "衍生媒体指标不完整。"
 #: includes/class-cloud-observability-collector.php:268
 #: includes/class-cloud-settings-page.php:606
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
-#: includes/class-cloud-site-knowledge-admin-actions.php:86
-#: includes/class-cloud-site-knowledge-admin-actions.php:115
+#: includes/class-cloud-site-knowledge-admin-actions.php:88
+#: includes/class-cloud-site-knowledge-admin-actions.php:117
 #: includes/class-cloud-site-knowledge-change-bridge.php:419
 #: includes/class-cloud-site-knowledge-change-bridge.php:463
 msgid "Cloud Addon settings are not verified."
@@ -2057,50 +2057,50 @@ msgstr "等待中"
 msgid "queued"
 msgstr "排队中"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:49
+#: includes/class-cloud-site-knowledge-admin-actions.php:51
 msgid "Site Knowledge refresh request failed."
 msgstr "站点知识库刷新请求失败。"
 
 #. translators: %d: sent public content count.
-#: includes/class-cloud-site-knowledge-admin-actions.php:69
+#: includes/class-cloud-site-knowledge-admin-actions.php:71
 #, php-format
 msgid "Site Knowledge refresh requested. Public content items sent: %d."
 msgstr "已请求站点知识库刷新。已发送公开内容项：%d。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:89
+#: includes/class-cloud-site-knowledge-admin-actions.php:91
 msgid "Choose a valid published article to refresh."
 msgstr "请选择有效的已发布文章进行刷新。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:100
+#: includes/class-cloud-site-knowledge-admin-actions.php:102
 msgid "Article refresh requested. Check its index status again after Cloud finishes processing."
 msgstr "已请求刷新文章。Cloud 处理完成后，请再次检查其索引状态。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:118
+#: includes/class-cloud-site-knowledge-admin-actions.php:120
 #: includes/class-cloud-site-knowledge-change-bridge.php:472
 msgid "The requested Site Knowledge index action is not supported."
 msgstr "请求的站点知识库索引操作不受支持。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:121
+#: includes/class-cloud-site-knowledge-admin-actions.php:123
 msgid "Type the confirmation word before running this Site Knowledge index action."
 msgstr "运行此站点知识库索引操作前，请输入确认词。"
 
 #. translators: 1: public content item count, 2: bounded delivery batch count.
-#: includes/class-cloud-site-knowledge-admin-actions.php:136
+#: includes/class-cloud-site-knowledge-admin-actions.php:138
 #, php-format
 msgid "Site Knowledge indexing delivery scheduled: %1$d public content items in %2$d batches."
 msgstr "Site Knowledge 索引投递已安排：%1$d 项公开内容，共 %2$d 个批次。"
 
 #. translators: 1: public content item count, 2: bounded delivery batch count.
-#: includes/class-cloud-site-knowledge-admin-actions.php:145
+#: includes/class-cloud-site-knowledge-admin-actions.php:147
 #, php-format
 msgid "Site Knowledge rebuild delivery scheduled: %1$d public content items in %2$d batches."
 msgstr "Site Knowledge 重建投递已安排：%1$d 项公开内容，共 %2$d 个批次。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:152
+#: includes/class-cloud-site-knowledge-admin-actions.php:154
 msgid "Site Knowledge index deletion requested. WordPress content was not changed."
 msgstr "站点知识库索引删除请求已发送。WordPress 内容未被更改。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:158
+#: includes/class-cloud-site-knowledge-admin-actions.php:160
 msgid "Site Knowledge index action requested."
 msgstr "站点知识库索引操作请求已发送。"
 
@@ -2565,7 +2565,7 @@ msgstr "Cloud 凭据尚未通过验证。"
 msgid "The last Cloud verification did not complete."
 msgstr "最近一次 Cloud 验证未完成。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:41
+#: includes/class-cloud-site-knowledge-admin-actions.php:43
 #, php-format
 msgid "The knowledge base update could not be delivered and will be retried automatically. Detail: %s"
 msgstr "知识库更新未能投递，系统会自动重试。详情：%s"
@@ -2634,12 +2634,12 @@ msgstr "Npcink Cloud 连接的授权已失效。请在 Cloud Addon 设置页面�
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr "该请求已达到 Npcink Cloud 的限额。请稍后重试，或在 Cloud 中查看套餐用量。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:43
+#: includes/class-cloud-site-knowledge-admin-actions.php:45
 #, php-format
 msgid "The knowledge base update could not be delivered and automatic retries have stopped. Update the knowledge base again. Detail: %s"
 msgstr "知识库更新未能投递，且自动重试已停止。请再次更新知识库。详情：%s"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:45
+#: includes/class-cloud-site-knowledge-admin-actions.php:47
 #, php-format
 msgid "The knowledge base update could not be delivered. Check the Site Knowledge tab for the next step. Detail: %s"
 msgstr "知识库更新未能投递。请在站点知识库标签页查看下一步。详情：%s"

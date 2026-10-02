@@ -82,7 +82,7 @@
 		const metaRow = waitingLabel.closest( '.npcink-cloud-site-knowledge-summary__meta' );
 		if ( metaRow ) {
 			const hasVisibleContent = '' !== label
-				|| Array.from( metaRow.querySelectorAll( 'span' ) ).some( ( span ) => ! span.hidden && '' !== span.textContent );
+				|| Array.from( metaRow.querySelectorAll( 'span' ) ).some( ( span ) => ! span.hidden && '' !== span.textContent.trim() );
 			metaRow.hidden = ! hasVisibleContent;
 		}
 	};

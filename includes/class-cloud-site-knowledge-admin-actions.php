@@ -31,9 +31,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			if ( empty( $status['last_delivery_ok'] ) ) {
 				$message = sanitize_text_field( (string) ( $status['last_delivery_error'] ?? '' ) );
 				if ( function_exists( 'mb_substr' ) ) {
-					$message = mb_substr( $message, 0, 200 );
+					$message = mb_substr( $message, 0, 200, 'UTF-8' );
 				} else {
-					$message = substr( $message, 0, 200 );
+					// Multibyte-safe bound without mbstring via a UTF-8 regex slice.
+					$matches = array();
+					$message = 1 === preg_match( '/\A.{0,200}/us', $message, $matches ) ? (string) $matches[0] : '';
 				}
 				$error_code = sanitize_key( (string) ( $status['last_error_code'] ?? '' ) );
 				if ( '' !== $message ) {
