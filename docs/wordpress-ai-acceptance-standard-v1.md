@@ -137,6 +137,15 @@ includes English and mixed-language titles and requires lowercase ASCII
 hyphenated candidates. These are deterministic transport and structure checks,
 not an automatic judgment that the generated prose is publishable.
 
+Fixed transformation and excerpt inputs must resemble real article content.
+Keep the operation in fields such as `action`, `notes`, or `context`; do not
+make the source itself an instruction like "this paragraph needs to be
+shorter". Instruction-shaped fixtures can cause a small local model to return
+an explanation of the requested operation, which produces a false quality
+failure. When a fixture changes, update the matching Eval Lab scenario and run
+the full bounded WordPress acceptance before treating the result as a Cloud or
+Addon regression.
+
 Structured coverage keeps the official Ability semantics visible in the
 development report. Taxonomy scenarios record the requested taxonomy,
 strategy, and maximum suggestion count; `existing_only` rejects any returned
