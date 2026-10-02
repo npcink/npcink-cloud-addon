@@ -102,6 +102,10 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 			) {
 				wp_clear_scheduled_hook( $cron_hook );
 			}
+
+			if ( function_exists( 'delete_metadata' ) ) {
+				delete_metadata( 'user', 0, 'npcink_cloud_addon_activation_notice_dismissed', '', true );
+			}
 		}
 	}
 }

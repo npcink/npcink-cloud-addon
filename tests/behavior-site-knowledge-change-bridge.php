@@ -650,6 +650,51 @@ $GLOBALS['maca_post_terms'][801] = array(
 	'category' => array( 'Cloud Runtime', 'WordPress AI' ),
 	'post_tag' => array( 'Site Knowledge', 'Writing' ),
 );
+update_option(
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,
+	array_merge(
+		get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array() ),
+		array( 'dropped_count' => 7, 'last_dropped_at' => gmdate( 'c' ) )
+	),
+	false
+);
+$drop_clearing_status = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'start' );
+maca_queue_site_knowledge_inline_success();
+$drop_clearing_final_status = maca_run_site_knowledge_flush();
+maca_assert(
+	is_array( $drop_clearing_status )
+	&& 'completed' === (string) ( $drop_clearing_final_status['last_index_action_status'] ?? '' )
+	&& 0 === absint( $drop_clearing_final_status['dropped_count'] ?? 0 )
+	&& '' === (string) ( $drop_clearing_final_status['last_dropped_at'] ?? 'kept' ),
+	'Behavior: a completed full-index delivery clears the dropped-change attention fact because all public content was re-sent.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 803 );
+update_option(
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,
+	array_merge(
+		get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array() ),
+		array( 'dropped_count' => 5, 'last_dropped_at' => gmdate( 'c' ) )
+	),
+	false
+);
+$preserving_health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+maca_assert(
+	5 === absint( $preserving_health['dropped_count'] ?? 0 )
+	&& '' !== (string) ( $preserving_health['last_dropped_at'] ?? '' ),
+	'Behavior: the dropped-change attention fact survives reads until a full-index delivery completes.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 801 );
+maca_add_public_post_fixture( 802, 'page' );
+$GLOBALS['maca_post_terms'][801] = array(
+	'category' => array( 'Cloud Runtime', 'WordPress AI' ),
+	'post_tag' => array( 'Site Knowledge', 'Writing' ),
+);
 $start_status = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'start' );
 $start_http_after_queue = count( $GLOBALS['maca_http_requests'] );
 $start_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );

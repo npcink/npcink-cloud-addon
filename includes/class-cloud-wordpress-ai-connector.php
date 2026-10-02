@@ -656,6 +656,14 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					$manager->log( $log_data );
 				}
 			} catch ( \Throwable $error ) {
+				// Keep a bounded local trace so a lost request-log entry can still
+				// be diagnosed from the server log; never surface this in the UI.
+				if ( function_exists( 'error_log' ) ) {
+					error_log(
+						'npcink-cloud-addon: WordPress AI request log write failed: '
+						. self::clean_log_value( (string) $error->getMessage(), 160 )
+					);
+				}
 				return;
 			}
 		}
@@ -709,6 +717,91 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					'show_in_rest' => false,
 				)
 			);
+		}
+
+		/**
+		 * Builds a bounded, actionable connector failure message for the editor.
+		 *
+		 * The WordPress AI client escapes exception text at render time, so the
+		 * returned string must stay plain text. Friendly sentence first, stable
+		 * code for support, then a bounded detail excerpt.
+		 *
+		 * @param string $friendly_key Stable friendly-message key.
+		 * @param string $stable_code Stable error code shown for support.
+		 * @param string $detail Sanitized upstream or validation detail.
+		 * @return string
+		 */
+		public static function user_facing_connector_error( string $friendly_key, string $stable_code, string $detail = '' ): string {
+			$messages = array(
+				'scene_not_supported'           => __( 'This request is not supported by the Npcink Cloud AI connection yet.', 'npcink-cloud-addon' ),
+				'chat_history_not_supported'    => __( 'The Npcink Cloud AI connection does not support conversation history for this request.', 'npcink-cloud-addon' ),
+				'tools_not_supported'           => __( 'The Npcink Cloud AI connection does not support tool calls or web search.', 'npcink-cloud-addon' ),
+				'scene_input_required'          => __( 'The Npcink Cloud AI connection needs text input for this request.', 'npcink-cloud-addon' ),
+				'reference_image_not_supported' => __( 'Image-to-image refinement is not supported by the Npcink Cloud AI connection yet.', 'npcink-cloud-addon' ),
+				'task_contract_rejected'        => __( 'This AI feature is not currently available through the Npcink Cloud connection.', 'npcink-cloud-addon' ),
+				'output_missing'                => __( 'Npcink Cloud did not return usable output for this request. Please try again.', 'npcink-cloud-addon' ),
+				'artifact_contract_invalid'     => __( 'Npcink Cloud returned an unexpected image result. Please try again.', 'npcink-cloud-addon' ),
+				'artifact_preview_limit'        => __( 'The generated image previews are too large to show. Try generating fewer images at once.', 'npcink-cloud-addon' ),
+				'artifact_verification_failed'  => __( 'The generated image could not be verified for safe delivery. Please try again.', 'npcink-cloud-addon' ),
+				'artifact_ack_invalid'          => __( 'Npcink Cloud could not confirm delivery of the generated image. Please try again.', 'npcink-cloud-addon' ),
+				'artifact_expired'              => __( 'The generated image is no longer available. Please generate it again.', 'npcink-cloud-addon' ),
+				'runtime_failed'                => __( 'Npcink Cloud could not complete this AI request. Please try again in a moment.', 'npcink-cloud-addon' ),
+				'runtime_unreachable'           => __( 'Npcink Cloud could not be reached from this site. Please try again in a moment.', 'npcink-cloud-addon' ),
+				'runtime_unauthorized'          => __( 'The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page.', 'npcink-cloud-addon' ),
+				'runtime_limit_reached'         => __( 'This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud.', 'npcink-cloud-addon' ),
+			);
+			$message = $messages[ $friendly_key ] ?? $messages['runtime_failed'];
+			$stable_code = sanitize_key( $stable_code );
+			if ( '' !== $stable_code ) {
+				$message .= ' (' . $stable_code . ')';
+			}
+			$detail = self::bound_connector_error_detail( $detail );
+			if ( '' !== $detail ) {
+				$message .= ' ' . $detail;
+			}
+
+			return $message;
+		}
+
+		/**
+		 * Classifies a runtime failure into a friendly message family.
+		 *
+		 * @param string $error_code Local WP_Error code.
+		 * @param string $diagnostic Stable Cloud code and stage diagnostic.
+		 * @param string $detail Sanitized upstream failure detail.
+		 * @return string
+		 */
+		public static function user_facing_runtime_failure( string $error_code, string $diagnostic, string $detail ): string {
+			$haystack = strtolower( $error_code . ' ' . $diagnostic . ' ' . substr( $detail, 0, 400 ) );
+			$friendly_key = 'runtime_failed';
+			if ( 1 === preg_match( '/(?:unauthorized|forbidden|authorization[_ ]expired)/', $haystack ) ) {
+				$friendly_key = 'runtime_unauthorized';
+			} elseif ( 1 === preg_match( '/(?:expired|purged)/', $haystack ) ) {
+				$friendly_key = 'artifact_expired';
+			} elseif ( 1 === preg_match( '/(?:rate.?limit|quota|limit[_ ]exceeded|too[_ ]many[_ ]requests|insufficient[_ ]credit)/', $haystack ) ) {
+				$friendly_key = 'runtime_limit_reached';
+			} elseif ( 1 === preg_match( '/(?:timeout|timed[_ ]out|http_request_failed|connection|curl|dns|name[_ ]resolution|network)/', $haystack ) ) {
+				$friendly_key = 'runtime_unreachable';
+			}
+
+			$stable_code = '' !== $diagnostic ? $diagnostic : $error_code;
+
+			return self::user_facing_connector_error( $friendly_key, $stable_code, $detail );
+		}
+
+		/**
+		 * Bounds an upstream detail excerpt for one-line editor display.
+		 *
+		 * @param string $detail Raw detail text.
+		 * @return string
+		 */
+		private static function bound_connector_error_detail( string $detail ): string {
+			$detail = function_exists( 'sanitize_text_field' ) ? sanitize_text_field( $detail ) : trim( preg_replace( '/\s+/', ' ', $detail ) );
+			if ( function_exists( 'mb_substr' ) ) {
+				return mb_substr( $detail, 0, 160 );
+			}
+
+			return substr( $detail, 0, 160 );
 		}
 
 		/**
@@ -1207,25 +1300,25 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 			$ability_name = $this->detect_scene_ability_name();
 			if ( '' === $ability_name ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector only accepts known WordPress AI ability scene calls.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_not_supported', 'cloud_wp_ai_scene_not_supported' ) );
 			}
 			$task_contract = npcink_cloud_addon_project_ai_task_contract( $ability_name );
 			if ( is_wp_error( $task_contract ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $task_contract->get_error_message() ) );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'task_contract_rejected', (string) $task_contract->get_error_code(), (string) $task_contract->get_error_message() ) );
 			}
 			$task = (string) $task_contract['task'];
 
 			if ( 1 !== count( $prompt ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector does not support chat history.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported' ) );
 			}
 
 			if ( null !== $this->config->getFunctionDeclarations() || null !== $this->config->getWebSearch() ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector does not support tools or web search.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'tools_not_supported', 'cloud_wp_ai_tools_not_supported' ) );
 			}
 
 			$text = $this->prompt_text( $prompt );
 			if ( '' === $text ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector requires text scene input.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_input_required', 'cloud_wp_ai_scene_input_required' ) );
 			}
 			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
 
@@ -1368,11 +1461,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				if ( '' !== $error_stage && empty( $evidence['synthetic_error_stage'] ) ) {
 					$diagnostic .= ':' . $error_stage;
 				}
-				$message = $response->get_error_message();
-				if ( '' !== $diagnostic ) {
-					$message = sprintf( 'Npcink Cloud runtime failed (%s): %s', $diagnostic, $message );
-				}
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $message ) );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( $error_code, $diagnostic, (string) $response->get_error_message() ) );
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), $task );
@@ -1392,7 +1481,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					$duration_ms,
 					'cloud_wp_ai_output_missing'
 				);
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI connector response did not include text output.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_output_missing' ) );
 			}
 
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
@@ -1967,25 +2056,25 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 			$ability_input = Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context();
 			if ( array() === $ability_input ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI vision connector only accepts WordPress AI alt text generation scene calls.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_not_supported', 'cloud_wp_ai_scene_not_supported' ) );
 			}
 
 			if ( 1 !== count( $prompt ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI vision connector does not support chat history.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported' ) );
 			}
 
 			if ( null !== $this->config->getFunctionDeclarations() || null !== $this->config->getWebSearch() ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI vision connector does not support tools or web search.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'tools_not_supported', 'cloud_wp_ai_tools_not_supported' ) );
 			}
 
 			$text = $this->prompt_text( $prompt );
 			if ( '' === $text ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI vision connector requires text scene input.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_input_required', 'cloud_wp_ai_scene_input_required' ) );
 			}
 
 			$attachment_id = Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::attachment_id_from_ability_input( $ability_input );
 			if ( is_wp_error( $attachment_id ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $attachment_id->get_error_message() ) );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( (string) $attachment_id->get_error_message() );
 			}
 
 			$started  = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
@@ -2005,7 +2094,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
 				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $response->get_error_code(), (string) ( $evidence['cloud_error_code'] ?? '' ), (string) $response->get_error_message() ) );
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), 'alt_text_suggest' );
@@ -2019,7 +2108,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				) );
 				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_output_missing', 'Cloud response did not include valid alt text output.' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI vision connector response did not include alt text output.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_alt_text_output_missing' ) );
 			}
 
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
@@ -2208,16 +2297,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 			if ( 1 !== count( $prompt ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector does not support chat history.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported' ) );
 			}
 
 			if ( null !== $this->config->getFunctionDeclarations() || null !== $this->config->getWebSearch() ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector does not support tools or web search.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'tools_not_supported', 'cloud_wp_ai_tools_not_supported' ) );
 			}
 
 			$text = $this->prompt_text( $prompt );
 			if ( '' === $text ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector requires text scene input.' );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_input_required', 'cloud_wp_ai_scene_input_required' ) );
 			}
 
 			$request = array(
@@ -2252,16 +2341,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
 				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $response->get_error_message() ) );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $response->get_error_code(), (string) ( $evidence['cloud_error_code'] ?? '' ), (string) $response->get_error_message() ) );
 			}
 
-			$result     = $this->extract_result( is_array( $response ) ? $response : array() );
-			try {
-				$candidates = $this->extract_image_candidates( $result, $trace_id );
-				if ( empty( $candidates ) ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector response did not include image output.' );
-				}
-			} catch ( \Throwable $error ) {
+				$result     = $this->extract_result( is_array( $response ) ? $response : array() );
+				try {
+					$candidates = $this->extract_image_candidates( $result, $trace_id );
+					if ( empty( $candidates ) ) {
+						throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_image_output_missing' ) );
+					}
+				} catch ( \Throwable $error ) {
 				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
@@ -2307,11 +2396,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				return '';
 			}
 
-			$parts = array();
-			foreach ( $message->getParts() as $part ) {
-				if ( null !== $part->getFile() ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image connector does not support reference image refinement yet.' );
-				}
+				$parts = array();
+				foreach ( $message->getParts() as $part ) {
+					if ( null !== $part->getFile() ) {
+						throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'reference_image_not_supported', 'cloud_wp_ai_reference_image_not_supported' ) );
+					}
 
 				$text = $part->getText();
 				if ( null !== $text && '' !== trim( $text ) ) {
@@ -2444,29 +2533,29 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			foreach ( $result['artifacts'] as $artifact ) {
 				$artifact_bytes = is_array( $artifact ) ? ( $artifact['filesize_bytes'] ?? null ) : null;
 				if ( ! is_int( $artifact_bytes ) || $artifact_bytes < 1 || $artifact_bytes > self::MAX_IMAGE_BYTES ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact contract is invalid.' );
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
 				}
 				$aggregate_bytes += $artifact_bytes;
 				if ( $aggregate_bytes > self::MAX_IMAGE_AGGREGATE_BYTES ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image candidates exceed the aggregate preview byte limit.' );
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_preview_limit', 'cloud_wp_ai_image_preview_limit' ) );
 				}
 			}
 
 			$client = Npcink_Cloud_Media_Derivative_Transport::verified_client();
 			if ( is_wp_error( $client ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $client->get_error_message() ) );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $client->get_error_code(), '', (string) $client->get_error_message() ) );
 			}
 
 			$images = array();
 			foreach ( $result['artifacts'] as $artifact ) {
 				if ( ! is_array( $artifact ) ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact contract is invalid.' );
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
 				}
 
 				$artifact_contract = $artifact;
 				if ( array_key_exists( 'purged_at', $artifact_contract ) ) {
 					if ( null !== $artifact_contract['purged_at'] ) {
-						throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact contract is invalid.' );
+						throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_expired', 'cloud_wp_ai_image_artifact_purged' ) );
 					}
 					unset( $artifact_contract['purged_at'] );
 				}
@@ -2506,12 +2595,12 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					|| false === $expires_ts
 					|| $expires_ts <= time()
 				) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact contract is invalid.' );
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
 				}
 
 				$download = $client->pull_media_artifact( $artifact_id, $trace_id );
 				if ( is_wp_error( $download ) ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $download->get_error_message() ) );
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $download->get_error_code(), '', (string) $download->get_error_message() ) );
 				}
 
 				$contents      = is_string( $download['body'] ?? null ) ? $download['body'] : '';
@@ -2540,7 +2629,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					|| $ack_deadline <= time()
 					|| $ack_deadline > $expires_ts
 				) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact verification failed.' );
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_verification_failed', 'cloud_wp_ai_image_artifact_verification_failed' ) );
 				}
 
 				$ack = $client->acknowledge_media_artifact_delivery(
@@ -2554,7 +2643,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					$trace_id
 				);
 				if ( is_wp_error( $ack ) ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( $ack->get_error_message() ) );
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $ack->get_error_code(), '', (string) $ack->get_error_message() ) );
 				}
 				$acknowledged_at = $this->strict_image_timestamp( (string) ( $ack['acknowledged_at'] ?? '' ) );
 				$ack_expires_at  = $this->strict_image_timestamp( (string) ( $ack['artifact_expires_at'] ?? '' ) );
@@ -2571,7 +2660,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 					|| $ack_expires_at !== $expires_ts
 					|| (string) ( $ack['artifact_expires_at'] ?? '' ) !== $expires_at
 				) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( 'Npcink Cloud AI image artifact acknowledgement is invalid.' );
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_ack_invalid', 'cloud_wp_ai_image_delivery_ack_invalid' ) );
 				}
 
 				$images[] = array(

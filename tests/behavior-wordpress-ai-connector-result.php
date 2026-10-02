@@ -380,7 +380,7 @@ namespace {
 	try {
 		$image_parser->invoke( $image_model, $image_result, 'trace-changed-expiry-ack' );
 	} catch ( \WordPress\AiClient\Common\Exception\RuntimeException $error ) {
-		$changed_expiry_rejected = str_contains( $error->getMessage(), 'acknowledgement is invalid' );
+		$changed_expiry_rejected = str_contains( $error->getMessage(), 'cloud_wp_ai_image_delivery_ack_invalid' );
 	}
 	maca_assert(
 		$changed_expiry_rejected && 2 === count( $GLOBALS['maca_http_requests'] ),

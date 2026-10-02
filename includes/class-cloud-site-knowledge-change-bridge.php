@@ -670,6 +670,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 					return self::get_status();
 				}
 				self::schedule_buffer_after_full_index();
+				// This recovery branch also finalizes a completed full-index
+				// delivery, so it must clear dropped changes like the main path.
+				self::clear_dropped_changes();
 				$status = self::record_delivery_result( true, 0, '' );
 
 				return self::record_manual_operation_progress( $cursor, 'completed', 0, $status );
@@ -793,6 +796,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 					return self::get_status();
 				}
 				self::schedule_buffer_after_full_index();
+				// A completed full-index delivery has re-sent every public item,
+				// so previously dropped changes no longer need an attention row.
+				self::clear_dropped_changes();
 			} else {
 				if ( ! self::compare_and_swap_full_index_delivery_cursor( $expected_cursor, $cursor ) ) {
 					return self::get_status();
@@ -1405,6 +1411,23 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$status = self::get_status();
 			$status['dropped_count'] = absint( $status['dropped_count'] ?? 0 ) + $count;
 			$status['last_dropped_at'] = gmdate( 'c' );
+			update_option( self::STATUS_OPTION, $status, false );
+		}
+
+		/**
+		 * Clears the dropped-change attention fact after a successful full-index
+		 * delivery has re-sent all public content.
+		 *
+		 * @return void
+		 */
+		private static function clear_dropped_changes(): void {
+			$status = self::get_status();
+			if ( empty( $status['dropped_count'] ) && '' === (string) ( $status['last_dropped_at'] ?? '' ) ) {
+				return;
+			}
+
+			$status['dropped_count'] = 0;
+			$status['last_dropped_at'] = '';
 			update_option( self::STATUS_OPTION, $status, false );
 		}
 

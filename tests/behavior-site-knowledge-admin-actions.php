@@ -100,9 +100,23 @@ $refresh_failed = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refr
 maca_assert(
 	empty( $refresh_failed['ok'] )
 	&& 'refresh_failed' === $refresh_failed['code']
-	&& 'Delivery failed.' === $refresh_failed['message']
+	&& 'The knowledge base update could not be delivered and will be retried automatically. Detail: Delivery failed.' === $refresh_failed['message']
 	&& 'delivery_failed_retry_scheduled' === $refresh_failed['source_error_code'],
-	'Behavior: public refresh preserves sanitized bridge failure detail and source error code.'
+	'Behavior: public refresh frames the sanitized bridge failure detail with recovery copy and preserves the source error code.'
+);
+
+maca_reset_site_knowledge_admin_actions();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_result = array(
+	'last_delivery_ok' => false,
+	'last_delivery_error' => ' Delivery failed. ',
+	'last_error_code' => 'delivery_attempts_exhausted',
+);
+$refresh_exhausted = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+maca_assert(
+	empty( $refresh_exhausted['ok'] )
+	&& 'The knowledge base update could not be delivered and automatic retries have stopped. Update the knowledge base again. Detail: Delivery failed.' === $refresh_exhausted['message']
+	&& 'delivery_attempts_exhausted' === $refresh_exhausted['source_error_code'],
+	'Behavior: exhausted delivery retries stop promising an automatic retry and point at the update-knowledge-base recovery action.'
 );
 
 maca_reset_site_knowledge_admin_actions();

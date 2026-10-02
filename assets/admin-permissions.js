@@ -22,6 +22,8 @@
 
 			if ( progress ) {
 				progress.hidden = false;
+				// English literal is a last-resort fallback for a broken server
+				// injection; normal rendering always uses config.savingLabel.
 				progress.textContent = config.savingLabel || 'Saving…';
 			}
 

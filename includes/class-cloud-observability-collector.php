@@ -103,8 +103,14 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		 * @return array<string,mixed>
 		 */
 		public static function flush_buffer(): array {
-			if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
-				return self::record_flush_result( false, 0, __( 'Monitoring is disabled or Cloud is not verified.', 'npcink-cloud-addon' ) );
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
+				return self::record_flush_result( false, 0, __( 'Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again.', 'npcink-cloud-addon' ) );
+			}
+			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			if ( empty( $settings['monitoring_enabled'] ) ) {
+				// Monitoring was deliberately turned off. A local opt-out is not
+				// an upload failure, so clear any prior error and stay quiet.
+				return self::record_monitoring_paused_result();
 			}
 
 			$buffer = get_option( self::BUFFER_OPTION, array() );
@@ -232,8 +238,13 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		 * @return array<string,mixed>
 		 */
 		public static function refresh_summary(): array {
-			if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
-				return self::record_summary_result( false, array(), __( 'Monitoring is disabled or Cloud is not verified.', 'npcink-cloud-addon' ) );
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
+				return self::record_summary_result( false, array(), __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ) );
+			}
+			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			if ( empty( $settings['monitoring_enabled'] ) ) {
+				// Deliberate local opt-out: no summary refresh and no failure row.
+				return self::get_raw_status();
 			}
 
 			$client = new Npcink_Cloud_Runtime_Client();
@@ -510,6 +521,24 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 					'buffer_count'         => count( $buffer ),
 				)
 			);
+			update_option( self::STATUS_OPTION, $status, false );
+
+			return $status;
+		}
+
+		/**
+		 * Clears a prior upload error after monitoring was deliberately turned
+		 * off, so the settings page stops showing an attention row for a local
+		 * opt-out.
+		 *
+		 * @return array<string,mixed>
+		 */
+		private static function record_monitoring_paused_result(): array {
+			$status = self::get_raw_status();
+			if ( '' === (string) ( $status['last_upload_error'] ?? '' ) ) {
+				return $status;
+			}
+			$status = array_merge( $status, array( 'last_upload_error' => '' ) );
 			update_option( self::STATUS_OPTION, $status, false );
 
 			return $status;
