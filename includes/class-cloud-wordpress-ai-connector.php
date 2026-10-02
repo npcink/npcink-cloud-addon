@@ -813,6 +813,9 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 */
 		private static function bound_connector_error_detail( string $detail ): string {
 			$detail = function_exists( 'sanitize_text_field' ) ? sanitize_text_field( $detail ) : trim( preg_replace( '/\s+/', ' ', $detail ) );
+			// Transport and upstream messages can embed request URLs with
+			// signed tokens; editors only need the surrounding text.
+			$detail = (string) preg_replace( '#https?://\S+#i', '[url]', $detail );
 			if ( function_exists( 'mb_substr' ) ) {
 				return mb_substr( $detail, 0, 160 );
 			}
