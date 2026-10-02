@@ -154,15 +154,17 @@ jobs:
           node-version: '22'
 
       - name: Install WP-CLI phar fallback
-        # setup-php's wp-cli tool install has upstream outages; the verified
-        # phar at /tmp/wp-cli.phar is the resolver's final fallback. This step
-        # must not break the job when setup-php already provided a working wp.
+        # setup-php's wp-cli tool install has upstream outages. When the
+        # checksum-verified phar is available it becomes the resolver's
+        # preferred binary; when the download fails, WP_CLI_BIN stays unset
+        # and the resolver falls back to a PATH wp from setup-php.
         continue-on-error: true
         run: |
           curl -fsSL https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar -o /tmp/wp-cli.phar
           echo "ce34ddd838f7351d6759068d09793f26755463b4a4610a5a5c0a97b68220d85c  /tmp/wp-cli.phar" | sha256sum --strict --check -
           chmod +x /tmp/wp-cli.phar
           php /tmp/wp-cli.phar --version
+          echo "WP_CLI_BIN=/tmp/wp-cli.phar" >> "$GITHUB_ENV"
 
       - name: Install Composer dependencies
         run: composer install --no-interaction --no-progress --prefer-dist

@@ -2528,7 +2528,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 */
 		private static function render_status_monitoring_quality( array $monitoring ): void {
 			$last_upload_error = (string) ( $monitoring['last_upload_error'] ?? '' );
-			if ( empty( $monitoring['enabled'] ) || ( absint( $monitoring['buffer_count'] ?? 0 ) < 1 && '' === $last_upload_error ) ) {
+			// Show when a failure is recorded, or when monitoring is enabled
+			// and buffered events exist. A deliberate opt-out hides routine
+			// buffer state but never hides a recorded upload failure.
+			if ( '' === $last_upload_error
+				&& ( empty( $monitoring['enabled'] ) || absint( $monitoring['buffer_count'] ?? 0 ) < 1 ) ) {
 				return;
 			}
 
@@ -2624,11 +2628,17 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				$bounded = mb_substr( $detail, 0, 200 );
 			} else {
 				// Multibyte-safe bound without mbstring via a UTF-8 regex slice;
-				// keep a byte-level prefix if the regex cannot run so the
-				// detail is never fully discarded.
+				// wp_html_excerpt() strips a trailing partial sequence when the
+				// regex cannot run, so the detail is never fully discarded.
 				$matches = array();
 				$matched = preg_match( '/\A.{0,200}/us', $detail, $matches );
-				$bounded = 1 === $matched ? (string) $matches[0] : substr( $detail, 0, 200 );
+				if ( 1 === $matched ) {
+					$bounded = (string) $matches[0];
+				} elseif ( function_exists( 'wp_html_excerpt' ) ) {
+					$bounded = wp_html_excerpt( $detail, 200, '' );
+				} else {
+					$bounded = substr( $detail, 0, 200 );
+				}
 			}
 
 			return $bounded === $detail ? $bounded : rtrim( $bounded ) . '…';

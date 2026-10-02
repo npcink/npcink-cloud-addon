@@ -821,15 +821,18 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			}
 
 			// Multibyte-safe bound without mbstring: drop invalid UTF-8 bytes,
-			// slice with a UTF-8 regex, and keep a byte-level prefix if the
-			// regex still cannot run so the detail is never fully discarded.
+			// slice with a UTF-8 regex, and strip a trailing partial sequence
+			// via wp_html_excerpt() when the regex cannot run.
 			if ( function_exists( 'mb_convert_encoding' ) ) {
 				$detail = mb_convert_encoding( $detail, 'UTF-8', 'UTF-8' );
 			}
 			$matches = array();
 			$matched = preg_match( '/\A.{0,160}/us', $detail, $matches );
+			if ( 1 === $matched ) {
+				return (string) $matches[0];
+			}
 
-			return 1 === $matched ? (string) $matches[0] : substr( $detail, 0, 160 );
+			return function_exists( 'wp_html_excerpt' ) ? wp_html_excerpt( $detail, 160, '' ) : substr( $detail, 0, 160 );
 		}
 
 		/**

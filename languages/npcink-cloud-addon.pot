@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-02T16:28:28+00:00\n"
+"POT-Creation-Date: 2026-10-02T16:35:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -191,7 +191,7 @@ msgstr ""
 #: includes/class-cloud-entitlement-summary.php:227
 #: includes/class-cloud-settings-page.php:96
 #: includes/class-cloud-settings-page.php:164
-#: includes/class-cloud-settings-page.php:2978
+#: includes/class-cloud-settings-page.php:2988
 msgid "Plan and entitlement are temporarily unavailable."
 msgstr ""
 
@@ -513,7 +513,7 @@ msgstr ""
 
 #: includes/class-cloud-observability-collector.php:168
 #: includes/class-cloud-observability-collector.php:242
-#: includes/class-cloud-observability-collector.php:274
+#: includes/class-cloud-observability-collector.php:276
 #: includes/class-cloud-settings-page.php:606
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:88
@@ -527,19 +527,19 @@ msgstr ""
 msgid "Cloud did not accept the monitoring state projection."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1202
+#: includes/class-cloud-observability-collector.php:1204
 msgid "Core"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1207
+#: includes/class-cloud-observability-collector.php:1209
 msgid "Abilities"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1212
+#: includes/class-cloud-observability-collector.php:1214
 msgid "Adapter"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1217
+#: includes/class-cloud-observability-collector.php:1219
 #: includes/class-cloud-settings-page.php:238
 #: includes/class-cloud-settings-page.php:2046
 msgid "Cloud Addon"
@@ -1237,15 +1237,15 @@ msgid "%1$s %2$s."
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:642
-#: includes/class-cloud-settings-page.php:2555
-#: includes/class-cloud-settings-page.php:3104
+#: includes/class-cloud-settings-page.php:2559
+#: includes/class-cloud-settings-page.php:3114
 msgid "enabled"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:642
-#: includes/class-cloud-settings-page.php:2555
-#: includes/class-cloud-settings-page.php:3105
-#: includes/class-cloud-settings-page.php:3156
+#: includes/class-cloud-settings-page.php:2559
+#: includes/class-cloud-settings-page.php:3115
+#: includes/class-cloud-settings-page.php:3166
 msgid "disabled"
 msgstr ""
 
@@ -1424,8 +1424,8 @@ msgid "Open Cloud sites"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1390
-#: includes/class-cloud-settings-page.php:2937
-#: includes/class-cloud-settings-page.php:2969
+#: includes/class-cloud-settings-page.php:2947
+#: includes/class-cloud-settings-page.php:2979
 msgid "Not checked"
 msgstr ""
 
@@ -1597,7 +1597,7 @@ msgid "Runtime allowance"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1712
-#: includes/class-cloud-settings-page.php:2536
+#: includes/class-cloud-settings-page.php:2540
 msgid "Monitoring needs attention"
 msgstr ""
 
@@ -1849,10 +1849,10 @@ msgstr ""
 #: includes/class-cloud-settings-page.php:2061
 #: includes/class-cloud-settings-page.php:2455
 #: includes/class-cloud-settings-page.php:2456
-#: includes/class-cloud-settings-page.php:2957
-#: includes/class-cloud-settings-page.php:3184
-#: includes/class-cloud-settings-page.php:3195
-#: includes/class-cloud-settings-page.php:3234
+#: includes/class-cloud-settings-page.php:2967
+#: includes/class-cloud-settings-page.php:3194
+#: includes/class-cloud-settings-page.php:3205
+#: includes/class-cloud-settings-page.php:3244
 msgid "unavailable"
 msgstr ""
 
@@ -2138,188 +2138,188 @@ msgstr ""
 msgid "AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2536
+#: includes/class-cloud-settings-page.php:2540
 msgid "Monitoring upload state"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2554
+#: includes/class-cloud-settings-page.php:2558
 msgid "Collection"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2558
+#: includes/class-cloud-settings-page.php:2562
 msgid "Buffered events"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2562
+#: includes/class-cloud-settings-page.php:2566
 msgid "Last upload status"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2568
+#: includes/class-cloud-settings-page.php:2572
 msgid "never"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2570
-#: includes/class-cloud-settings-page.php:3160
+#: includes/class-cloud-settings-page.php:2574
+#: includes/class-cloud-settings-page.php:3170
 msgid "ok"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2570
+#: includes/class-cloud-settings-page.php:2574
 msgid "failed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2577
+#: includes/class-cloud-settings-page.php:2581
 msgid "Last upload error"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2598
+#: includes/class-cloud-settings-page.php:2602
 msgid "Connection status"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2602
+#: includes/class-cloud-settings-page.php:2606
 msgid "Cloud error classification"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2606
+#: includes/class-cloud-settings-page.php:2610
 msgid "Last failure"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2647
+#: includes/class-cloud-settings-page.php:2657
 msgid "The Cloud connection is not configured yet."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2649
+#: includes/class-cloud-settings-page.php:2659
 msgid "The Cloud connection is healthy."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2651
+#: includes/class-cloud-settings-page.php:2661
 msgid "This site still needs to be activated in Cloud."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2653
+#: includes/class-cloud-settings-page.php:2663
 msgid "Cloud could not be reached or refused the connection."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2655
+#: includes/class-cloud-settings-page.php:2665
 msgid "The Cloud credentials have not been verified yet."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2658
+#: includes/class-cloud-settings-page.php:2668
 msgid "The last Cloud verification did not complete."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2669
+#: includes/class-cloud-settings-page.php:2679
 msgid "The site is connected, but Cloud service is not active yet. Activate this site in Npcink Cloud, then check activation again here."
 msgstr ""
 
 #. translators: %s: liveness error.
-#: includes/class-cloud-settings-page.php:2675
+#: includes/class-cloud-settings-page.php:2685
 #, php-format
 msgid "Live check failed: %s"
 msgstr ""
 
 #. translators: %s: signed verification error.
-#: includes/class-cloud-settings-page.php:2682
+#: includes/class-cloud-settings-page.php:2692
 #, php-format
 msgid "Signed verification failed: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2689
+#: includes/class-cloud-settings-page.php:2699
 msgid "Cloud verification failed."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2941
-#: includes/class-cloud-settings-page.php:2986
+#: includes/class-cloud-settings-page.php:2951
+#: includes/class-cloud-settings-page.php:2996
 msgid "available"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2946
+#: includes/class-cloud-settings-page.php:2956
 msgid "not refreshed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2950
-#: includes/class-cloud-settings-page.php:3154
+#: includes/class-cloud-settings-page.php:2960
+#: includes/class-cloud-settings-page.php:3164
 msgid "not configured"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2954
+#: includes/class-cloud-settings-page.php:2964
 msgid "read failed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2974
+#: includes/class-cloud-settings-page.php:2984
 msgid "Loading plan and entitlement…"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2983
+#: includes/class-cloud-settings-page.php:2993
 msgid "Available"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2997
+#: includes/class-cloud-settings-page.php:3007
 msgid "Free plan"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2998
+#: includes/class-cloud-settings-page.php:3008
 msgid "Pro plan"
 msgstr ""
 
 #. translators: 1: remaining credits, 2: credit limit, 3: remaining percentage.
-#: includes/class-cloud-settings-page.php:3041
+#: includes/class-cloud-settings-page.php:3051
 #, php-format
 msgid "%1$s / %2$s · %3$d%% remaining"
 msgstr ""
 
 #. translators: 1: used credits, 2: remaining credits, 3: credit limit.
-#: includes/class-cloud-settings-page.php:3049
+#: includes/class-cloud-settings-page.php:3059
 #, php-format
 msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
 msgstr ""
 
 #. translators: %s: remaining credits.
-#: includes/class-cloud-settings-page.php:3057
+#: includes/class-cloud-settings-page.php:3067
 #, php-format
 msgid "%s remaining"
 msgstr ""
 
 #. translators: 1: remaining runtime runs, 2: runtime run limit.
-#: includes/class-cloud-settings-page.php:3074
+#: includes/class-cloud-settings-page.php:3084
 #, php-format
 msgid "%1$d of %2$d runs remaining"
 msgstr ""
 
 #. translators: 1: monitoring state, 2: buffered event count.
-#: includes/class-cloud-settings-page.php:3110
+#: includes/class-cloud-settings-page.php:3120
 #, php-format
 msgid "%1$s, %2$d buffered"
 msgstr ""
 
 #. translators: %d: buffered public change count.
-#: includes/class-cloud-settings-page.php:3132
+#: includes/class-cloud-settings-page.php:3142
 #, php-format
 msgid "%d public changes awaiting delivery"
 msgstr ""
 
 #. translators: 1: bridge status, 2: buffered public change count.
-#: includes/class-cloud-settings-page.php:3139
+#: includes/class-cloud-settings-page.php:3149
 #, php-format
 msgid "%1$s, %2$d public changes buffered"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3153
+#: includes/class-cloud-settings-page.php:3163
 msgid "idle"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3155
+#: includes/class-cloud-settings-page.php:3165
 msgid "unverified"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3157
+#: includes/class-cloud-settings-page.php:3167
 msgid "error"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3158
+#: includes/class-cloud-settings-page.php:3168
 msgid "pending"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:3159
+#: includes/class-cloud-settings-page.php:3169
 msgid "queued"
 msgstr ""
 
@@ -2593,54 +2593,54 @@ msgstr ""
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1040
+#: includes/class-cloud-wordpress-ai-connector.php:1043
 msgid "Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1773
+#: includes/class-cloud-wordpress-ai-connector.php:1776
 msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1790
+#: includes/class-cloud-wordpress-ai-connector.php:1793
 msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1801
+#: includes/class-cloud-wordpress-ai-connector.php:1804
 msgid "Npcink Cloud could not project the alt-text Ability contract."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1967
+#: includes/class-cloud-wordpress-ai-connector.php:1970
 msgid "WordPress AI alt text generation requires a local WordPress attachment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1968
+#: includes/class-cloud-wordpress-ai-connector.php:1971
 msgid "WordPress AI alt text generation requires one bounded attachment prompt."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1969
+#: includes/class-cloud-wordpress-ai-connector.php:1972
 msgid "You are not allowed to use this attachment for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1970
+#: includes/class-cloud-wordpress-ai-connector.php:1973
 msgid "WordPress AI alt text generation requires a local media attachment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1971
+#: includes/class-cloud-wordpress-ai-connector.php:1974
 msgid "The local attachment file is unavailable for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1972
+#: includes/class-cloud-wordpress-ai-connector.php:1975
 msgid "The local attachment exceeds the Cloud alt text source size limit."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1973
+#: includes/class-cloud-wordpress-ai-connector.php:1976
 msgid "The local attachment could not be read for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1974
+#: includes/class-cloud-wordpress-ai-connector.php:1977
 msgid "The local attachment changed before it could be read for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1975
+#: includes/class-cloud-wordpress-ai-connector.php:1978
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr ""

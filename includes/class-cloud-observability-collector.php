@@ -244,11 +244,13 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
 			if ( empty( $settings['monitoring_enabled'] ) ) {
 				// Deliberate local opt-out: no summary refresh and no failure row.
-				// Keep the same cache shape as record_summary_result() and persist
-				// the cleared error so other readers stop seeing the stale failure.
+				// Mirror the flush path's paused behavior: keep the normalized
+				// summary shape, and persist a cleared error only once.
 				$cache = self::get_summary_cache();
-				$cache['last_refresh_error'] = '';
-				update_option( self::SUMMARY_OPTION, $cache, false );
+				if ( '' !== (string) ( $cache['last_refresh_error'] ?? '' ) ) {
+					$cache['last_refresh_error'] = '';
+					update_option( self::SUMMARY_OPTION, $cache, false );
+				}
 
 				return $cache;
 			}
