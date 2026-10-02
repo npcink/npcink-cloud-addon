@@ -751,7 +751,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'runtime_limit_reached'         => __( 'This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud.', 'npcink-cloud-addon' ),
 			);
 			$message = $messages[ $friendly_key ] ?? $messages['runtime_failed'];
-			$stable_code = sanitize_key( $stable_code );
+			// Keep the code:stage separator readable; sanitize_key() strips ':'.
+			$stable_code = sanitize_key( str_replace( ':', '-', $stable_code ) );
 			if ( '' !== $stable_code ) {
 				$message .= ' (' . $stable_code . ')';
 			}
@@ -2375,13 +2376,13 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $response->get_error_code(), (string) ( $evidence['cloud_error_code'] ?? '' ), (string) $response->get_error_message() ) );
 			}
 
-				$result     = $this->extract_result( is_array( $response ) ? $response : array() );
-				try {
-					$candidates = $this->extract_image_candidates( $result, $trace_id );
-					if ( empty( $candidates ) ) {
-						throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_image_output_missing' ) );
-					}
-				} catch ( \Throwable $error ) {
+			$result     = $this->extract_result( is_array( $response ) ? $response : array() );
+			try {
+				$candidates = $this->extract_image_candidates( $result, $trace_id );
+				if ( empty( $candidates ) ) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_image_output_missing' ) );
+				}
+			} catch ( \Throwable $error ) {
 				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
@@ -2427,11 +2428,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				return '';
 			}
 
-				$parts = array();
-				foreach ( $message->getParts() as $part ) {
-					if ( null !== $part->getFile() ) {
-						throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'reference_image_not_supported', 'cloud_wp_ai_reference_image_not_supported' ) );
-					}
+			$parts = array();
+			foreach ( $message->getParts() as $part ) {
+				if ( null !== $part->getFile() ) {
+					throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'reference_image_not_supported', 'cloud_wp_ai_reference_image_not_supported' ) );
+				}
 
 				$text = $part->getText();
 				if ( null !== $text && '' !== trim( $text ) ) {
