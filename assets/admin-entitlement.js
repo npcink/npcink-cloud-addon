@@ -94,7 +94,9 @@
 
 			if ( ! response.ok || ! payload.success || ! payload.data || ! payload.data.label ) {
 				const errorMessage = payload && payload.data && payload.data.message ? payload.data.message : '';
-				throw new Error( errorMessage || 'entitlement_refresh_failed' );
+				const serverError = new Error( errorMessage || 'entitlement_refresh_failed' );
+				serverError.fromServer = true;
+				throw serverError;
 			}
 
 			summary.textContent = payload.data.label;
@@ -103,7 +105,10 @@
 			retry.hidden = true;
 		} catch ( error ) {
 			const hasRetainedSummary = 'stale' === initialState && '' !== initialLabel;
-			const actionableMessage = error && error.message && 'entitlement_refresh_failed' !== error.message ? error.message : '';
+			// Only server-provided messages are display-ready; a browser network
+			// error text such as "Failed to fetch" must fall back to the
+			// translated config labels below.
+			const actionableMessage = error && error.fromServer && error.message && 'entitlement_refresh_failed' !== error.message ? error.message : '';
 			summary.textContent = hasRetainedSummary
 				? initialLabel + ' · ' + ( actionableMessage || config.updateFailedLabel || 'Update failed' )
 				: ( actionableMessage || config.failedLabel || 'Plan and entitlement are temporarily unavailable.' );

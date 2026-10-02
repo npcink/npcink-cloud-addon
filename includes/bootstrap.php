@@ -874,6 +874,87 @@ if ( ! function_exists( 'npcink_cloud_addon_bootstrap' ) ) {
 	}
 }
 
+if ( ! function_exists( 'npcink_cloud_addon_maybe_dismiss_activation_notice' ) ) {
+	/**
+	 * Persists the per-administrator dismissal of the activation guidance.
+	 *
+	 * @return void
+	 */
+	function npcink_cloud_addon_maybe_dismiss_activation_notice(): void {
+		$dismissed = filter_input( INPUT_GET, 'npcink_cloud_addon_hide_activation_notice', FILTER_UNSAFE_RAW );
+		if ( null === $dismissed || '' === (string) $dismissed ) {
+			return;
+		}
+		if ( ! function_exists( 'current_user_can' ) || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		if ( ! function_exists( 'check_admin_referer' ) ) {
+			return;
+		}
+		check_admin_referer( 'npcink_cloud_addon_hide_activation_notice' );
+
+		if ( function_exists( 'update_user_meta' ) && function_exists( 'get_current_user_id' ) ) {
+			update_user_meta( get_current_user_id(), 'npcink_cloud_addon_activation_notice_dismissed', '1' );
+		}
+
+		// Post-action redirect keeps the nonce URL out of reloads and bookmarks.
+		if ( function_exists( 'wp_safe_redirect' ) && function_exists( 'remove_query_arg' ) ) {
+			wp_safe_redirect( remove_query_arg( array( 'npcink_cloud_addon_hide_activation_notice', '_wpnonce' ) ) );
+			exit;
+		}
+	}
+}
+
+if ( ! function_exists( 'npcink_cloud_addon_render_activation_notice' ) ) {
+	/**
+	 * Shows one quiet connection pointer until the site is connected, verified,
+	 * or the administrator dismisses it. No new page or permanent banner.
+	 *
+	 * @return void
+	 */
+	function npcink_cloud_addon_render_activation_notice(): void {
+		if ( ! function_exists( 'current_user_can' ) || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$screen_id = is_object( $screen ) && isset( $screen->id ) ? (string) $screen->id : '';
+		if ( ! in_array( $screen_id, array( 'plugins', 'dashboard' ), true ) ) {
+			return;
+		}
+		if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) || Npcink_Cloud_Addon_Settings::is_verified() ) {
+			return;
+		}
+		if ( ! function_exists( 'get_user_meta' ) || ! function_exists( 'get_current_user_id' ) ) {
+			return;
+		}
+		if ( get_user_meta( get_current_user_id(), 'npcink_cloud_addon_activation_notice_dismissed', true ) ) {
+			return;
+		}
+
+		// menu_page_url() resolves the registered page whether it lives under
+		// the npcink-ai parent menu or Settings; admin.php?page= resolves both
+		// shapes if the menu registration is somehow unavailable.
+		$settings_url = function_exists( 'menu_page_url' ) && '' !== menu_page_url( 'npcink-cloud-addon', false )
+			? menu_page_url( 'npcink-cloud-addon', false )
+			: admin_url( 'admin.php?page=npcink-cloud-addon' );
+		$dismiss_url = function_exists( 'wp_nonce_url' ) && function_exists( 'add_query_arg' )
+			? wp_nonce_url( add_query_arg( 'npcink_cloud_addon_hide_activation_notice', '1' ), 'npcink_cloud_addon_hide_activation_notice' )
+			: '';
+		?>
+		<div class="notice notice-info npcink-cloud-addon-activation-notice">
+			<p>
+				<strong><?php esc_html_e( 'Npcink Cloud Addon', 'npcink-cloud-addon' ); ?></strong>
+				<?php esc_html_e( 'The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features.', 'npcink-cloud-addon' ); ?>
+				<a class="button button-primary" href="<?php echo esc_url( $settings_url ); ?>"><?php esc_html_e( 'Connect this site', 'npcink-cloud-addon' ); ?></a>
+				<?php if ( '' !== $dismiss_url ) : ?>
+					<a class="npcink-cloud-addon-activation-notice__dismiss" href="<?php echo esc_url( $dismiss_url ); ?>"><?php esc_html_e( 'Do not show again', 'npcink-cloud-addon' ); ?></a>
+				<?php endif; ?>
+			</p>
+		</div>
+		<?php
+	}
+}
+
 if ( ! function_exists( 'npcink_cloud_addon_filter_plugin_action_links' ) ) {
 	/**
 	 * Adds a settings shortcut on the WordPress plugins screen.
@@ -901,4 +982,6 @@ if ( ! function_exists( 'npcink_cloud_addon_filter_plugin_action_links' ) ) {
 }
 
 add_action( 'plugins_loaded', 'npcink_cloud_addon_bootstrap', 20 );
+add_action( 'admin_init', 'npcink_cloud_addon_maybe_dismiss_activation_notice' );
+add_action( 'admin_notices', 'npcink_cloud_addon_render_activation_notice' );
 add_filter( 'plugin_action_links_' . plugin_basename( NPCINK_CLOUD_ADDON_FILE ), 'npcink_cloud_addon_filter_plugin_action_links' );

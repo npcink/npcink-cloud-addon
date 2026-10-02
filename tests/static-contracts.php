@@ -902,14 +902,14 @@ maca_assert(
 	&& false !== strpos( $wordpress_ai_connector, 'requires a local WordPress attachment' )
 	&& false !== strpos( $wordpress_ai_connector, "'task'             => 'alt_text_suggest'" )
 	&& false !== strpos( $wordpress_ai_connector, 'npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime' )
-	&& false !== strpos( $wordpress_ai_connector, 'does not support reference image refinement yet' )
+	&& false !== strpos( $wordpress_ai_connector, "'reference_image_not_supported'" )
 	&& false === strpos( $wordpress_ai_connector, "'response_format'  => \$this->response_format()" )
 	&& false === strpos( $wordpress_ai_connector, 'private function response_format(): string' )
 	&& false !== strpos( $wordpress_ai_connector, 'detect_scene_ability_name' )
 	&& false !== strpos( $wordpress_ai_connector, 'WordPress\\\\AI\\\\Abilities\\\\Title_Generation\\\\Title_Generation' )
-	&& false !== strpos( $wordpress_ai_connector, 'Npcink Cloud AI connector only accepts known WordPress AI ability scene calls' )
-	&& false !== strpos( $wordpress_ai_connector, 'does not support chat history' )
-	&& false !== strpos( $wordpress_ai_connector, 'does not support tools or web search' )
+	&& false !== strpos( $wordpress_ai_connector, "'scene_not_supported', 'cloud_wp_ai_scene_not_supported'" )
+	&& false !== strpos( $wordpress_ai_connector, "'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported'" )
+	&& false !== strpos( $wordpress_ai_connector, "'tools_not_supported', 'cloud_wp_ai_tools_not_supported'" )
 	&& false !== strpos( $wordpress_ai_connector, 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime(' )
 	&& false !== strpos( $wordpress_ai_connector, "\$scene_input['source_text'] = \$text" )
 	&& false !== strpos( $wordpress_ai_connector, "\$scene_input['taxonomy']" )
@@ -929,6 +929,14 @@ maca_assert(
 	&& false === strpos( $wordpress_ai_connector, 'chat/completions' )
 	&& false === strpos( $wordpress_ai_connector, 'OpenAiCompatible' ),
 	'AI Client provider is scene-gated to known WordPress AI abilities and does not expose an OpenAI-compatible chat proxy or deep schema payload.'
+);
+
+maca_assert(
+	false !== strpos( $wordpress_ai_connector, 'function user_facing_connector_error' )
+	&& false !== strpos( $wordpress_ai_connector, 'function user_facing_runtime_failure' )
+	&& 0 === preg_match( '#RuntimeException\((?!\s*Npcink_Cloud_WordPress_AI_Connector::user_facing)#', $wordpress_ai_connector )
+	&& 0 === substr_count( $wordpress_ai_connector, 'RuntimeException( (string) $attachment_id->get_error_message() )' ),
+	'AI Client connector exceptions surface bounded, translated, code-tagged user messages instead of raw developer strings.'
 );
 
 maca_assert(
@@ -1791,7 +1799,7 @@ maca_assert(
 		&& false === strpos( $settings_page, '<h3><?php esc_html_e( \'Site Knowledge\'' )
 		&& false !== strpos( $settings_page, '<h2 class="screen-reader-text"><?php esc_html_e( \'Site Knowledge\'' )
 		&& false === strpos( $settings_page, '<h3><?php esc_html_e( \'Monitoring & Quality\'' )
-		&& false !== strpos( $settings_page, '<h3><?php esc_html_e( \'Monitoring needs attention\'' )
+		&& false !== strpos( $settings_page, "esc_html__( 'Monitoring needs attention', 'npcink-cloud-addon' ) : esc_html__( 'Monitoring upload state', 'npcink-cloud-addon' )" )
 	&& false !== strpos( $settings_page, "self::redirect_to_page( 'status' );" )
 	&& false !== strpos( $settings_page, "self::redirect_to_page( 'advanced', 'checks' );" )
 	&& false === strpos( $settings_page, "self::redirect_to_page( 'advanced', 'runs' );" )
@@ -1935,7 +1943,8 @@ maca_assert(
 		&& 1 === substr_count( $settings_page, "esc_html_e( 'Available knowledge documents'" )
 		&& false !== strpos( $admin_site_knowledge_js, "'not_refreshed' === initialState || 'stale' === initialState" )
 		&& false === strpos( $admin_site_knowledge_js, 'data-npcink-site-knowledge-detail' )
-		&& false !== strpos( $admin_site_knowledge_js, '! valueLabel && ! articleCoverage' )
+		&& false !== strpos( $admin_site_knowledge_js, '! valueLabel && ! waitingLabel && ! articleCoverageRefresh' )
+	&& false === strpos( $admin_site_knowledge_js, 'window.location.reload' )
 	&& false !== strpos( $admin_site_knowledge_js, "progress.setAttribute( 'aria-valuenow', String( percent ) )" )
 	&& false !== strpos( $settings_page, 'class="npcink-cloud-metric-actions"' )
 	&& false !== strpos( $settings_page, 'data-npcink-site-knowledge-actions' )

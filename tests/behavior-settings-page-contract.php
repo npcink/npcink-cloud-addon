@@ -676,6 +676,44 @@ maca_assert(
 	'Behavior: the initial indexing bootstrap disappears once the knowledge base has been built.'
 );
 
+$dropped_status = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+$dropped_status['dropped_count'] = 3;
+$dropped_status['last_dropped_at'] = gmdate( 'c' );
+$dropped_status['last_delivery_error'] = '';
+$dropped_status['last_error_code'] = '';
+ob_start();
+$site_knowledge_renderer->invoke(
+	null,
+	$dropped_status,
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	true
+);
+$dropped_rendered = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $dropped_rendered, 'Needs attention' )
+	&& false !== strpos( $dropped_rendered, '3 content updates could not be delivered and were dropped. Update the knowledge base to include them again.' )
+	&& false !== strpos( $dropped_rendered, 'Update again' )
+	&& false === strpos( $dropped_rendered, 'The system will keep trying automatically.' ),
+	'Behavior: dropped content changes surface one attention row with the update-knowledge-base recovery action instead of a false auto-retry promise.'
+);
+
+$dropped_status['dropped_count'] = 0;
+$dropped_status['last_dropped_at'] = '';
+ob_start();
+$site_knowledge_renderer->invoke(
+	null,
+	$dropped_status,
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	true
+);
+$dropped_cleared_rendered = (string) ob_get_clean();
+maca_assert(
+	false === strpos( $dropped_cleared_rendered, 'were dropped' )
+	&& false === strpos( $dropped_cleared_rendered, 'Update again' )
+	&& false !== strpos( $dropped_cleared_rendered, 'All public content is up to date' ),
+	'Behavior: the dropped-change recovery entry hides again once the dropped fact is cleared.'
+);
+
 $test_links = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_generation_test_links' );
 $test_links->setAccessible( true );
 $GLOBALS['_registered_pages'] = array( 'tools_page_ai-abilities-explorer' => true, 'tools_page_ai-request-logs' => true );

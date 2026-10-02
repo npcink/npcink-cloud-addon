@@ -30,15 +30,35 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			$status = Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
 			if ( empty( $status['last_delivery_ok'] ) ) {
 				$message = sanitize_text_field( (string) ( $status['last_delivery_error'] ?? '' ) );
+				if ( function_exists( 'mb_substr' ) ) {
+					$message = mb_substr( $message, 0, 200, 'UTF-8' );
+				} else {
+					// Multibyte-safe bound without mbstring via a UTF-8 regex slice.
+					$matches = array();
+					$message = 1 === preg_match( '/\A.{0,200}/us', $message, $matches ) ? (string) $matches[0] : '';
+				}
+				$error_code = sanitize_key( (string) ( $status['last_error_code'] ?? '' ) );
+				if ( '' !== $message ) {
+					if ( in_array( $error_code, array( 'delivery_failed_retry_scheduled', 'full_index_delivery_retry_scheduled' ), true ) ) {
+						$framing = __( 'The knowledge base update could not be delivered and will be retried automatically. Detail: %s', 'npcink-cloud-addon' );
+					} elseif ( in_array( $error_code, array( 'delivery_attempts_exhausted', 'full_index_delivery_blocked' ), true ) ) {
+						$framing = __( 'The knowledge base update could not be delivered and automatic retries have stopped. Update the knowledge base again. Detail: %s', 'npcink-cloud-addon' );
+					} else {
+						$framing = __( 'The knowledge base update could not be delivered. Check the Site Knowledge tab for the next step. Detail: %s', 'npcink-cloud-addon' );
+					}
+					$failure_message = sprintf( $framing, $message );
+				} else {
+					$failure_message = __( 'Site Knowledge refresh request failed.', 'npcink-cloud-addon' );
+				}
 				return self::result(
 					false,
 					'refresh_failed',
-					'' !== $message ? $message : __( 'Site Knowledge refresh request failed.', 'npcink-cloud-addon' ),
+					$failure_message,
 					'refresh',
 					0,
 					0,
 					0,
-					sanitize_key( (string) ( $status['last_error_code'] ?? '' ) )
+					$error_code
 				);
 			}
 

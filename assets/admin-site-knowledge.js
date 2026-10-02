@@ -14,13 +14,13 @@
 	const retry = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-retry]' ) : null;
 	const spinner = usageContainer ? usageContainer.querySelector( '.npcink-cloud-site-knowledge-usage__spinner' ) : null;
 	const actions = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-actions]' ) : null;
-	const articleCoverage = document.querySelector( '[data-npcink-site-knowledge-article-coverage]' );
+	const waitingLabel = document.querySelector( '[data-npcink-site-knowledge-waiting]' );
 	const articleCoverageRefresh = document.querySelector( '[data-npcink-site-knowledge-coverage-refresh]' );
 	const initialState = refreshController.dataset.npcinkSiteKnowledgeState || '';
 	const initialValueLabel = valueLabel ? valueLabel.textContent : '';
 	let requestInFlight = false;
 
-	if ( ! valueLabel && ! articleCoverage ) {
+	if ( ! valueLabel && ! waitingLabel && ! articleCoverageRefresh ) {
 		return;
 	}
 
@@ -72,6 +72,22 @@
 
 	};
 
+	const updateWaitingLabel = ( usage ) => {
+		if ( ! waitingLabel ) {
+			return;
+		}
+		const label = usage && usage.waiting_label ? String( usage.waiting_label ) : '';
+		waitingLabel.textContent = label;
+		waitingLabel.hidden = '' === label;
+		const metaRow = waitingLabel.closest( '.npcink-cloud-site-knowledge-summary__meta' );
+		if ( metaRow ) {
+			// The waiting label itself is a span in this row, so one check
+			// covers it together with any server-rendered siblings.
+			const hasVisibleContent = Array.from( metaRow.querySelectorAll( 'span' ) ).some( ( span ) => ! span.hidden && '' !== span.textContent.trim() );
+			metaRow.hidden = ! hasVisibleContent;
+		}
+	};
+
 	const refresh = async () => {
 		if ( requestInFlight ) {
 			return;
@@ -100,20 +116,26 @@
 
 			if ( ! response.ok || ! payload.success || ! payload.data || ! payload.data.available ) {
 				const errorMessage = payload && payload.data && payload.data.message ? payload.data.message : '';
-				throw new Error( errorMessage || 'site_knowledge_usage_refresh_failed' );
+				const serverError = new Error( errorMessage || 'site_knowledge_usage_refresh_failed' );
+				serverError.fromServer = true;
+				throw serverError;
 			}
 
 			updateUsage( payload.data );
-			if ( articleCoverage ) {
-				window.location.reload();
-				return;
-			}
+			updateWaitingLabel( payload.data );
 			if ( retry ) {
 				retry.hidden = true;
 			}
 		} catch ( error ) {
+			// A failed refresh cannot confirm the waiting count; drop the
+			// stale value instead of showing it next to an error status.
+			updateWaitingLabel( null );
 			const hasRetainedUsage = 'stale' === initialState && '' !== initialValueLabel;
-			const actionableMessage = error && error.message && 'site_knowledge_usage_refresh_failed' !== error.message ? error.message : '';
+			// Only server-provided messages are display-ready; browser network
+			// error text must fall back to the translated config labels below.
+			const actionableMessage = error && error.fromServer && error.message && 'site_knowledge_usage_refresh_failed' !== error.message ? error.message : '';
+			// The English literals below are a last-resort fallback for a broken
+			// server injection; normal rendering always uses config labels.
 			if ( valueLabel ) {
 				valueLabel.textContent = hasRetainedUsage
 					? initialValueLabel
