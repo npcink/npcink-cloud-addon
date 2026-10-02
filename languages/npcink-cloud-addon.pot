@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-02T15:47:08+00:00\n"
+"POT-Creation-Date: 2026-10-02T16:28:28+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -513,7 +513,7 @@ msgstr ""
 
 #: includes/class-cloud-observability-collector.php:168
 #: includes/class-cloud-observability-collector.php:242
-#: includes/class-cloud-observability-collector.php:273
+#: includes/class-cloud-observability-collector.php:274
 #: includes/class-cloud-settings-page.php:606
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:88
@@ -527,19 +527,19 @@ msgstr ""
 msgid "Cloud did not accept the monitoring state projection."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1201
+#: includes/class-cloud-observability-collector.php:1202
 msgid "Core"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1206
+#: includes/class-cloud-observability-collector.php:1207
 msgid "Abilities"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1211
+#: includes/class-cloud-observability-collector.php:1212
 msgid "Adapter"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1216
+#: includes/class-cloud-observability-collector.php:1217
 #: includes/class-cloud-settings-page.php:238
 #: includes/class-cloud-settings-page.php:2046
 msgid "Cloud Addon"
@@ -2593,54 +2593,54 @@ msgstr ""
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1037
+#: includes/class-cloud-wordpress-ai-connector.php:1040
 msgid "Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1770
+#: includes/class-cloud-wordpress-ai-connector.php:1773
 msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1787
+#: includes/class-cloud-wordpress-ai-connector.php:1790
 msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1798
+#: includes/class-cloud-wordpress-ai-connector.php:1801
 msgid "Npcink Cloud could not project the alt-text Ability contract."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1964
+#: includes/class-cloud-wordpress-ai-connector.php:1967
 msgid "WordPress AI alt text generation requires a local WordPress attachment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1965
+#: includes/class-cloud-wordpress-ai-connector.php:1968
 msgid "WordPress AI alt text generation requires one bounded attachment prompt."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1966
+#: includes/class-cloud-wordpress-ai-connector.php:1969
 msgid "You are not allowed to use this attachment for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1967
+#: includes/class-cloud-wordpress-ai-connector.php:1970
 msgid "WordPress AI alt text generation requires a local media attachment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1968
+#: includes/class-cloud-wordpress-ai-connector.php:1971
 msgid "The local attachment file is unavailable for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1969
+#: includes/class-cloud-wordpress-ai-connector.php:1972
 msgid "The local attachment exceeds the Cloud alt text source size limit."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1970
+#: includes/class-cloud-wordpress-ai-connector.php:1973
 msgid "The local attachment could not be read for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1971
+#: includes/class-cloud-wordpress-ai-connector.php:1974
 msgid "The local attachment changed before it could be read for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1972
+#: includes/class-cloud-wordpress-ai-connector.php:1975
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr ""
