@@ -153,6 +153,14 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install WP-CLI phar fallback
+        # setup-php's wp-cli tool install has upstream outages; the phar at
+        # /tmp/wp-cli.phar is the resolver's final fallback, so keep it fresh.
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /tmp/wp-cli.phar
+          chmod +x /tmp/wp-cli.phar
+          php /tmp/wp-cli.phar --version
+
       - name: Install Composer dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
@@ -160,7 +168,7 @@ jobs:
         run: composer run check:js
 
       - name: Capture generated POT
-        run: WP_CLI_BIN="$(command -v wp)" wp i18n make-pot . /tmp/generated.pot --slug=npcink-cloud-addon --domain=npcink-cloud-addon --exclude=build,dist,sj,tests,scripts --skip-js
+        run: php scripts/run-wp-cli.php i18n make-pot . /tmp/generated.pot --slug=npcink-cloud-addon --domain=npcink-cloud-addon --exclude=build,dist,sj,tests,scripts --skip-js
       - name: Upload generated POT
         if: always()
         uses: actions/upload-artifact@v4
@@ -168,7 +176,7 @@ jobs:
           name: generated-pot
           path: /tmp/generated.pot
       - name: POT freshness
-        run: WP_CLI_BIN="$(command -v wp)" composer run i18n:check
+        run: composer run i18n:check
 
       - name: Build and verify final ZIP
         run: composer run package:release && composer run package:verify
