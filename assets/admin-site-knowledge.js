@@ -20,9 +20,9 @@
 	const initialValueLabel = valueLabel ? valueLabel.textContent : '';
 	let requestInFlight = false;
 
-		if ( ! valueLabel && ! waitingLabel && ! articleCoverageRefresh ) {
-			return;
-		}
+	if ( ! valueLabel && ! waitingLabel && ! articleCoverageRefresh ) {
+		return;
+	}
 
 	const setLoading = ( loading ) => {
 		requestInFlight = loading;
@@ -80,8 +80,10 @@
 		waitingLabel.textContent = label;
 		waitingLabel.hidden = '' === label;
 		const metaRow = waitingLabel.closest( '.npcink-cloud-site-knowledge-summary__meta' );
-		if ( metaRow && '' !== label ) {
-			metaRow.hidden = false;
+		if ( metaRow ) {
+			const hasVisibleContent = '' !== label
+				|| Array.from( metaRow.querySelectorAll( 'span' ) ).some( ( span ) => ! span.hidden && '' !== span.textContent );
+			metaRow.hidden = ! hasVisibleContent;
 		}
 	};
 

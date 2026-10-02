@@ -380,6 +380,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'WordPress AI alt text generation requires verified Npcink Cloud settings.' => 'WordPress AI 替代文本生成需要经过验证的 Npcink Cloud 设置。',
 				'Npcink Cloud did not return a valid source artifact for alt text generation.' => 'Npcink Cloud 未返回有效的替代文本生成源工件。',
 				'The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features.' => '插件已启用，但本站点尚未连接 Npcink Cloud。连接站点后即可启用其 AI 功能。',
+				'Connect this site' => '连接此站点',
 				'Do not show again' => '不再显示',
 				'Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again.' => 'Cloud Addon 设置尚未通过验证。连接重新验证通过后，将自动恢复监控数据上传。',
 				'Monitoring upload state' => '监控上传状态',

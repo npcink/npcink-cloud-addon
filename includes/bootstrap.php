@@ -896,6 +896,12 @@ if ( ! function_exists( 'npcink_cloud_addon_maybe_dismiss_activation_notice' ) )
 		if ( function_exists( 'update_user_meta' ) && function_exists( 'get_current_user_id' ) ) {
 			update_user_meta( get_current_user_id(), 'npcink_cloud_addon_activation_notice_dismissed', '1' );
 		}
+
+		// Post-action redirect keeps the nonce URL out of reloads and bookmarks.
+		if ( function_exists( 'wp_safe_redirect' ) && function_exists( 'remove_query_arg' ) ) {
+			wp_safe_redirect( remove_query_arg( 'npcink_cloud_addon_hide_activation_notice' ) );
+			exit;
+		}
 	}
 }
 
@@ -925,14 +931,17 @@ if ( ! function_exists( 'npcink_cloud_addon_render_activation_notice' ) ) {
 			return;
 		}
 
+		// menu_page_url() resolves the registered page whether it lives under
+		// the npcink-ai parent menu or Settings; admin.php?page= resolves both
+		// shapes if the menu registration is somehow unavailable.
 		$settings_url = function_exists( 'menu_page_url' ) && '' !== menu_page_url( 'npcink-cloud-addon', false )
 			? menu_page_url( 'npcink-cloud-addon', false )
-			: admin_url( 'options-general.php?page=npcink-cloud-addon' );
+			: admin_url( 'admin.php?page=npcink-cloud-addon' );
 		$dismiss_url = function_exists( 'wp_nonce_url' ) && function_exists( 'add_query_arg' )
 			? wp_nonce_url( add_query_arg( 'npcink_cloud_addon_hide_activation_notice', '1' ), 'npcink_cloud_addon_hide_activation_notice' )
 			: '';
 		?>
-		<div class="notice notice-info is-dismissible npcink-cloud-addon-activation-notice">
+		<div class="notice notice-info npcink-cloud-addon-activation-notice">
 			<p>
 				<strong><?php esc_html_e( 'Npcink Cloud Addon', 'npcink-cloud-addon' ); ?></strong>
 				<?php esc_html_e( 'The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features.', 'npcink-cloud-addon' ); ?>

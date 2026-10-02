@@ -764,6 +764,22 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		}
 
 		/**
+		 * Formats an already-translated attachment source error for the editor.
+		 *
+		 * @param WP_Error $error Attachment validation error.
+		 * @return string
+		 */
+		public static function user_facing_attachment_error( $error ): string {
+			if ( ! is_wp_error( $error ) ) {
+				return '';
+			}
+			$message = (string) $error->get_error_message();
+			$code = sanitize_key( (string) $error->get_error_code() );
+
+			return '' !== $code ? $message . ' (' . $code . ')' : $message;
+		}
+
+		/**
 		 * Classifies a runtime failure into a friendly message family.
 		 *
 		 * @param string $error_code Local WP_Error code.
@@ -776,7 +792,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$friendly_key = 'runtime_failed';
 			if ( 1 === preg_match( '/(?:unauthorized|forbidden|authorization[_ ]expired)/', $haystack ) ) {
 				$friendly_key = 'runtime_unauthorized';
-			} elseif ( 1 === preg_match( '/(?:expired|purged)/', $haystack ) ) {
+			} elseif ( 1 === preg_match( '/(?:purged|artifact[_ ]expired)/', $haystack ) ) {
 				$friendly_key = 'artifact_expired';
 			} elseif ( 1 === preg_match( '/(?:rate.?limit|quota|limit[_ ]exceeded|too[_ ]many[_ ]requests|insufficient[_ ]credit)/', $haystack ) ) {
 				$friendly_key = 'runtime_limit_reached';
@@ -801,7 +817,12 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				return mb_substr( $detail, 0, 160 );
 			}
 
-			return substr( $detail, 0, 160 );
+			// Multibyte-safe bound without mbstring: fall back to a UTF-8 regex
+			// slice instead of a byte-level substr() split.
+			$matches = array();
+			$matched = preg_match( '/\A.{0,160}/us', $detail, $matches );
+
+			return 1 === $matched ? (string) $matches[0] : '';
 		}
 
 		/**
@@ -2074,7 +2095,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 
 			$attachment_id = Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::attachment_id_from_ability_input( $ability_input );
 			if ( is_wp_error( $attachment_id ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( (string) $attachment_id->get_error_message() );
+				throw new \WordPress\AiClient\Common\Exception\RuntimeException( Npcink_Cloud_WordPress_AI_Connector::user_facing_attachment_error( $attachment_id ) );
 			}
 
 			$started  = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
