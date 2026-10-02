@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-02T16:41:01+00:00\n"
+"POT-Creation-Date: 2026-10-02T16:47:11+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -2593,54 +2593,54 @@ msgstr ""
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1044
+#: includes/class-cloud-wordpress-ai-connector.php:1047
 msgid "Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1777
+#: includes/class-cloud-wordpress-ai-connector.php:1780
 msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1794
+#: includes/class-cloud-wordpress-ai-connector.php:1797
 msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1805
+#: includes/class-cloud-wordpress-ai-connector.php:1808
 msgid "Npcink Cloud could not project the alt-text Ability contract."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1971
+#: includes/class-cloud-wordpress-ai-connector.php:1974
 msgid "WordPress AI alt text generation requires a local WordPress attachment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1972
+#: includes/class-cloud-wordpress-ai-connector.php:1975
 msgid "WordPress AI alt text generation requires one bounded attachment prompt."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1973
+#: includes/class-cloud-wordpress-ai-connector.php:1976
 msgid "You are not allowed to use this attachment for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1974
+#: includes/class-cloud-wordpress-ai-connector.php:1977
 msgid "WordPress AI alt text generation requires a local media attachment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1975
+#: includes/class-cloud-wordpress-ai-connector.php:1978
 msgid "The local attachment file is unavailable for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1976
+#: includes/class-cloud-wordpress-ai-connector.php:1979
 msgid "The local attachment exceeds the Cloud alt text source size limit."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1977
+#: includes/class-cloud-wordpress-ai-connector.php:1980
 msgid "The local attachment could not be read for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1978
+#: includes/class-cloud-wordpress-ai-connector.php:1981
 msgid "The local attachment changed before it could be read for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1979
+#: includes/class-cloud-wordpress-ai-connector.php:1982
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr ""

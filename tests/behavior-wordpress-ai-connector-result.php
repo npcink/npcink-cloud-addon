@@ -386,4 +386,13 @@ namespace {
 		$changed_expiry_rejected && 2 === count( $GLOBALS['maca_http_requests'] ),
 		'Behavior: image candidate recovery rejects an otherwise valid ACK that changes the artifact expiry binding.'
 	);
+
+
+	maca_assert(
+		str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'cloud_upstream_error', 'cloud_upstream_error:poll', 'database connection pool exhausted' ), 'cloud_upstream_error-poll' )
+		&& false === strpos( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'cloud_upstream_error', 'cloud_upstream_error:poll', 'database connection pool exhausted' ), 'could not be reached' )
+		&& str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'http_request_failed', '', 'curl error 28' ), 'could not be reached' )
+		&& str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_failed', 'cloud_upstream_error:poll', 'detail https://example.test/signed?token=abc' ), '[url]' ),
+		'Behavior: runtime failure classification keys off structured codes with a readable code-stage separator, and connector detail strips request URLs.'
+	);
 }

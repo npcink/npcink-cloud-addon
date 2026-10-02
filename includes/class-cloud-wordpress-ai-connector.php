@@ -789,7 +789,10 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return string
 		 */
 		public static function user_facing_runtime_failure( string $error_code, string $diagnostic, string $detail ): string {
-			$haystack = strtolower( $error_code . ' ' . $diagnostic . ' ' . self::bound_connector_error_detail( $detail ) );
+			// Classify only on structured codes; free-form upstream detail can
+			// mention network words for unrelated failures (e.g. "connection
+			// pool" in an application error) and must not drive the family.
+			$haystack = strtolower( $error_code . ' ' . $diagnostic );
 			$friendly_key = 'runtime_failed';
 			if ( 1 === preg_match( '/(?:unauthorized|forbidden|authorization[_ ]expired)/', $haystack ) ) {
 				$friendly_key = 'runtime_unauthorized';
