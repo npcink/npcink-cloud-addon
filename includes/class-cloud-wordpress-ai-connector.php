@@ -788,7 +788,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return string
 		 */
 		public static function user_facing_runtime_failure( string $error_code, string $diagnostic, string $detail ): string {
-			$haystack = strtolower( $error_code . ' ' . $diagnostic . ' ' . substr( $detail, 0, 400 ) );
+			$haystack = strtolower( $error_code . ' ' . $diagnostic . ' ' . self::bound_connector_error_detail( $detail ) );
 			$friendly_key = 'runtime_failed';
 			if ( 1 === preg_match( '/(?:unauthorized|forbidden|authorization[_ ]expired)/', $haystack ) ) {
 				$friendly_key = 'runtime_unauthorized';
@@ -817,12 +817,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				return mb_substr( $detail, 0, 160 );
 			}
 
-			// Multibyte-safe bound without mbstring: fall back to a UTF-8 regex
-			// slice instead of a byte-level substr() split.
+			// Multibyte-safe bound without mbstring: drop invalid UTF-8 bytes,
+			// slice with a UTF-8 regex, and keep a byte-level prefix if the
+			// regex still cannot run so the detail is never fully discarded.
+			if ( function_exists( 'mb_convert_encoding' ) ) {
+				$detail = mb_convert_encoding( $detail, 'UTF-8', 'UTF-8' );
+			}
 			$matches = array();
 			$matched = preg_match( '/\A.{0,160}/us', $detail, $matches );
 
-			return 1 === $matched ? (string) $matches[0] : '';
+			return 1 === $matched ? (string) $matches[0] : substr( $detail, 0, 160 );
 		}
 
 		/**

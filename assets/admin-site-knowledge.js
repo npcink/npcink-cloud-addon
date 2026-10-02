@@ -81,8 +81,9 @@
 		waitingLabel.hidden = '' === label;
 		const metaRow = waitingLabel.closest( '.npcink-cloud-site-knowledge-summary__meta' );
 		if ( metaRow ) {
-			const hasVisibleContent = '' !== label
-				|| Array.from( metaRow.querySelectorAll( 'span' ) ).some( ( span ) => ! span.hidden && '' !== span.textContent.trim() );
+			// The waiting label itself is a span in this row, so one check
+			// covers it together with any server-rendered siblings.
+			const hasVisibleContent = Array.from( metaRow.querySelectorAll( 'span' ) ).some( ( span ) => ! span.hidden && '' !== span.textContent.trim() );
 			metaRow.hidden = ! hasVisibleContent;
 		}
 	};
@@ -126,6 +127,9 @@
 				retry.hidden = true;
 			}
 		} catch ( error ) {
+			// A failed refresh cannot confirm the waiting count; drop the
+			// stale value instead of showing it next to an error status.
+			updateWaitingLabel( null );
 			const hasRetainedUsage = 'stale' === initialState && '' !== initialValueLabel;
 			// Only server-provided messages are display-ready; browser network
 			// error text must fall back to the translated config labels below.

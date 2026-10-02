@@ -244,7 +244,12 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
 			if ( empty( $settings['monitoring_enabled'] ) ) {
 				// Deliberate local opt-out: no summary refresh and no failure row.
-				return self::get_raw_status();
+				// Keep the same cache shape as record_summary_result() so callers
+				// can read last_refresh_ok without a branch.
+				$cache = self::get_summary_cache();
+				$cache['last_refresh_error'] = '';
+
+				return $cache;
 			}
 
 			$client = new Npcink_Cloud_Runtime_Client();

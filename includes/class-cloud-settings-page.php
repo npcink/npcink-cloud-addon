@@ -2623,10 +2623,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			if ( function_exists( 'mb_substr' ) ) {
 				$bounded = mb_substr( $detail, 0, 200 );
 			} else {
-				// Multibyte-safe bound without mbstring via a UTF-8 regex slice.
+				// Multibyte-safe bound without mbstring via a UTF-8 regex slice;
+				// keep a byte-level prefix if the regex cannot run so the
+				// detail is never fully discarded.
 				$matches = array();
 				$matched = preg_match( '/\A.{0,200}/us', $detail, $matches );
-				$bounded = 1 === $matched ? (string) $matches[0] : '';
+				$bounded = 1 === $matched ? (string) $matches[0] : substr( $detail, 0, 200 );
 			}
 
 			return $bounded === $detail ? $bounded : rtrim( $bounded ) . '…';

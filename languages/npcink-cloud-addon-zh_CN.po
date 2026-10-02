@@ -186,7 +186,7 @@ msgstr "暂时无法获取最新的 Cloud 摘要。请检查连接后重试。"
 #: includes/class-cloud-entitlement-summary.php:227
 #: includes/class-cloud-settings-page.php:96
 #: includes/class-cloud-settings-page.php:164
-#: includes/class-cloud-settings-page.php:2976
+#: includes/class-cloud-settings-page.php:2978
 msgid "Plan and entitlement are temporarily unavailable."
 msgstr "暂时无法获取套餐与权益。"
 
@@ -490,7 +490,7 @@ msgstr "衍生媒体指标不完整。"
 
 #: includes/class-cloud-observability-collector.php:168
 #: includes/class-cloud-observability-collector.php:242
-#: includes/class-cloud-observability-collector.php:268
+#: includes/class-cloud-observability-collector.php:273
 #: includes/class-cloud-settings-page.php:606
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:88
@@ -504,19 +504,19 @@ msgstr "Cloud Addon 设置尚未验证。"
 msgid "Cloud did not accept the monitoring state projection."
 msgstr "Cloud 未接受监控状态投影。"
 
-#: includes/class-cloud-observability-collector.php:1196
+#: includes/class-cloud-observability-collector.php:1201
 msgid "Core"
 msgstr "治理核心"
 
-#: includes/class-cloud-observability-collector.php:1201
+#: includes/class-cloud-observability-collector.php:1206
 msgid "Abilities"
 msgstr "原子能力"
 
-#: includes/class-cloud-observability-collector.php:1206
+#: includes/class-cloud-observability-collector.php:1211
 msgid "Adapter"
 msgstr "渠道适配器"
 
-#: includes/class-cloud-observability-collector.php:1211
+#: includes/class-cloud-observability-collector.php:1216
 #: includes/class-cloud-settings-page.php:238
 #: includes/class-cloud-settings-page.php:2046
 msgid "Cloud Addon"
@@ -1188,14 +1188,14 @@ msgstr "%1$s%2$s。"
 
 #: includes/class-cloud-settings-page.php:642
 #: includes/class-cloud-settings-page.php:2555
-#: includes/class-cloud-settings-page.php:3102
+#: includes/class-cloud-settings-page.php:3104
 msgid "enabled"
 msgstr "已启用"
 
 #: includes/class-cloud-settings-page.php:642
 #: includes/class-cloud-settings-page.php:2555
-#: includes/class-cloud-settings-page.php:3103
-#: includes/class-cloud-settings-page.php:3154
+#: includes/class-cloud-settings-page.php:3105
+#: includes/class-cloud-settings-page.php:3156
 msgid "disabled"
 msgstr "已禁用"
 
@@ -1353,8 +1353,8 @@ msgid "Open Cloud sites"
 msgstr "打开 Cloud 站点"
 
 #: includes/class-cloud-settings-page.php:1390
-#: includes/class-cloud-settings-page.php:2935
-#: includes/class-cloud-settings-page.php:2967
+#: includes/class-cloud-settings-page.php:2937
+#: includes/class-cloud-settings-page.php:2969
 msgid "Not checked"
 msgstr "未检查"
 
@@ -1652,10 +1652,10 @@ msgstr "打开设置"
 #: includes/class-cloud-settings-page.php:2061
 #: includes/class-cloud-settings-page.php:2455
 #: includes/class-cloud-settings-page.php:2456
-#: includes/class-cloud-settings-page.php:2955
-#: includes/class-cloud-settings-page.php:3182
-#: includes/class-cloud-settings-page.php:3193
-#: includes/class-cloud-settings-page.php:3232
+#: includes/class-cloud-settings-page.php:2957
+#: includes/class-cloud-settings-page.php:3184
+#: includes/class-cloud-settings-page.php:3195
+#: includes/class-cloud-settings-page.php:3234
 msgid "unavailable"
 msgstr "不可用"
 
@@ -1917,7 +1917,7 @@ msgid "never"
 msgstr "从未"
 
 #: includes/class-cloud-settings-page.php:2570
-#: includes/class-cloud-settings-page.php:3158
+#: includes/class-cloud-settings-page.php:3160
 msgid "ok"
 msgstr "正常"
 
@@ -1941,119 +1941,119 @@ msgstr "Cloud 错误分类"
 msgid "Last failure"
 msgstr "上次失败"
 
-#: includes/class-cloud-settings-page.php:2667
+#: includes/class-cloud-settings-page.php:2669
 msgid "The site is connected, but Cloud service is not active yet. Activate this site in Npcink Cloud, then check activation again here."
 msgstr "站点已连接，但 Cloud 运行服务尚未激活。请先在 Npcink Cloud 中激活此站点，再返回这里重新检查。"
 
 #. translators: %s: liveness error.
-#: includes/class-cloud-settings-page.php:2673
+#: includes/class-cloud-settings-page.php:2675
 #, php-format
 msgid "Live check failed: %s"
 msgstr "存活检查失败：%s"
 
 #. translators: %s: signed verification error.
-#: includes/class-cloud-settings-page.php:2680
+#: includes/class-cloud-settings-page.php:2682
 #, php-format
 msgid "Signed verification failed: %s"
 msgstr "签名验证失败：%s"
 
-#: includes/class-cloud-settings-page.php:2687
+#: includes/class-cloud-settings-page.php:2689
 msgid "Cloud verification failed."
 msgstr "Cloud 验证失败。"
 
-#: includes/class-cloud-settings-page.php:2939
-#: includes/class-cloud-settings-page.php:2984
+#: includes/class-cloud-settings-page.php:2941
+#: includes/class-cloud-settings-page.php:2986
 msgid "available"
 msgstr "可用"
 
-#: includes/class-cloud-settings-page.php:2944
+#: includes/class-cloud-settings-page.php:2946
 msgid "not refreshed"
 msgstr "尚未刷新"
 
-#: includes/class-cloud-settings-page.php:2948
-#: includes/class-cloud-settings-page.php:3152
+#: includes/class-cloud-settings-page.php:2950
+#: includes/class-cloud-settings-page.php:3154
 msgid "not configured"
 msgstr "尚未配置"
 
-#: includes/class-cloud-settings-page.php:2952
+#: includes/class-cloud-settings-page.php:2954
 msgid "read failed"
 msgstr "读取失败"
 
-#: includes/class-cloud-settings-page.php:2972
+#: includes/class-cloud-settings-page.php:2974
 msgid "Loading plan and entitlement…"
 msgstr "正在获取套餐与权益…"
 
-#: includes/class-cloud-settings-page.php:2981
+#: includes/class-cloud-settings-page.php:2983
 msgid "Available"
 msgstr "可用"
 
-#: includes/class-cloud-settings-page.php:2995
+#: includes/class-cloud-settings-page.php:2997
 msgid "Free plan"
 msgstr "免费版"
 
-#: includes/class-cloud-settings-page.php:2996
+#: includes/class-cloud-settings-page.php:2998
 msgid "Pro plan"
 msgstr "专业版"
 
 #. translators: 1: remaining credits, 2: credit limit, 3: remaining percentage.
-#: includes/class-cloud-settings-page.php:3039
+#: includes/class-cloud-settings-page.php:3041
 #, php-format
 msgid "%1$s / %2$s · %3$d%% remaining"
 msgstr "%1$s / %2$s · 剩余 %3$d%%"
 
 #. translators: 1: used credits, 2: remaining credits, 3: credit limit.
-#: includes/class-cloud-settings-page.php:3047
+#: includes/class-cloud-settings-page.php:3049
 #, php-format
 msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
 msgstr "已用 %1$s AI 积分；剩余 %2$s AI 积分；上限 %3$s AI 积分。"
 
 #. translators: %s: remaining credits.
-#: includes/class-cloud-settings-page.php:3055
+#: includes/class-cloud-settings-page.php:3057
 #, php-format
 msgid "%s remaining"
 msgstr "剩余 %s"
 
 #. translators: 1: remaining runtime runs, 2: runtime run limit.
-#: includes/class-cloud-settings-page.php:3072
+#: includes/class-cloud-settings-page.php:3074
 #, php-format
 msgid "%1$d of %2$d runs remaining"
 msgstr "剩余 %1$d / %2$d 次"
 
 #. translators: 1: monitoring state, 2: buffered event count.
-#: includes/class-cloud-settings-page.php:3108
+#: includes/class-cloud-settings-page.php:3110
 #, php-format
 msgid "%1$s, %2$d buffered"
 msgstr "%1$s，%2$d 条待发送"
 
 #. translators: %d: buffered public change count.
-#: includes/class-cloud-settings-page.php:3130
+#: includes/class-cloud-settings-page.php:3132
 #, php-format
 msgid "%d public changes awaiting delivery"
 msgstr "%d 条公开变更待投递"
 
 #. translators: 1: bridge status, 2: buffered public change count.
-#: includes/class-cloud-settings-page.php:3137
+#: includes/class-cloud-settings-page.php:3139
 #, php-format
 msgid "%1$s, %2$d public changes buffered"
 msgstr "%1$s，%2$d 条公开变更已缓冲"
 
-#: includes/class-cloud-settings-page.php:3151
+#: includes/class-cloud-settings-page.php:3153
 msgid "idle"
 msgstr "空闲"
 
-#: includes/class-cloud-settings-page.php:3153
+#: includes/class-cloud-settings-page.php:3155
 msgid "unverified"
 msgstr "未验证"
 
-#: includes/class-cloud-settings-page.php:3155
+#: includes/class-cloud-settings-page.php:3157
 msgid "error"
 msgstr "错误"
 
-#: includes/class-cloud-settings-page.php:3156
+#: includes/class-cloud-settings-page.php:3158
 msgid "pending"
 msgstr "等待中"
 
-#: includes/class-cloud-settings-page.php:3157
+#: includes/class-cloud-settings-page.php:3159
 msgid "queued"
 msgstr "排队中"
 
@@ -2244,51 +2244,51 @@ msgstr "站点知识库运行时 payload 超过传输大小限制。"
 msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr "使用已验证的 Npcink Cloud 设置，为 WordPress AI 的固定编辑场景提供云端建议能力。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1033
+#: includes/class-cloud-wordpress-ai-connector.php:1037
 msgid "Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
 msgstr "通过已验证的 Npcink Cloud 设置处理受限的 WordPress AI 场景任务。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1766
+#: includes/class-cloud-wordpress-ai-connector.php:1770
 msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
 msgstr "WordPress AI 替代文本生成需要经过验证的 Npcink Cloud 设置。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1783
+#: includes/class-cloud-wordpress-ai-connector.php:1787
 msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
 msgstr "Npcink Cloud 未返回有效的替代文本生成源工件。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1960
+#: includes/class-cloud-wordpress-ai-connector.php:1964
 msgid "WordPress AI alt text generation requires a local WordPress attachment."
 msgstr "WordPress AI 替代文本生成需要本地 WordPress 附件。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1961
+#: includes/class-cloud-wordpress-ai-connector.php:1965
 msgid "WordPress AI alt text generation requires one bounded attachment prompt."
 msgstr "WordPress AI 替代文本生成需要一个有边界的附件提示词。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1962
+#: includes/class-cloud-wordpress-ai-connector.php:1966
 msgid "You are not allowed to use this attachment for Cloud alt text generation."
 msgstr "您无权使用此附件进行 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1963
+#: includes/class-cloud-wordpress-ai-connector.php:1967
 msgid "WordPress AI alt text generation requires a local media attachment."
 msgstr "WordPress AI 替代文本生成需要本地媒体附件。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1964
+#: includes/class-cloud-wordpress-ai-connector.php:1968
 msgid "The local attachment file is unavailable for Cloud alt text generation."
 msgstr "本地附件文件无法用于 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1965
+#: includes/class-cloud-wordpress-ai-connector.php:1969
 msgid "The local attachment exceeds the Cloud alt text source size limit."
 msgstr "本地附件超出 Cloud 替代文本源大小限制。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1966
+#: includes/class-cloud-wordpress-ai-connector.php:1970
 msgid "The local attachment could not be read for Cloud alt text generation."
 msgstr "无法读取本地附件以进行 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1967
+#: includes/class-cloud-wordpress-ai-connector.php:1971
 msgid "The local attachment changed before it could be read for Cloud alt text generation."
 msgstr "本地附件在读取前已发生变化，无法进行 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1968
+#: includes/class-cloud-wordpress-ai-connector.php:1972
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr "本地附件图像类型不受 Cloud 替代文本生成支持。"
 
@@ -2472,7 +2472,7 @@ msgstr "WordPress AI existing_title 上下文仅支持标题生成。"
 msgid "WordPress AI alt-text task_contract must be a normalized object."
 msgstr "WordPress AI 替代文本 task_contract 必须是规范化对象。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1794
+#: includes/class-cloud-wordpress-ai-connector.php:1798
 msgid "Npcink Cloud could not project the alt-text Ability contract."
 msgstr "Npcink Cloud 无法投影替代文本 Ability 合同。"
 
@@ -2541,27 +2541,27 @@ msgstr "%1$d（最近于 %2$s）"
 msgid "Monitoring upload state"
 msgstr "监控上传状态"
 
-#: includes/class-cloud-settings-page.php:2645
+#: includes/class-cloud-settings-page.php:2647
 msgid "The Cloud connection is not configured yet."
 msgstr "尚未配置 Cloud 连接。"
 
-#: includes/class-cloud-settings-page.php:2647
+#: includes/class-cloud-settings-page.php:2649
 msgid "The Cloud connection is healthy."
 msgstr "Cloud 连接正常。"
 
-#: includes/class-cloud-settings-page.php:2649
+#: includes/class-cloud-settings-page.php:2651
 msgid "This site still needs to be activated in Cloud."
 msgstr "本站点还需要在 Cloud 激活。"
 
-#: includes/class-cloud-settings-page.php:2651
+#: includes/class-cloud-settings-page.php:2653
 msgid "Cloud could not be reached or refused the connection."
 msgstr "无法连接 Cloud，或 Cloud 拒绝了本次连接。"
 
-#: includes/class-cloud-settings-page.php:2653
+#: includes/class-cloud-settings-page.php:2655
 msgid "The Cloud credentials have not been verified yet."
 msgstr "Cloud 凭据尚未通过验证。"
 
-#: includes/class-cloud-settings-page.php:2656
+#: includes/class-cloud-settings-page.php:2658
 msgid "The last Cloud verification did not complete."
 msgstr "最近一次 Cloud 验证未完成。"
 
