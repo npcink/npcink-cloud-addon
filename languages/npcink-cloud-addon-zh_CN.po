@@ -530,7 +530,7 @@ msgstr "Cloud 返回了意外的响应类型。"
 msgid "Cloud response exceeds the local size limit."
 msgstr "Cloud 响应超出本地大小限制。"
 
-#: includes/class-cloud-outbound-policy.php:409
+#: includes/class-cloud-outbound-policy.php:414
 msgid "Cloud request target is not allowed by the local connector policy."
 msgstr "本地连接器策略不允许此 Cloud 请求目标。"
 

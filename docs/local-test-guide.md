@@ -136,10 +136,12 @@ verified and WordPress AI features enabled, run:
 composer run smoke:wp-ai-editor
 ```
 
-The command uses WP-CLI against `WP_PATH`, defaulting to
-`/Users/muze/Local Sites/magick-ai/app/public`. Override `WP_AI_SMOKE_USER`,
-`WP_PATH`, `WP_CLI_BIN`, `WP_CLI_PHP`, or `WP_DB_SOCKET` when the local site
-differs.
+The command uses WP-CLI through `scripts/wp-cli-local.sh`. It resolves
+`WP_PATH`, `WP_DB_SOCKET`, `WP_CLI_BIN`, and `WP_CLI_PHP` from the environment,
+then `scripts/.local-env` (copy `scripts/.local-env.example`), then single-
+candidate Local by Flywheel discovery, and fails with guidance when several
+sites or sockets exist. Override `WP_AI_SMOKE_USER` the same way when the
+local site differs.
 
 This data-path smoke creates one deterministic temporary draft and calls exactly
 the current editor abilities `ai/title-generation`, `ai/summarization`, and

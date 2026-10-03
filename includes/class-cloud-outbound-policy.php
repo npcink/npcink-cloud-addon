@@ -195,6 +195,11 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 		/**
 		 * Returns whether a host is a public IP or resolves exclusively to public IPs.
 		 *
+		 * Residual risk (accepted, see docs/cloud-addon-boundary.md): this check
+		 * and the later HTTP dispatch resolve the host independently, so DNS
+		 * rebinding between the two is only mitigated by HTTPS-only transport,
+		 * disabled redirects, and wp_safe_remote_request — not fully closed.
+		 *
 		 * @param string $host Host.
 		 * @return bool
 		 */

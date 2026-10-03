@@ -822,7 +822,7 @@ if ( ! function_exists( 'npcink_cloud_addon_receive_media_derivative_artifact' )
 	 *
 	 * This does not store, register, approve, adopt, or write the artifact.
 	 *
-	 * @param array<string,mixed> $derivative_artifact Cloud derivative artifact descriptor.
+	 * @param array<string,mixed> $artifact Cloud derivative artifact descriptor.
 	 * @param string              $trace_id Optional trace id.
 	 * @return array<string,mixed>|WP_Error
 	 */

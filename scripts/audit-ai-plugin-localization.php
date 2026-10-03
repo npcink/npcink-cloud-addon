@@ -20,9 +20,10 @@ if ( ! defined( 'NPCINK_CLOUD_ADDON_VERSION' ) ) {
 }
 
 require_once $root . '/includes/class-ai-plugin-localization.php';
+require_once __DIR__ . '/local-env.php';
 
 /**
- * Resolves the AI plugin path from CLI args, env, or local defaults.
+ * Resolves the AI plugin path from CLI args, environment, or local defaults.
  *
  * @param array<int,string> $argv CLI arguments.
  * @param string            $root Repository root.
@@ -35,20 +36,15 @@ function npcink_cloud_addon_ai_i18n_audit_resolve_path( array $argv, string $roo
 		}
 	}
 
-	$env_path = getenv( 'AI_PLUGIN_PATH' );
-	if ( is_string( $env_path ) && '' !== $env_path ) {
+	// Covers the AI_PLUGIN_PATH environment variable and scripts/.local-env.
+	$env_path = npcink_cloud_addon_local_env_value( 'AI_PLUGIN_PATH' );
+	if ( '' !== $env_path ) {
 		return $env_path;
 	}
 
-	$candidates = array(
-		dirname( $root ) . '/ai',
-		'/Users/muze/Local Sites/magick-ai/app/public/wp-content/plugins/ai',
-	);
-
-	foreach ( $candidates as $candidate ) {
-		if ( is_dir( $candidate ) ) {
-			return $candidate;
-		}
+	$candidate = dirname( $root ) . '/ai';
+	if ( is_dir( $candidate ) ) {
+		return $candidate;
 	}
 
 	return '';

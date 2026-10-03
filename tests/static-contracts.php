@@ -327,9 +327,21 @@ maca_assert(
 	&& false === strpos( $composer, '${WP_CLI_BIN:-/tmp/wp-cli.phar}' )
 	&& false !== strpos( maca_read( $root . '/scripts/check-pot-freshness.php' ), "require_once __DIR__ . '/wp-cli-command.php';" )
 	&& false !== strpos( maca_read( $root . '/scripts/run-plugin-check.php' ), "require_once __DIR__ . '/wp-cli-command.php';" )
-	&& false !== strpos( maca_read( $root . '/scripts/run-plugin-check.php' ), '/Local Sites/magick-ai/app/public' )
-	&& false === strpos( maca_read( $root . '/scripts/run-plugin-check.php' ), '/Local Sites/npcink/app/public' ),
+	&& false !== strpos( maca_read( $root . '/scripts/run-plugin-check.php' ), "require_once __DIR__ . '/local-env.php';" ),
 	'Release and localization tooling resolves WP-CLI from an explicit override or PATH instead of requiring a temporary file.'
+);
+maca_assert(
+	false === strpos( $composer, '/Users/' )
+	&& false === strpos( $composer, 'NPb24Zg9g' )
+	&& false !== strpos( $composer, 'scripts/wp-cli-local.sh' )
+	&& false === strpos( maca_read( $root . '/scripts/run-plugin-check.php' ), '/Users/muze' )
+	&& false === strpos( maca_read( $root . '/scripts/audit-ai-plugin-localization.php' ), '/Users/muze' )
+	&& false === strpos( maca_read( $root . '/scripts/smoke-wordpress-ai-text-browser.mjs' ), '/Users/muze' )
+	&& false === strpos( maca_read( $root . '/scripts/smoke-wordpress-ai-text-browser.mjs' ), 'NPb24Zg9g' )
+	&& false !== strpos( maca_read( $root . '/.gitignore' ), 'scripts/.local-env' )
+	&& is_file( $root . '/scripts/wp-cli-local.sh' )
+	&& is_file( $root . '/scripts/.local-env.example' ),
+	'Local workflow tooling resolves per-developer values from environment, scripts/.local-env, or single-candidate discovery instead of committed personal paths.'
 );
 maca_assert(
 	false !== strpos( $composer, '"check:boundary": "sh -c' )
@@ -2182,6 +2194,24 @@ maca_assert(
 	&& false !== strpos( $complexity_doc, 'tests/behavior-media-derivative.php' ),
 	'Complexity budget document records what complexity is worth keeping and where tests belong.'
 );
+
+// Size ratchet for the four widest connector classes. Security and boundary
+// complexity may stay, but these files must not grow unnoticed: raise a limit
+// only with a documented reason in docs/cloud-addon-complexity-budget.md.
+$complexity_ratchet_limits = array(
+	'includes/class-cloud-runtime-client.php'          => 4314,
+	'includes/class-cloud-settings-page.php'           => 3280,
+	'includes/class-cloud-wordpress-ai-connector.php'  => 2767,
+	'includes/class-cloud-media-derivative-transport.php' => 2542,
+);
+foreach ( $complexity_ratchet_limits as $ratchet_path => $ratchet_limit ) {
+	$ratchet_lines = substr_count( maca_read( $root . '/' . $ratchet_path ), "\n" );
+	maca_assert(
+		$ratchet_lines <= $ratchet_limit,
+		$ratchet_path . ' grew to ' . $ratchet_lines . ' lines, past its ' . $ratchet_limit . '-line ratchet; shrink the file or raise the ratchet in tests/static-contracts.php together with docs/cloud-addon-complexity-budget.md.'
+	);
+}
+
 
 maca_assert(
 	false !== strpos( $cleanup, "'npcink_cloud_addon_agent_feedback_summary'" )

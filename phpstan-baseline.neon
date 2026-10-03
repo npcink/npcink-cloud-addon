@@ -1,0 +1,295 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Property WP_Screen\:\:\$id \(string\) in isset\(\) is not nullable\.$#'
+			identifier: isset.property
+			count: 1
+			path: includes/bootstrap.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between '''' and ''npcink_cloud_addon…'' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: includes/class-cloud-addon-cleanup.php
+
+		-
+			message: '#^Array has 2 duplicate keys with value ''Failed'' \(''Failed'', ''Failed''\)\.$#'
+			identifier: array.duplicateKey
+			count: 1
+			path: includes/class-cloud-addon-localization.php
+
+		-
+			message: '#^Array has 2 duplicate keys with value ''Processing'' \(''Processing'', ''Processing''\)\.$#'
+			identifier: array.duplicateKey
+			count: 1
+			path: includes/class-cloud-addon-localization.php
+
+		-
+			message: '#^Array has 2 duplicate keys with value ''Ready'' \(''Ready'', ''Ready''\)\.$#'
+			identifier: array.duplicateKey
+			count: 1
+			path: includes/class-cloud-addon-localization.php
+
+		-
+			message: '#^Array has 3 duplicate keys with value ''Completed'' \(''Completed'', ''Completed'', ''Completed''\)\.$#'
+			identifier: array.duplicateKey
+			count: 1
+			path: includes/class-cloud-addon-localization.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between '''' and ''npcink_cloud_addon…'' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: includes/class-cloud-addon-settings.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: includes/class-cloud-ai-task-contract.php
+
+		-
+			message: '#^Call to function method_exists\(\) with WP_Ability and ''get_input_schema'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/class-cloud-ai-task-contract.php
+
+		-
+			message: '#^Call to function method_exists\(\) with WP_Ability and ''get_meta'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/class-cloud-ai-task-contract.php
+
+		-
+			message: '#^Call to function method_exists\(\) with WP_Ability and ''get_name'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/class-cloud-ai-task-contract.php
+
+		-
+			message: '#^Call to function method_exists\(\) with WP_Ability and ''get_output_schema'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/class-cloud-ai-task-contract.php
+
+		-
+			message: '#^Action callback returns array\<string, mixed\> but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: includes/class-cloud-customer-journey.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: includes/class-cloud-editor-assist-quality.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: includes/class-cloud-media-derivative-transport.php
+
+		-
+			message: '#^Offset ''mime'' on array\{0\: int\<0, max\>, 1\: int\<0, max\>, 2\: int, 3\: string, mime\: string, channels\?\: int, bits\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: includes/class-cloud-media-derivative-transport.php
+
+		-
+			message: '#^Offset 0 on array\{0\: int\<0, max\>, 1\: int\<0, max\>, 2\: int, 3\: string, mime\: string, channels\?\: int, bits\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: includes/class-cloud-media-derivative-transport.php
+
+		-
+			message: '#^Offset 1 on array\{0\: int\<0, max\>, 1\: int\<0, max\>, 2\: int, 3\: string, mime\: string, channels\?\: int, bits\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: includes/class-cloud-media-derivative-transport.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between '''' and non\-empty\-string will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: includes/class-cloud-media-derivative-transport.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between '''' and non\-empty\-string will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: includes/class-cloud-media-derivative-transport.php
+
+		-
+			message: '#^Action callback returns array\<string, mixed\> but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: includes/class-cloud-observability-collector.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<mixed\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: includes/class-cloud-observability-collector.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/class-cloud-runtime-client.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/class-cloud-runtime-client.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/class-cloud-runtime-client.php
+
+		-
+			message: '#^Offset ''error_code'' on array\{ok\: false, message\: mixed, error_code\: string, error_data\: array\<mixed\>\}\|array\{ok\: true, message\: mixed, error_code\: '''', error_data\: array\{\}, entitlement_response\: mixed\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: includes/class-cloud-runtime-client.php
+
+		-
+			message: '#^Offset ''error_data'' on array\{ok\: false, message\: mixed, error_code\: string, error_data\: array\<mixed\>\}\|array\{ok\: true, message\: mixed, error_code\: '''', error_data\: array\{\}, entitlement_response\: mixed\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: includes/class-cloud-runtime-client.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: includes/class-cloud-settings-page.php
+
+		-
+			message: '#^Offset ''more'' does not exist on array\{label\: string, description\: string\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: includes/class-cloud-settings-page.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$service_needs_attention$#'
+			identifier: parameter.notFound
+			count: 1
+			path: includes/class-cloud-settings-page.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$site_knowledge$#'
+			identifier: parameter.notFound
+			count: 1
+			path: includes/class-cloud-settings-page.php
+
+		-
+			message: '#^Static method Npcink_Cloud_Settings_Page\:\:build_authorization_url\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: includes/class-cloud-settings-page.php
+
+		-
+			message: '#^Static method Npcink_Cloud_Settings_Page\:\:page_form_action_url\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: includes/class-cloud-settings-page.php
+
+		-
+			message: '#^Static method Npcink_Cloud_Settings_Page\:\:tab_url\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: includes/class-cloud-settings-page.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: includes/class-cloud-settings-page.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/class-cloud-site-knowledge-admin-actions.php
+
+		-
+			message: '#^Action callback returns array\<string, mixed\> but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: includes/class-cloud-site-knowledge-change-bridge.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<mixed, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/class-cloud-site-knowledge-change-bridge.php
+
+		-
+			message: '#^Property WP_Comment\:\:\$comment_approved \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 2
+			path: includes/class-cloud-site-knowledge-change-bridge.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, 8388608\> and 8388608 is always false\.$#'
+			identifier: greater.alwaysFalse
+			count: 1
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
+			message: '#^Offset ''''\|class\-string on array\{WordPress\\AI\\Abilities\\Image\\Generate_Image_Prompt\: ''ai/image\-prompt…'', WordPress\\AI\\Abilities\\Content_Classification\\Content_Classification\: ''ai/content…'', WordPress\\AI\\Abilities\\Comment_Moderation\\Comment_Analysis\: ''ai/comment\-analysis'', WordPress\\AI\\Abilities\\Content_Resizing\\Content_Resizing\: ''ai/content\-resizing'', WordPress\\AI\\Abilities\\Content_Translation\\Content_Translation\: ''ai/content…'', WordPress\\AI\\Abilities\\Editorial_Updates\\Editorial_Updates\: ''ai/editorial\-updates'', WordPress\\AI\\Abilities\\Editorial_Notes\\Editorial_Notes\: ''ai/editorial\-notes'', WordPress\\AI\\Abilities\\Excerpt_Generation\\Excerpt_Generation\: ''ai/excerpt…'', \.\.\.\} in isset\(\) does not exist\.$#'
+			identifier: isset.offset
+			count: 1
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
+			message: '#^Offset ''mime'' on array\{0\: int\<0, max\>, 1\: int\<0, max\>, 2\: int, 3\: string, mime\: string, channels\?\: int, bits\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
+			message: '#^Offset 0 on array\{0\: int\<0, max\>, 1\: int\<0, max\>, 2\: int, 3\: string, mime\: string, channels\?\: int, bits\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
+			message: '#^Offset 1 on array\{0\: int\<0, max\>, 1\: int\<0, max\>, 2\: int, 3\: string, mime\: string, channels\?\: int, bits\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
+			message: '#^Property WP_Post\:\:\$post_content \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
+			message: '#^Property WP_Post\:\:\$post_excerpt \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
+			message: '#^Property WP_Post\:\:\$post_title \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 2
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
+			message: '#^Property WP_Post\:\:\$post_type \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between '''' and non\-falsy\-string will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: includes/class-cloud-wordpress-ai-connector.php

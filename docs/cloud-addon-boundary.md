@@ -221,6 +221,19 @@ Forbidden legacy endpoint:
 
 - `/v1/runtime/workflows/runs`
 
+Outbound target policy residual risk, recorded as accepted: the outbound
+policy resolves each configured Cloud host and requires every resolved IP to
+be globally routable before dispatch, but the HTTP request itself resolves the
+host again through WordPress transports. A DNS answer that changes between the
+two resolutions (DNS rebinding) is not fully closed here; WordPress HTTP APIs
+offer no request-level IP pinning. Accepted because the mitigations already
+stacked (HTTPS-only for non-loopback targets, `redirection = 0`,
+`wp_safe_remote_request`, response size limits) require the rebinding attacker
+to also hold a valid TLS certificate for the configured hostname, and because
+the base URL is set only by `manage_options` administrators. Do not treat the
+pre-dispatch resolution check alone as complete SSRF protection when changing
+this policy.
+
 Media derivative transport must use the named upload, job, signed pull, and
 verified-transfer ACK endpoints,
 run/result endpoints, and explicit derivative artifact download endpoint above.
