@@ -109,8 +109,11 @@ Run before handing off changes:
 ```bash
 composer run test:all
 git diff --check
-rg '/v1/runtime/workflows/runs|\b(?:wp_insert_post|wp_update_post|wp_insert_attachment|wp_update_attachment_metadata|update_post_meta|wp_set_post_terms|set_post_thumbnail|media_handle_sideload)\s*\(' --glob '*.php' --glob '!build/**' .
 ```
+
+`test:all` includes `check:boundary`, which fails when any PHP file outside
+`build/` matches the forbidden boundary pattern
+`/v1/runtime/workflows/runs|\b(?:wp_insert_post|wp_update_post|wp_insert_attachment|wp_update_attachment_metadata|update_post_meta|wp_set_post_terms|set_post_thumbnail|media_handle_sideload)\s*\(`.
 
 Advisory AI review gate (run before `composer pr:publish`):
 
@@ -122,6 +125,17 @@ Treat findings as a second opinion: fix real defects or record why they are
 acceptable. Follows AI Code Review Standard v1 in `npcink-workflow-toolbox`
 `docs/platform/ai-code-review-standard-v1.md`; the CI workflow posting the same
 review on pull requests is advisory and never a required check.
+
+Advisory static analysis gate, under the same advisory-only contract:
+
+```bash
+composer run stan
+```
+
+It runs PHPStan level 5 over first-party connector code against
+`phpstan-baseline.neon`; shrink the baseline instead of growing it. The
+`phpstan.yml` CI workflow posts the same result and must never join required
+checks.
 
 Also run `composer run smoke:playground` when a change affects plugin bootstrap,
 activation, the public connector API, the default credential/connector state,

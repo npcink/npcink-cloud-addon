@@ -66,6 +66,23 @@ Is this transport/detail, or is it control/write truth?
 - Control/write truth must stay with the local WordPress host or the appropriate
   Cloud service-plane owner.
 
+## Complexity Size Ratchet
+
+`tests/static-contracts.php` enforces a line-count ratchet on the four widest
+connector classes so they cannot grow unnoticed:
+
+- `includes/class-cloud-runtime-client.php` — 4314 lines
+- `includes/class-cloud-settings-page.php` — 3280 lines
+- `includes/class-cloud-wordpress-ai-connector.php` — 2767 lines
+- `includes/class-cloud-media-derivative-transport.php` — 2542 lines
+
+The ratchet is a ceiling, not a target. Raise a limit only together with a
+documented reason here; prefer paying it down instead. The intended paydown
+direction for the settings page is splitting the twelve request handlers
+(connection flow, local permissions, Site Knowledge operations) out of the
+render class along the seams already documented in
+`docs/admin-surface-standard.md`, keeping render a projection only.
+
 ## Test Structure
 
 Tests are split by purpose:

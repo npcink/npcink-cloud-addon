@@ -1,0 +1,17 @@
+# Per-developer local environment defaults for Local by Flywheel workflows.
+#
+# Copy this file to scripts/.local-env (gitignored) and uncomment what your
+# machine needs. Real environment variables always win over this file, and
+# every value may stay unset: scripts fall back to deterministic discovery
+# when exactly one candidate exists, and otherwise fail with guidance.
+#
+# Quote values that contain spaces; shell, PHP, and Node parsers all honor
+# surrounding single or double quotes.
+#
+# WP_PATH="/Users/you/Local Sites/your-site/app/public"
+# WP_DB_SOCKET="/Users/you/Library/Application Support/Local/run/<run-id>/mysql/mysqld.sock"
+# WP_CLI_BIN="/opt/homebrew/bin/wp"
+# WP_CLI_PHP="/Users/you/Library/Application Support/Local/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php"
+# WP_EXPECTED_SITE_URL="https://your-site.local"
+# WP_BASE_URL="https://your-site.local"
+# AI_PLUGIN_PATH="/Users/you/Local Sites/your-site/app/public/wp-content/plugins/ai"

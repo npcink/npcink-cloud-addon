@@ -7,6 +7,13 @@ dist/
 wordpress-ai-provider/generated/*
 !wordpress-ai-provider/generated/.gitignore
 
+# Per-developer local environment defaults (see scripts/.local-env.example)
+scripts/.local-env
+
+# Local test-runner and scratch state
+.pytest_cache/
+.tmp/
+
 # Reasonix agent session artifacts
 .reasonix/
 

@@ -1,0 +1,21 @@
+# Static analysis for first-party connector code only.
+#
+# Advisory gate: run locally with `composer run stan`. The CI workflow runs the
+# same command advisory-only and must never join required checks. Shrink the
+# baseline over time instead of adding new entries to it.
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    # Analyze for the plugin support floor (PHP 8.0) regardless of runner.
+    phpVersion: 80000
+    # Connector code deliberately re-validates shapes it received from
+    # untrusted payloads even when a local PHPDoc already narrows them,
+    # so PHPDoc types must not mark those fail-closed checks as dead.
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - npcink-cloud-addon.php
+        - uninstall.php
+        - includes

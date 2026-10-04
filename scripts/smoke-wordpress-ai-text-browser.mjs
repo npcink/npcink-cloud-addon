@@ -13,15 +13,136 @@
 
 import { execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, isAbsolute, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const AUTOSAVE_LOCK = 'npcink-cloud-addon-p5-b3-browser-proof';
 
+const LOCAL_ENV_GUIDANCE = 'set it in the environment or scripts/.local-env (copy scripts/.local-env.example)';
+
+let localEnvCache;
+function localEnv() {
+	// Parses scripts/.local-env KEY=VALUE lines; real environment wins (see env()).
+	if (localEnvCache === undefined) {
+		localEnvCache = {};
+		try {
+			const text = readFileSync(new URL('./.local-env', import.meta.url), 'utf8');
+			for (const rawLine of text.split('\n')) {
+				const line = rawLine.trim();
+				if (line === '' || line.startsWith('#')) {
+					continue;
+				}
+				const separator = line.indexOf('=');
+				if (separator < 1) {
+					continue;
+				}
+				const key = line.slice(0, separator).trim();
+				let value = line.slice(separator + 1).trim();
+				if (value.length >= 2 && value.at(0) === value.at(-1) && (value.startsWith('"') || value.startsWith("'"))) {
+					value = value.slice(1, -1);
+				}
+				if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+					localEnvCache[key] = value;
+				}
+			}
+		} catch {
+			// Absent or unreadable .local-env is normal; discovery or guidance follows.
+		}
+	}
+	return localEnvCache;
+}
+
 function env(name, fallback = '') {
-	return process.env[name] || fallback;
+	const fromEnvironment = process.env[name];
+	if (fromEnvironment !== undefined && fromEnvironment !== '') {
+		return fromEnvironment;
+	}
+	const fromLocalEnv = localEnv()[name];
+	if (fromLocalEnv !== undefined && fromLocalEnv !== '') {
+		return fromLocalEnv;
+	}
+	return fallback;
+}
+
+// Deterministic Local by Flywheel discovery helpers: each returns '' unless
+// exactly one candidate exists under $HOME, so ambiguity fails with guidance
+// instead of guessing the wrong site.
+
+function solePath(paths) {
+	return paths.length === 1 ? paths[0] : '';
+}
+
+function discoverWpPath() {
+	const sitesRoot = join(process.env.HOME ?? '', 'Local Sites');
+	try {
+		const sites = readdirSync(sitesRoot).filter((site) => existsSync(join(sitesRoot, site, 'app', 'public')));
+		return solePath(sites.map((site) => join(sitesRoot, site, 'app', 'public')));
+	} catch {
+		return '';
+	}
+}
+
+function discoverWpDbSocket() {
+	const runRoot = join(process.env.HOME ?? '', 'Library', 'Application Support', 'Local', 'run');
+	try {
+		const sockets = readdirSync(runRoot)
+			.map((run) => join(runRoot, run, 'mysql', 'mysqld.sock'))
+			.filter((socket) => existsSync(socket));
+		return solePath(sockets);
+	} catch {
+		return '';
+	}
+}
+
+function discoverWpCliPhp() {
+	const servicesRoot = join(process.env.HOME ?? '', 'Library', 'Application Support', 'Local', 'lightning-services');
+	try {
+		const candidates = readdirSync(servicesRoot)
+			.filter((entry) => entry.startsWith('php-'))
+			.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
+			.flatMap((version) => {
+				try {
+					return readdirSync(join(servicesRoot, version, 'bin'))
+						.sort()
+						.map((arch) => join(servicesRoot, version, 'bin', arch, 'bin', 'php'));
+				} catch {
+					// A partially downloaded lightning service must not disable discovery.
+					return [];
+				}
+			})
+			.filter((php) => existsSync(php));
+		return candidates[0] ?? '';
+	} catch {
+		return '';
+	}
+}
+
+function discoverWpCliBin() {
+	const fromConfig = env('WP_CLI_BIN', '');
+	if (fromConfig !== '') {
+		return fromConfig;
+	}
+	if (existsSync('/opt/homebrew/bin/wp')) {
+		return '/opt/homebrew/bin/wp';
+	}
+	try {
+		return execFileSync('sh', ['-c', 'command -v wp'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+	} catch {
+		return '';
+	}
+}
+
+function discoverBaseUrl() {
+	// Local by Flywheel convention: the site directory name is the hostname.
+	// Derive it only for the actual Local layout so arbitrary WP_PATH values
+	// fail with guidance instead of fabricating a hostname.
+	const path = wpPath();
+	const siteRoot = dirname(dirname(path));
+	const siteName = basename(siteRoot);
+	const looksLikeLocalSite = basename(dirname(siteRoot)) === 'Local Sites' && /^[\w.-]+$/.test(siteName);
+	return looksLikeLocalSite ? `https://${siteName}.local` : '';
 }
 
 function pass(message) {
@@ -50,13 +171,23 @@ function ensureParent(filePath) {
 }
 
 function wpPath() {
-	return env('WP_PATH', '/Users/muze/Local Sites/magick-ai/app/public');
+	const path = env('WP_PATH', discoverWpPath());
+	if (!path) {
+		throw new Error(`WP_PATH is unset and no single Local site was found; ${LOCAL_ENV_GUIDANCE}.`);
+	}
+	return path;
 }
 
 function wpCli(args, options = {}) {
-	const php = env('WP_CLI_PHP', `${process.env.HOME}/Library/Application Support/Local/lightning-services/php-8.5.3+1/bin/darwin-arm64/bin/php`);
-	const wp = env('WP_CLI_BIN', '/opt/homebrew/bin/wp');
-	const socket = env('WP_DB_SOCKET', `${process.env.HOME}/Library/Application Support/Local/run/NPb24Zg9g/mysql/mysqld.sock`);
+	const php = env('WP_CLI_PHP', discoverWpCliPhp() || 'php');
+	const wp = discoverWpCliBin();
+	const socket = env('WP_DB_SOCKET', discoverWpDbSocket());
+	if (!wp) {
+		throw new Error(`WP_CLI_BIN is unset and no wp binary was found; ${LOCAL_ENV_GUIDANCE}.`);
+	}
+	// The socket stays optional so the smoke also works against non-Local
+	// WordPress installs with PHP default socket settings.
+	const socketFlags = socket ? ['-d', `mysqli.default_socket=${socket}`] : [];
 
 	return execFileSync(
 		php,
@@ -64,9 +195,8 @@ function wpCli(args, options = {}) {
 			'-d',
 			'display_errors=0',
 			'-d',
-			'error_reporting=8191',
-			'-d',
-			`mysqli.default_socket=${socket}`,
+			'error_reporting=-1',
+			...socketFlags,
 			wp,
 			`--path=${wpPath()}`,
 			'--no-color',
@@ -1291,7 +1421,7 @@ function parseCliMode(args) {
 
 function runPreflightOnly() {
 	try {
-		const preflightBaseUrl = localBaseUrl(env('WP_BASE_URL', 'https://magick-ai.local'));
+		const preflightBaseUrl = localBaseUrl(env('WP_BASE_URL', discoverBaseUrl()));
 		const readiness = preflight();
 		assertReadiness(preflightBaseUrl, readiness);
 		const providerLedgerValidation = env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1';
@@ -1433,7 +1563,7 @@ const preSaveWrites = [];
 const saveWrites = [];
 
 try {
-	baseUrl = localBaseUrl(env('WP_BASE_URL', 'https://magick-ai.local'));
+	baseUrl = localBaseUrl(env('WP_BASE_URL', discoverBaseUrl()));
 	const readiness = preflight();
 	assertReadiness(baseUrl, readiness);
 	aiVersion = readiness.ai_version;

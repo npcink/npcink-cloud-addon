@@ -7,11 +7,14 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/local-env.php';
+
 /**
  * Return a readable WP-CLI script path.
  */
 function npcink_cloud_addon_resolve_wp_cli(): string {
-	$configured = trim( (string) getenv( 'WP_CLI_BIN' ) );
+	// Environment first, then scripts/.local-env, matching wp-cli-local.sh.
+	$configured = trim( npcink_cloud_addon_local_env_value( 'WP_CLI_BIN' ) );
 	if ( '' !== $configured ) {
 		if ( is_file( $configured ) && is_readable( $configured ) ) {
 			return $configured;
