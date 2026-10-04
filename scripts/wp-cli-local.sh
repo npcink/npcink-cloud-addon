@@ -14,18 +14,26 @@ set -eu
 
 script_root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 # Apply scripts/.local-env only to variables the environment has not already
-# set, so inherited values keep winning as documented. The per-line parse also
-# accepts quoted values the way scripts/local-env.php and the .mjs helper do.
+# set, so inherited values keep winning as documented. Lines are parsed, not
+# evaluated: surrounding single or double quotes are stripped the same way
+# scripts/local-env.php and the .mjs helper strip them, and nothing in the
+# file is executed as shell code.
 if [ -f "$script_root/.local-env" ]; then
+	CR=$(printf '\r')
 	while IFS= read -r local_env_line || [ -n "$local_env_line" ]; do
+		local_env_line=${local_env_line%"$CR"}
+		local_env_line=${local_env_line%"$CR"}
 		case "$local_env_line" in ''|'#'*) continue ;; esac
 		local_env_key=${local_env_line%%=*}
 		[ "$local_env_key" = "$local_env_line" ] && continue
 		case "$local_env_key" in ''|*[!A-Za-z0-9_]*) continue ;; esac
-		local_env_present=$(eval "printf '%s' \"\${$local_env_key+x}\"")
-		if [ "$local_env_present" = '' ]; then
-			eval "$local_env_line"
-			export "$local_env_key"
+		local_env_value=${local_env_line#*=}
+		case "$local_env_value" in
+			'"'*'"') local_env_value=${local_env_value#\"}; local_env_value=${local_env_value%\"} ;;
+			"'"*"'") local_env_value=${local_env_value#\'}; local_env_value=${local_env_value%\'} ;;
+		esac
+		if [ "$(eval "printf '%s' \"\${$local_env_key:-}\"")" = '' ]; then
+			export "$local_env_key=$local_env_value"
 		fi
 	done < "$script_root/.local-env"
 fi
@@ -40,6 +48,7 @@ required=''
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--require)
+			[ $# -ge 2 ] || fail '--require requires a following variable name'
 			required="$required $2"
 			shift 2
 			;;

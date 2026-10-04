@@ -185,9 +185,9 @@ function wpCli(args, options = {}) {
 	if (!wp) {
 		throw new Error(`WP_CLI_BIN is unset and no wp binary was found; ${LOCAL_ENV_GUIDANCE}.`);
 	}
-	if (!socket) {
-		throw new Error(`WP_DB_SOCKET is unset and no single running Local MySQL socket was found; ${LOCAL_ENV_GUIDANCE}.`);
-	}
+	// The socket stays optional so the smoke also works against non-Local
+	// WordPress installs with PHP default socket settings.
+	const socketFlags = socket ? ['-d', `mysqli.default_socket=${socket}`] : [];
 
 	return execFileSync(
 		php,
@@ -196,8 +196,7 @@ function wpCli(args, options = {}) {
 			'display_errors=0',
 			'-d',
 			'error_reporting=-1',
-			'-d',
-			`mysqli.default_socket=${socket}`,
+			...socketFlags,
 			wp,
 			`--path=${wpPath()}`,
 			'--no-color',

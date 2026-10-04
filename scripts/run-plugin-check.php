@@ -57,8 +57,9 @@ if ( '' === $socket && '' !== $home ) {
 	$socket = npcink_cloud_addon_single_candidate( glob( $home . '/Library/Application Support/Local/run/*/mysql/mysqld.sock' ) ?: array() );
 }
 if ( '' === $socket ) {
-	fwrite( STDERR, "[plugin-check] error: set WP_DB_SOCKET for the intended Local site (environment or scripts/.local-env); automatic discovery needs exactly one running MySQL socket.\n" );
-	exit( 1 );
+	// Keep the flag optional so plugin-check stays usable against non-Local
+	// WordPress installs that work with the PHP default socket settings.
+	fwrite( STDERR, "[plugin-check] warning: no Local MySQL socket resolved; continuing with the PHP default. Set WP_DB_SOCKET (environment or scripts/.local-env) if the database is unreachable.\n" );
 }
 $plugin_target = getenv( 'PLUGIN_CHECK_TARGET' ) ?: '';
 $temporary_plugin_dir = '';
@@ -121,11 +122,11 @@ if ( '' === $plugin_target ) {
 	$zip->close();
 	$plugin_target = $temporary_slug;
 }
-$command = array(
-	$wp_cli_php,
-	'-d',
-	'mysqli.default_socket=' . $socket,
-);
+$command = array( $wp_cli_php );
+if ( '' !== $socket ) {
+	$command[] = '-d';
+	$command[] = 'mysqli.default_socket=' . $socket;
+}
 $command = array_merge(
 	$command,
 	array(
