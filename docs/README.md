@@ -91,3 +91,4 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 - `test-suite-vacuity-retrospective-2026-09-23.md`
 - `image-context-evidence-integration-summary.md`
 - `user-facing-error-surfacing-closeout-2026-10-02.md`
+- `static-analysis-and-local-tooling-closeout-2026-10-04.md`
