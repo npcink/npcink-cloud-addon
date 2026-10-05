@@ -187,12 +187,6 @@ parameters:
 			path: includes/class-cloud-settings-page.php
 
 		-
-			message: '#^Static method Npcink_Cloud_Settings_Page\:\:build_authorization_url\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: includes/class-cloud-settings-page.php
-
-		-
 			message: '#^Static method Npcink_Cloud_Settings_Page\:\:page_form_action_url\(\) is unused\.$#'
 			identifier: method.unused
 			count: 1

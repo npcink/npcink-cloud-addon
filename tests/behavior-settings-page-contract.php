@@ -142,6 +142,7 @@ if ( ! function_exists( 'esc_js' ) ) {
 maca_load_addon_classes();
 require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-change-bridge.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php';
+require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-actions.php';
 
 $readiness_token_formatter = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'format_readiness_token' );
 if ( PHP_VERSION_ID < 80100 ) {
@@ -160,20 +161,20 @@ maca_reset_test_state();
 Npcink_Cloud_Settings_Page::register();
 
 $expected_hooks = array(
-	'admin_menu' => array( 'add_menu_page', 50 ),
-	'admin_enqueue_scripts' => array( 'enqueue_admin_assets', 10 ),
-	'admin_post_npcink_cloud_addon_save' => array( 'handle_save', 10 ),
-	'admin_post_npcink_cloud_addon_complete_auth' => array( 'handle_complete_auth', 10 ),
-	'admin_post_npcink_cloud_addon_start_auth' => array( 'handle_start_auth', 10 ),
-	'admin_post_npcink_cloud_addon_start_custom_auth' => array( 'handle_start_custom_auth', 10 ),
-	'admin_post_npcink_cloud_addon_disconnect' => array( 'handle_disconnect', 10 ),
-	'admin_post_npcink_cloud_addon_update_local_permission' => array( 'handle_update_local_permission', 10 ),
-	'admin_post_npcink_cloud_addon_dismiss_monitoring_prompt' => array( 'handle_dismiss_monitoring_prompt', 10 ),
-	'admin_post_npcink_cloud_addon_refresh_site_knowledge' => array( 'handle_refresh_site_knowledge', 10 ),
-	'wp_ajax_npcink_cloud_addon_refresh_site_knowledge_status' => array( 'handle_refresh_site_knowledge_status', 10 ),
-	'admin_post_npcink_cloud_addon_manage_site_knowledge_index' => array( 'handle_manage_site_knowledge_index', 10 ),
-	'admin_post_npcink_cloud_addon_run_manual_readiness_test' => array( 'handle_run_manual_readiness_test', 10 ),
-	'wp_ajax_npcink_cloud_addon_refresh_entitlement' => array( 'handle_refresh_entitlement', 10 ),
+	'admin_menu' => array( Npcink_Cloud_Settings_Page::class, 'add_menu_page', 50 ),
+	'admin_enqueue_scripts' => array( Npcink_Cloud_Settings_Page::class, 'enqueue_admin_assets', 10 ),
+	'admin_post_npcink_cloud_addon_save' => array( Npcink_Cloud_Settings_Actions::class, 'handle_save', 10 ),
+	'admin_post_npcink_cloud_addon_complete_auth' => array( Npcink_Cloud_Settings_Actions::class, 'handle_complete_auth', 10 ),
+	'admin_post_npcink_cloud_addon_start_auth' => array( Npcink_Cloud_Settings_Actions::class, 'handle_start_auth', 10 ),
+	'admin_post_npcink_cloud_addon_start_custom_auth' => array( Npcink_Cloud_Settings_Actions::class, 'handle_start_custom_auth', 10 ),
+	'admin_post_npcink_cloud_addon_disconnect' => array( Npcink_Cloud_Settings_Actions::class, 'handle_disconnect', 10 ),
+	'admin_post_npcink_cloud_addon_update_local_permission' => array( Npcink_Cloud_Settings_Actions::class, 'handle_update_local_permission', 10 ),
+	'admin_post_npcink_cloud_addon_dismiss_monitoring_prompt' => array( Npcink_Cloud_Settings_Actions::class, 'handle_dismiss_monitoring_prompt', 10 ),
+	'admin_post_npcink_cloud_addon_refresh_site_knowledge' => array( Npcink_Cloud_Settings_Actions::class, 'handle_refresh_site_knowledge', 10 ),
+	'wp_ajax_npcink_cloud_addon_refresh_site_knowledge_status' => array( Npcink_Cloud_Settings_Actions::class, 'handle_refresh_site_knowledge_status', 10 ),
+	'admin_post_npcink_cloud_addon_manage_site_knowledge_index' => array( Npcink_Cloud_Settings_Actions::class, 'handle_manage_site_knowledge_index', 10 ),
+	'admin_post_npcink_cloud_addon_run_manual_readiness_test' => array( Npcink_Cloud_Settings_Actions::class, 'handle_run_manual_readiness_test', 10 ),
+	'wp_ajax_npcink_cloud_addon_refresh_entitlement' => array( Npcink_Cloud_Settings_Actions::class, 'handle_refresh_entitlement', 10 ),
 );
 
 $registered_hook_names = array_keys( $GLOBALS['maca_actions'] );
@@ -194,12 +195,12 @@ maca_assert(
 );
 
 foreach ( $expected_hooks as $hook_name => $hook_contract ) {
-	list( $method, $priority ) = $hook_contract;
+	list( $hook_class, $method, $priority ) = $hook_contract;
 	$registration = $GLOBALS['maca_actions'][ $hook_name ][ $priority ][0] ?? array();
 	$callback = $registration['callback'] ?? null;
 	maca_assert(
 		is_array( $callback )
-		&& Npcink_Cloud_Settings_Page::class === ( $callback[0] ?? null )
+		&& $hook_class === ( $callback[0] ?? null )
 		&& $method === ( $callback[1] ?? null )
 		&& is_callable( $callback )
 		&& 1 === (int) ( $registration['accepted_args'] ?? 0 ),
@@ -207,7 +208,7 @@ foreach ( $expected_hooks as $hook_name => $hook_contract ) {
 	);
 }
 
-$authorization_url_builder = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'build_authorization_url_for_base_url' );
+$authorization_url_builder = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'build_authorization_url_for_base_url' );
 if ( PHP_VERSION_ID < 80100 ) {
 	$authorization_url_builder->setAccessible( true );
 }
@@ -244,7 +245,7 @@ maca_assert(
 	'Behavior: authorization return URL keeps the matching state and the complete-auth callback action.'
 );
 
-$authorization_exchange = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'exchange_authorization_code' );
+$authorization_exchange = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'exchange_authorization_code' );
 if ( PHP_VERSION_ID < 80100 ) {
 	$authorization_exchange->setAccessible( true );
 }
@@ -370,12 +371,14 @@ maca_assert(
 );
 
 $settings_page_source = file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php' );
+$settings_actions_source = file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-settings-actions.php' );
 $permissions_script_source = file_get_contents( MACA_TEST_ROOT . '/assets/admin-permissions.js' );
 maca_assert(
 	is_string( $settings_page_source )
+	&& is_string( $settings_actions_source )
 	&& is_string( $permissions_script_source )
-	&& false !== strpos( $settings_page_source, 'set_local_permission_feedback' )
-	&& false !== strpos( $settings_page_source, 'redirect_to_local_permission' )
+	&& false !== strpos( $settings_actions_source, 'set_local_permission_feedback' )
+	&& false !== strpos( $settings_actions_source, 'redirect_to_local_permission' )
 	&& false !== strpos( $settings_page_source, 'data-npcink-local-permission-feedback' )
 	&& false !== strpos( $permissions_script_source, "form.setAttribute( 'aria-busy', 'true' )" )
 	&& false !== strpos( $permissions_script_source, 'scrollIntoView' ),
@@ -386,7 +389,7 @@ maca_assert(
 	false !== strpos( $settings_page_source, 'npcink-cloud-monitoring-consent' )
 	&& false !== strpos( $settings_page_source, 'Allow anonymous diagnostics' )
 	&& false !== strpos( $settings_page_source, 'Not now' )
-	&& false !== strpos( $settings_page_source, 'maybe_prompt_for_monitoring_consent' ),
+	&& false !== strpos( $settings_actions_source, 'maybe_prompt_for_monitoring_consent' ),
 	'Behavior: first verified connection offers one explicit metadata-only monitoring consent prompt.'
 );
 

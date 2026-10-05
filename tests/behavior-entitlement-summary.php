@@ -10,6 +10,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/helpers.php';
 maca_load_addon_classes();
 require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php';
+require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-actions.php';
 
 /**
  * Returns a private method reflection without PHP 8.5 deprecation notices.
@@ -548,7 +549,7 @@ $GLOBALS['maca_http_response_queue'][] = array(
 	'body'     => wp_json_encode( $entitlement_response ),
 );
 
-$method = maca_private_method( Npcink_Cloud_Settings_Page::class, 'persist_and_verify_settings' );
+$method = maca_private_method( Npcink_Cloud_Settings_Actions::class, 'persist_and_verify_settings' );
 $method->invoke( null, $settings, 'Verified.' );
 $post_verify_summary = Npcink_Cloud_Entitlement_Summary::get_cached_summary();
 $post_verify_urls = array_map(

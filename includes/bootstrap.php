@@ -31,6 +31,7 @@ require_once __DIR__ . '/class-cloud-site-knowledge-admin-actions.php';
 require_once __DIR__ . '/class-cloud-addon-localization.php';
 require_once __DIR__ . '/class-ai-plugin-localization.php';
 require_once __DIR__ . '/class-cloud-wordpress-ai-connector.php';
+require_once __DIR__ . '/class-cloud-settings-actions.php';
 require_once __DIR__ . '/class-cloud-settings-page.php';
 
 if ( ! function_exists( 'npcink_cloud_addon_is_configured' ) ) {
