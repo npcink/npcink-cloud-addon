@@ -473,8 +473,8 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 				$remaining[] = $event;
 			}
 
-			return array_values( $remaining );
-		}
+		return $remaining;
+	}
 
 		/**
 		 * Returns one non-secret identity for a normalized event.

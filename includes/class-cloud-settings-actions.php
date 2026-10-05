@@ -1039,7 +1039,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		/**
 		 * Returns local permission switch definitions.
 		 *
-		 * @return array<string,array{label:string,description:string}>
+		 * @return array<string,array{label:string,description:string,more?:string}>
 		 */
 		public static function get_local_permission_definitions(): array {
 			return array(

@@ -455,7 +455,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 *
 		 * @param array<string,mixed> $settings Stored settings.
 		 * @param bool                $is_verified Whether the connector has verified credentials.
-		 * @param bool                $service_needs_attention Whether cached service state needs attention.
 		 * @return void
 		 */
 		private static function render_local_permissions( array $settings, bool $is_verified ): void {
@@ -791,7 +790,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				|| '' !== (string) ( $site_knowledge['last_error_code'] ?? '' )
 				|| 0 < absint( $site_knowledge['dropped_count'] ?? 0 );
 			$entitlement_state = sanitize_key( (string) ( $entitlement['state'] ?? '' ) );
-			$show_entitlement_retry = $is_verified && in_array( $entitlement_state, array( 'unavailable', 'refreshing' ), true );
+			$show_entitlement_retry = in_array( $entitlement_state, array( 'unavailable', 'refreshing' ), true );
 			$service_health = self::get_current_service_health( $is_verified, $entitlement, $site_knowledge );
 			$entitlement_metrics = self::get_overview_entitlement_metrics( $entitlement );
 			$credit_metric = is_array( $entitlement_metrics['credits'] ?? null ) ? $entitlement_metrics['credits'] : array();
@@ -955,7 +954,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param array<string,mixed> $state Credential state.
 		 * @param array<string,mixed> $entitlement Entitlement summary.
 		 * @param array<string,mixed> $monitoring Monitoring status.
-		 * @param array<string,mixed> $site_knowledge Site Knowledge bridge status.
 		 * @param bool                $is_verified Whether the connector has verified credentials.
 		 * @return void
 		 */
@@ -1596,7 +1594,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php if ( $wp_cron_disabled ) : ?>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'WP-Cron disabled', 'npcink-cloud-addon' ); ?></th>
-						<td><?php echo $wp_cron_disabled ? esc_html__( 'yes', 'npcink-cloud-addon' ) : esc_html__( 'no', 'npcink-cloud-addon' ); ?></td>
+						<td><?php echo esc_html__( 'yes', 'npcink-cloud-addon' ); ?></td>
 					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Manual flush command', 'npcink-cloud-addon' ); ?></th>

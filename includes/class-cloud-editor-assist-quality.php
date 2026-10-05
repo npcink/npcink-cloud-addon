@@ -328,7 +328,7 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 			}
 
 			if ( count( $remaining ) !== count( $records ) ) {
-				update_option( self::PENDING_OPTION, array_values( $remaining ), false );
+				update_option( self::PENDING_OPTION, $remaining, false );
 			}
 		}
 

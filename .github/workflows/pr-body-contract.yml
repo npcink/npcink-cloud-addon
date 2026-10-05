@@ -28,5 +28,15 @@ jobs:
       - name: Require AI change envelope sections
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_HEAD_REF: ${{ github.head_ref }}
         run: |
+          # Dependabot bumps carry no maintainer scope/boundary/risk envelope.
+          # The job must still report success so the required check never
+          # goes missing; everything else runs the full template validation.
+          case "$PR_HEAD_REF" in
+            dependabot/*)
+              echo "dependabot branch: body contract exempt"
+              exit 0
+              ;;
+          esac
           printf '%s' "$PR_BODY" | php scripts/validate-pr-body.php -
