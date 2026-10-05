@@ -167,3 +167,33 @@ The existing cursor option is claimed atomically for a new request, and later
 cursor transitions use exact-version conditional writes so a stale Cron callback
 cannot replace a newer request. Stable per-batch idempotency remains the Cloud
 protection against overlapping delivery.
+## Runtime Client Paydown Direction (C1 分析, 2026-10-06)
+
+对 `class-cloud-runtime-client.php`（4314 行 / 85 个方法）的结构盘点给出
+四条自然接缝，按以下顺序机械拆分，每步一个独立 PR，全程沿用设置页拆分
+的方法论（机械搬移 + 失败驱动的契约重定向 + 双文件棘轮 + manifest/
+bootstrap/POT/打包/Playground 门禁）：
+
+1. **载荷守卫（纯函数，约 1800 行，第一步）**：十五个
+   `normalize_*` 请求校验器（wordpress-ai connector/alt-text/image-
+   generation、toolbox image/audio/site-ops/media-governance/web-search/
+   image-source、agent-feedback、image-context-evidence）及其
+   forbidden-key 遍历器、PII 扫描、bounded-text/sanitize 助手，连同它们
+   引用的约 40 个场景常量。零实例状态 → 抽为
+   `Npcink_Cloud_Runtime_Request_Guards`（静态方法 + 公开常量），客户端
+   改为 `Guards::normalize_*(...)` 调用。行为逐字不变；端点允许清单与
+   签名内核不动。预期 runtime-client 降至约 2400 行。
+2. **诊断投影（约 450 行，第二步）**：`build_readiness_result`、诊断
+   面板构建、severity/next-safe-action/分类与 `redact_support_text`
+   → `Npcink_Cloud_Runtime_Diagnostics`（静态，输入为 probe 数组）。
+3. **媒体传输规范化（约 450 行，视纯度并入第 1 步或独立）**：
+   multipart 构建与 upload/ack 响应规范化。
+4. **签名传输内核（保留不动）**：`request`/`request_raw`/`decode_*`/
+   `build_signed_headers`/nonce/traceparent/错误归一化绑定实例凭据，
+   留在客户端；`behavior-runtime-endpoint-policy` 与
+   `behavior-wordpress-ai-failure-projection` 对 `request`/`decode_response`
+   的反射因此无需改动。
+
+契约耦合提示：`tests/static-contracts.php` 有约 179 处引用
+runtime-client 源码、其中约 13 处点名 `normalize_*`；搬移后按失败驱动
+逐一重定向（与设置页拆分同法）。
