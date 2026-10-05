@@ -67,8 +67,9 @@ $settings = maca_read( $root . '/includes/class-cloud-addon-settings.php' );
 $cleanup = maca_read( $root . '/includes/class-cloud-addon-cleanup.php' );
 $uninstall = maca_read( $root . '/uninstall.php' );
 $settings_page = maca_read( $root . '/includes/class-cloud-settings-page.php' );
-$refresh_site_knowledge_handler = maca_extract_class_method_source( $settings_page, 'public static function handle_refresh_site_knowledge(): void' );
-$manage_site_knowledge_index_handler = maca_extract_class_method_source( $settings_page, 'public static function handle_manage_site_knowledge_index(): void' );
+$settings_actions = maca_read( $root . '/includes/class-cloud-settings-actions.php' );
+$refresh_site_knowledge_handler = maca_extract_class_method_source( $settings_actions, 'public static function handle_refresh_site_knowledge(): void' );
+$manage_site_knowledge_index_handler = maca_extract_class_method_source( $settings_actions, 'public static function handle_manage_site_knowledge_index(): void' );
 $boundary_doc = maca_read( $root . '/docs/cloud-addon-boundary.md' );
 $runtime_contract = maca_read( $root . '/docs/cloud-runtime-client-contract.md' );
 $adapter_doc = maca_read( $root . '/docs/adapter-integration-seam.md' );
@@ -613,9 +614,9 @@ maca_assert(
 	&& false !== strpos( $runtime_client, "'diagnostic_panel_group' => \$group" )
 	&& false !== strpos( $runtime_client, "'visibility' => 'administrator_only'" )
 	&& false !== strpos( $runtime_client, "'write_posture' => 'read_only'" )
-	&& false !== strpos( $settings_page, "ACTION_RUN_MANUAL_READINESS_TEST = 'npcink_cloud_addon_run_manual_readiness_test'" )
-	&& false !== strpos( $settings_page, "admin_post_' . self::ACTION_RUN_MANUAL_READINESS_TEST" )
-	&& false !== strpos( $settings_page, 'handle_run_manual_readiness_test' )
+	&& false !== strpos( $settings_actions, "ACTION_RUN_MANUAL_READINESS_TEST = 'npcink_cloud_addon_run_manual_readiness_test'" )
+	&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_RUN_MANUAL_READINESS_TEST" )
+	&& false !== strpos( $settings_actions, 'function handle_run_manual_readiness_test' )
 	&& false !== strpos( $settings_page, 'render_manual_readiness_test_form' )
 	&& false !== strpos( $settings_page, 'get_manual_readiness_result' )
 	&& false !== strpos( $settings_page, 'Run readiness test' )
@@ -1260,10 +1261,10 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $settings_page, "add_action( 'wp_ajax_' . self::ACTION_REFRESH_ENTITLEMENT" )
-	&& false !== strpos( $settings_page, 'check_ajax_referer( self::ACTION_REFRESH_ENTITLEMENT' )
-	&& false !== strpos( $settings_page, 'current_user_can( self::MENU_CAPABILITY )' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Entitlement_Summary::refresh' )
+	false !== strpos( $settings_page, "add_action( 'wp_ajax_' . Npcink_Cloud_Settings_Actions::ACTION_REFRESH_ENTITLEMENT" )
+	&& false !== strpos( $settings_actions, 'check_ajax_referer( self::ACTION_REFRESH_ENTITLEMENT' )
+	&& false !== strpos( $settings_actions, 'current_user_can( Npcink_Cloud_Settings_Page::MENU_CAPABILITY )' )
+	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Entitlement_Summary::refresh' )
 	&& false !== strpos( $settings_page, 'format_overview_entitlement' )
 	&& false !== strpos( $settings_page, 'Loading plan and entitlement…' )
 	&& false !== strpos( $settings_page, 'data-npcink-entitlement-retry' )
@@ -1372,10 +1373,11 @@ maca_assert(
 	&& false !== strpos( $outbound_policy, 'MAX_AUTH_RESPONSE_BYTES = 65536' )
 	&& false !== strpos( $runtime_client, 'Npcink_Cloud_Outbound_Policy::request_json' )
 	&& false !== strpos( $runtime_client, 'Npcink_Cloud_Outbound_Policy::request_raw' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Outbound_Policy::request_json' )
+	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Outbound_Policy::request_json' )
 	&& false === strpos( $runtime_client, 'wp_remote_request(' )
 	&& false === strpos( $runtime_client, 'wp_remote_get(' )
-	&& false === strpos( $settings_page, 'wp_remote_post(' ),
+	&& false === strpos( $settings_page, 'wp_remote_post(' )
+	&& false === strpos( $settings_actions, 'wp_remote_post(' ),
 	'Cloud Base URL normalization requires HTTPS except local development hosts.'
 );
 
@@ -1733,37 +1735,40 @@ maca_assert(
 	&& false === strpos( $wordpress_ai_connector, "'site_meta_style'" )
 	&& false === strpos( $wordpress_ai_connector, "'site_taxonomy_history'" )
 	&& false !== strpos( $runtime_client, 'normalize_wordpress_ai_site_knowledge_reference' )
-	&& false !== strpos( $settings_page, "ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission'" )
-	&& false !== strpos( $settings_page, "admin_post_' . self::ACTION_UPDATE_LOCAL_PERMISSION" )
-	&& false !== strpos( $settings_page, 'function handle_update_local_permission' )
-	&& false !== strpos( $settings_page, 'check_admin_referer( self::ACTION_UPDATE_LOCAL_PERMISSION )' )
-	&& false !== strpos( $settings_page, '! Npcink_Cloud_Addon_Settings::write_settings( $settings )' )
-	&& false !== strpos( $settings_page, "'site_knowledge_delivery_enabled' => array(" )
-	&& false !== strpos( $settings_page, "if ( 'site_knowledge_delivery_enabled' === \$permission )" )
-	&& false !== strpos( $settings_page, "\$settings['site_knowledge_generation_reference_enabled'] = \$enabled;" )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule()' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::resume_pending_delivery()' )
+	&& false !== strpos( $settings_actions, "ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission'" )
+	&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_UPDATE_LOCAL_PERMISSION" )
+	&& false !== strpos( $settings_actions, 'function handle_update_local_permission' )
+	&& false !== strpos( $settings_actions, 'check_admin_referer( self::ACTION_UPDATE_LOCAL_PERMISSION )' )
+	&& false !== strpos( $settings_actions, '! Npcink_Cloud_Addon_Settings::write_settings( $settings )' )
+	&& false !== strpos( $settings_actions, "'site_knowledge_delivery_enabled' => array(" )
+	&& false !== strpos( $settings_actions, "if ( 'site_knowledge_delivery_enabled' === \$permission )" )
+	&& false !== strpos( $settings_actions, "\$settings['site_knowledge_generation_reference_enabled'] = \$enabled;" )
+	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule()' )
+	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::resume_pending_delivery()' )
 	&& false === strpos( $settings_page, 'ACTION_UPDATE_SITE_KNOWLEDGE_DELIVERY' )
+	&& false === strpos( $settings_actions, 'ACTION_UPDATE_SITE_KNOWLEDGE_DELIVERY' )
 	&& false === strpos( $settings_page, 'npcink_cloud_addon_update_site_knowledge_delivery' )
+	&& false === strpos( $settings_actions, 'npcink_cloud_addon_update_site_knowledge_delivery' )
 	&& false === strpos( $settings_page, 'function handle_update_site_knowledge_delivery' )
+	&& false === strpos( $settings_actions, 'function handle_update_site_knowledge_delivery' )
 	&& false !== strpos( $settings_page, 'function render_local_permissions' )
 	&& false !== strpos( $settings_page, 'function render_local_permission_switch' )
 	&& false !== strpos( $settings_page, 'self::render_local_permissions( $settings, $is_verified );' )
-	&& false !== strpos( $settings_page, "self::redirect_to_page( 'permissions' );" )
+	&& false !== strpos( $settings_actions, "self::redirect_to_page( 'permissions' );" )
 	&& false !== strpos( $settings_page, 'Features' )
-	&& false !== strpos( $settings_page, 'Enable Site Knowledge' )
-	&& false !== strpos( $settings_page, 'Keep public posts and pages updated automatically so AI can reference them.' )
+	&& false !== strpos( $settings_actions, 'Enable Site Knowledge' )
+	&& false !== strpos( $settings_actions, 'Keep public posts and pages updated automatically so AI can reference them.' )
 	&& false === strpos( $settings_page, 'AI generation reference' )
-	&& false !== strpos( $settings_page, 'Send anonymous diagnostics' )
-	&& false !== strpos( $settings_page, 'Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages.' )
-	&& false !== strpos( $settings_page, 'Off by default; administrators can turn it off at any time.' )
+	&& false !== strpos( $settings_actions, 'Send anonymous diagnostics' )
+	&& false !== strpos( $settings_actions, 'Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages.' )
+	&& false !== strpos( $settings_actions, 'Off by default; administrators can turn it off at any time.' )
 	&& false !== strpos( $settings_page, 'Privacy settings' )
 	&& false === strpos( $settings_page, 'npcink-cloud-local-permission--dependent' )
 	&& false === strpos( $admin_css, '.npcink-cloud-local-permission--dependent' )
 	&& false !== strpos( $settings_page, 'data-npcink-local-permission' )
 	&& false === strpos( $settings_page, 'onchange="this.form.submit();"' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_WordPress_AI_Connector::sync_connected_marker()' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Observability_Collector::sync_schedule()' )
+	&& false !== strpos( $settings_actions, 'Npcink_Cloud_WordPress_AI_Connector::sync_connected_marker()' )
+	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Observability_Collector::sync_schedule()' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-local-permissions' )
 	&& false !== strpos( $admin_css, '.npcink-ai-switch__track' )
 	&& false !== strpos( $settings_page, 'class="npcink-ai-switch__input"' )
@@ -1812,9 +1817,9 @@ maca_assert(
 		&& false !== strpos( $settings_page, '<h2 class="screen-reader-text"><?php esc_html_e( \'Site Knowledge\'' )
 		&& false === strpos( $settings_page, '<h3><?php esc_html_e( \'Monitoring & Quality\'' )
 		&& false !== strpos( $settings_page, "esc_html__( 'Monitoring needs attention', 'npcink-cloud-addon' ) : esc_html__( 'Monitoring upload state', 'npcink-cloud-addon' )" )
-	&& false !== strpos( $settings_page, "self::redirect_to_page( 'status' );" )
-	&& false !== strpos( $settings_page, "self::redirect_to_page( 'advanced', 'checks' );" )
-	&& false === strpos( $settings_page, "self::redirect_to_page( 'advanced', 'runs' );" )
+	&& false !== strpos( $settings_actions, "self::redirect_to_page( 'status' );" )
+	&& false !== strpos( $settings_actions, "self::redirect_to_page( 'advanced', 'checks' );" )
+	&& false === strpos( $settings_actions, "self::redirect_to_page( 'advanced', 'runs' );" )
 	&& false === strpos( $settings_page, "'monitoring'  =>" ),
 	'Settings page defaults to connect before verification, opens a compact overview after verification, keeps advanced detail behind one entry, and gives Site Knowledge a dedicated tab.'
 );
@@ -1836,12 +1841,12 @@ maca_assert(
 );
 
 	maca_assert(
-		false !== strpos( $settings_page, "ACTION_REFRESH_SITE_KNOWLEDGE = 'npcink_cloud_addon_refresh_site_knowledge'" )
-		&& false !== strpos( $settings_page, "ACTION_MANAGE_SITE_KNOWLEDGE_INDEX = 'npcink_cloud_addon_manage_site_knowledge_index'" )
-		&& false !== strpos( $settings_page, "admin_post_' . self::ACTION_REFRESH_SITE_KNOWLEDGE" )
-		&& false !== strpos( $settings_page, "admin_post_' . self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX" )
-		&& false !== strpos( $settings_page, 'function handle_refresh_site_knowledge' )
-		&& false !== strpos( $settings_page, 'function handle_manage_site_knowledge_index' )
+		false !== strpos( $settings_actions, "ACTION_REFRESH_SITE_KNOWLEDGE = 'npcink_cloud_addon_refresh_site_knowledge'" )
+		&& false !== strpos( $settings_actions, "ACTION_MANAGE_SITE_KNOWLEDGE_INDEX = 'npcink_cloud_addon_manage_site_knowledge_index'" )
+		&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE" )
+		&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX" )
+		&& false !== strpos( $settings_actions, 'function handle_refresh_site_knowledge' )
+		&& false !== strpos( $settings_actions, 'function handle_manage_site_knowledge_index' )
 		&& false !== strpos( $refresh_site_knowledge_handler, 'current_user_can( \'manage_options\' )' )
 		&& false !== strpos( $refresh_site_knowledge_handler, 'check_admin_referer( self::ACTION_REFRESH_SITE_KNOWLEDGE )' )
 		&& false !== strpos( $refresh_site_knowledge_handler, 'Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh()' )
@@ -1859,8 +1864,8 @@ maca_assert(
 		&& false !== strpos( $settings_page, 'Delivery is off; refresh controls and routine delivery rows are hidden.' )
 		&& false === strpos( $settings_page, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content()' )
 		&& false === strpos( $settings_page, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer()' )
-		&& false !== strpos( $settings_page, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule()' )
-		&& false !== strpos( $settings_page, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::resume_pending_delivery()' )
+		&& false !== strpos( $settings_actions, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule()' )
+		&& false !== strpos( $settings_actions, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::resume_pending_delivery()' )
 		&& false === strpos( $settings_page, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation' )
 		&& false !== strpos( $site_knowledge_admin_actions, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content()' )
 		&& false !== strpos( $site_knowledge_admin_actions, 'Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer()' )
@@ -1872,7 +1877,7 @@ maca_assert(
 	&& false === strpos( $settings_page, 'Rebuild index' )
 	&& false === strpos( $settings_page, 'Delete site index' )
 	&& false === strpos( $settings_page, 'Type REBUILD' )
-	&& false !== strpos( $settings_page, 'site_knowledge_confirmation' )
+	&& false !== strpos( $settings_actions, 'site_knowledge_confirmation' )
 	&& false !== strpos( $settings_page, 'View details in Cloud' )
 	&& false !== strpos( $settings_page, "\$base_url . '/portal'" )
 	&& false !== strpos( $settings_page, "'/sites/' . rawurlencode( \$site_id ) . '#site-knowledge'" )
@@ -1939,11 +1944,11 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $settings_page, "ACTION_REFRESH_SITE_KNOWLEDGE_STATUS = 'npcink_cloud_addon_refresh_site_knowledge_status'" )
-	&& false !== strpos( $settings_page, "wp_ajax_' . self::ACTION_REFRESH_SITE_KNOWLEDGE_STATUS" )
-	&& false !== strpos( $settings_page, 'function handle_refresh_site_knowledge_status' )
-	&& false !== strpos( $settings_page, "current_user_can( self::MENU_CAPABILITY )" )
-	&& false !== strpos( $settings_page, "check_ajax_referer( self::ACTION_REFRESH_SITE_KNOWLEDGE_STATUS, 'nonce' )" )
+	false !== strpos( $settings_actions, "ACTION_REFRESH_SITE_KNOWLEDGE_STATUS = 'npcink_cloud_addon_refresh_site_knowledge_status'" )
+	&& false !== strpos( $settings_page, "wp_ajax_' . Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE_STATUS" )
+	&& false !== strpos( $settings_actions, 'function handle_refresh_site_knowledge_status' )
+	&& false !== strpos( $settings_actions, "current_user_can( Npcink_Cloud_Settings_Page::MENU_CAPABILITY )" )
+	&& false !== strpos( $settings_actions, "check_ajax_referer( self::ACTION_REFRESH_SITE_KNOWLEDGE_STATUS, 'nonce' )" )
 	&& false !== strpos( $settings_page, 'Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled()' )
 	&& false !== strpos( $settings_page, 'Available knowledge documents' )
 	&& false !== strpos( $settings_page, 'data-npcink-site-knowledge-progress' )
@@ -2045,32 +2050,32 @@ maca_assert(
 	false !== strpos( $settings, "LOCAL_DEFAULT_BASE_URL = 'http://localhost:8010/'" )
 	&& false !== strpos( $settings, "PRODUCTION_DEFAULT_BASE_URL = 'https://cloud.npc.ink/'" )
 	&& false !== strpos( $settings, 'function get_default_base_url' )
-	&& false !== strpos( $settings_page, "ACTION_COMPLETE_AUTH = 'npcink_cloud_addon_complete_auth'" )
-	&& false !== strpos( $settings_page, "ACTION_START_CUSTOM_AUTH = 'npcink_cloud_addon_start_custom_auth'" )
-	&& false !== strpos( $settings_page, "admin_post_' . self::ACTION_COMPLETE_AUTH" )
-	&& false !== strpos( $settings_page, "admin_post_' . self::ACTION_START_CUSTOM_AUTH" )
-	&& false !== strpos( $settings_page, 'function build_authorization_url' )
-	&& false !== strpos( $settings_page, 'function build_authorization_url_for_base_url' )
-	&& false !== strpos( $settings_page, "'connect'    => 'wordpress-addon'" )
-	&& false !== strpos( $settings_page, '/portal/v1/addon-connections/exchange' )
+	&& false !== strpos( $settings_actions, "ACTION_COMPLETE_AUTH = 'npcink_cloud_addon_complete_auth'" )
+	&& false !== strpos( $settings_actions, "ACTION_START_CUSTOM_AUTH = 'npcink_cloud_addon_start_custom_auth'" )
+	&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_COMPLETE_AUTH" )
+	&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_START_CUSTOM_AUTH" )
+	&& false !== strpos( $settings_actions, 'function build_authorization_url_for_base_url' )
+	&& false !== strpos( $settings_actions, "'connect'    => 'wordpress-addon'" )
+	&& false !== strpos( $settings_actions, '/portal/v1/addon-connections/exchange' )
 	&& false !== strpos( $settings_page, 'Add this site in Npcink Cloud' )
-	&& false !== strpos( $settings_page, 'persist_and_verify_settings' )
-	&& false !== strpos( $settings_page, 'Cloud connection completed and verified.' ),
+	&& false !== strpos( $settings_actions, 'persist_and_verify_settings' )
+	&& false !== strpos( $settings_actions, 'Cloud connection completed and verified.' ),
 	'Settings page defaults to Cloud-side site authorization, exchanges the callback key, and verifies the saved connection immediately.'
 );
 
 maca_assert(
-	false !== strpos( $settings_page, 'function handle_start_custom_auth' )
-	&& false !== strpos( $settings_page, "check_admin_referer( self::ACTION_START_CUSTOM_AUTH )" )
+	false !== strpos( $settings_actions, 'function handle_start_custom_auth' )
+	&& false !== strpos( $settings_actions, "check_admin_referer( self::ACTION_START_CUSTOM_AUTH )" )
 	&& false !== strpos( $settings_page, "current_user_can( 'manage_options' )" )
-	&& false !== strpos( $settings_page, "\$_POST['self_hosted_base_url']" )
-	&& false !== strpos( $settings_page, "build_settings_from_admin_payload(\n\t\t\t\tarray(\n\t\t\t\t\t'base_url' => \$base_url," )
-	&& false !== strpos( $settings_page, 'function redirect_to_cloud_authorization' )
-	&& false !== strpos( $settings_page, "wp_parse_url( \$authorization_url, PHP_URL_HOST )" )
-	&& false !== strpos( $settings_page, "add_filter( 'allowed_redirect_hosts', \$allow_cloud_host )" )
-	&& false !== strpos( $settings_page, "wp_safe_redirect( \$authorization_url, 302, 'Npcink Cloud Addon' )" )
-	&& false !== strpos( $settings_page, "remove_filter( 'allowed_redirect_hosts', \$allow_cloud_host )" )
+	&& false !== strpos( $settings_actions, "\$_POST['self_hosted_base_url']" )
+	&& false !== strpos( $settings_actions, "build_settings_from_admin_payload(\n\t\t\t\tarray(\n\t\t\t\t\t'base_url' => \$base_url," )
+	&& false !== strpos( $settings_actions, 'function redirect_to_cloud_authorization' )
+	&& false !== strpos( $settings_actions, "wp_parse_url( \$authorization_url, PHP_URL_HOST )" )
+	&& false !== strpos( $settings_actions, "add_filter( 'allowed_redirect_hosts', \$allow_cloud_host )" )
+	&& false !== strpos( $settings_actions, "wp_safe_redirect( \$authorization_url, 302, 'Npcink Cloud Addon' )" )
+	&& false !== strpos( $settings_actions, "remove_filter( 'allowed_redirect_hosts', \$allow_cloud_host )" )
 	&& false === strpos( $settings_page, 'wp_redirect(' )
+	&& false === strpos( $settings_actions, 'wp_redirect(' )
 	&& false !== strpos( $settings_page, 'class="npcink-cloud-connect-context"' )
 	&& false !== strpos( $settings_page, 'target="_blank" rel="noopener noreferrer"' )
 	&& false !== strpos( $settings_page, '<details class="npcink-cloud-endpoint-advanced">' )
@@ -2149,10 +2154,10 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $settings_page, "ACTION_DISCONNECT = 'npcink_cloud_addon_disconnect'" )
-	&& false !== strpos( $settings_page, "admin_post_' . self::ACTION_DISCONNECT" )
-	&& false !== strpos( $settings_page, 'function handle_disconnect' )
-	&& false !== strpos( $settings_page, 'Npcink_Cloud_Addon_Cleanup::delete_all( $settings )' )
+	false !== strpos( $settings_actions, "ACTION_DISCONNECT = 'npcink_cloud_addon_disconnect'" )
+	&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_DISCONNECT" )
+	&& false !== strpos( $settings_actions, 'function handle_disconnect' )
+	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Addon_Cleanup::delete_all( $settings )' )
 	&& false !== strpos( $settings_page, 'Change Cloud account' )
 	&& false !== strpos( $settings_page, 'Open Cloud sites' )
 	&& false !== strpos( $settings_page, 'function render_connection_actions( array $settings, bool $is_verified, bool $service_needs_attention = false )' )
@@ -2195,12 +2200,13 @@ maca_assert(
 	'Complexity budget document records what complexity is worth keeping and where tests belong.'
 );
 
-// Size ratchet for the four widest connector classes. Security and boundary
+// Size ratchet for the widest connector classes. Security and boundary
 // complexity may stay, but these files must not grow unnoticed: raise a limit
 // only with a documented reason in docs/cloud-addon-complexity-budget.md.
 $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-client.php'          => 4314,
-	'includes/class-cloud-settings-page.php'           => 3280,
+	'includes/class-cloud-settings-page.php'           => 2207,
+	'includes/class-cloud-settings-actions.php'        => 1106,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 2767,
 	'includes/class-cloud-media-derivative-transport.php' => 2542,
 );

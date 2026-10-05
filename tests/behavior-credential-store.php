@@ -11,6 +11,7 @@ require_once __DIR__ . '/helpers.php';
 
 maca_load_addon_classes();
 require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php';
+require_once MACA_TEST_ROOT . '/includes/class-cloud-settings-actions.php';
 
 $missing_consent_settings = Npcink_Cloud_Addon_Settings::normalize_settings(
 	array(
@@ -231,7 +232,7 @@ maca_assert(
 );
 
 $GLOBALS['maca_http_requests'] = array();
-$persist_method = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'persist_and_verify_settings' );
+$persist_method = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'persist_and_verify_settings' );
 $persist_method->setAccessible( true );
 $persist_method->invoke( null, $settings_for_failed_write, 'Verified.' );
 $notice_values = array_values( $GLOBALS['maca_transients'] );

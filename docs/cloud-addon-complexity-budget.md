@@ -72,16 +72,22 @@ Is this transport/detail, or is it control/write truth?
 connector classes so they cannot grow unnoticed:
 
 - `includes/class-cloud-runtime-client.php` — 4314 lines
-- `includes/class-cloud-settings-page.php` — 3280 lines
+- `includes/class-cloud-settings-page.php` — 2207 lines (was 3280 before the
+  2026-10-04 handler split into `class-cloud-settings-actions.php`)
+- `includes/class-cloud-settings-actions.php` — 1106 lines (settings request
+  handlers and their transient state; the render class stays a projection)
 - `includes/class-cloud-wordpress-ai-connector.php` — 2767 lines
 - `includes/class-cloud-media-derivative-transport.php` — 2542 lines
 
 The ratchet is a ceiling, not a target. Raise a limit only together with a
-documented reason here; prefer paying it down instead. The intended paydown
-direction for the settings page is splitting the twelve request handlers
-(connection flow, local permissions, Site Knowledge operations) out of the
-render class along the seams already documented in
-`docs/admin-surface-standard.md`, keeping render a projection only.
+documented reason here; prefer paying it down instead. The settings-page
+handler split has landed: `Npcink_Cloud_Settings_Actions` owns the twelve
+admin-post/wp-ajax request handlers, the authorization flow machinery, and the
+shared transient state (notices, permission feedback, readiness results,
+consent prompt); the page class renders and reads that state through the
+public accessor seam. Further paydown direction for the remaining render class
+is collapsing duplicated disclosure markup behind shared partials, keeping
+`docs/admin-surface-standard.md` tab and copy rules authoritative.
 
 ## Test Structure
 
