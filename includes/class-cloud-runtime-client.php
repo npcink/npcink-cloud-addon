@@ -256,8 +256,8 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'auth_ok' => ! empty( $auth_probe['ok'] ),
 				'live_message' => sanitize_text_field( (string) ( $live_probe['message'] ?? '' ) ),
 				'auth_message' => sanitize_text_field( (string) ( $auth_probe['message'] ?? '' ) ),
-				'auth_error_code' => (string) ( $auth_probe['error_code'] ?? '' ),
-				'auth_error_data' => is_array( $auth_probe['error_data'] ?? null ) ? $auth_probe['error_data'] : array(),
+				'auth_error_code' => (string) $auth_probe['error_code'],
+				'auth_error_data' => $auth_probe['error_data'],
 				'entitlement_response' => is_array( $auth_probe['entitlement_response'] ?? null ) ? $auth_probe['entitlement_response'] : array(),
 			);
 			$probe['readiness_result'] = $this->build_readiness_result( $probe );
@@ -4227,8 +4227,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 * @return string
 		 */
 		private function build_traceparent( string $trace_id ): string {
-			$normalized = strtolower( preg_replace( '/[^a-f0-9]/', '', $trace_id ) );
-			$normalized = is_string( $normalized ) ? $normalized : '';
+			$normalized = strtolower( (string) preg_replace( '/[^a-f0-9]/', '', $trace_id ) );
 			if ( 32 !== strlen( $normalized ) ) {
 				$normalized = substr( hash( 'sha256', $trace_id ), 0, 32 );
 			}

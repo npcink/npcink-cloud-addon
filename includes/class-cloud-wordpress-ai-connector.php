@@ -1919,7 +1919,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$reached_eof = feof( $handle );
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closes the bounded local attachment handle immediately.
 			fclose( $handle );
-			if ( $read_failed || ! $reached_eof || '' === $contents || strlen( $contents ) !== $size || strlen( $contents ) > self::MAX_SOURCE_BYTES ) {
+			if ( $read_failed || ! $reached_eof || '' === $contents || strlen( $contents ) !== $size ) {
 				return self::source_error( 'cloud_wp_ai_alt_text_attachment_read_failed', 'The local attachment could not be read for Cloud alt text generation.' );
 			}
 

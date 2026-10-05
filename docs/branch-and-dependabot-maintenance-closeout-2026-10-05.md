@@ -59,12 +59,15 @@ PR 的合并流程、`pr-body-contract` 必需检查与机器人 PR 的交互。
 4. 判定"检查全绿但 BLOCKED"时，先看未解决评审线程，再确认必需
    检查在新 head 上有最新 success 结论；`check-runs` 列表里的
    历史 failure 记录不代表当前状态，以 mergeStateStatus 为准。
-5. 可选改进（未实施）：为 `pr-body-contract.yml` 增加
-   `dependabot/**` 分支豁免，或在 workflow 中检测 dependabot PR
-   时跳过正文结构校验，可消除第 2 节第 1 层阻塞。
+5. dependabot 豁免（2026-10-06 已实施）：`pr-body-contract.yml` 对
+   `dependabot/*` 分支在步骤内早退并报告 success（必需检查不缺席），
+   消除第 2 节第 1 层阻塞；维护者合并 dependabot PR 只需处理重定基
+   与评审线程两层。
 
 ## 4. 遗留事项
 
-- 上文第 5 条的 dependabot 豁免改进待真实需求出现时再实施。
+- 2026-10-06 落地：`pr-body-contract.yml` 已对 `dependabot/*` 分支加入
+  豁免（作业仍运行并报告 success，必需检查不缺席），第 2 节第 1 层
+  阻塞消除；维护者只需处理第 2、3 层。
 - 归档 tag `archive/wp-ai-localization-fix-20260928` 中的翻译块
   级隐私断言意图，若未来强化请求日志隐私测试可作参考。

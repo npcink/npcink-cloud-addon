@@ -28,5 +28,19 @@ jobs:
       - name: Require AI change envelope sections
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_HEAD_REF: ${{ github.head_ref }}
+          PR_ACTOR: ${{ github.actor }}
         run: |
+          # Dependabot bumps carry no maintainer scope/boundary/risk envelope.
+          # Gate on actor AND branch prefix so a manually created branch named
+          # dependabot/* cannot skip validation. The job must still report
+          # success so the required check never goes missing.
+          case "$PR_HEAD_REF" in
+            dependabot/*)
+              if [ "$PR_ACTOR" = "dependabot[bot]" ]; then
+                echo "dependabot branch: body contract exempt"
+                exit 0
+              fi
+              ;;
+          esac
           printf '%s' "$PR_BODY" | php scripts/validate-pr-body.php -
