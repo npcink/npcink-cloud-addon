@@ -15,7 +15,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:948
+#: includes/bootstrap.php:949
 #: includes/class-cloud-settings-page.php:133
 #: includes/class-cloud-settings-page.php:144
 #: includes/class-cloud-settings-page.php:145
@@ -33,59 +33,59 @@ msgstr "用于 Npcink 托管运行时访问、签名、健康检查和权益摘�
 msgid "Npcink"
 msgstr "Npcink"
 
-#: includes/bootstrap.php:138
-#: includes/bootstrap.php:193
-#: includes/bootstrap.php:223
-#: includes/bootstrap.php:314
-#: includes/bootstrap.php:345
-#: includes/bootstrap.php:376
-#: includes/bootstrap.php:407
-#: includes/bootstrap.php:434
-#: includes/bootstrap.php:461
-#: includes/bootstrap.php:484
-#: includes/bootstrap.php:506
-#: includes/bootstrap.php:593
-#: includes/bootstrap.php:617
-#: includes/bootstrap.php:641
-#: includes/bootstrap.php:649
-#: includes/bootstrap.php:657
-#: includes/bootstrap.php:665
-#: includes/bootstrap.php:673
-#: includes/bootstrap.php:681
-#: includes/bootstrap.php:689
-#: includes/bootstrap.php:705
-#: includes/bootstrap.php:713
-#: includes/class-cloud-runtime-client.php:1065
-#: includes/class-cloud-runtime-client.php:1171
+#: includes/bootstrap.php:139
+#: includes/bootstrap.php:194
+#: includes/bootstrap.php:224
+#: includes/bootstrap.php:315
+#: includes/bootstrap.php:346
+#: includes/bootstrap.php:377
+#: includes/bootstrap.php:408
+#: includes/bootstrap.php:435
+#: includes/bootstrap.php:462
+#: includes/bootstrap.php:485
+#: includes/bootstrap.php:507
+#: includes/bootstrap.php:594
+#: includes/bootstrap.php:618
+#: includes/bootstrap.php:642
+#: includes/bootstrap.php:650
+#: includes/bootstrap.php:658
+#: includes/bootstrap.php:666
+#: includes/bootstrap.php:674
+#: includes/bootstrap.php:682
+#: includes/bootstrap.php:690
+#: includes/bootstrap.php:706
+#: includes/bootstrap.php:714
+#: includes/class-cloud-runtime-client.php:1064
+#: includes/class-cloud-runtime-client.php:1170
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr "Npcink Cloud 尚未配置。"
 
-#: includes/bootstrap.php:545
+#: includes/bootstrap.php:546
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr "Toolbox 运行请求超过固定大小限制。"
 
-#: includes/bootstrap.php:559
+#: includes/bootstrap.php:560
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr "Toolbox 运行请求包含固定合同之外的字段。"
 
-#: includes/bootstrap.php:567
+#: includes/bootstrap.php:568
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr "Toolbox 运行限制超出连接器固定策略。"
 
-#: includes/bootstrap.php:589
+#: includes/bootstrap.php:590
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr "Toolbox 内容支持需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:613
+#: includes/bootstrap.php:614
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr "Toolbox 站点助手需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:637
+#: includes/bootstrap.php:638
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr "夜间检查需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:978
+#: includes/bootstrap.php:979
 msgid "Settings"
 msgstr "设置"
 
@@ -534,181 +534,181 @@ msgstr "Cloud 响应超出本地大小限制。"
 msgid "Cloud request target is not allowed by the local connector policy."
 msgstr "本地连接器策略不允许此 Cloud 请求目标。"
 
-#: includes/class-cloud-runtime-client.php:85
+#: includes/class-cloud-runtime-client.php:84
 msgid "Signed verification was not attempted because the Cloud service is not reachable."
 msgstr "Cloud 服务不可达，因此未尝试签名验证。"
 
-#: includes/class-cloud-runtime-client.php:87
+#: includes/class-cloud-runtime-client.php:86
 msgid "Cloud credentials are incomplete."
 msgstr "Cloud 凭据不完整。"
 
-#: includes/class-cloud-runtime-client.php:97
+#: includes/class-cloud-runtime-client.php:96
 msgid "Signed Cloud request verified."
 msgstr "签名 Cloud 请求已验证。"
 
-#: includes/class-cloud-runtime-client.php:472
+#: includes/class-cloud-runtime-client.php:471
 msgid "Media uploads require exact contents, filename, and mime_type fields."
 msgstr "媒体上传需要精确的 contents、filename 和 mime_type 字段。"
 
-#: includes/class-cloud-runtime-client.php:481
+#: includes/class-cloud-runtime-client.php:480
 msgid "Media upload contents must be a nonempty byte string."
 msgstr "媒体上传内容必须是非空字节字符串。"
 
-#: includes/class-cloud-runtime-client.php:488
+#: includes/class-cloud-runtime-client.php:487
 msgid "Media upload contents exceed the 25 MiB connector limit."
 msgstr "媒体上传内容超出连接器的 25 MiB 限制。"
 
-#: includes/class-cloud-runtime-client.php:497
+#: includes/class-cloud-runtime-client.php:496
 msgid "Media upload filename must be a nonempty safe filename of at most 160 characters."
 msgstr "媒体上传文件名必须是非空且安全的文件名，最多 160 个字符。"
 
-#: includes/class-cloud-runtime-client.php:506
+#: includes/class-cloud-runtime-client.php:505
 msgid "Media uploads allow only AVIF, JPEG, PNG, or WebP images."
 msgstr "媒体上传仅允许 AVIF、JPEG、PNG 或 WebP 图像。"
 
-#: includes/class-cloud-runtime-client.php:570
+#: includes/class-cloud-runtime-client.php:569
 msgid "Media jobs require the exact artifact-referenced media_job_request.v1 contract."
 msgstr "媒体任务需要精确的工件引用型 media_job_request.v1 契约。"
 
-#: includes/class-cloud-runtime-client.php:600
+#: includes/class-cloud-runtime-client.php:599
 msgid "Media governance canary jobs require the exact bounded preserve-WebP contract."
 msgstr "媒体治理金丝雀任务需要严格遵循受限的保留原尺寸 WebP 契约。"
 
-#: includes/class-cloud-runtime-client.php:628
+#: includes/class-cloud-runtime-client.php:627
 msgid "Verify Npcink Cloud settings before uploading a WordPress AI alt-text source."
 msgstr "上传 WordPress AI 替代文本源之前，请先验证 Npcink Cloud 设置。"
 
-#: includes/class-cloud-runtime-client.php:640
+#: includes/class-cloud-runtime-client.php:639
 msgid "WordPress AI alt-text uploads require exact contents, filename, and mime_type fields."
 msgstr "WordPress AI 替代文本上传需要精确的 contents、filename 和 mime_type 字段。"
 
-#: includes/class-cloud-runtime-client.php:649
+#: includes/class-cloud-runtime-client.php:648
 msgid "WordPress AI alt-text upload contents must be a nonempty byte string."
 msgstr "WordPress AI 替代文本上传内容必须是非空字节字符串。"
 
-#: includes/class-cloud-runtime-client.php:656
+#: includes/class-cloud-runtime-client.php:655
 msgid "WordPress AI alt-text upload contents exceed the 8 MiB limit."
 msgstr "WordPress AI 替代文本上传内容超出 8 MiB 限制。"
 
-#: includes/class-cloud-runtime-client.php:664
+#: includes/class-cloud-runtime-client.php:663
 msgid "WordPress AI alt-text upload filename must be a nonempty safe filename."
 msgstr "WordPress AI 替代文本上传文件名必须是非空且安全的文件名。"
 
-#: includes/class-cloud-runtime-client.php:672
+#: includes/class-cloud-runtime-client.php:671
 msgid "WordPress AI alt-text upload filename must be a nonempty safe filename of at most 160 characters."
 msgstr "WordPress AI 替代文本上传文件名必须是非空且安全的文件名，最多 160 个字符。"
 
-#: includes/class-cloud-runtime-client.php:681
+#: includes/class-cloud-runtime-client.php:680
 msgid "WordPress AI alt-text uploads allow only JPEG, PNG, or WebP images."
 msgstr "WordPress AI 替代文本上传仅允许 JPEG、PNG 或 WebP 图像。"
 
-#: includes/class-cloud-runtime-client.php:735
-#: includes/class-cloud-runtime-client.php:754
-#: includes/class-cloud-runtime-client.php:788
+#: includes/class-cloud-runtime-client.php:734
+#: includes/class-cloud-runtime-client.php:753
+#: includes/class-cloud-runtime-client.php:787
 msgid "Cloud run_id is required."
 msgstr "Cloud run_id 为必填项。"
 
-#: includes/class-cloud-runtime-client.php:818
+#: includes/class-cloud-runtime-client.php:817
 msgid "Cloud media artifact_id must use the canonical art_<32 lowercase hex> shape."
 msgstr "Cloud 媒体 artifact_id 必须使用规范的 art_<32 位小写十六进制> 格式。"
 
-#: includes/class-cloud-runtime-client.php:856
+#: includes/class-cloud-runtime-client.php:855
 msgid "Media delivery acknowledgement requires the exact verified-transfer contract."
 msgstr "媒体投递确认需要精确的已验证传输契约。"
 
-#: includes/class-cloud-runtime-client.php:889
+#: includes/class-cloud-runtime-client.php:888
 msgid "Cloud site_id is required."
 msgstr "Cloud site_id 为必填项。"
 
-#: includes/class-cloud-runtime-client.php:910
+#: includes/class-cloud-runtime-client.php:909
 msgid "No observability events are ready to upload."
 msgstr "没有可上传的 observability 事件。"
 
-#: includes/class-cloud-runtime-client.php:943
+#: includes/class-cloud-runtime-client.php:942
 msgid "Customer journey upload requires between 1 and 100 metadata-only events."
 msgstr "客户旅程上传需要包含 1 到 100 条仅元数据事件。"
 
-#: includes/class-cloud-runtime-client.php:980
+#: includes/class-cloud-runtime-client.php:979
 msgid "Agent feedback requires a valid cloud_agent_feedback.v1 payload."
 msgstr "Agent 反馈需要有效的 cloud_agent_feedback.v1 载荷。"
 
-#: includes/class-cloud-runtime-client.php:1038
+#: includes/class-cloud-runtime-client.php:1037
 msgid "Customer journey cohort id is invalid."
 msgstr "客户旅程分组 ID 无效。"
 
-#: includes/class-cloud-runtime-client.php:1074
-#: includes/class-cloud-runtime-client.php:1180
+#: includes/class-cloud-runtime-client.php:1073
+#: includes/class-cloud-runtime-client.php:1179
 msgid "This Cloud endpoint is not allowed by the Cloud Addon runtime contract."
 msgstr "Cloud Addon 运行时合同不允许此 Cloud 端点。"
 
-#: includes/class-cloud-runtime-client.php:1099
+#: includes/class-cloud-runtime-client.php:1098
 msgid "Cloud runtime request payload could not be encoded."
 msgstr "无法编码 Cloud runtime 请求 payload。"
 
-#: includes/class-cloud-runtime-client.php:1136
-#: includes/class-cloud-runtime-client.php:1658
-#: includes/class-cloud-runtime-client.php:1669
+#: includes/class-cloud-runtime-client.php:1135
+#: includes/class-cloud-runtime-client.php:1302
+#: includes/class-cloud-runtime-client.php:1313
 msgid "Cloud runtime response exceeds the local size limit."
 msgstr "Cloud runtime 响应超过本地大小限制。"
 
-#: includes/class-cloud-runtime-client.php:1143
-#: includes/class-cloud-runtime-client.php:1670
+#: includes/class-cloud-runtime-client.php:1142
+#: includes/class-cloud-runtime-client.php:1314
 msgid "Cloud runtime response was not valid JSON."
 msgstr "Cloud runtime 响应不是有效 JSON。"
 
-#: includes/class-cloud-runtime-client.php:1214
-#: includes/class-cloud-runtime-client.php:1772
+#: includes/class-cloud-runtime-client.php:1213
+#: includes/class-cloud-runtime-client.php:1416
 msgid "Cloud artifact download exceeds the local preview size limit."
 msgstr "Cloud artifact 下载超过本地预览大小限制。"
 
-#: includes/class-cloud-runtime-client.php:1238
+#: includes/class-cloud-runtime-client.php:1237
 msgid "Cloud Base URL is required."
 msgstr "Cloud 基础 URL 为必填项。"
 
-#: includes/class-cloud-runtime-client.php:1268
+#: includes/class-cloud-runtime-client.php:1267
 msgid "Cloud liveness response exceeds the local size limit."
 msgstr "Cloud 存活检查响应超过本地大小限制。"
 
-#: includes/class-cloud-runtime-client.php:1278
+#: includes/class-cloud-runtime-client.php:1277
 msgid "Cloud liveness check failed."
 msgstr "Cloud 存活检查失败。"
 
-#: includes/class-cloud-runtime-client.php:1284
+#: includes/class-cloud-runtime-client.php:1283
 msgid "Cloud service is live."
 msgstr "Cloud 服务在线。"
 
-#: includes/class-cloud-runtime-client.php:1332
-#: includes/class-cloud-runtime-client.php:1423
+#: includes/class-cloud-runtime-diagnostics.php:71
+#: includes/class-cloud-runtime-diagnostics.php:165
 msgid "Cloud settings are incomplete."
 msgstr "Cloud 设置不完整。"
 
-#: includes/class-cloud-runtime-client.php:1352
-#: includes/class-cloud-runtime-client.php:1518
+#: includes/class-cloud-runtime-diagnostics.php:91
+#: includes/class-cloud-runtime-diagnostics.php:260
 msgid "Connector readiness could not be verified."
 msgstr "无法验证连接器就绪状态。"
 
-#: includes/class-cloud-runtime-client.php:1683
-#: includes/class-cloud-runtime-client.php:1721
+#: includes/class-cloud-runtime-client.php:1327
+#: includes/class-cloud-runtime-client.php:1365
 msgid "Cloud runtime request failed."
 msgstr "Cloud runtime 请求失败。"
 
-#: includes/class-cloud-runtime-client.php:1755
+#: includes/class-cloud-runtime-client.php:1399
 msgid "Cloud runtime artifact download failed."
 msgstr "Cloud runtime artifact 下载失败。"
 
-#: includes/class-cloud-runtime-client.php:1991
+#: includes/class-cloud-runtime-client.php:1635
 msgid "Cloud media upload request could not be encoded."
 msgstr "无法编码 Cloud 媒体上传请求。"
 
-#: includes/class-cloud-runtime-client.php:2063
+#: includes/class-cloud-runtime-client.php:1707
 msgid "Cloud returned an invalid media upload artifact."
 msgstr "Cloud 返回了无效的媒体上传工件。"
 
-#: includes/class-cloud-runtime-client.php:2117
+#: includes/class-cloud-runtime-client.php:1761
 msgid "Cloud returned an invalid media delivery acknowledgement."
 msgstr "Cloud 返回了无效的媒体投递确认。"
 
-#: includes/class-cloud-runtime-client.php:2200
+#: includes/class-cloud-runtime-client.php:1844
 msgid "Cloud returned an invalid WordPress AI alt-text source artifact."
 msgstr "Cloud 返回了无效的 WordPress AI 替代文本源工件。"
 
@@ -1068,16 +1068,16 @@ msgstr "图像上下文证据至少需要一个受限的源工件或媒体 URL�
 msgid "Cloud did not return usable image context evidence."
 msgstr "Cloud 未返回可用的图片上下文证据。"
 
-#: includes/class-cloud-runtime-client.php:2281
+#: includes/class-cloud-runtime-client.php:1925
 msgid "Cloud request identifiers must use only letters, numbers, dot, underscore, colon, or hyphen and contain at most 128 characters."
 msgstr "Cloud 请求标识符只能使用字母、数字、点、下划线、冒号或连字符，且最多 128 个字符。"
 
-#: includes/class-cloud-runtime-client.php:2313
+#: includes/class-cloud-runtime-client.php:1957
 msgid "Cannot connect to Npcink Cloud. Check the Cloud Base URL."
 msgstr "无法连接到 Npcink Cloud。请检查 Cloud 基础 URL。"
 
 #. translators: 1: Cloud base URL, 2: transport error.
-#: includes/class-cloud-runtime-client.php:2318
+#: includes/class-cloud-runtime-client.php:1962
 #, php-format
 msgid "Cannot connect to %1$s. Original error: %2$s"
 msgstr "无法连接到 %1$s。原始错误：%2$s"
@@ -1207,7 +1207,7 @@ msgstr "手动就绪测试已完成。连接器已就绪。"
 msgid "Cloud connector status and access settings for this WordPress site."
 msgstr "此 WordPress 站点的 Cloud 连接器状态和访问设置。"
 
-#: includes/bootstrap.php:950
+#: includes/bootstrap.php:951
 #: includes/class-cloud-settings-page.php:198
 msgid "Connect this site"
 msgstr "连接此站点"
@@ -2288,7 +2288,7 @@ msgstr "本地附件在读取前已发生变化，无法进行 Cloud 替代文�
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr "本地附件图像类型不受 Cloud 替代文本生成支持。"
 
-#: includes/class-cloud-runtime-client.php:342
+#: includes/class-cloud-runtime-client.php:341
 msgid "Invalid content formatting request."
 msgstr "正文整理请求无效。"
 
@@ -2477,11 +2477,11 @@ msgstr "Npcink Cloud 无法投影替代文本 Ability 合同。"
 msgid "https://cloud.npc.ink/"
 msgstr "https://cloud.npc.ink/"
 
-#: includes/bootstrap.php:949
+#: includes/bootstrap.php:950
 msgid "The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features."
 msgstr "插件已启用，但本站点尚未连接 Npcink Cloud。连接站点后即可启用其 AI 功能。"
 
-#: includes/bootstrap.php:952
+#: includes/bootstrap.php:953
 msgid "Do not show again"
 msgstr "不再显示"
 

@@ -18,6 +18,7 @@ require_once __DIR__ . '/class-cloud-addon-settings.php';
 require_once __DIR__ . '/class-cloud-addon-cleanup.php';
 require_once __DIR__ . '/class-cloud-ai-task-contract.php';
 require_once __DIR__ . '/class-cloud-runtime-request-guards.php';
+require_once __DIR__ . '/class-cloud-runtime-diagnostics.php';
 require_once __DIR__ . '/class-cloud-runtime-client.php';
 require_once __DIR__ . '/class-cloud-runtime-client-factory.php';
 require_once __DIR__ . '/class-cloud-media-derivative-transport.php';
