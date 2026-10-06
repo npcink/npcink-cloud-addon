@@ -36,6 +36,7 @@ if (
 			if (
 				( ! is_int( $value ) && ! is_string( $value ) )
 				|| ( is_string( $value ) && 1 !== preg_match( '/^[0-9]+$/', $value ) )
+				|| ( is_int( $value ) && 1 > $value )
 			) {
 				return self::source_error( 'cloud_wp_ai_alt_text_attachment_required', 'WordPress AI alt text generation requires a local WordPress attachment.' );
 			}
@@ -56,15 +57,28 @@ if (
 		 * @return array<string,mixed>|WP_Error
 		 */
 		public static function dispatch( int $attachment_id, string $prompt ) {
+			// Fail fast on missing transport before any local file I/O.
+			if ( ! function_exists( 'npcink_cloud_addon_upload_wordpress_ai_alt_text_source' ) || ! function_exists( 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime' ) ) {
+				return new WP_Error( 'cloud_wp_ai_alt_text_verified_client_required', __( 'WordPress AI alt text generation requires verified Npcink Cloud settings.', 'npcink-cloud-addon' ), array( 'status' => 503 ) );
+			}
+
+			// Project the local task contract before reading or uploading any bytes.
+			$task_contract = function_exists( 'npcink_cloud_addon_project_ai_task_contract' )
+				? npcink_cloud_addon_project_ai_task_contract( 'ai/alt-text-generation' )
+				: null;
+			if ( is_wp_error( $task_contract ) ) {
+				return $task_contract;
+			}
+			if ( null !== $task_contract && ! is_array( $task_contract ) ) {
+				return new WP_Error( 'cloud_wp_ai_alt_text_task_contract_invalid', __( 'Npcink Cloud could not project the alt-text Ability contract.', 'npcink-cloud-addon' ), array( 'status' => 500 ) );
+			}
+
 			$source = self::local_source( $attachment_id, $prompt );
 			if ( is_wp_error( $source ) ) {
 				return $source;
 			}
 
 			$trace_id = 'trace_wp_ai_vision_' . wp_generate_uuid4();
-			if ( ! function_exists( 'npcink_cloud_addon_upload_wordpress_ai_alt_text_source' ) || ! function_exists( 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime' ) ) {
-				return new WP_Error( 'cloud_wp_ai_alt_text_verified_client_required', __( 'WordPress AI alt text generation requires verified Npcink Cloud settings.', 'npcink-cloud-addon' ), array( 'status' => 503 ) );
-			}
 			$artifact = npcink_cloud_addon_upload_wordpress_ai_alt_text_source(
 				$source['file'],
 				$trace_id,
@@ -83,15 +97,6 @@ if (
 					__( 'Npcink Cloud did not return a valid source artifact for alt text generation.', 'npcink-cloud-addon' ),
 					array( 'status' => 502 )
 				);
-			}
-			$task_contract = function_exists( 'npcink_cloud_addon_project_ai_task_contract' )
-				? npcink_cloud_addon_project_ai_task_contract( 'ai/alt-text-generation' )
-				: null;
-			if ( is_wp_error( $task_contract ) ) {
-				return $task_contract;
-			}
-			if ( null !== $task_contract && ! is_array( $task_contract ) ) {
-				return new WP_Error( 'cloud_wp_ai_alt_text_task_contract_invalid', __( 'Npcink Cloud could not project the alt-text Ability contract.', 'npcink-cloud-addon' ), array( 'status' => 500 ) );
 			}
 
 			$request = array(
@@ -242,11 +247,11 @@ if (
 			return array(
 				'file'             => array(
 					'contents'  => $contents,
-					'filename'  => sanitize_file_name( basename( $real_path ) ),
+					'filename'  => self::bounded_filename( basename( $real_path ) ),
 					'mime_type' => $detected_mime,
 				),
 				'prompt'           => $prompt,
-				'filename'         => self::bounded_text( sanitize_file_name( basename( $real_path ) ), 160 ),
+				'filename'         => self::bounded_filename( basename( $real_path ) ),
 				'title'            => self::bounded_text( sanitize_text_field( (string) ( $attachment->post_title ?? '' ) ), 160 ),
 				'existing_alt'     => self::bounded_text( sanitize_text_field( (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ), 240 ),
 				'existing_caption' => self::bounded_text( sanitize_text_field( (string) ( $attachment->post_excerpt ?? '' ) ), 240 ),
@@ -269,6 +274,51 @@ if (
 			);
 
 			return new WP_Error( $code, $translated_messages[ $code ] ?? $message, array( 'status' => $status ) );
+		}
+
+		/**
+		 * Bounds a sanitized filename by truncating its stem while preserving its extension.
+		 *
+		 * @param string $filename Raw filename.
+		 * @param int    $max_chars Maximum total characters.
+		 * @return string
+		 */
+		private static function bounded_filename( string $filename, int $max_chars = 160 ): string {
+			$sanitized = sanitize_file_name( $filename );
+			if ( '' === $sanitized || strlen( $sanitized ) <= $max_chars ) {
+				return $sanitized;
+			}
+
+			$stem      = $sanitized;
+			$extension = '';
+			$dot_position = strrpos( $sanitized, '.' );
+			if ( false !== $dot_position && $dot_position > 0 ) {
+				$stem      = substr( $sanitized, 0, $dot_position );
+				$extension = substr( $sanitized, $dot_position );
+			}
+
+			if ( strlen( $extension ) >= $max_chars ) {
+				// A pathological extension cannot fit beside any stem; bound the whole name.
+				return self::byte_safe_cut( $sanitized, $max_chars );
+			}
+
+			return self::byte_safe_cut( $stem, $max_chars - strlen( $extension ) ) . $extension;
+		}
+
+		/**
+		 * Cuts a UTF-8 string by bytes without splitting a multibyte codepoint.
+		 *
+		 * @param string $value Raw value.
+		 * @param int    $max_bytes Maximum bytes.
+		 * @return string
+		 */
+		private static function byte_safe_cut( string $value, int $max_bytes ): string {
+			$max_bytes = max( 0, $max_bytes );
+			if ( function_exists( 'mb_strcut' ) ) {
+				return mb_strcut( $value, 0, $max_bytes, 'UTF-8' );
+			}
+
+			return substr( $value, 0, $max_bytes );
 		}
 
 		private static function bounded_text( string $value, int $max_length ): string {

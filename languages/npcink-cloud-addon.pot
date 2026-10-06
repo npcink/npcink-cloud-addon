@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-06T07:50:19+00:00\n"
+"POT-Creation-Date: 2026-10-06T08:16:35+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -2521,51 +2521,51 @@ msgstr ""
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:66
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:62
 msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:83
-msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:94
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:73
 msgid "Npcink Cloud could not project the alt-text Ability contract."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:260
-msgid "WordPress AI alt text generation requires a local WordPress attachment."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:261
-msgid "WordPress AI alt text generation requires one bounded attachment prompt."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:262
-msgid "You are not allowed to use this attachment for Cloud alt text generation."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:263
-msgid "WordPress AI alt text generation requires a local media attachment."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:264
-msgid "The local attachment file is unavailable for Cloud alt text generation."
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:97
+msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
 msgstr ""
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:265
-msgid "The local attachment exceeds the Cloud alt text source size limit."
+msgid "WordPress AI alt text generation requires a local WordPress attachment."
 msgstr ""
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:266
-msgid "The local attachment could not be read for Cloud alt text generation."
+msgid "WordPress AI alt text generation requires one bounded attachment prompt."
 msgstr ""
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:267
-msgid "The local attachment changed before it could be read for Cloud alt text generation."
+msgid "You are not allowed to use this attachment for Cloud alt text generation."
 msgstr ""
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:268
+msgid "WordPress AI alt text generation requires a local media attachment."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:269
+msgid "The local attachment file is unavailable for Cloud alt text generation."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:270
+msgid "The local attachment exceeds the Cloud alt text source size limit."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:271
+msgid "The local attachment could not be read for Cloud alt text generation."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:272
+msgid "The local attachment changed before it could be read for Cloud alt text generation."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:273
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr ""
 

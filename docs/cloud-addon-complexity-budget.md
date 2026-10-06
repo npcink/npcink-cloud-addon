@@ -92,7 +92,7 @@ connector classes so they cannot grow unnoticed:
   handlers and their transient state; the render class stays a projection)
 - `includes/class-cloud-wordpress-ai-connector.php` — 1002 lines (was 2767 before the
   2026-10-06 per-class split into seven satellite files)
-- `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 288 lines
+- `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 338 lines
 - `includes/class-cloud-wordpress-ai-availability.php` — 32 lines
 - `includes/class-cloud-wordpress-ai-image-model.php` — 489 lines
 - `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
@@ -288,10 +288,14 @@ runtime-client 源码、其中约 13 处点名 `normalize_*`；搬移后按失�
      前提；`maca_load_addon_classes()` 不加载本组文件（无 stub 时守卫
      跳过定义，属预期）。
    - POT 引用与 phpstan 基线（本文件 9 条 / 14 处）随搬移改指向。
-4. 去重后续（第二小步，独立评估，不在文件拆分 PR 内做）：
-   ModelInterface 五件套样板 ×3（约 45 行 ×3）、`prompt_text` ×3、
-   `extract_text` ×2、`Availability::isConfigured` 与主类
-   `is_cloud_connector_available` 逻辑相同。
+4. 去重后续（第二小步，2026-10-06 已落地，#225）：ModelInterface
+   五件套样板 ×3 与 `prompt_text`/`extract_text` 重复收敛进抽象基类
+   `Npcink_Cloud_WordPress_AI_Scene_Model`；`Availability::isConfigured`
+   重复保留（收敛需拓宽主类 API，不值得）。
+5. 预存行为加固（#224 顾问审查记录的四条，2026-10-06 已落地）：
+   传输可用性预检与任务契约投影移到本地读取/上传之前（fail-fast）；
+   上传与请求两侧文件名统一为保留扩展名的 160 字符截断；负数与零
+   整数 attachment_id 在 `absint` 归一前拒绝。
 
 ## Media Derivative Transport Paydown Direction (C3 分析, 2026-10-06)
 
