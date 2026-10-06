@@ -56,11 +56,12 @@ $wpai_availability = maca_read( $root . '/includes/class-cloud-wordpress-ai-avai
 $wpai_image_model = maca_read( $root . '/includes/class-cloud-wordpress-ai-image-model.php' );
 $wpai_metadata_directory = maca_read( $root . '/includes/class-cloud-wordpress-ai-model-metadata-directory.php' );
 $wpai_provider = maca_read( $root . '/includes/class-cloud-wordpress-ai-provider.php' );
+$wpai_scene_model = maca_read( $root . '/includes/class-cloud-wordpress-ai-scene-model.php' );
 $wpai_text_model = maca_read( $root . '/includes/class-cloud-wordpress-ai-text-model.php' );
 $wpai_vision_text_model = maca_read( $root . '/includes/class-cloud-wordpress-ai-vision-text-model.php' );
 $wpai_bundle_scope = $wordpress_ai_connector . $wpai_alt_text_handoff . $wpai_availability
 	. $wpai_image_model . $wpai_metadata_directory . $wpai_provider
-	. $wpai_text_model . $wpai_vision_text_model;
+	. $wpai_text_model . $wpai_vision_text_model . $wpai_scene_model;
 $cloud_addon_localization = maca_read( $root . '/includes/class-cloud-addon-localization.php' );
 $ai_plugin_localization = maca_read( $root . '/includes/class-ai-plugin-localization.php' );
 $ai_plugin_localization_js = maca_read( $root . '/assets/ai-plugin-localization.js' );
@@ -948,10 +949,10 @@ maca_assert(
 	&& false !== strpos( $wpai_text_model, "'cloud_connector_result.v1'" )
 	&& false !== strpos( $wpai_image_model, "\$response['data']['result']" )
 	&& false !== strpos( $wpai_image_model, "true !== ( \$result['suggestion_only'] ?? null )" )
-	&& false !== strpos( $wpai_text_model, "'npcink-cloud-addon' !== (string) ( \$result['connector_id'] ?? '' )" )
-	&& false !== strpos( $wpai_text_model, "'wordpress_operation.v1' !== (string) ( \$operation_contract['contract_version'] ?? '' )" )
-	&& false !== strpos( $wpai_text_model, "\$expected_task !== (string) ( \$operation_contract['task'] ?? '' )" )
-	&& false !== strpos( $wpai_text_model, "\$output['output_text']" )
+	&& false !== strpos( $wpai_scene_model, "'npcink-cloud-addon' !== (string) ( \$result['connector_id'] ?? '' )" )
+	&& false !== strpos( $wpai_scene_model, "'wordpress_operation.v1' !== (string) ( \$operation_contract['contract_version'] ?? '' )" )
+	&& false !== strpos( $wpai_scene_model, "\$expected_task !== (string) ( \$operation_contract['task'] ?? '' )" )
+	&& false !== strpos( $wpai_scene_model, "\$output['output_text']" )
 	&& false !== strpos( $wpai_text_model, "'response_format'    => \$this->response_format_hint( \$task, \$task_contract )" )
 	&& false !== strpos( $wpai_text_model, 'function response_format_hint' )
 	&& false === strpos( $wpai_bundle_scope, "'output_schema'      =>" )
@@ -2230,11 +2231,12 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1002,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 288,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
-	'includes/class-cloud-wordpress-ai-image-model.php' => 562,
+	'includes/class-cloud-wordpress-ai-image-model.php' => 489,
+	'includes/class-cloud-wordpress-ai-scene-model.php' => 142,
 	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 178,
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
-	'includes/class-cloud-wordpress-ai-text-model.php' => 503,
-	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 239,
+	'includes/class-cloud-wordpress-ai-text-model.php' => 383,
+	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 119,
 	'includes/class-cloud-media-derivative-transport.php' => 2542,
 );
 foreach ( $complexity_ratchet_limits as $ratchet_path => $ratchet_limit ) {

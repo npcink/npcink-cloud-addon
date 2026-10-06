@@ -43,6 +43,7 @@ namespace {
 	require_once __DIR__ . '/wordpress-ai-client-stubs.php';
 	maca_load_addon_classes();
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-scene-model.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-text-model.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-vision-text-model.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-image-model.php';

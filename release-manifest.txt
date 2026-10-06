@@ -37,6 +37,7 @@ includes/class-cloud-wordpress-ai-connector.php
 includes/class-cloud-wordpress-ai-image-model.php
 includes/class-cloud-wordpress-ai-model-metadata-directory.php
 includes/class-cloud-wordpress-ai-provider.php
+includes/class-cloud-wordpress-ai-scene-model.php
 includes/class-cloud-wordpress-ai-text-model.php
 includes/class-cloud-wordpress-ai-vision-text-model.php
 languages/index.php

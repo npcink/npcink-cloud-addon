@@ -94,11 +94,13 @@ connector classes so they cannot grow unnoticed:
   2026-10-06 per-class split into seven satellite files)
 - `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 288 lines
 - `includes/class-cloud-wordpress-ai-availability.php` — 32 lines
-- `includes/class-cloud-wordpress-ai-image-model.php` — 562 lines
+- `includes/class-cloud-wordpress-ai-image-model.php` — 489 lines
 - `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
-- `includes/class-cloud-wordpress-ai-text-model.php` — 503 lines
-- `includes/class-cloud-wordpress-ai-vision-text-model.php` — 239 lines
+- `includes/class-cloud-wordpress-ai-text-model.php` — 383 lines
+- `includes/class-cloud-wordpress-ai-vision-text-model.php` — 119 lines
+- `includes/class-cloud-wordpress-ai-scene-model.php` — 142 lines (shared
+  metadata/config plumbing and prompt/result projection helpers)
 - `includes/class-cloud-media-derivative-transport.php` — 2542 lines
 
 The ratchet is a ceiling, not a target. Raise a limit only together with a
