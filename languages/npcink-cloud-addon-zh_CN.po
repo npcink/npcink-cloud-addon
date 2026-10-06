@@ -15,7 +15,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:950
+#: includes/bootstrap.php:957
 #: includes/class-cloud-settings-page.php:133
 #: includes/class-cloud-settings-page.php:144
 #: includes/class-cloud-settings-page.php:145
@@ -33,59 +33,59 @@ msgstr "用于 Npcink 托管运行时访问、签名、健康检查和权益摘�
 msgid "Npcink"
 msgstr "Npcink"
 
-#: includes/bootstrap.php:140
-#: includes/bootstrap.php:195
-#: includes/bootstrap.php:225
-#: includes/bootstrap.php:316
-#: includes/bootstrap.php:347
-#: includes/bootstrap.php:378
-#: includes/bootstrap.php:409
-#: includes/bootstrap.php:436
-#: includes/bootstrap.php:463
-#: includes/bootstrap.php:486
-#: includes/bootstrap.php:508
-#: includes/bootstrap.php:595
-#: includes/bootstrap.php:619
-#: includes/bootstrap.php:643
-#: includes/bootstrap.php:651
-#: includes/bootstrap.php:659
-#: includes/bootstrap.php:667
-#: includes/bootstrap.php:675
-#: includes/bootstrap.php:683
-#: includes/bootstrap.php:691
-#: includes/bootstrap.php:707
-#: includes/bootstrap.php:715
+#: includes/bootstrap.php:147
+#: includes/bootstrap.php:202
+#: includes/bootstrap.php:232
+#: includes/bootstrap.php:323
+#: includes/bootstrap.php:354
+#: includes/bootstrap.php:385
+#: includes/bootstrap.php:416
+#: includes/bootstrap.php:443
+#: includes/bootstrap.php:470
+#: includes/bootstrap.php:493
+#: includes/bootstrap.php:515
+#: includes/bootstrap.php:602
+#: includes/bootstrap.php:626
+#: includes/bootstrap.php:650
+#: includes/bootstrap.php:658
+#: includes/bootstrap.php:666
+#: includes/bootstrap.php:674
+#: includes/bootstrap.php:682
+#: includes/bootstrap.php:690
+#: includes/bootstrap.php:698
+#: includes/bootstrap.php:714
+#: includes/bootstrap.php:722
 #: includes/class-cloud-runtime-client.php:1052
 #: includes/class-cloud-runtime-client.php:1158
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr "Npcink Cloud 尚未配置。"
 
-#: includes/bootstrap.php:547
+#: includes/bootstrap.php:554
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr "Toolbox 运行请求超过固定大小限制。"
 
-#: includes/bootstrap.php:561
+#: includes/bootstrap.php:568
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr "Toolbox 运行请求包含固定合同之外的字段。"
 
-#: includes/bootstrap.php:569
+#: includes/bootstrap.php:576
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr "Toolbox 运行限制超出连接器固定策略。"
 
-#: includes/bootstrap.php:591
+#: includes/bootstrap.php:598
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr "Toolbox 内容支持需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:615
+#: includes/bootstrap.php:622
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr "Toolbox 站点助手需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:639
+#: includes/bootstrap.php:646
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr "夜间检查需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:980
+#: includes/bootstrap.php:987
 msgid "Settings"
 msgstr "设置"
 
@@ -1207,7 +1207,7 @@ msgstr "手动就绪测试已完成。连接器已就绪。"
 msgid "Cloud connector status and access settings for this WordPress site."
 msgstr "此 WordPress 站点的 Cloud 连接器状态和访问设置。"
 
-#: includes/bootstrap.php:952
+#: includes/bootstrap.php:959
 #: includes/class-cloud-settings-page.php:198
 msgid "Connect this site"
 msgstr "连接此站点"
@@ -2240,51 +2240,51 @@ msgstr "站点知识库运行时 payload 超过传输大小限制。"
 msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr "使用已验证的 Npcink Cloud 设置，为 WordPress AI 的固定编辑场景提供云端建议能力。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1047
+#: includes/class-cloud-wordpress-ai-provider.php:57
 msgid "Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
 msgstr "通过已验证的 Npcink Cloud 设置处理受限的 WordPress AI 场景任务。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1780
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:66
 msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
 msgstr "WordPress AI 替代文本生成需要经过验证的 Npcink Cloud 设置。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1797
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:83
 msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
 msgstr "Npcink Cloud 未返回有效的替代文本生成源工件。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1974
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:260
 msgid "WordPress AI alt text generation requires a local WordPress attachment."
 msgstr "WordPress AI 替代文本生成需要本地 WordPress 附件。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1975
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:261
 msgid "WordPress AI alt text generation requires one bounded attachment prompt."
 msgstr "WordPress AI 替代文本生成需要一个有边界的附件提示词。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1976
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:262
 msgid "You are not allowed to use this attachment for Cloud alt text generation."
 msgstr "您无权使用此附件进行 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1977
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:263
 msgid "WordPress AI alt text generation requires a local media attachment."
 msgstr "WordPress AI 替代文本生成需要本地媒体附件。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1978
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:264
 msgid "The local attachment file is unavailable for Cloud alt text generation."
 msgstr "本地附件文件无法用于 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1979
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:265
 msgid "The local attachment exceeds the Cloud alt text source size limit."
 msgstr "本地附件超出 Cloud 替代文本源大小限制。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1980
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:266
 msgid "The local attachment could not be read for Cloud alt text generation."
 msgstr "无法读取本地附件以进行 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1981
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:267
 msgid "The local attachment changed before it could be read for Cloud alt text generation."
 msgstr "本地附件在读取前已发生变化，无法进行 Cloud 替代文本生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1982
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:268
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr "本地附件图像类型不受 Cloud 替代文本生成支持。"
 
@@ -2468,7 +2468,7 @@ msgstr "WordPress AI existing_title 上下文仅支持标题生成。"
 msgid "WordPress AI alt-text task_contract must be a normalized object."
 msgstr "WordPress AI 替代文本 task_contract 必须是规范化对象。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:1808
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:94
 msgid "Npcink Cloud could not project the alt-text Ability contract."
 msgstr "Npcink Cloud 无法投影替代文本 Ability 合同。"
 
@@ -2477,11 +2477,11 @@ msgstr "Npcink Cloud 无法投影替代文本 Ability 合同。"
 msgid "https://cloud.npc.ink/"
 msgstr "https://cloud.npc.ink/"
 
-#: includes/bootstrap.php:951
+#: includes/bootstrap.php:958
 msgid "The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features."
 msgstr "插件已启用，但本站点尚未连接 Npcink Cloud。连接站点后即可启用其 AI 功能。"
 
-#: includes/bootstrap.php:954
+#: includes/bootstrap.php:961
 msgid "Do not show again"
 msgstr "不再显示"
 

@@ -9,14 +9,14 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-06T03:08:49+00:00\n"
+"POT-Creation-Date: 2026-10-06T07:10:40+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:950
+#: includes/bootstrap.php:957
 #: includes/class-cloud-settings-page.php:133
 #: includes/class-cloud-settings-page.php:144
 #: includes/class-cloud-settings-page.php:145
@@ -39,72 +39,72 @@ msgstr ""
 msgid "https://cloud.npc.ink/"
 msgstr ""
 
-#: includes/bootstrap.php:140
-#: includes/bootstrap.php:195
-#: includes/bootstrap.php:225
-#: includes/bootstrap.php:316
-#: includes/bootstrap.php:347
-#: includes/bootstrap.php:378
-#: includes/bootstrap.php:409
-#: includes/bootstrap.php:436
-#: includes/bootstrap.php:463
-#: includes/bootstrap.php:486
-#: includes/bootstrap.php:508
-#: includes/bootstrap.php:595
-#: includes/bootstrap.php:619
-#: includes/bootstrap.php:643
-#: includes/bootstrap.php:651
-#: includes/bootstrap.php:659
-#: includes/bootstrap.php:667
-#: includes/bootstrap.php:675
-#: includes/bootstrap.php:683
-#: includes/bootstrap.php:691
-#: includes/bootstrap.php:707
-#: includes/bootstrap.php:715
+#: includes/bootstrap.php:147
+#: includes/bootstrap.php:202
+#: includes/bootstrap.php:232
+#: includes/bootstrap.php:323
+#: includes/bootstrap.php:354
+#: includes/bootstrap.php:385
+#: includes/bootstrap.php:416
+#: includes/bootstrap.php:443
+#: includes/bootstrap.php:470
+#: includes/bootstrap.php:493
+#: includes/bootstrap.php:515
+#: includes/bootstrap.php:602
+#: includes/bootstrap.php:626
+#: includes/bootstrap.php:650
+#: includes/bootstrap.php:658
+#: includes/bootstrap.php:666
+#: includes/bootstrap.php:674
+#: includes/bootstrap.php:682
+#: includes/bootstrap.php:690
+#: includes/bootstrap.php:698
+#: includes/bootstrap.php:714
+#: includes/bootstrap.php:722
 #: includes/class-cloud-runtime-client.php:1052
 #: includes/class-cloud-runtime-client.php:1158
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr ""
 
-#: includes/bootstrap.php:547
+#: includes/bootstrap.php:554
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr ""
 
-#: includes/bootstrap.php:561
+#: includes/bootstrap.php:568
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr ""
 
-#: includes/bootstrap.php:569
+#: includes/bootstrap.php:576
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr ""
 
-#: includes/bootstrap.php:591
+#: includes/bootstrap.php:598
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:615
+#: includes/bootstrap.php:622
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:639
+#: includes/bootstrap.php:646
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:951
+#: includes/bootstrap.php:958
 msgid "The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features."
 msgstr ""
 
-#: includes/bootstrap.php:952
+#: includes/bootstrap.php:959
 #: includes/class-cloud-settings-page.php:198
 msgid "Connect this site"
 msgstr ""
 
-#: includes/bootstrap.php:954
+#: includes/bootstrap.php:961
 msgid "Do not show again"
 msgstr ""
 
-#: includes/bootstrap.php:980
+#: includes/bootstrap.php:987
 msgid "Settings"
 msgstr ""
 
@@ -2521,6 +2521,54 @@ msgstr ""
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr ""
 
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:66
+msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:83
+msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:94
+msgid "Npcink Cloud could not project the alt-text Ability contract."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:260
+msgid "WordPress AI alt text generation requires a local WordPress attachment."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:261
+msgid "WordPress AI alt text generation requires one bounded attachment prompt."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:262
+msgid "You are not allowed to use this attachment for Cloud alt text generation."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:263
+msgid "WordPress AI alt text generation requires a local media attachment."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:264
+msgid "The local attachment file is unavailable for Cloud alt text generation."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:265
+msgid "The local attachment exceeds the Cloud alt text source size limit."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:266
+msgid "The local attachment could not be read for Cloud alt text generation."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:267
+msgid "The local attachment changed before it could be read for Cloud alt text generation."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-alt-text-handoff.php:268
+msgid "The local attachment image type is not supported for Cloud alt text generation."
+msgstr ""
+
 #: includes/class-cloud-wordpress-ai-connector.php:378
 msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr ""
@@ -2589,54 +2637,6 @@ msgstr ""
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:1047
+#: includes/class-cloud-wordpress-ai-provider.php:57
 msgid "Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1780
-msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1797
-msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1808
-msgid "Npcink Cloud could not project the alt-text Ability contract."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1974
-msgid "WordPress AI alt text generation requires a local WordPress attachment."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1975
-msgid "WordPress AI alt text generation requires one bounded attachment prompt."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1976
-msgid "You are not allowed to use this attachment for Cloud alt text generation."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1977
-msgid "WordPress AI alt text generation requires a local media attachment."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1978
-msgid "The local attachment file is unavailable for Cloud alt text generation."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1979
-msgid "The local attachment exceeds the Cloud alt text source size limit."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1980
-msgid "The local attachment could not be read for Cloud alt text generation."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1981
-msgid "The local attachment changed before it could be read for Cloud alt text generation."
-msgstr ""
-
-#: includes/class-cloud-wordpress-ai-connector.php:1982
-msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr ""

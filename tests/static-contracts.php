@@ -51,6 +51,16 @@ $runtime_media_payloads = maca_read( $root . '/includes/class-cloud-runtime-medi
 $runtime_client_factory = maca_read( $root . '/includes/class-cloud-runtime-client-factory.php' );
 $ai_task_contract = maca_read( $root . '/includes/class-cloud-ai-task-contract.php' );
 $wordpress_ai_connector = maca_read( $root . '/includes/class-cloud-wordpress-ai-connector.php' );
+$wpai_alt_text_handoff = maca_read( $root . '/includes/class-cloud-wordpress-ai-alt-text-handoff.php' );
+$wpai_availability = maca_read( $root . '/includes/class-cloud-wordpress-ai-availability.php' );
+$wpai_image_model = maca_read( $root . '/includes/class-cloud-wordpress-ai-image-model.php' );
+$wpai_metadata_directory = maca_read( $root . '/includes/class-cloud-wordpress-ai-model-metadata-directory.php' );
+$wpai_provider = maca_read( $root . '/includes/class-cloud-wordpress-ai-provider.php' );
+$wpai_text_model = maca_read( $root . '/includes/class-cloud-wordpress-ai-text-model.php' );
+$wpai_vision_text_model = maca_read( $root . '/includes/class-cloud-wordpress-ai-vision-text-model.php' );
+$wpai_bundle_scope = $wordpress_ai_connector . $wpai_alt_text_handoff . $wpai_availability
+	. $wpai_image_model . $wpai_metadata_directory . $wpai_provider
+	. $wpai_text_model . $wpai_vision_text_model;
 $cloud_addon_localization = maca_read( $root . '/includes/class-cloud-addon-localization.php' );
 $ai_plugin_localization = maca_read( $root . '/includes/class-ai-plugin-localization.php' );
 $ai_plugin_localization_js = maca_read( $root . '/assets/ai-plugin-localization.js' );
@@ -799,7 +809,7 @@ maca_assert(
 	&& false !== strpos( $wordpress_ai_connector, 'wp_enqueue_style' )
 	&& false !== strpos( $admin_css, 'connector-item--npcink-cloud-addon button.components-button' )
 	&& false !== strpos( $wordpress_ai_connector, 'Npcink_Cloud_Addon_Settings::is_wordpress_ai_connector_enabled()' )
-	&& false === strpos( $wordpress_ai_connector, "get_option( 'secret'" ),
+	&& false === strpos( $wpai_bundle_scope, "get_option( 'secret'" ),
 	'WordPress connector registration projects verified opt-in Cloud settings into one fixed status-only Npcink Cloud card without exposing stored secrets.'
 );
 
@@ -900,61 +910,62 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $wordpress_ai_connector, 'class Npcink_Cloud_WordPress_AI_Provider' )
-	&& false !== strpos( $wordpress_ai_connector, 'class Npcink_Cloud_WordPress_AI_Text_Model' )
-	&& false !== strpos( $wordpress_ai_connector, 'class Npcink_Cloud_WordPress_AI_Vision_Text_Model' )
-	&& false !== strpos( $wordpress_ai_connector, 'class Npcink_Cloud_WordPress_AI_Image_Model' )
-	&& false !== strpos( $wordpress_ai_connector, 'ImageGenerationModelInterface' )
+	false !== strpos( $wpai_provider, 'class Npcink_Cloud_WordPress_AI_Provider' )
+	&& false !== strpos( $wpai_availability, 'class Npcink_Cloud_WordPress_AI_Availability' )
+	&& false !== strpos( $wpai_text_model, 'class Npcink_Cloud_WordPress_AI_Text_Model' )
+	&& false !== strpos( $wpai_vision_text_model, 'class Npcink_Cloud_WordPress_AI_Vision_Text_Model' )
+	&& false !== strpos( $wpai_image_model, 'class Npcink_Cloud_WordPress_AI_Image_Model' )
+	&& false !== strpos( $wpai_image_model, 'ImageGenerationModelInterface' )
 	&& false !== strpos( $wordpress_ai_connector, "VISION_MODEL_ID = 'npcink-cloud-scene-vision'" )
-	&& false !== strpos( $wordpress_ai_connector, 'CapabilityEnum::imageGeneration()' )
+	&& false !== strpos( $wpai_metadata_directory, 'CapabilityEnum::imageGeneration()' )
 	&& false !== strpos( $wordpress_ai_connector, 'wpai_preferred_image_models' )
 	&& false !== strpos( $wordpress_ai_connector, 'wpai_preferred_vision_models' )
-	&& false !== strpos( $wordpress_ai_connector, 'class Npcink_Cloud_WordPress_AI_Alt_Text_Handoff' )
-	&& false !== strpos( $wordpress_ai_connector, 'upload_wordpress_ai_alt_text_source' )
+	&& false !== strpos( $wpai_alt_text_handoff, 'class Npcink_Cloud_WordPress_AI_Alt_Text_Handoff' )
+	&& false !== strpos( $wpai_alt_text_handoff, 'upload_wordpress_ai_alt_text_source' )
 	&& false !== strpos( $wordpress_ai_connector, "add_action( 'wp_before_execute_ability'" )
 	&& false !== strpos( $wordpress_ai_connector, "'ai/alt-text-generation' === \$ability_name" )
 	&& false !== strpos( $wordpress_ai_connector, 'consume_alt_text_ability_context' )
-	&& false !== strpos( $wordpress_ai_connector, 'fstat( $handle )' )
-	&& false !== strpos( $wordpress_ai_connector, 'getimagesizefromstring( $contents )' )
-	&& false === strpos( $wordpress_ai_connector, 'WordPress\\AI\\Abilities\\Image\\Alt_Text_Generation' )
-	&& false !== strpos( $wordpress_ai_connector, "'source_artifact_id' => \$artifact_id" )
-	&& false !== strpos( $wordpress_ai_connector, 'requires a local WordPress attachment' )
-	&& false !== strpos( $wordpress_ai_connector, "'task'             => 'alt_text_suggest'" )
-	&& false !== strpos( $wordpress_ai_connector, 'npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime' )
+	&& false !== strpos( $wpai_alt_text_handoff, 'fstat( $handle )' )
+	&& false !== strpos( $wpai_alt_text_handoff, 'getimagesizefromstring( $contents )' )
+	&& false === strpos( $wpai_bundle_scope, 'WordPress\\AI\\Abilities\\Image\\Alt_Text_Generation' )
+	&& false !== strpos( $wpai_alt_text_handoff, "'source_artifact_id' => \$artifact_id" )
+	&& false !== strpos( $wpai_alt_text_handoff, 'requires a local WordPress attachment' )
+	&& false !== strpos( $wpai_alt_text_handoff, "'task'             => 'alt_text_suggest'" )
+	&& false !== strpos( $wpai_image_model, 'npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime' )
 	&& false !== strpos( $wordpress_ai_connector, "'reference_image_not_supported'" )
-	&& false === strpos( $wordpress_ai_connector, "'response_format'  => \$this->response_format()" )
-	&& false === strpos( $wordpress_ai_connector, 'private function response_format(): string' )
-	&& false !== strpos( $wordpress_ai_connector, 'detect_scene_ability_name' )
-	&& false !== strpos( $wordpress_ai_connector, 'WordPress\\\\AI\\\\Abilities\\\\Title_Generation\\\\Title_Generation' )
-	&& false !== strpos( $wordpress_ai_connector, "'scene_not_supported', 'cloud_wp_ai_scene_not_supported'" )
-	&& false !== strpos( $wordpress_ai_connector, "'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported'" )
-	&& false !== strpos( $wordpress_ai_connector, "'tools_not_supported', 'cloud_wp_ai_tools_not_supported'" )
-	&& false !== strpos( $wordpress_ai_connector, 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime(' )
-	&& false !== strpos( $wordpress_ai_connector, "\$scene_input['source_text'] = \$text" )
-	&& false !== strpos( $wordpress_ai_connector, "\$scene_input['taxonomy']" )
-	&& false !== strpos( $wordpress_ai_connector, "\$scene_input['strategy']" )
-	&& false !== strpos( $wordpress_ai_connector, "\$scene_input['max_suggestions']" )
-	&& false !== strpos( $wordpress_ai_connector, "'cloud_connector_result.v1'" )
-	&& false !== strpos( $wordpress_ai_connector, "\$response['data']['result']" )
-	&& false !== strpos( $wordpress_ai_connector, "true !== ( \$result['suggestion_only'] ?? null )" )
-	&& false !== strpos( $wordpress_ai_connector, "'npcink-cloud-addon' !== (string) ( \$result['connector_id'] ?? '' )" )
-	&& false !== strpos( $wordpress_ai_connector, "'wordpress_operation.v1' !== (string) ( \$operation_contract['contract_version'] ?? '' )" )
-	&& false !== strpos( $wordpress_ai_connector, "\$expected_task !== (string) ( \$operation_contract['task'] ?? '' )" )
-	&& false !== strpos( $wordpress_ai_connector, "\$output['output_text']" )
-	&& false !== strpos( $wordpress_ai_connector, "'response_format'    => \$this->response_format_hint( \$task, \$task_contract )" )
-	&& false !== strpos( $wordpress_ai_connector, 'function response_format_hint' )
-	&& false === strpos( $wordpress_ai_connector, "'output_schema'      =>" )
+	&& false === strpos( $wpai_bundle_scope, "'response_format'  => \$this->response_format()" )
+	&& false === strpos( $wpai_bundle_scope, 'private function response_format(): string' )
+	&& false !== strpos( $wpai_text_model, 'detect_scene_ability_name' )
+	&& false !== strpos( $wpai_text_model, 'WordPress\\\\AI\\\\Abilities\\\\Title_Generation\\\\Title_Generation' )
+	&& false !== strpos( $wpai_text_model, "'scene_not_supported', 'cloud_wp_ai_scene_not_supported'" )
+	&& false !== strpos( $wpai_image_model, "'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported'" )
+	&& false !== strpos( $wpai_image_model, "'tools_not_supported', 'cloud_wp_ai_tools_not_supported'" )
+	&& false !== strpos( $wpai_alt_text_handoff, 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime(' )
+	&& false !== strpos( $wpai_text_model, "\$scene_input['source_text'] = \$text" )
+	&& false !== strpos( $wpai_text_model, "\$scene_input['taxonomy']" )
+	&& false !== strpos( $wpai_text_model, "\$scene_input['strategy']" )
+	&& false !== strpos( $wpai_text_model, "\$scene_input['max_suggestions']" )
+	&& false !== strpos( $wpai_text_model, "'cloud_connector_result.v1'" )
+	&& false !== strpos( $wpai_image_model, "\$response['data']['result']" )
+	&& false !== strpos( $wpai_image_model, "true !== ( \$result['suggestion_only'] ?? null )" )
+	&& false !== strpos( $wpai_text_model, "'npcink-cloud-addon' !== (string) ( \$result['connector_id'] ?? '' )" )
+	&& false !== strpos( $wpai_text_model, "'wordpress_operation.v1' !== (string) ( \$operation_contract['contract_version'] ?? '' )" )
+	&& false !== strpos( $wpai_text_model, "\$expected_task !== (string) ( \$operation_contract['task'] ?? '' )" )
+	&& false !== strpos( $wpai_text_model, "\$output['output_text']" )
+	&& false !== strpos( $wpai_text_model, "'response_format'    => \$this->response_format_hint( \$task, \$task_contract )" )
+	&& false !== strpos( $wpai_text_model, 'function response_format_hint' )
+	&& false === strpos( $wpai_bundle_scope, "'output_schema'      =>" )
 	&& false === strpos( $wordpress_ai_connector, 'wp_ai_connector_' . 'result.v1' )
-	&& false === strpos( $wordpress_ai_connector, 'chat/completions' )
-	&& false === strpos( $wordpress_ai_connector, 'OpenAiCompatible' ),
+	&& false === strpos( $wpai_bundle_scope, 'chat/completions' )
+	&& false === strpos( $wpai_bundle_scope, 'OpenAiCompatible' ),
 	'AI Client provider is scene-gated to known WordPress AI abilities and does not expose an OpenAI-compatible chat proxy or deep schema payload.'
 );
 
 maca_assert(
 	false !== strpos( $wordpress_ai_connector, 'function user_facing_connector_error' )
 	&& false !== strpos( $wordpress_ai_connector, 'function user_facing_runtime_failure' )
-	&& 0 === preg_match( '#RuntimeException\((?!\s*Npcink_Cloud_WordPress_AI_Connector::user_facing)#', $wordpress_ai_connector )
-	&& 0 === substr_count( $wordpress_ai_connector, 'RuntimeException( (string) $attachment_id->get_error_message() )' ),
+	&& 0 === preg_match( '#RuntimeException\((?!\s*Npcink_Cloud_WordPress_AI_Connector::user_facing)#', $wpai_bundle_scope )
+	&& 0 === substr_count( $wpai_bundle_scope, 'RuntimeException( (string) $attachment_id->get_error_message() )' ),
 	'AI Client connector exceptions surface bounded, translated, code-tagged user messages instead of raw developer strings.'
 );
 
@@ -979,12 +990,12 @@ maca_assert(
 	&& false !== strpos( $wordpress_ai_connector, "'suggestion_only'            => true" )
 	&& false !== strpos( $wordpress_ai_connector, "'direct_wordpress_write'     => false" )
 	&& false !== strpos( $wordpress_ai_connector, 'omitted_metadata_only' )
-	&& false !== strpos( $wordpress_ai_connector, "'operation'                  => 'npcink-cloud/connector-runtime'" )
-	&& false !== strpos( $wordpress_ai_connector, "'operation_contract_version' => 'wordpress_operation.v1'" )
+	&& false !== strpos( $wpai_text_model, "'operation'                  => 'npcink-cloud/connector-runtime'" )
+	&& false !== strpos( $wpai_text_model, "'operation_contract_version' => 'wordpress_operation.v1'" )
 	&& false !== strpos( $wordpress_ai_connector, "'channel'                    => 'editor'" )
 	&& false !== strpos( $wordpress_ai_connector, "'connector_id'               => 'npcink-cloud-addon'" )
-	&& false === strpos( $wordpress_ai_connector, "'input_preview'" )
-	&& false === strpos( $wordpress_ai_connector, "'output_preview'" ),
+	&& false === strpos( $wpai_bundle_scope, "'input_preview'" )
+	&& false === strpos( $wpai_bundle_scope, "'output_preview'" ),
 	'WordPress AI request log bridge is metadata-only and does not persist prompt or output previews.'
 );
 
@@ -1734,12 +1745,12 @@ maca_assert(
 	&& false !== strpos( $settings, "'wordpress_ai_connector_enabled'" )
 	&& false !== strpos( $settings, 'is_site_knowledge_generation_reference_enabled' )
 	&& false !== strpos( $settings, "'site_knowledge_generation_reference_enabled'" )
-	&& false !== strpos( $wordpress_ai_connector, "'site_knowledge_reference'" )
-	&& false !== strpos( $wordpress_ai_connector, "'site_title_style'" )
-	&& false !== strpos( $wordpress_ai_connector, "'site_summary_style'" )
-	&& false === strpos( $wordpress_ai_connector, "'site_excerpt_style'" )
-	&& false === strpos( $wordpress_ai_connector, "'site_meta_style'" )
-	&& false === strpos( $wordpress_ai_connector, "'site_taxonomy_history'" )
+	&& false !== strpos( $wpai_text_model, "'site_knowledge_reference'" )
+	&& false !== strpos( $wpai_text_model, "'site_title_style'" )
+	&& false !== strpos( $wpai_text_model, "'site_summary_style'" )
+	&& false === strpos( $wpai_bundle_scope, "'site_excerpt_style'" )
+	&& false === strpos( $wpai_bundle_scope, "'site_meta_style'" )
+	&& false === strpos( $wpai_bundle_scope, "'site_taxonomy_history'" )
 	&& false !== strpos( $runtime_guards, 'normalize_wordpress_ai_site_knowledge_reference' )
 	&& false !== strpos( $settings_actions, "ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission'" )
 	&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_UPDATE_LOCAL_PERMISSION" )
@@ -2216,7 +2227,14 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
 	'includes/class-cloud-settings-page.php'           => 2207,
 	'includes/class-cloud-settings-actions.php'        => 1106,
-	'includes/class-cloud-wordpress-ai-connector.php'  => 2767,
+	'includes/class-cloud-wordpress-ai-connector.php'  => 1002,
+	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 288,
+	'includes/class-cloud-wordpress-ai-availability.php' => 32,
+	'includes/class-cloud-wordpress-ai-image-model.php' => 562,
+	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 178,
+	'includes/class-cloud-wordpress-ai-provider.php' => 79,
+	'includes/class-cloud-wordpress-ai-text-model.php' => 503,
+	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 239,
 	'includes/class-cloud-media-derivative-transport.php' => 2542,
 );
 foreach ( $complexity_ratchet_limits as $ratchet_path => $ratchet_limit ) {

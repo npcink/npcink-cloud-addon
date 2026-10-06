@@ -173,6 +173,7 @@ namespace {
 	}
 
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-alt-text-handoff.php';
 
 	$fixture_root = sys_get_temp_dir() . '/npcink-alt-text-' . bin2hex( random_bytes( 6 ) );
 	$upload_root  = $fixture_root . '/uploads';

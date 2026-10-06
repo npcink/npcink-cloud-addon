@@ -43,6 +43,9 @@ namespace {
 	require_once __DIR__ . '/wordpress-ai-client-stubs.php';
 	maca_load_addon_classes();
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-text-model.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-vision-text-model.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-image-model.php';
 
 	if ( ! function_exists( 'get_post' ) ) {
 		/**
@@ -278,10 +281,14 @@ namespace {
 		'Behavior: image candidate recovery uses only the signed artifact pull and verified-transfer ACK endpoints.'
 	);
 	$connector_source = file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php' );
+	$image_model_source = file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-image-model.php' );
+	$legacy_bypass_scope = ( is_string( $connector_source ) ? $connector_source : '' )
+		. ( is_string( $image_model_source ) ? $image_model_source : '' );
 	maca_assert(
 		is_string( $connector_source )
-		&& false === strpos( $connector_source, "\$result['images']" )
-		&& false === strpos( $connector_source, "\$image['url']" ),
+		&& is_string( $image_model_source )
+		&& false === strpos( $legacy_bypass_scope, "\$result['images']" )
+		&& false === strpos( $legacy_bypass_scope, "\$image['url']" ),
 		'Behavior: the WordPress AI image connector has no legacy inline Base64 or URL result bypass.'
 	);
 

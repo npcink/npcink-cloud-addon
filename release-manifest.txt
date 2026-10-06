@@ -31,7 +31,14 @@ includes/class-cloud-site-knowledge-admin-actions.php
 includes/class-cloud-site-knowledge-admin-projection.php
 includes/class-cloud-site-knowledge-change-bridge.php
 includes/class-cloud-site-knowledge-runtime-bridge.php
+includes/class-cloud-wordpress-ai-alt-text-handoff.php
+includes/class-cloud-wordpress-ai-availability.php
 includes/class-cloud-wordpress-ai-connector.php
+includes/class-cloud-wordpress-ai-image-model.php
+includes/class-cloud-wordpress-ai-model-metadata-directory.php
+includes/class-cloud-wordpress-ai-provider.php
+includes/class-cloud-wordpress-ai-text-model.php
+includes/class-cloud-wordpress-ai-vision-text-model.php
 languages/index.php
 languages/npcink-cloud-addon-zh_CN.mo
 languages/npcink-cloud-addon-zh_CN.po
