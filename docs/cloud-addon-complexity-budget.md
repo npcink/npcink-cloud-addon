@@ -90,7 +90,15 @@ connector classes so they cannot grow unnoticed:
   2026-10-04 handler split into `class-cloud-settings-actions.php`)
 - `includes/class-cloud-settings-actions.php` — 1106 lines (settings request
   handlers and their transient state; the render class stays a projection)
-- `includes/class-cloud-wordpress-ai-connector.php` — 2767 lines
+- `includes/class-cloud-wordpress-ai-connector.php` — 1002 lines (was 2767 before the
+  2026-10-06 per-class split into seven satellite files)
+- `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 288 lines
+- `includes/class-cloud-wordpress-ai-availability.php` — 32 lines
+- `includes/class-cloud-wordpress-ai-image-model.php` — 562 lines
+- `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
+- `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
+- `includes/class-cloud-wordpress-ai-text-model.php` — 503 lines
+- `includes/class-cloud-wordpress-ai-vision-text-model.php` — 239 lines
 - `includes/class-cloud-media-derivative-transport.php` — 2542 lines
 
 The ratchet is a ceiling, not a target. Raise a limit only together with a
@@ -254,7 +262,7 @@ runtime-client 源码、其中约 13 处点名 `normalize_*`；搬移后按失�
 包裹 7 个卫星类。这与仓库其余部分一类一文件的惯例冲突，是下一个机械拆分
 目标。
 
-拆分方向（第一小步，纯文件拆分，零行为变化）：
+拆分方向（第一小步，纯文件拆分，零行为变化，2026-10-06 已落地）：
 
 1. 主文件留守 `Npcink_Cloud_WordPress_AI_Connector`（约 1000 行）；7 个
    卫星类各入独立文件，按字母序接线：`alt-text-handoff`(268 行)、
