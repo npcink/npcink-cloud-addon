@@ -47,6 +47,7 @@ $transport = maca_read( $root . '/includes/class-cloud-media-derivative-transpor
 $runtime_client = maca_read( $root . '/includes/class-cloud-runtime-client.php' );
 $runtime_guards = maca_read( $root . '/includes/class-cloud-runtime-request-guards.php' );
 $runtime_diagnostics = maca_read( $root . '/includes/class-cloud-runtime-diagnostics.php' );
+$runtime_media_payloads = maca_read( $root . '/includes/class-cloud-runtime-media-payloads.php' );
 $runtime_client_factory = maca_read( $root . '/includes/class-cloud-runtime-client-factory.php' );
 $ai_task_contract = maca_read( $root . '/includes/class-cloud-ai-task-contract.php' );
 $wordpress_ai_connector = maca_read( $root . '/includes/class-cloud-wordpress-ai-connector.php' );
@@ -746,16 +747,16 @@ maca_assert(
 	false !== strpos( $runtime_client, 'function upload_wordpress_ai_alt_text_source' )
 	&& false !== strpos( $runtime_client, "'/v1/runtime/media/uploads'" )
 	&& false !== strpos( $runtime_client, 'WP_AI_ALT_TEXT_MAX_UPLOAD_BYTES = 8388608' )
-	&& false !== strpos( $runtime_client, 'WP_AI_ALT_TEXT_MIN_ARTIFACT_TTL_SECONDS = 120' )
+	&& false !== strpos( $runtime_media_payloads, 'WP_AI_ALT_TEXT_MIN_ARTIFACT_TTL_SECONDS = 120' )
 	&& false !== strpos( $runtime_client, "Npcink_Cloud_Addon_Settings::is_verified()" )
 	&& false !== strpos( $runtime_client, "'request_contract_version' => 'media_upload_request.v1'" )
 	&& false !== strpos( $runtime_client, "'media_kind'              => 'image'" )
 	&& false !== strpos( $runtime_client, "'ttl_minutes'             => 30" )
-	&& false !== strpos( $runtime_client, 'build_media_upload_multipart_body' )
-	&& false !== strpos( $runtime_client, 'name="file"; filename="' )
-	&& false !== strpos( $runtime_client, "'/^art_[0-9a-f]{32}$/'" )
-	&& false !== strpos( $runtime_client, "'sha256:' . hash( 'sha256', \$contents )" )
-	&& false !== strpos( $runtime_client, "'artifact_id'    => \$artifact['artifact_id']" )
+	&& false !== strpos( $runtime_media_payloads, 'build_media_upload_multipart_body' )
+	&& false !== strpos( $runtime_media_payloads, 'name="file"; filename="' )
+	&& false !== strpos( $runtime_media_payloads, "'/^art_[0-9a-f]{32}$/'" )
+	&& false !== strpos( $runtime_media_payloads, "'sha256:' . hash( 'sha256', \$contents )" )
+	&& false !== strpos( $runtime_media_payloads, "'artifact_id'    => \$artifact['artifact_id']" )
 	&& false !== strpos( $runtime_guards, "array( 'source_artifact_id', 'prompt', 'filename', 'title', 'existing_alt', 'existing_caption', 'locale', 'max_tokens', 'task_contract' )" )
 	&& false !== strpos( $runtime_guards, 'wordpress_ai_scene_contains_obvious_pii' )
 	&& false !== strpos( $runtime_guards, "\$contains_pii ? 'pii' : 'internal'" )
@@ -1044,8 +1045,8 @@ maca_assert(
 	&& false !== strpos( $runtime_client, "'/v1/runtime/media/jobs'" )
 	&& false !== strpos( $runtime_client, 'media_upload_request.v1' )
 	&& false !== strpos( $runtime_client, 'media_job_request.v1' )
-	&& false !== strpos( $runtime_client, "'checksum', 'expires_at', 'purged_at'" )
-	&& false !== strpos( $runtime_client, "null === ( \$artifact['purged_at'] ?? null )" )
+	&& false !== strpos( $runtime_media_payloads, "'checksum', 'expires_at', 'purged_at'" )
+	&& false !== strpos( $runtime_media_payloads, "null === ( \$artifact['purged_at'] ?? null )" )
 	&& false === strpos( $runtime_client, '/v1/runtime/media-derivatives' ),
 	'Runtime client hard-cuts media work to exact11 available uploads followed by artifact-referenced jobs.'
 );
@@ -2209,7 +2210,8 @@ maca_assert(
 // complexity may stay, but these files must not grow unnoticed: raise a limit
 // only with a documented reason in docs/cloud-addon-complexity-budget.md.
 $complexity_ratchet_limits = array(
-	'includes/class-cloud-runtime-client.php'          => 1968,
+	'includes/class-cloud-runtime-client.php'          => 1714,
+	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
 	'includes/class-cloud-settings-page.php'           => 2207,
