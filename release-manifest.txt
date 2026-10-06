@@ -22,6 +22,7 @@ includes/class-cloud-outbound-policy.php
 includes/class-cloud-runtime-client.php
 includes/class-cloud-runtime-client-factory.php
 includes/class-cloud-runtime-endpoint-policy.php
+includes/class-cloud-runtime-request-guards.php
 includes/class-cloud-settings-actions.php
 includes/class-cloud-settings-page.php
 includes/class-cloud-site-knowledge-admin-actions.php
