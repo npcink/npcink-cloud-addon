@@ -71,16 +71,21 @@ Is this transport/detail, or is it control/write truth?
 `tests/static-contracts.php` enforces a line-count ratchet on the four widest
 connector classes so they cannot grow unnoticed:
 
-- `includes/class-cloud-runtime-client.php` — 1968 lines (was 4314 before the
+- `includes/class-cloud-runtime-client.php` — 1714 lines (was 4314 before the
   2026-10-06 payload-guard split, then 2324 before the same-day diagnostics
-  split into `class-cloud-runtime-request-guards.php` and
-  `class-cloud-runtime-diagnostics.php`)
+  split, then 1968 before the same-day media-payload split into
+  `class-cloud-runtime-request-guards.php`,
+  `class-cloud-runtime-diagnostics.php`, and
+  `class-cloud-runtime-media-payloads.php`)
 - `includes/class-cloud-runtime-request-guards.php` — 2020 lines (pure
   `normalize_*` request validators, forbidden-key walkers, PII scan, and
   bounded-text/sanitize helpers with zero instance state)
 - `includes/class-cloud-runtime-diagnostics.php` — 387 lines (static readiness
   projection and secret redaction over probe arrays and the caller's
   configuration snapshot)
+- `includes/class-cloud-runtime-media-payloads.php` — 280 lines (static
+  multipart assembly and exact upload/delivery-ack response validation for
+  the bounded media endpoints)
 - `includes/class-cloud-settings-page.php` — 2207 lines (was 3280 before the
   2026-10-04 handler split into `class-cloud-settings-actions.php`)
 - `includes/class-cloud-settings-actions.php` — 1106 lines (settings request
@@ -223,8 +228,13 @@ bootstrap/POT/打包/Playground 门禁）：
    落地结果：runtime-client 2324 → 1968 行，诊断类 387 行；配置快照与
    `is_configured` 由调用点注入，留守的错误归一化跨类调用
    `redact_support_text`，`MAX_ERROR_MESSAGE_CHARS` 随移。
-3. **媒体传输规范化（约 450 行，视纯度并入第 1 步或独立）**：
-   multipart 构建与 upload/ack 响应规范化。
+3. **媒体传输规范化（约 450 行，视纯度并入第 1 步或独立，2026-10-06 已独立落地）**：
+   multipart 构建与 upload/ack 响应规范化 →
+   `Npcink_Cloud_Runtime_Media_Payloads`（280 行，五个方法本已纯，无参数化改写）。
+   落地结果：runtime-client 1968 → 1714 行；`MEDIA_UPLOAD_FORMATS` 与
+   `WP_AI_ALT_TEXT_UPLOAD_FORMATS` 因传输侧共用改为公开常量跨类引用，
+   `WP_AI_ALT_TEXT_MIN_ARTIFACT_TTL_SECONDS` 随移，`strict_media_timestamp`
+   保持私有静态。
 4. **签名传输内核（保留不动）**：`request`/`request_raw`/`decode_*`/
    `build_signed_headers`/nonce/traceparent/错误归一化绑定实例凭据，
    留在客户端；`behavior-runtime-endpoint-policy` 与
