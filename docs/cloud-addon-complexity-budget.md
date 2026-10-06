@@ -244,3 +244,73 @@ bootstrap/POT/打包/Playground 门禁）：
 契约耦合提示：`tests/static-contracts.php` 有约 179 处引用
 runtime-client 源码、其中约 13 处点名 `normalize_*`；搬移后按失败驱动
 逐一重定向（与设置页拆分同法）。
+
+## WordPress AI Connector Paydown Direction (C2 分析, 2026-10-06)
+
+对 `class-cloud-wordpress-ai-connector.php`（2767 行）的结构盘点：单个文件
+包裹 8 个类，外层 `! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' )`
+守卫只含主连接器门面（18–1001，钩子注册、请求级证据状态、错误目录），内层
+`AbstractProvider + 两个 Contracts 接口 + ! Provider` 条件守卫（1004–2767）
+包裹 7 个卫星类。这与仓库其余部分一类一文件的惯例冲突，是下一个机械拆分
+目标。
+
+拆分方向（第一小步，纯文件拆分，零行为变化）：
+
+1. 主文件留守 `Npcink_Cloud_WordPress_AI_Connector`（约 1000 行）；7 个
+   卫星类各入独立文件，按字母序接线：`alt-text-handoff`(268 行)、
+   `availability`(11)、`image-model`(540)、`model-metadata-directory`(156)、
+   `provider`(56)、`text-model`(481)、`vision-text-model`(217)。
+2. 卫星文件守卫必须按各自身依赖重写：provider 需
+   `class_exists( AbstractProvider )`，availability/metadata-directory 需
+   各自 `interface_exists`，三个模型类需 `ModelInterface` 及生成接口，
+   alt-text-handoff 仅需 `! class_exists( 自身 )`。**不能沿用整块
+   `! class_exists( Provider )` 条件**：拆分后第二个文件起会因 Provider
+   已定义而跳过自身类定义。
+3. 已知坑：
+   - `detect_scene_ability_name` 使用 `debug_backtrace` 且自述为 legacy
+     兼容桥——按类拆文件不改变调用栈深度（方法原样搬移）；后续在这些
+     类内部抽方法会改变栈帧，需先核对它的栈深假设。
+   - 4 个行为测试直接 `require` 主文件并读其源码断言
+     （alt-text-artifact-handoff、connector-registration、
+     provider-acceptance、connector-result）：需逐一补 require 卫星
+     文件并按失败驱动重定向源码断言。
+   - `tests/wordpress-ai-client-stubs.php` 的空接口 stub 是卫星类定义的
+     前提；`maca_load_addon_classes()` 不加载本组文件（无 stub 时守卫
+     跳过定义，属预期）。
+   - POT 引用与 phpstan 基线（本文件 9 条 / 14 处）随搬移改指向。
+4. 去重后续（第二小步，独立评估，不在文件拆分 PR 内做）：
+   ModelInterface 五件套样板 ×3（约 45 行 ×3）、`prompt_text` ×3、
+   `extract_text` ×2、`Availability::isConfigured` 与主类
+   `is_cloud_connector_available` 逻辑相同。
+
+## Media Derivative Transport Paydown Direction (C3 分析, 2026-10-06)
+
+对 `class-cloud-media-derivative-transport.php`（2542 行）的结构盘点：
+单一全静态类，零实例状态，接缝已盘出，按序拆分：
+
+1. **本地源/上传校验（约 200 行，WP 文件系统绑定）**：
+   `normalize_upload_file_descriptor`、`is_allowed_upload_file_path`、
+   descriptor 系列助手。
+2. **工件描述符验证与已验证传输（约 400 行）**：
+   `receive_artifact`、`normalize_artifact_descriptor`、
+   `normalize_local_proposal_artifact`、`strict_timestamp`、
+   `normalize_sha256`。
+3. **治理金丝雀严格校验（约 240 行，纯）**：`normalize_governance_canary_result`
+   及其投影。
+4. **本地提案/优化计划投影（约 300 行，纯）**：
+   `build_local_proposal_payload`、`build_media_optimization_payload`、
+   `media_optimization_plan_from_derivative_payload` 及计划助手。
+5. **Cloud 任务编排留守**（`dispatch_from_ability_response` +
+   `build_media_job_params` + `verified_client`，唯一状态触点为
+   `Npcink_Cloud_Addon_Settings`）。
+
+重复收口（拆分时顺手或独立小 PR）：两个 artifact descriptor 规范化约
+80% 重叠、`$mime_by_format` 映射逐字两份；跨文件重复三项——
+`strict_timestamp` 与 Image_Model 的 `strict_image_timestamp` 同源（后者
+多 `+00:00` 偏移要求）、`MAX_IMAGE_BYTES` 与传输类 `MAX_UPLOAD_BYTES`
+同值、`receive_artifact` 与 `download_artifact_images` 的 delivery-ack
+验证块逐字段平行（跨两个集成面，只在顺手时统一，不单独开 PR）。
+
+执行顺序：C2 文件拆分先行（每步独立 PR，沿用 runtime 拆分方法论），
+C3 在 C2 合并后进行。settings-page 披露标记合并收益实测仅约 40–70 行，
+暂缓；phpstan 基线按 2026-10-06 分类维持机会主义收缩，不开专项。
