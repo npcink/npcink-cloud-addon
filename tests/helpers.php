@@ -548,7 +548,9 @@ function maca_load_addon_classes(): void {
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-client.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-client-factory.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-entitlement-summary.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-media-artifact-verification.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-media-derivative-transport.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-media-source-validation.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-observability-collector.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-customer-journey.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-editor-assist-quality.php';
