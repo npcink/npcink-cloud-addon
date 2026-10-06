@@ -105,8 +105,12 @@ connector classes so they cannot grow unnoticed:
   the 2026-10-06 source-validation and artifact-verification split into
   `class-cloud-media-source-validation.php` and
   `class-cloud-media-artifact-verification.php`)
-- `includes/class-cloud-media-artifact-verification.php` — 636 lines (descriptor
-  verification, verified pull-and-ack transfer, and the shared caps/normalizers)
+- `includes/class-cloud-media-artifact-verification.php` — 699 lines (descriptor
+  verification, verified pull-and-ack transfer, and the shared caps/normalizers;
+  raised from 636 with reason: the 2026-10-06 descriptor-normalizer dedup
+  single-sources the seven validation rules the two normalizers previously
+  duplicated inline — error mapping, check order, codes, and messages are
+  unchanged and future bound changes now touch exactly one place)
 - `includes/class-cloud-media-source-validation.php` — 279 lines (local upload
   descriptor validation before job dispatch)
 - `includes/class-cloud-media-governance-validation.php` — 281 lines (strict
@@ -339,12 +343,16 @@ runtime-client 源码、其中约 13 处点名 `normalize_*`；搬移后按失�
    `Npcink_Cloud_Addon_Settings`）。落地结果：transport 1664 → 714 行，
    E 对治理类的过渡性跨类调用改指新类，双向耦合关闭。
 
-重复收口（拆分时顺手或独立小 PR）：两个 artifact descriptor 规范化约
-80% 重叠、`$mime_by_format` 映射逐字两份；跨文件重复三项——
-`strict_timestamp` 与 Image_Model 的 `strict_image_timestamp` 同源（后者
-多 `+00:00` 偏移要求）、`MAX_IMAGE_BYTES` 与传输类 `MAX_UPLOAD_BYTES`
-同值、`receive_artifact` 与 `download_artifact_images` 的 delivery-ack
-验证块逐字段平行（跨两个集成面，只在顺手时统一，不单独开 PR）。
+重复收口（拆分时顺手或独立小 PR）：`$mime_by_format` 映射已在 #227
+收敛；两个 artifact descriptor 规范化器的共享校验规则已于 2026-10-06
+单源化为七个私有谓词助手（filename_basis 形状、suggested_filename
+上界、mime/format 一致、几何、字节上界、警告计数与逐条上界），错误
+码/消息/检查顺序逐一保持，验证类棘轮随调升并记录理由。剩余跨文件
+重复三项——`strict_timestamp` 与 Image_Model 的 `strict_image_timestamp`
+同源（后者多 `+00:00` 偏移要求）、`MAX_IMAGE_BYTES` 与验证类
+`MAX_UPLOAD_BYTES` 同值、`receive_artifact` 与 `download_artifact_images`
+的 delivery-ack 验证块逐字段平行（跨两个集成面，只在顺手时统一，
+不单独开 PR）。
 
 执行顺序：C2 文件拆分先行（每步独立 PR，沿用 runtime 拆分方法论），
 C3 在 C2 合并后进行。settings-page 披露标记合并收益实测仅约 40–70 行，
