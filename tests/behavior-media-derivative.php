@@ -973,7 +973,7 @@ foreach ( array( 'missing_qualified', 'unknown_decision_field', 'unknown_transfo
 	);
 }
 
-$proposal = Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
+$proposal = Npcink_Cloud_Media_Plan_Projection::build_local_proposal_payload(
 	maca_ability_fixture(),
 	$projection,
 	$projection['artifact']
@@ -1004,7 +1004,7 @@ maca_seed_settings( true );
 $GLOBALS['maca_http_response_queue'][] = maca_governance_canary_run_result_response( 'ready', $canary_cloud_artifact );
 $ready_canary_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_governance_1', 'trace-governance-ready' );
 $ready_canary_proposal = is_array( $ready_canary_result )
-	? Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
+	? Npcink_Cloud_Media_Plan_Projection::build_local_proposal_payload(
 		maca_ability_fixture(),
 		$ready_canary_result,
 		$ready_canary_result['artifact']
@@ -1098,7 +1098,7 @@ $boundary_cloud_artifact['height'] = 2048;
 $GLOBALS['maca_http_response_queue'][] = maca_cloud_run_result_response( $boundary_cloud_artifact );
 $boundary_cloud_result = Npcink_Cloud_Media_Derivative_Transport::get_run_result_projection( 'run_media_1', 'trace-boundary-area' );
 $boundary_proposal = is_array( $boundary_cloud_result )
-	? Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
+	? Npcink_Cloud_Media_Plan_Projection::build_local_proposal_payload(
 		maca_ability_fixture(),
 		$boundary_cloud_result,
 		$boundary_cloud_result['artifact']

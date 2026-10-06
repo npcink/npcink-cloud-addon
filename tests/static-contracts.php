@@ -46,6 +46,8 @@ $runtime_endpoint_policy = maca_read( $root . '/includes/class-cloud-runtime-end
 $transport = maca_read( $root . '/includes/class-cloud-media-derivative-transport.php' );
 $media_artifact_verification = maca_read( $root . '/includes/class-cloud-media-artifact-verification.php' );
 $media_source_validation = maca_read( $root . '/includes/class-cloud-media-source-validation.php' );
+$media_governance_validation = maca_read( $root . '/includes/class-cloud-media-governance-validation.php' );
+$media_plan_projection = maca_read( $root . '/includes/class-cloud-media-plan-projection.php' );
 $runtime_client = maca_read( $root . '/includes/class-cloud-runtime-client.php' );
 $runtime_guards = maca_read( $root . '/includes/class-cloud-runtime-request-guards.php' );
 $runtime_diagnostics = maca_read( $root . '/includes/class-cloud-runtime-diagnostics.php' );
@@ -1112,7 +1114,7 @@ maca_assert(
 	&& false !== strpos( $transport, 'get_run_projection' )
 	&& false !== strpos( $transport, 'get_run_result_projection' )
 	&& false !== strpos( $transport, 'public_cloud_projection' )
-	&& false !== strpos( $transport, 'build_media_optimization_payload' )
+	&& false !== strpos( $media_plan_projection, 'build_media_optimization_payload' )
 	&& false !== strpos( $transport, 'build_media_job_params' )
 	&& false !== strpos( $transport, 'build_media_job_request' )
 	&& false !== strpos( $transport, 'normalize_upload_file_descriptor' )
@@ -1139,35 +1141,35 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $transport, 'contains_forbidden_secret_fields' )
-	&& false !== strpos( $transport, "'credentials'" )
-	&& false !== strpos( $transport, "'authorization'" )
-	&& false !== strpos( $transport, "'signed_headers'" )
-	&& false !== strpos( $transport, "'x_magick_signature'" ),
+	false !== strpos( $media_plan_projection, 'contains_forbidden_secret_fields' )
+	&& false !== strpos( $media_plan_projection, "'credentials'" )
+	&& false !== strpos( $media_plan_projection, "'authorization'" )
+	&& false !== strpos( $media_plan_projection, "'signed_headers'" )
+	&& false !== strpos( $media_plan_projection, "'x_magick_signature'" ),
 	'Media derivative ability payload is checked for credentials, Authorization, and signed headers.'
 );
 
 maca_assert(
 	false !== strpos( $media_artifact_verification, 'cloud_media_derivative_artifact_expired' )
 	&& false !== strpos( $media_artifact_verification, 'cloud_media_derivative_artifact_id_invalid' )
-	&& false !== strpos( $transport, 'cloud_media_derivative_artifact_binding_mismatch' )
-	&& false !== strpos( $transport, 'cloud_media_derivative_artifact_checksum_mismatch' )
+	&& false !== strpos( $media_plan_projection, 'cloud_media_derivative_artifact_binding_mismatch' )
+	&& false !== strpos( $media_plan_projection, 'cloud_media_derivative_artifact_checksum_mismatch' )
 	&& false !== strpos( $media_artifact_verification, 'Expired Cloud artifacts cannot be adopted.' )
 	&& false !== strpos( $media_artifact_verification, 'return $timestamp <= time();' ),
 	'Expired, unbound, or mismatched Cloud artifacts are rejected before local adoption payloads are built.'
 );
 
 maca_assert(
-	false !== strpos( $transport, 'cloud_media_derivative_replace_original_requested' )
-	&& false !== strpos( $transport, "'replace_original_default'      => false" )
-	&& false !== strpos( $transport, "'default_action'    => 'preview_only'" ),
+	false !== strpos( $media_plan_projection, 'cloud_media_derivative_replace_original_requested' )
+	&& false !== strpos( $media_plan_projection, "'replace_original_default'      => false" )
+	&& false !== strpos( $media_plan_projection, "'default_action'    => 'preview_only'" ),
 	'Media derivative proposal payload defaults to preview-only and does not replace the original file.'
 );
 
 maca_assert(
-	false !== strpos( $transport, "'final_write_owner' => 'local_wordpress_host'" )
-	&& false !== strpos( $transport, "'wordpress_write_included'      => false" )
-	&& false !== strpos( $transport, "'attachment_metadata_write_included' => false" ),
+	false !== strpos( $media_plan_projection, "'final_write_owner' => 'local_wordpress_host'" )
+	&& false !== strpos( $media_plan_projection, "'wordpress_write_included'      => false" )
+	&& false !== strpos( $media_plan_projection, "'attachment_metadata_write_included' => false" ),
 	'Media derivative proposal payload declares local WordPress host as final write owner.'
 );
 
@@ -1359,8 +1361,8 @@ maca_assert(
 	&& false !== strpos( $transport, 'cloud_media_derivative_quality_missing' )
 	&& false !== strpos( $transport, 'cloud_media_derivative_source_media_type_invalid' )
 	&& false !== strpos( $media_artifact_verification, 'cloud_media_derivative_artifact_mime_invalid' )
-	&& false !== strpos( $transport, 'Original media metrics are incomplete.' )
-	&& false !== strpos( $transport, 'Derivative media metrics are incomplete.' )
+	&& false !== strpos( $media_plan_projection, 'Original media metrics are incomplete.' )
+	&& false !== strpos( $media_plan_projection, 'Derivative media metrics are incomplete.' )
 	&& false !== strpos( $media_source_validation, 'filesize( $real_path )' )
 	&& false !== strpos( $media_source_validation, 'is_allowed_upload_file_path' )
 	&& false !== strpos( $media_source_validation, 'wp_upload_dir' )
@@ -2239,7 +2241,9 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
 	'includes/class-cloud-wordpress-ai-text-model.php' => 383,
 	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 119,
-	'includes/class-cloud-media-derivative-transport.php' => 1664,
+	'includes/class-cloud-media-derivative-transport.php' => 714,
+	'includes/class-cloud-media-governance-validation.php' => 281,
+	'includes/class-cloud-media-plan-projection.php' => 707,
 	'includes/class-cloud-media-artifact-verification.php' => 636,
 	'includes/class-cloud-media-source-validation.php' => 279,
 );
