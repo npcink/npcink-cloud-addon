@@ -276,11 +276,11 @@ namespace {
 		'Behavior: the alt-text handoff exposes no WordPress write call.'
 	);
 
-	foreach ( array( true, false, 123.0, 123.5, '123x', '', null ) as $invalid_attachment_id ) {
+	foreach ( array( true, false, 123.0, 123.5, '123x', '', null, -5, 0 ) as $invalid_attachment_id ) {
 		$normalized_id = Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::attachment_id_from_ability_input(
 			array( 'attachment_id' => $invalid_attachment_id )
 		);
-		maca_assert( is_wp_error( $normalized_id ), 'Behavior: bool, float, empty, and non-digit attachment IDs are rejected.' );
+		maca_assert( is_wp_error( $normalized_id ), 'Behavior: bool, float, empty, non-digit, and non-positive attachment IDs are rejected.' );
 	}
 	maca_assert(
 		123 === Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::attachment_id_from_ability_input( array( 'attachment_id' => '123' ) ),
@@ -396,7 +396,47 @@ namespace {
 	Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::dispatch( 131, 'Describe the entire scene.' );
 	maca_assert( $saves_before === count( $GLOBALS['maca_alt_text_saved_paths'] ) && $wide_bytes === $failed_resize_client->calls[0]['file']['contents'], 'Behavior: failed resizing skips save and retains the already validated source bytes.' );
 
-	foreach ( array( $source_path, $outside_path, $png_path, $gif_path, $large_path, $changed_path, $wide_path ) as $fixture_file ) {
+	$long_filename_path = $upload_root . '/' . str_repeat( 'a', 200 ) . '.png';
+	file_put_contents( $long_filename_path, $png_bytes );
+	maca_seed_alt_text_attachment( 132, $long_filename_path );
+	$long_filename_client = new Maca_Alt_Text_Client_Stub();
+	$GLOBALS['maca_alt_text_client'] = $long_filename_client;
+	Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::dispatch( 132, 'Generate accessible alt text.' );
+	$upload_filename = (string) $long_filename_client->calls[0]['file']['filename'];
+	$execute_filename = (string) $long_filename_client->calls[1]['request']['operation_contract']['request']['filename'];
+	maca_assert(
+		strlen( $upload_filename ) <= 160
+		&& '.png' === substr( $upload_filename, -4 )
+		&& $upload_filename === $execute_filename,
+		'Behavior: long attachment filenames are stem-truncated with the extension preserved and stay inside the 160-character transport bound.'
+	);
+
+	$cjk_filename_path = $upload_root . '/' . str_repeat( '蓝', 60 ) . '.png';
+	file_put_contents( $cjk_filename_path, $png_bytes );
+	maca_seed_alt_text_attachment( 133, $cjk_filename_path );
+	$cjk_client = new Maca_Alt_Text_Client_Stub();
+	$GLOBALS['maca_alt_text_client'] = $cjk_client;
+	Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::dispatch( 133, 'Generate accessible alt text.' );
+	$cjk_filename = (string) $cjk_client->calls[0]['file']['filename'];
+	maca_assert(
+		strlen( $cjk_filename ) <= 160
+		&& false !== mb_detect_encoding( $cjk_filename, 'UTF-8', true )
+		&& '.png' === substr( $cjk_filename, -4 ),
+		'Behavior: multibyte attachment filenames are cut on codepoint boundaries and stay inside the 160-byte transport bound.'
+	);
+
+	$long_extension_path = $upload_root . '/a.' . str_repeat( 'x', 200 ) . '.png';
+	file_put_contents( $long_extension_path, $png_bytes );
+	maca_seed_alt_text_attachment( 134, $long_extension_path );
+	$long_extension_client = new Maca_Alt_Text_Client_Stub();
+	$GLOBALS['maca_alt_text_client'] = $long_extension_client;
+	Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::dispatch( 134, 'Generate accessible alt text.' );
+	maca_assert(
+		strlen( (string) $long_extension_client->calls[0]['file']['filename'] ) <= 160,
+		'Behavior: pathological extensions cannot push the bounded filename past the 160-byte transport bound.'
+	);
+
+	foreach ( array( $source_path, $outside_path, $png_path, $gif_path, $large_path, $changed_path, $wide_path, $long_filename_path, $cjk_filename_path, $long_extension_path ) as $fixture_file ) {
 		unlink( $fixture_file );
 	}
 	rmdir( $upload_root );
