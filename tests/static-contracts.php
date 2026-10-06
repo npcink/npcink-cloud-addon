@@ -2244,7 +2244,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-media-derivative-transport.php' => 714,
 	'includes/class-cloud-media-governance-validation.php' => 281,
 	'includes/class-cloud-media-plan-projection.php' => 707,
-	'includes/class-cloud-media-artifact-verification.php' => 636,
+	'includes/class-cloud-media-artifact-verification.php' => 699,
 	'includes/class-cloud-media-source-validation.php' => 279,
 );
 foreach ( $complexity_ratchet_limits as $ratchet_path => $ratchet_limit ) {

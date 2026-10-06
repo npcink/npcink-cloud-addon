@@ -416,59 +416,59 @@ msgstr "媒体衍生运行时工件需要规范的工件 ID。"
 msgid "Media derivative runtime artifacts require a valid future expiry."
 msgstr "媒体衍生运行时工件需要有效的未来过期时间。"
 
-#: includes/class-cloud-media-artifact-verification.php:287
+#: includes/class-cloud-media-artifact-verification.php:377
 msgid "Media derivative artifacts require the exact 13-field Cloud descriptor."
 msgstr "媒体衍生工件需要精确的 13 字段 Cloud 描述符。"
 
-#: includes/class-cloud-media-artifact-verification.php:296
+#: includes/class-cloud-media-artifact-verification.php:386
 msgid "Media derivative artifact expiry must be a strict ISO-8601 timestamp."
 msgstr "媒体衍生工件过期时间必须是严格的 ISO-8601 时间戳。"
 
-#: includes/class-cloud-media-artifact-verification.php:303
+#: includes/class-cloud-media-artifact-verification.php:393
 msgid "Expired Cloud artifacts cannot be adopted."
 msgstr "已过期的 Cloud artifact 不能被采用。"
 
-#: includes/class-cloud-media-artifact-verification.php:312
+#: includes/class-cloud-media-artifact-verification.php:402
 msgid "Derivative Cloud artifacts require a canonical artifact id."
 msgstr "Cloud 衍生工件需要规范的工件 ID。"
 
-#: includes/class-cloud-media-artifact-verification.php:320
+#: includes/class-cloud-media-artifact-verification.php:410
 msgid "Media derivative artifact reference must bind to the canonical artifact id."
 msgstr "媒体衍生工件引用必须绑定到规范的工件 ID。"
 
-#: includes/class-cloud-media-artifact-verification.php:336
+#: includes/class-cloud-media-artifact-verification.php:418
 msgid "Media derivative filename basis is invalid."
 msgstr "媒体衍生文件名依据无效。"
 
-#: includes/class-cloud-media-artifact-verification.php:344
+#: includes/class-cloud-media-artifact-verification.php:426
 msgid "Media derivative suggested filename is invalid."
 msgstr "媒体衍生建议文件名无效。"
 
-#: includes/class-cloud-media-artifact-verification.php:355
+#: includes/class-cloud-media-artifact-verification.php:436
 msgid "Media derivative artifact MIME and format must agree."
 msgstr "媒体衍生工件的 MIME 类型与格式必须一致。"
 
-#: includes/class-cloud-media-artifact-verification.php:376
+#: includes/class-cloud-media-artifact-verification.php:455
 msgid "Media derivative artifact facts are invalid."
 msgstr "媒体衍生工件信息无效。"
 
-#: includes/class-cloud-media-artifact-verification.php:384
+#: includes/class-cloud-media-artifact-verification.php:462
 msgid "Media derivative processing warnings are invalid."
 msgstr "媒体衍生处理警告无效。"
 
-#: includes/class-cloud-media-artifact-verification.php:458
+#: includes/class-cloud-media-artifact-verification.php:535
 msgid "Local media derivative artifacts require the exact 12-field proposal contract."
 msgstr "本地媒体衍生工件需要精确的 12 字段提案契约。"
 
-#: includes/class-cloud-media-artifact-verification.php:483
+#: includes/class-cloud-media-artifact-verification.php:556
 msgid "Local media derivative artifact facts are invalid."
 msgstr "本地媒体衍生工件信息无效。"
 
-#: includes/class-cloud-media-artifact-verification.php:507
+#: includes/class-cloud-media-artifact-verification.php:572
 msgid "Local media derivative artifact metadata is invalid."
 msgstr "本地媒体衍生工件元数据无效。"
 
-#: includes/class-cloud-media-artifact-verification.php:515
+#: includes/class-cloud-media-artifact-verification.php:579
 msgid "Local media derivative processing warnings are invalid."
 msgstr "本地媒体衍生处理警告无效。"
 
