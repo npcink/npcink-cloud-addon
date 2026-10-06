@@ -14,7 +14,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: cloud-addon-ci-${{ github.workflow }}-${{ github.ref }}
+  # Separate scheduled nightly runs from push/PR runs: a nightly kick-off must
+  # not cancel an in-flight merge-triggered run (which leaves the gate job
+  # reporting the abandoned matrix as a red X on a healthy commit).
+  group: cloud-addon-ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

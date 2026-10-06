@@ -89,6 +89,28 @@ public accessor seam. Further paydown direction for the remaining render class
 is collapsing duplicated disclosure markup behind shared partials, keeping
 `docs/admin-surface-standard.md` tab and copy rules authoritative.
 
+## PHPStan Baseline Classification (2026-10-06)
+
+The advisory baseline has been reduced 60 -> 44. The remaining entries are
+classified and future reduction must treat the classes differently:
+
+1. Defensive re-validation family (the large majority): fail-closed
+   re-checks where the idealized WordPress core stubs claim certainty that
+   real runtime data does not guarantee (`getimagesize()` shapes, non-null
+   `WP_Post`/`WP_Comment` properties, narrowed `is_array`/`is_string`
+   checks, option-name constant guards, cron flush callbacks returning
+   bounded delivery facts for tests and projections). Do NOT zero the
+   baseline by deleting these checks — they are "complexity worth keeping";
+   remove one only when the real upstream guarantee changes.
+2. Contract fixtures (2): `tab_url()` and `page_form_action_url()` have no
+   production callers and stay because behavior contracts reflect on them
+   to verify URL shapes.
+
+New findings follow the 2026-10-06 (PR #217) bar: fix real defects and
+provably dead expressions (duplicate catalog keys, stale PHPDoc, redundant
+`array_values`, conditions proven constant by narrowing); classify whatever
+remains instead of silently growing the baseline.
+
 ## Test Structure
 
 Tests are split by purpose:
