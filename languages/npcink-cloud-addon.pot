@@ -9,14 +9,14 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-06T02:03:23+00:00\n"
+"POT-Creation-Date: 2026-10-06T02:50:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:948
+#: includes/bootstrap.php:949
 #: includes/class-cloud-settings-page.php:133
 #: includes/class-cloud-settings-page.php:144
 #: includes/class-cloud-settings-page.php:145
@@ -39,72 +39,72 @@ msgstr ""
 msgid "https://cloud.npc.ink/"
 msgstr ""
 
-#: includes/bootstrap.php:138
-#: includes/bootstrap.php:193
-#: includes/bootstrap.php:223
-#: includes/bootstrap.php:314
-#: includes/bootstrap.php:345
-#: includes/bootstrap.php:376
-#: includes/bootstrap.php:407
-#: includes/bootstrap.php:434
-#: includes/bootstrap.php:461
-#: includes/bootstrap.php:484
-#: includes/bootstrap.php:506
-#: includes/bootstrap.php:593
-#: includes/bootstrap.php:617
-#: includes/bootstrap.php:641
-#: includes/bootstrap.php:649
-#: includes/bootstrap.php:657
-#: includes/bootstrap.php:665
-#: includes/bootstrap.php:673
-#: includes/bootstrap.php:681
-#: includes/bootstrap.php:689
-#: includes/bootstrap.php:705
-#: includes/bootstrap.php:713
-#: includes/class-cloud-runtime-client.php:1065
-#: includes/class-cloud-runtime-client.php:1171
+#: includes/bootstrap.php:139
+#: includes/bootstrap.php:194
+#: includes/bootstrap.php:224
+#: includes/bootstrap.php:315
+#: includes/bootstrap.php:346
+#: includes/bootstrap.php:377
+#: includes/bootstrap.php:408
+#: includes/bootstrap.php:435
+#: includes/bootstrap.php:462
+#: includes/bootstrap.php:485
+#: includes/bootstrap.php:507
+#: includes/bootstrap.php:594
+#: includes/bootstrap.php:618
+#: includes/bootstrap.php:642
+#: includes/bootstrap.php:650
+#: includes/bootstrap.php:658
+#: includes/bootstrap.php:666
+#: includes/bootstrap.php:674
+#: includes/bootstrap.php:682
+#: includes/bootstrap.php:690
+#: includes/bootstrap.php:706
+#: includes/bootstrap.php:714
+#: includes/class-cloud-runtime-client.php:1064
+#: includes/class-cloud-runtime-client.php:1170
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr ""
 
-#: includes/bootstrap.php:545
+#: includes/bootstrap.php:546
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr ""
 
-#: includes/bootstrap.php:559
+#: includes/bootstrap.php:560
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr ""
 
-#: includes/bootstrap.php:567
+#: includes/bootstrap.php:568
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr ""
 
-#: includes/bootstrap.php:589
+#: includes/bootstrap.php:590
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:613
+#: includes/bootstrap.php:614
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:637
+#: includes/bootstrap.php:638
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:949
+#: includes/bootstrap.php:950
 msgid "The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features."
 msgstr ""
 
-#: includes/bootstrap.php:950
+#: includes/bootstrap.php:951
 #: includes/class-cloud-settings-page.php:198
 msgid "Connect this site"
 msgstr ""
 
-#: includes/bootstrap.php:952
+#: includes/bootstrap.php:953
 msgid "Do not show again"
 msgstr ""
 
-#: includes/bootstrap.php:978
+#: includes/bootstrap.php:979
 msgid "Settings"
 msgstr ""
 
@@ -557,200 +557,200 @@ msgstr ""
 msgid "Cloud request target is not allowed by the local connector policy."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:85
+#: includes/class-cloud-runtime-client.php:84
 msgid "Signed verification was not attempted because the Cloud service is not reachable."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:87
+#: includes/class-cloud-runtime-client.php:86
 msgid "Cloud credentials are incomplete."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:97
+#: includes/class-cloud-runtime-client.php:96
 msgid "Signed Cloud request verified."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:342
+#: includes/class-cloud-runtime-client.php:341
 msgid "Invalid content formatting request."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:472
+#: includes/class-cloud-runtime-client.php:471
 msgid "Media uploads require exact contents, filename, and mime_type fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:481
+#: includes/class-cloud-runtime-client.php:480
 msgid "Media upload contents must be a nonempty byte string."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:488
+#: includes/class-cloud-runtime-client.php:487
 msgid "Media upload contents exceed the 25 MiB connector limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:497
+#: includes/class-cloud-runtime-client.php:496
 msgid "Media upload filename must be a nonempty safe filename of at most 160 characters."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:506
+#: includes/class-cloud-runtime-client.php:505
 msgid "Media uploads allow only AVIF, JPEG, PNG, or WebP images."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:570
+#: includes/class-cloud-runtime-client.php:569
 msgid "Media jobs require the exact artifact-referenced media_job_request.v1 contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:600
+#: includes/class-cloud-runtime-client.php:599
 msgid "Media governance canary jobs require the exact bounded preserve-WebP contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:628
+#: includes/class-cloud-runtime-client.php:627
 msgid "Verify Npcink Cloud settings before uploading a WordPress AI alt-text source."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:640
+#: includes/class-cloud-runtime-client.php:639
 msgid "WordPress AI alt-text uploads require exact contents, filename, and mime_type fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:649
+#: includes/class-cloud-runtime-client.php:648
 msgid "WordPress AI alt-text upload contents must be a nonempty byte string."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:656
+#: includes/class-cloud-runtime-client.php:655
 msgid "WordPress AI alt-text upload contents exceed the 8 MiB limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:664
+#: includes/class-cloud-runtime-client.php:663
 msgid "WordPress AI alt-text upload filename must be a nonempty safe filename."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:672
+#: includes/class-cloud-runtime-client.php:671
 msgid "WordPress AI alt-text upload filename must be a nonempty safe filename of at most 160 characters."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:681
+#: includes/class-cloud-runtime-client.php:680
 msgid "WordPress AI alt-text uploads allow only JPEG, PNG, or WebP images."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:735
-#: includes/class-cloud-runtime-client.php:754
-#: includes/class-cloud-runtime-client.php:788
+#: includes/class-cloud-runtime-client.php:734
+#: includes/class-cloud-runtime-client.php:753
+#: includes/class-cloud-runtime-client.php:787
 msgid "Cloud run_id is required."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:818
+#: includes/class-cloud-runtime-client.php:817
 msgid "Cloud media artifact_id must use the canonical art_<32 lowercase hex> shape."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:856
+#: includes/class-cloud-runtime-client.php:855
 msgid "Media delivery acknowledgement requires the exact verified-transfer contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:889
+#: includes/class-cloud-runtime-client.php:888
 msgid "Cloud site_id is required."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:910
+#: includes/class-cloud-runtime-client.php:909
 msgid "No observability events are ready to upload."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:943
+#: includes/class-cloud-runtime-client.php:942
 msgid "Customer journey upload requires between 1 and 100 metadata-only events."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:980
+#: includes/class-cloud-runtime-client.php:979
 msgid "Agent feedback requires a valid cloud_agent_feedback.v1 payload."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1038
+#: includes/class-cloud-runtime-client.php:1037
 msgid "Customer journey cohort id is invalid."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1074
-#: includes/class-cloud-runtime-client.php:1180
+#: includes/class-cloud-runtime-client.php:1073
+#: includes/class-cloud-runtime-client.php:1179
 msgid "This Cloud endpoint is not allowed by the Cloud Addon runtime contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1099
+#: includes/class-cloud-runtime-client.php:1098
 msgid "Cloud runtime request payload could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1136
-#: includes/class-cloud-runtime-client.php:1658
-#: includes/class-cloud-runtime-client.php:1669
+#: includes/class-cloud-runtime-client.php:1135
+#: includes/class-cloud-runtime-client.php:1302
+#: includes/class-cloud-runtime-client.php:1313
 msgid "Cloud runtime response exceeds the local size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1143
-#: includes/class-cloud-runtime-client.php:1670
+#: includes/class-cloud-runtime-client.php:1142
+#: includes/class-cloud-runtime-client.php:1314
 msgid "Cloud runtime response was not valid JSON."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1214
-#: includes/class-cloud-runtime-client.php:1772
+#: includes/class-cloud-runtime-client.php:1213
+#: includes/class-cloud-runtime-client.php:1416
 msgid "Cloud artifact download exceeds the local preview size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1238
+#: includes/class-cloud-runtime-client.php:1237
 msgid "Cloud Base URL is required."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1268
+#: includes/class-cloud-runtime-client.php:1267
 msgid "Cloud liveness response exceeds the local size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1278
+#: includes/class-cloud-runtime-client.php:1277
 msgid "Cloud liveness check failed."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1284
+#: includes/class-cloud-runtime-client.php:1283
 msgid "Cloud service is live."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1332
-#: includes/class-cloud-runtime-client.php:1423
-msgid "Cloud settings are incomplete."
-msgstr ""
-
-#: includes/class-cloud-runtime-client.php:1352
-#: includes/class-cloud-runtime-client.php:1518
-msgid "Connector readiness could not be verified."
-msgstr ""
-
-#: includes/class-cloud-runtime-client.php:1683
-#: includes/class-cloud-runtime-client.php:1721
+#: includes/class-cloud-runtime-client.php:1327
+#: includes/class-cloud-runtime-client.php:1365
 msgid "Cloud runtime request failed."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1755
+#: includes/class-cloud-runtime-client.php:1399
 msgid "Cloud runtime artifact download failed."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1991
+#: includes/class-cloud-runtime-client.php:1635
 msgid "Cloud media upload request could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:2063
+#: includes/class-cloud-runtime-client.php:1707
 msgid "Cloud returned an invalid media upload artifact."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:2117
+#: includes/class-cloud-runtime-client.php:1761
 msgid "Cloud returned an invalid media delivery acknowledgement."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:2200
+#: includes/class-cloud-runtime-client.php:1844
 msgid "Cloud returned an invalid WordPress AI alt-text source artifact."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:2281
+#: includes/class-cloud-runtime-client.php:1925
 msgid "Cloud request identifiers must use only letters, numbers, dot, underscore, colon, or hyphen and contain at most 128 characters."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:2313
+#: includes/class-cloud-runtime-client.php:1957
 msgid "Cannot connect to Npcink Cloud. Check the Cloud Base URL."
 msgstr ""
 
 #. translators: 1: Cloud base URL, 2: transport error.
-#: includes/class-cloud-runtime-client.php:2318
+#: includes/class-cloud-runtime-client.php:1962
 #, php-format
 msgid "Cannot connect to %1$s. Original error: %2$s"
+msgstr ""
+
+#: includes/class-cloud-runtime-diagnostics.php:71
+#: includes/class-cloud-runtime-diagnostics.php:165
+msgid "Cloud settings are incomplete."
+msgstr ""
+
+#: includes/class-cloud-runtime-diagnostics.php:91
+#: includes/class-cloud-runtime-diagnostics.php:260
+msgid "Connector readiness could not be verified."
 msgstr ""
 
 #: includes/class-cloud-runtime-request-guards.php:190

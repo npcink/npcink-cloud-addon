@@ -46,6 +46,7 @@ $runtime_endpoint_policy = maca_read( $root . '/includes/class-cloud-runtime-end
 $transport = maca_read( $root . '/includes/class-cloud-media-derivative-transport.php' );
 $runtime_client = maca_read( $root . '/includes/class-cloud-runtime-client.php' );
 $runtime_guards = maca_read( $root . '/includes/class-cloud-runtime-request-guards.php' );
+$runtime_diagnostics = maca_read( $root . '/includes/class-cloud-runtime-diagnostics.php' );
 $runtime_client_factory = maca_read( $root . '/includes/class-cloud-runtime-client-factory.php' );
 $ai_task_contract = maca_read( $root . '/includes/class-cloud-ai-task-contract.php' );
 $wordpress_ai_connector = maca_read( $root . '/includes/class-cloud-wordpress-ai-connector.php' );
@@ -599,22 +600,22 @@ maca_assert(
 	false !== strpos( $bootstrap, 'npcink_cloud_addon_get_manual_readiness_result' )
 	&& false !== strpos( $bootstrap, 'does not create runtime work, queues, registries' )
 	&& false !== strpos( $runtime_client, 'manual_readiness_test' )
-	&& false !== strpos( $runtime_client, "'cloud_addon_readiness_result.v1'" )
-	&& false !== strpos( $runtime_client, "'manual_test_action' => 'probe_connectivity'" )
-	&& false !== strpos( $runtime_client, "'connector_slot' => 'npcink_cloud_runtime'" )
-	&& false !== strpos( $runtime_client, 'classify_connector_diagnostic_category' )
-	&& false !== strpos( $runtime_client, "'connector_diagnostic_category' => \$connector_diagnostic_category" )
-	&& false !== strpos( $runtime_client, "'credential_slot_readiness' => \$credential_slot_readiness" )
-	&& false !== strpos( $runtime_client, "'signed_transport_status' => \$signed_transport_status" )
-	&& false !== strpos( $runtime_client, "'service_liveness_status' => \$service_liveness_status" )
-	&& false !== strpos( $runtime_client, "'bounded_status' => \$status" )
-	&& false !== strpos( $runtime_client, "'owner_label' => \$owner_label" )
-	&& false !== strpos( $runtime_client, "'next_safe_action' => \$next_action" )
-	&& false !== strpos( $runtime_client, "'copyable_support_facts' => \$support_facts" )
-	&& false !== strpos( $runtime_client, "'diagnostic_panel_groups' => \$diagnostic_panel_groups" )
-	&& false !== strpos( $runtime_client, "'diagnostic_panel_group' => \$group" )
-	&& false !== strpos( $runtime_client, "'visibility' => 'administrator_only'" )
-	&& false !== strpos( $runtime_client, "'write_posture' => 'read_only'" )
+	&& false !== strpos( $runtime_diagnostics, "'cloud_addon_readiness_result.v1'" )
+	&& false !== strpos( $runtime_diagnostics, "'manual_test_action' => 'probe_connectivity'" )
+	&& false !== strpos( $runtime_diagnostics, "'connector_slot' => 'npcink_cloud_runtime'" )
+	&& false !== strpos( $runtime_diagnostics, 'classify_connector_diagnostic_category' )
+	&& false !== strpos( $runtime_diagnostics, "'connector_diagnostic_category' => \$connector_diagnostic_category" )
+	&& false !== strpos( $runtime_diagnostics, "'credential_slot_readiness' => \$credential_slot_readiness" )
+	&& false !== strpos( $runtime_diagnostics, "'signed_transport_status' => \$signed_transport_status" )
+	&& false !== strpos( $runtime_diagnostics, "'service_liveness_status' => \$service_liveness_status" )
+	&& false !== strpos( $runtime_diagnostics, "'bounded_status' => \$status" )
+	&& false !== strpos( $runtime_diagnostics, "'owner_label' => \$owner_label" )
+	&& false !== strpos( $runtime_diagnostics, "'next_safe_action' => \$next_action" )
+	&& false !== strpos( $runtime_diagnostics, "'copyable_support_facts' => \$support_facts" )
+	&& false !== strpos( $runtime_diagnostics, "'diagnostic_panel_groups' => \$diagnostic_panel_groups" )
+	&& false !== strpos( $runtime_diagnostics, "'diagnostic_panel_group' => \$group" )
+	&& false !== strpos( $runtime_diagnostics, "'visibility' => 'administrator_only'" )
+	&& false !== strpos( $runtime_diagnostics, "'write_posture' => 'read_only'" )
 	&& false !== strpos( $settings_actions, "ACTION_RUN_MANUAL_READINESS_TEST = 'npcink_cloud_addon_run_manual_readiness_test'" )
 	&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_RUN_MANUAL_READINESS_TEST" )
 	&& false !== strpos( $settings_actions, 'function handle_run_manual_readiness_test' )
@@ -2208,7 +2209,8 @@ maca_assert(
 // complexity may stay, but these files must not grow unnoticed: raise a limit
 // only with a documented reason in docs/cloud-addon-complexity-budget.md.
 $complexity_ratchet_limits = array(
-	'includes/class-cloud-runtime-client.php'          => 2324,
+	'includes/class-cloud-runtime-client.php'          => 1968,
+	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
 	'includes/class-cloud-settings-page.php'           => 2207,
 	'includes/class-cloud-settings-actions.php'        => 1106,

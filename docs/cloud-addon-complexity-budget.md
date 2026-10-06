@@ -71,11 +71,16 @@ Is this transport/detail, or is it control/write truth?
 `tests/static-contracts.php` enforces a line-count ratchet on the four widest
 connector classes so they cannot grow unnoticed:
 
-- `includes/class-cloud-runtime-client.php` — 2324 lines (was 4314 before the
-  2026-10-06 payload-guard split into `class-cloud-runtime-request-guards.php`)
+- `includes/class-cloud-runtime-client.php` — 1968 lines (was 4314 before the
+  2026-10-06 payload-guard split, then 2324 before the same-day diagnostics
+  split into `class-cloud-runtime-request-guards.php` and
+  `class-cloud-runtime-diagnostics.php`)
 - `includes/class-cloud-runtime-request-guards.php` — 2020 lines (pure
   `normalize_*` request validators, forbidden-key walkers, PII scan, and
   bounded-text/sanitize helpers with zero instance state)
+- `includes/class-cloud-runtime-diagnostics.php` — 387 lines (static readiness
+  projection and secret redaction over probe arrays and the caller's
+  configuration snapshot)
 - `includes/class-cloud-settings-page.php` — 2207 lines (was 3280 before the
   2026-10-04 handler split into `class-cloud-settings-actions.php`)
 - `includes/class-cloud-settings-actions.php` — 1106 lines (settings request
@@ -212,9 +217,12 @@ bootstrap/POT/打包/Playground 门禁）：
    唯一环境读取点（connector 校验器的 site_id/site_url/addon version）改为
    调用点参数注入；`MEDIA_ARTIFACT_ID_PATTERN` 与两个超时上限常量因传输侧
    共用改为守卫类公开常量，客户端跨类引用。
-2. **诊断投影（约 450 行，第二步）**：`build_readiness_result`、诊断
+2. **诊断投影（约 450 行，第二步，2026-10-06 已落地）**：`build_readiness_result`、诊断
    面板构建、severity/next-safe-action/分类与 `redact_support_text`
    → `Npcink_Cloud_Runtime_Diagnostics`（静态，输入为 probe 数组）。
+   落地结果：runtime-client 2324 → 1968 行，诊断类 387 行；配置快照与
+   `is_configured` 由调用点注入，留守的错误归一化跨类调用
+   `redact_support_text`，`MAX_ERROR_MESSAGE_CHARS` 随移。
 3. **媒体传输规范化（约 450 行，视纯度并入第 1 步或独立）**：
    multipart 构建与 upload/ack 响应规范化。
 4. **签名传输内核（保留不动）**：`request`/`request_raw`/`decode_*`/
