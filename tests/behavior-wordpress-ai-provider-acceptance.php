@@ -5,6 +5,7 @@ require_once __DIR__ . '/wordpress-ai-client-stubs.php';
 require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-connector.php';
 require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-alt-text-handoff.php';
 require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-availability.php';
+require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-scene-model.php';
 require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-image-model.php';
 require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-model-metadata-directory.php';
 require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-provider.php';

@@ -9,14 +9,14 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-06T07:10:40+00:00\n"
+"POT-Creation-Date: 2026-10-06T07:50:19+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:957
+#: includes/bootstrap.php:958
 #: includes/class-cloud-settings-page.php:133
 #: includes/class-cloud-settings-page.php:144
 #: includes/class-cloud-settings-page.php:145
@@ -39,72 +39,72 @@ msgstr ""
 msgid "https://cloud.npc.ink/"
 msgstr ""
 
-#: includes/bootstrap.php:147
-#: includes/bootstrap.php:202
-#: includes/bootstrap.php:232
-#: includes/bootstrap.php:323
-#: includes/bootstrap.php:354
-#: includes/bootstrap.php:385
-#: includes/bootstrap.php:416
-#: includes/bootstrap.php:443
-#: includes/bootstrap.php:470
-#: includes/bootstrap.php:493
-#: includes/bootstrap.php:515
-#: includes/bootstrap.php:602
-#: includes/bootstrap.php:626
-#: includes/bootstrap.php:650
-#: includes/bootstrap.php:658
-#: includes/bootstrap.php:666
-#: includes/bootstrap.php:674
-#: includes/bootstrap.php:682
-#: includes/bootstrap.php:690
-#: includes/bootstrap.php:698
-#: includes/bootstrap.php:714
-#: includes/bootstrap.php:722
+#: includes/bootstrap.php:148
+#: includes/bootstrap.php:203
+#: includes/bootstrap.php:233
+#: includes/bootstrap.php:324
+#: includes/bootstrap.php:355
+#: includes/bootstrap.php:386
+#: includes/bootstrap.php:417
+#: includes/bootstrap.php:444
+#: includes/bootstrap.php:471
+#: includes/bootstrap.php:494
+#: includes/bootstrap.php:516
+#: includes/bootstrap.php:603
+#: includes/bootstrap.php:627
+#: includes/bootstrap.php:651
+#: includes/bootstrap.php:659
+#: includes/bootstrap.php:667
+#: includes/bootstrap.php:675
+#: includes/bootstrap.php:683
+#: includes/bootstrap.php:691
+#: includes/bootstrap.php:699
+#: includes/bootstrap.php:715
+#: includes/bootstrap.php:723
 #: includes/class-cloud-runtime-client.php:1052
 #: includes/class-cloud-runtime-client.php:1158
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr ""
 
-#: includes/bootstrap.php:554
+#: includes/bootstrap.php:555
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr ""
 
-#: includes/bootstrap.php:568
+#: includes/bootstrap.php:569
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr ""
 
-#: includes/bootstrap.php:576
+#: includes/bootstrap.php:577
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr ""
 
-#: includes/bootstrap.php:598
+#: includes/bootstrap.php:599
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:622
+#: includes/bootstrap.php:623
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:646
+#: includes/bootstrap.php:647
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:958
+#: includes/bootstrap.php:959
 msgid "The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features."
 msgstr ""
 
-#: includes/bootstrap.php:959
+#: includes/bootstrap.php:960
 #: includes/class-cloud-settings-page.php:198
 msgid "Connect this site"
 msgstr ""
 
-#: includes/bootstrap.php:961
+#: includes/bootstrap.php:962
 msgid "Do not show again"
 msgstr ""
 
-#: includes/bootstrap.php:987
+#: includes/bootstrap.php:988
 msgid "Settings"
 msgstr ""
 

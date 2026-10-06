@@ -19,7 +19,7 @@ if (
 	/**
 	 * Scene-gated image model that forwards text-to-image WordPress AI calls to Cloud.
 	 */
-	final class Npcink_Cloud_WordPress_AI_Image_Model implements
+	final class Npcink_Cloud_WordPress_AI_Image_Model extends Npcink_Cloud_WordPress_AI_Scene_Model implements
 		\WordPress\AiClient\Providers\Models\Contracts\ModelInterface,
 		\WordPress\AiClient\Providers\Models\ImageGeneration\Contracts\ImageGenerationModelInterface {
 		private const ARTIFACT_ID_PATTERN = '/^art_[0-9a-f]{32}$/';
@@ -43,79 +43,6 @@ if (
 			'checksum',
 			'expires_at',
 		);
-
-		/**
-		 * Model metadata.
-		 *
-		 * @var \WordPress\AiClient\Providers\Models\DTO\ModelMetadata
-		 */
-		private $metadata;
-
-		/**
-		 * Provider metadata.
-		 *
-		 * @var \WordPress\AiClient\Providers\DTO\ProviderMetadata
-		 */
-		private $provider_metadata;
-
-		/**
-		 * Model config.
-		 *
-		 * @var \WordPress\AiClient\Providers\Models\DTO\ModelConfig
-		 */
-		private $config;
-
-		/**
-		 * Constructor.
-		 *
-		 * @param \WordPress\AiClient\Providers\Models\DTO\ModelMetadata $metadata Model metadata.
-		 * @param \WordPress\AiClient\Providers\DTO\ProviderMetadata     $provider_metadata Provider metadata.
-		 */
-		public function __construct(
-			\WordPress\AiClient\Providers\Models\DTO\ModelMetadata $metadata,
-			\WordPress\AiClient\Providers\DTO\ProviderMetadata $provider_metadata
-		) {
-			$this->metadata          = $metadata;
-			$this->provider_metadata = $provider_metadata;
-			$this->config            = new \WordPress\AiClient\Providers\Models\DTO\ModelConfig();
-		}
-
-		/**
-		 * Gets model metadata.
-		 *
-		 * @return \WordPress\AiClient\Providers\Models\DTO\ModelMetadata
-		 */
-		public function metadata(): \WordPress\AiClient\Providers\Models\DTO\ModelMetadata {
-			return $this->metadata;
-		}
-
-		/**
-		 * Gets provider metadata.
-		 *
-		 * @return \WordPress\AiClient\Providers\DTO\ProviderMetadata
-		 */
-		public function providerMetadata(): \WordPress\AiClient\Providers\DTO\ProviderMetadata {
-			return $this->provider_metadata;
-		}
-
-		/**
-		 * Sets model config.
-		 *
-		 * @param \WordPress\AiClient\Providers\Models\DTO\ModelConfig $config Model config.
-		 * @return void
-		 */
-		public function setConfig( \WordPress\AiClient\Providers\Models\DTO\ModelConfig $config ): void {
-			$this->config = $config;
-		}
-
-		/**
-		 * Gets model config.
-		 *
-		 * @return \WordPress\AiClient\Providers\Models\DTO\ModelConfig
-		 */
-		public function getConfig(): \WordPress\AiClient\Providers\Models\DTO\ModelConfig {
-			return $this->config;
-		}
 
 		/**
 		 * Generates an image result through the bounded Cloud runtime seam.
@@ -220,7 +147,7 @@ if (
 		 * @param list<\WordPress\AiClient\Messages\DTO\Message> $prompt Prompt messages.
 		 * @return string
 		 */
-		private function prompt_text( array $prompt ): string {
+		protected function prompt_text( array $prompt ): string {
 			$message = $prompt[0];
 			if ( ! $message->getRole()->isUser() ) {
 				return '';
