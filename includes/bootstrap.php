@@ -22,7 +22,9 @@ require_once __DIR__ . '/class-cloud-runtime-diagnostics.php';
 require_once __DIR__ . '/class-cloud-runtime-media-payloads.php';
 require_once __DIR__ . '/class-cloud-runtime-client.php';
 require_once __DIR__ . '/class-cloud-runtime-client-factory.php';
+require_once __DIR__ . '/class-cloud-media-artifact-verification.php';
 require_once __DIR__ . '/class-cloud-media-derivative-transport.php';
+require_once __DIR__ . '/class-cloud-media-source-validation.php';
 require_once __DIR__ . '/class-cloud-entitlement-summary.php';
 require_once __DIR__ . '/class-cloud-observability-collector.php';
 require_once __DIR__ . '/class-cloud-customer-journey.php';
@@ -802,7 +804,7 @@ if ( ! function_exists( 'npcink_cloud_addon_media_derivative_artifact_from_cloud
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_media_derivative_artifact_from_cloud_result( array $cloud_result ) {
-		return Npcink_Cloud_Media_Derivative_Transport::artifact_from_cloud_result( $cloud_result );
+		return Npcink_Cloud_Media_Artifact_Verification::artifact_from_cloud_result( $cloud_result );
 	}
 }
 
@@ -839,7 +841,7 @@ if ( ! function_exists( 'npcink_cloud_addon_receive_media_derivative_artifact' )
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_receive_media_derivative_artifact( array $artifact, string $trace_id = '' ) {
-		return Npcink_Cloud_Media_Derivative_Transport::receive_artifact(
+		return Npcink_Cloud_Media_Artifact_Verification::receive_artifact(
 			$artifact,
 			$trace_id
 		);

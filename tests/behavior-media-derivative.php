@@ -1036,7 +1036,7 @@ maca_assert(
 );
 
 $skipped_canary_raw = json_decode( (string) maca_governance_canary_run_result_response( 'skipped', array(), array( 'minimum_savings_not_met' ) )['body'], true );
-$skipped_canary_artifact = Npcink_Cloud_Media_Derivative_Transport::artifact_from_cloud_result( $skipped_canary_raw );
+$skipped_canary_artifact = Npcink_Cloud_Media_Artifact_Verification::artifact_from_cloud_result( $skipped_canary_raw );
 maca_assert(
 	is_wp_error( $skipped_canary_artifact )
 	&& 'cloud_media_governance_canary_has_no_artifact' === $skipped_canary_artifact->get_error_code(),
@@ -1152,7 +1152,7 @@ maca_reset_test_state();
 maca_seed_settings( true );
 $oversized_local_artifact = $proposal_artifact;
 $oversized_local_artifact['width'] = 8193;
-$oversized_local_receive = Npcink_Cloud_Media_Derivative_Transport::receive_artifact( $oversized_local_artifact, 'trace-local-oversized-dimension' );
+$oversized_local_receive = Npcink_Cloud_Media_Artifact_Verification::receive_artifact( $oversized_local_artifact, 'trace-local-oversized-dimension' );
 maca_assert(
 	is_wp_error( $oversized_local_receive )
 	&& 'cloud_media_derivative_local_artifact_facts_invalid' === $oversized_local_receive->get_error_code()
@@ -1165,7 +1165,7 @@ maca_seed_settings( true );
 $oversized_area_local_artifact = $proposal_artifact;
 $oversized_area_local_artifact['width']  = 4097;
 $oversized_area_local_artifact['height'] = 4096;
-$oversized_area_local_receive = Npcink_Cloud_Media_Derivative_Transport::receive_artifact( $oversized_area_local_artifact, 'trace-local-oversized-area' );
+$oversized_area_local_receive = Npcink_Cloud_Media_Artifact_Verification::receive_artifact( $oversized_area_local_artifact, 'trace-local-oversized-area' );
 maca_assert(
 	is_wp_error( $oversized_area_local_receive )
 	&& 'cloud_media_derivative_local_artifact_facts_invalid' === $oversized_area_local_receive->get_error_code()
@@ -1177,7 +1177,7 @@ maca_reset_test_state();
 maca_seed_settings( true );
 $excess_warning_artifact = $proposal_artifact;
 $excess_warning_artifact['processing_warnings'] = array_fill( 0, 21, 'bounded_warning' );
-$excess_warning_receive = Npcink_Cloud_Media_Derivative_Transport::receive_artifact( $excess_warning_artifact, 'trace-excess-warnings' );
+$excess_warning_receive = Npcink_Cloud_Media_Artifact_Verification::receive_artifact( $excess_warning_artifact, 'trace-excess-warnings' );
 maca_assert(
 	is_wp_error( $excess_warning_receive )
 	&& 'cloud_media_derivative_local_artifact_metadata_invalid' === $excess_warning_receive->get_error_code()
@@ -1193,7 +1193,7 @@ $acknowledged_at   = gmdate( 'Y-m-d\TH:i:s\Z', time() + 1 );
 $preserved_expiry  = (string) $proposal_artifact['expires_at'];
 maca_queue_media_pull( $proposal_artifact, $png, $delivery_id, $ack_deadline );
 maca_queue_media_ack( $proposal_artifact, $png, $delivery_id, $acknowledged_at, $preserved_expiry );
-$received = Npcink_Cloud_Media_Derivative_Transport::receive_artifact( $proposal_artifact, 'trace-receive' );
+$received = Npcink_Cloud_Media_Artifact_Verification::receive_artifact( $proposal_artifact, 'trace-receive' );
 $pull_request = $GLOBALS['maca_http_requests'][0] ?? array();
 $ack_request  = $GLOBALS['maca_http_requests'][1] ?? array();
 maca_assert(
@@ -1223,7 +1223,7 @@ maca_reset_test_state();
 maca_seed_settings( true );
 $legacy_local_artifact = $proposal_artifact;
 $legacy_local_artifact['checksum'] = 'sha256:' . $legacy_local_artifact['sha256'];
-$legacy_receive = Npcink_Cloud_Media_Derivative_Transport::receive_artifact( $legacy_local_artifact );
+$legacy_receive = Npcink_Cloud_Media_Artifact_Verification::receive_artifact( $legacy_local_artifact );
 maca_assert(
 	is_wp_error( $legacy_receive )
 	&& 'cloud_media_derivative_local_artifact_contract_invalid' === $legacy_receive->get_error_code()
@@ -1241,7 +1241,7 @@ maca_queue_media_ack(
 	$acknowledged_at,
 	gmdate( 'Y-m-d\TH:i:s\Z', strtotime( $proposal_artifact['expires_at'] ) + 60 )
 );
-$extended_ack = Npcink_Cloud_Media_Derivative_Transport::receive_artifact( $proposal_artifact, 'trace-extended-ack' );
+$extended_ack = Npcink_Cloud_Media_Artifact_Verification::receive_artifact( $proposal_artifact, 'trace-extended-ack' );
 maca_assert(
 	is_wp_error( $extended_ack ) && 'cloud_media_derivative_delivery_ack_binding_invalid' === $extended_ack->get_error_code(),
 	'Behavior: receive rejects ACK evidence that extends the proposal artifact expiry.'
@@ -1252,7 +1252,7 @@ maca_seed_settings( true );
 $shortened_ack_expiry = gmdate( 'Y-m-d\TH:i:s\Z', time() + 300 );
 maca_queue_media_pull( $proposal_artifact, $png, $delivery_id, $ack_deadline );
 maca_queue_media_ack( $proposal_artifact, $png, $delivery_id, $acknowledged_at, $shortened_ack_expiry );
-$shortened_ack = Npcink_Cloud_Media_Derivative_Transport::receive_artifact( $proposal_artifact, 'trace-shortened-ack' );
+$shortened_ack = Npcink_Cloud_Media_Artifact_Verification::receive_artifact( $proposal_artifact, 'trace-shortened-ack' );
 maca_assert(
 	is_wp_error( $shortened_ack ) && 'cloud_media_derivative_delivery_ack_binding_invalid' === $shortened_ack->get_error_code(),
 	'Behavior: receive rejects ACK evidence that shortens the original local11 artifact expiry.'
@@ -1271,7 +1271,7 @@ maca_queue_media_ack(
 	$late_acknowledged_at,
 	$late_preserved_expiry
 );
-$late_expiry_ack = Npcink_Cloud_Media_Derivative_Transport::receive_artifact( $proposal_artifact, 'trace-late-expiry-ack' );
+$late_expiry_ack = Npcink_Cloud_Media_Artifact_Verification::receive_artifact( $proposal_artifact, 'trace-late-expiry-ack' );
 maca_assert(
 	is_array( $late_expiry_ack )
 	&& $late_preserved_expiry === ( $late_expiry_ack['expires_at'] ?? null )
@@ -1309,7 +1309,7 @@ maca_reset_test_state();
 maca_seed_settings( true );
 $bad_decode = str_repeat( 'x', strlen( $png ) );
 maca_queue_media_pull( $proposal_artifact, $bad_decode, $delivery_id, $ack_deadline );
-$decode_rejected = Npcink_Cloud_Media_Derivative_Transport::receive_artifact( $proposal_artifact, 'trace-bad-decode' );
+$decode_rejected = Npcink_Cloud_Media_Artifact_Verification::receive_artifact( $proposal_artifact, 'trace-bad-decode' );
 maca_assert(
 	is_wp_error( $decode_rejected )
 	&& in_array( $decode_rejected->get_error_code(), array( 'cloud_media_derivative_artifact_checksum_mismatch', 'cloud_media_derivative_artifact_decode_mismatch' ), true )

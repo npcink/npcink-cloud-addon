@@ -44,6 +44,8 @@ $credential_store = maca_read( $root . '/includes/class-cloud-credential-store.p
 $outbound_policy = maca_read( $root . '/includes/class-cloud-outbound-policy.php' );
 $runtime_endpoint_policy = maca_read( $root . '/includes/class-cloud-runtime-endpoint-policy.php' );
 $transport = maca_read( $root . '/includes/class-cloud-media-derivative-transport.php' );
+$media_artifact_verification = maca_read( $root . '/includes/class-cloud-media-artifact-verification.php' );
+$media_source_validation = maca_read( $root . '/includes/class-cloud-media-source-validation.php' );
 $runtime_client = maca_read( $root . '/includes/class-cloud-runtime-client.php' );
 $runtime_guards = maca_read( $root . '/includes/class-cloud-runtime-request-guards.php' );
 $runtime_diagnostics = maca_read( $root . '/includes/class-cloud-runtime-diagnostics.php' );
@@ -1096,10 +1098,10 @@ maca_assert(
 	&& false !== strpos( $runtime_client, "'/delivery-ack'" )
 	&& false !== strpos( $runtime_client, 'request_raw' )
 	&& false !== strpos( $runtime_client, 'MAX_DOWNLOAD_BYTES = 26214400' )
-	&& false !== strpos( $transport, 'receive_artifact' )
-	&& false !== strpos( $transport, 'media_artifact_verified_transfer.v1' )
-	&& false !== strpos( $transport, 'cloud_media_derivative_artifact_mime_mismatch' )
-	&& false !== strpos( $transport, 'Derivative artifact checksum does not match the downloaded bytes.' )
+	&& false !== strpos( $media_artifact_verification, 'receive_artifact' )
+	&& false !== strpos( $media_artifact_verification, 'media_artifact_verified_transfer.v1' )
+	&& false !== strpos( $media_artifact_verification, 'cloud_media_derivative_artifact_mime_mismatch' )
+	&& false !== strpos( $media_artifact_verification, 'Derivative artifact checksum does not match the downloaded bytes.' )
 	&& false === strpos( $runtime_client, '/v1/runtime/artifacts/' ),
 	'Runtime client and transport expose canonical signed pull, independent verification, and transfer-only ACK.'
 );
@@ -1146,12 +1148,12 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $transport, 'cloud_media_derivative_artifact_expired' )
-	&& false !== strpos( $transport, 'cloud_media_derivative_artifact_id_invalid' )
+	false !== strpos( $media_artifact_verification, 'cloud_media_derivative_artifact_expired' )
+	&& false !== strpos( $media_artifact_verification, 'cloud_media_derivative_artifact_id_invalid' )
 	&& false !== strpos( $transport, 'cloud_media_derivative_artifact_binding_mismatch' )
 	&& false !== strpos( $transport, 'cloud_media_derivative_artifact_checksum_mismatch' )
-	&& false !== strpos( $transport, 'Expired Cloud artifacts cannot be adopted.' )
-	&& false !== strpos( $transport, 'return $timestamp <= time();' ),
+	&& false !== strpos( $media_artifact_verification, 'Expired Cloud artifacts cannot be adopted.' )
+	&& false !== strpos( $media_artifact_verification, 'return $timestamp <= time();' ),
 	'Expired, unbound, or mismatched Cloud artifacts are rejected before local adoption payloads are built.'
 );
 
@@ -1356,14 +1358,14 @@ maca_assert(
 	&& false !== strpos( $transport, 'cloud_media_derivative_max_width_missing' )
 	&& false !== strpos( $transport, 'cloud_media_derivative_quality_missing' )
 	&& false !== strpos( $transport, 'cloud_media_derivative_source_media_type_invalid' )
-	&& false !== strpos( $transport, 'cloud_media_derivative_artifact_mime_invalid' )
+	&& false !== strpos( $media_artifact_verification, 'cloud_media_derivative_artifact_mime_invalid' )
 	&& false !== strpos( $transport, 'Original media metrics are incomplete.' )
 	&& false !== strpos( $transport, 'Derivative media metrics are incomplete.' )
-	&& false !== strpos( $transport, 'filesize( $real_path )' )
-	&& false !== strpos( $transport, 'is_allowed_upload_file_path' )
-	&& false !== strpos( $transport, 'wp_upload_dir' )
-	&& false !== strpos( $transport, 'sys_get_temp_dir' )
-	&& false !== strpos( $transport, 'MAX_UPLOAD_BYTES = 26214400' ),
+	&& false !== strpos( $media_source_validation, 'filesize( $real_path )' )
+	&& false !== strpos( $media_source_validation, 'is_allowed_upload_file_path' )
+	&& false !== strpos( $media_source_validation, 'wp_upload_dir' )
+	&& false !== strpos( $media_source_validation, 'sys_get_temp_dir' )
+	&& false !== strpos( $media_artifact_verification, 'MAX_UPLOAD_BYTES = 26214400' ),
 	'Media derivative transport has no legacy execute payload builder, requires ability-provided derivative fields, validates media types, warns on incomplete metrics, and preflights upload size.'
 );
 
@@ -2237,7 +2239,9 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
 	'includes/class-cloud-wordpress-ai-text-model.php' => 383,
 	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 119,
-	'includes/class-cloud-media-derivative-transport.php' => 2542,
+	'includes/class-cloud-media-derivative-transport.php' => 1664,
+	'includes/class-cloud-media-artifact-verification.php' => 636,
+	'includes/class-cloud-media-source-validation.php' => 279,
 );
 foreach ( $complexity_ratchet_limits as $ratchet_path => $ratchet_limit ) {
 	$ratchet_lines = substr_count( maca_read( $root . '/' . $ratchet_path ), "\n" );

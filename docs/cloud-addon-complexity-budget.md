@@ -101,7 +101,14 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-wordpress-ai-vision-text-model.php` — 119 lines
 - `includes/class-cloud-wordpress-ai-scene-model.php` — 142 lines (shared
   metadata/config plumbing and prompt/result projection helpers)
-- `includes/class-cloud-media-derivative-transport.php` — 2542 lines
+- `includes/class-cloud-media-derivative-transport.php` — 1664 lines (was 2542 before
+  the 2026-10-06 source-validation and artifact-verification split into
+  `class-cloud-media-source-validation.php` and
+  `class-cloud-media-artifact-verification.php`)
+- `includes/class-cloud-media-artifact-verification.php` — 636 lines (descriptor
+  verification, verified pull-and-ack transfer, and the shared caps/normalizers)
+- `includes/class-cloud-media-source-validation.php` — 279 lines (local upload
+  descriptor validation before job dispatch)
 
 The ratchet is a ceiling, not a target. Raise a limit only together with a
 documented reason here; prefer paying it down instead. The settings-page
@@ -302,13 +309,17 @@ runtime-client 源码、其中约 13 处点名 `normalize_*`；搬移后按失�
 对 `class-cloud-media-derivative-transport.php`（2542 行）的结构盘点：
 单一全静态类，零实例状态，接缝已盘出，按序拆分：
 
-1. **本地源/上传校验（约 200 行，WP 文件系统绑定）**：
+1. **本地源/上传校验（约 200 行，WP 文件系统绑定，2026-10-06 已落地）**：
    `normalize_upload_file_descriptor`、`is_allowed_upload_file_path`、
-   descriptor 系列助手。
-2. **工件描述符验证与已验证传输（约 400 行）**：
+   descriptor 系列助手 → `Npcink_Cloud_Media_Source_Validation`（279 行）。
+2. **工件描述符验证与已验证传输（约 400 行，2026-10-06 已落地）**：
    `receive_artifact`、`normalize_artifact_descriptor`、
    `normalize_local_proposal_artifact`、`strict_timestamp`、
-   `normalize_sha256`。
+   `normalize_sha256` → `Npcink_Cloud_Media_Artifact_Verification`（636 行），
+   并收口 `$mime_by_format` 逐字重复为单一私有常量；共享上限
+   （`MAX_UPLOAD_BYTES`/维度/像素/警告）与标量归一助手随 E 公开，
+   `normalize_governance_canary_result` 过渡性公开待第 3 步随迁。
+   落地结果：transport 2542 → 1664 行。
 3. **治理金丝雀严格校验（约 240 行，纯）**：`normalize_governance_canary_result`
    及其投影。
 4. **本地提案/优化计划投影（约 300 行，纯）**：
