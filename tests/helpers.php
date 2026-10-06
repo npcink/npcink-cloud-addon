@@ -542,6 +542,7 @@ function maca_load_addon_classes(): void {
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-settings.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-cleanup.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-ai-task-contract.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-request-guards.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-client.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-client-factory.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-entitlement-summary.php';

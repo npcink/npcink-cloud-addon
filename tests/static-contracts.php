@@ -45,6 +45,7 @@ $outbound_policy = maca_read( $root . '/includes/class-cloud-outbound-policy.php
 $runtime_endpoint_policy = maca_read( $root . '/includes/class-cloud-runtime-endpoint-policy.php' );
 $transport = maca_read( $root . '/includes/class-cloud-media-derivative-transport.php' );
 $runtime_client = maca_read( $root . '/includes/class-cloud-runtime-client.php' );
+$runtime_guards = maca_read( $root . '/includes/class-cloud-runtime-request-guards.php' );
 $runtime_client_factory = maca_read( $root . '/includes/class-cloud-runtime-client-factory.php' );
 $ai_task_contract = maca_read( $root . '/includes/class-cloud-ai-task-contract.php' );
 $wordpress_ai_connector = maca_read( $root . '/includes/class-cloud-wordpress-ai-connector.php' );
@@ -712,28 +713,31 @@ maca_assert(
 maca_assert(
 	false !== strpos( $runtime_client, 'function execute_wordpress_ai_connector_runtime' )
 	&& false !== strpos( $runtime_client, 'normalize_wordpress_ai_connector_request' )
-	&& false !== strpos( $runtime_client, "CLOUD_CONNECTOR_RUNTIME_CONTRACT = 'cloud_connector_runtime.v1'" )
-	&& false !== strpos( $runtime_client, "WORDPRESS_OPERATION_CONTRACT = 'wordpress_operation.v1'" )
-	&& false !== strpos( $runtime_client, "'ability_name'        => 'npcink-cloud/connector-runtime'" )
-	&& false !== strpos( $runtime_client, "'channel'             => 'editor'" )
-	&& false !== strpos( $runtime_client, "'execution_kind'      => \$is_alt_text ? 'vision' : 'text'" )
-	&& false !== strpos( $runtime_client, "'site_id'             => \$site_id" )
-	&& false !== strpos( $runtime_client, "'site_url'           => \$site_url" )
-	&& false !== strpos( $runtime_client, "'platform_kind'      => 'wordpress'" )
-	&& false !== strpos( $runtime_client, "'connector_id'       => 'npcink-cloud-addon'" )
-	&& false !== strpos( $runtime_client, "'connector_version'  => \$connector_version" )
-	&& false !== strpos( $runtime_client, "'suggestion_only'    => true" )
-	&& false !== strpos( $runtime_client, "array( 'prompt', 'post_title', 'post_excerpt' )" )
-	&& false !== strpos( $runtime_client, "\$scene_request['source_text']" )
-	&& false !== strpos( $runtime_client, 'WP_AI_CONNECTOR_FORBIDDEN_KEYS' )
-	&& false !== strpos( $runtime_client, "'credentials'" )
-	&& false !== strpos( $runtime_client, "'api_key'" )
-	&& false !== strpos( $runtime_client, "'messages'" )
-	&& false !== strpos( $runtime_client, "'conversation_id'" )
-	&& false !== strpos( $runtime_client, "'tool_calls'" )
-	&& false !== strpos( $runtime_client, "'stream'" )
+	&& false !== strpos( $runtime_guards, "CLOUD_CONNECTOR_RUNTIME_CONTRACT = 'cloud_connector_runtime.v1'" )
+	&& false !== strpos( $runtime_guards, "WORDPRESS_OPERATION_CONTRACT = 'wordpress_operation.v1'" )
+	&& false !== strpos( $runtime_guards, "'ability_name'        => 'npcink-cloud/connector-runtime'" )
+	&& false !== strpos( $runtime_guards, "'channel'             => 'editor'" )
+	&& false !== strpos( $runtime_guards, "'execution_kind'      => \$is_alt_text ? 'vision' : 'text'" )
+	&& false !== strpos( $runtime_guards, "'site_id'             => \$site_id" )
+	&& false !== strpos( $runtime_guards, "'site_url'           => \$site_url" )
+	&& false !== strpos( $runtime_guards, "'platform_kind'      => 'wordpress'" )
+	&& false !== strpos( $runtime_guards, "'connector_id'       => 'npcink-cloud-addon'" )
+	&& false !== strpos( $runtime_guards, "'connector_version'  => \$connector_version" )
+	&& false !== strpos( $runtime_guards, "'suggestion_only'    => true" )
+	&& false !== strpos( $runtime_guards, "array( 'prompt', 'post_title', 'post_excerpt' )" )
+	&& false !== strpos( $runtime_guards, "\$scene_request['source_text']" )
+	&& false !== strpos( $runtime_guards, 'WP_AI_CONNECTOR_FORBIDDEN_KEYS' )
+	&& false !== strpos( $runtime_guards, "'credentials'" )
+	&& false !== strpos( $runtime_guards, "'api_key'" )
+	&& false !== strpos( $runtime_guards, "'messages'" )
+	&& false !== strpos( $runtime_guards, "'conversation_id'" )
+	&& false !== strpos( $runtime_guards, "'tool_calls'" )
+	&& false !== strpos( $runtime_guards, "'stream'" )
 	&& false === strpos( $runtime_client, 'wp_ai_connector_' . 'runtime.v1' )
-	&& false === strpos( $runtime_client, 'npcink-cloud/wp-ai-' . 'connector' ),
+	&& false === strpos( $runtime_client, 'npcink-cloud/wp-ai-' . 'connector' )
+	&& false === strpos( $runtime_guards, 'wp_ai_connector_' . 'runtime.v1' )
+	&& false === strpos( $runtime_guards, 'npcink-cloud/wp-ai-' . 'connector' )
+	&& false === strpos( $runtime_guards, 'wp_remote_' ),
 	'Runtime client exposes the bounded cross-platform connector envelope and rejects legacy WordPress text shapes.'
 );
 
@@ -751,10 +755,10 @@ maca_assert(
 	&& false !== strpos( $runtime_client, "'/^art_[0-9a-f]{32}$/'" )
 	&& false !== strpos( $runtime_client, "'sha256:' . hash( 'sha256', \$contents )" )
 	&& false !== strpos( $runtime_client, "'artifact_id'    => \$artifact['artifact_id']" )
-	&& false !== strpos( $runtime_client, "array( 'source_artifact_id', 'prompt', 'filename', 'title', 'existing_alt', 'existing_caption', 'locale', 'max_tokens', 'task_contract' )" )
-	&& false !== strpos( $runtime_client, 'wordpress_ai_scene_contains_obvious_pii' )
-	&& false !== strpos( $runtime_client, "\$contains_pii ? 'pii' : 'internal'" )
-	&& false !== strpos( $runtime_client, "\$contains_pii ? 'no_store' : 'result_only'" )
+	&& false !== strpos( $runtime_guards, "array( 'source_artifact_id', 'prompt', 'filename', 'title', 'existing_alt', 'existing_caption', 'locale', 'max_tokens', 'task_contract' )" )
+	&& false !== strpos( $runtime_guards, 'wordpress_ai_scene_contains_obvious_pii' )
+	&& false !== strpos( $runtime_guards, "\$contains_pii ? 'pii' : 'internal'" )
+	&& false !== strpos( $runtime_guards, "\$contains_pii ? 'no_store' : 'result_only'" )
 	&& false === strpos( $runtime_client, 'WP_AI_CONNECTOR_ALT_TEXT_MAX_REQUEST_BYTES' ),
 	'Runtime client keeps WordPress AI editor input on the matching internal or pii posture and alt-text upload and execution on the dedicated Artifact-id-only contract.'
 );
@@ -799,52 +803,52 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $runtime_client, 'execute_toolbox_audio_generation_runtime' )
-	&& false !== strpos( $runtime_client, 'TOOLBOX_AUDIO_GENERATION_ALLOWED_INTENTS' )
-	&& false !== strpos( $runtime_client, "'article_narration'" )
-	&& false !== strpos( $runtime_client, "'article_audio_summary'" )
-	&& false !== strpos( $runtime_client, "'channel'             => 'toolbox_audio_generation'" )
-	&& false !== strpos( $runtime_client, "'ability_name'        => 'npcink-toolbox/generate-audio'" )
-	&& false !== strpos( $runtime_client, "'storage_mode'        => 'result_only'" )
-	&& false !== strpos( $runtime_client, "'direct_wordpress_write' => false" )
-	&& false !== strpos( $runtime_client, "'allow_fallback' => false" ),
+	&& false !== strpos( $runtime_guards, 'TOOLBOX_AUDIO_GENERATION_ALLOWED_INTENTS' )
+	&& false !== strpos( $runtime_guards, "'article_narration'" )
+	&& false !== strpos( $runtime_guards, "'article_audio_summary'" )
+	&& false !== strpos( $runtime_guards, "'channel'             => 'toolbox_audio_generation'" )
+	&& false !== strpos( $runtime_guards, "'ability_name'        => 'npcink-toolbox/generate-audio'" )
+	&& false !== strpos( $runtime_guards, "'storage_mode'        => 'result_only'" )
+	&& false !== strpos( $runtime_guards, "'direct_wordpress_write' => false" )
+	&& false !== strpos( $runtime_guards, "'allow_fallback' => false" ),
 	'Runtime client exposes a bounded Toolbox audio generation transport without media import, metadata writes, or fallback provider control.'
 );
 
 maca_assert(
 	false !== strpos( $runtime_client, 'execute_toolbox_site_ops_cloud_analysis_runtime' )
-	&& false !== strpos( $runtime_client, 'TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_CONTRACT' )
-	&& false !== strpos( $runtime_client, "'channel'             => 'toolbox_site_ops_cloud_analysis'" )
-	&& false !== strpos( $runtime_client, "'ability_name'        => 'npcink-toolbox/analyze-site-ops'" )
-	&& false !== strpos( $runtime_client, "'execution_pattern'   => 'whole_run_offload'" )
-	&& false !== strpos( $runtime_client, "'storage_mode'        => 'result_only'" )
-	&& false !== strpos( $runtime_client, "\$request['direct_wordpress_write'] ?? true" )
-	&& false !== strpos( $runtime_client, "\$request['core_proposal_created'] ?? true" )
-	&& false !== strpos( $runtime_client, "'allow_fallback' => false" ),
+	&& false !== strpos( $runtime_guards, 'TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_CONTRACT' )
+	&& false !== strpos( $runtime_guards, "'channel'             => 'toolbox_site_ops_cloud_analysis'" )
+	&& false !== strpos( $runtime_guards, "'ability_name'        => 'npcink-toolbox/analyze-site-ops'" )
+	&& false !== strpos( $runtime_guards, "'execution_pattern'   => 'whole_run_offload'" )
+	&& false !== strpos( $runtime_guards, "'storage_mode'        => 'result_only'" )
+	&& false !== strpos( $runtime_guards, "\$request['direct_wordpress_write'] ?? true" )
+	&& false !== strpos( $runtime_guards, "\$request['core_proposal_created'] ?? true" )
+	&& false !== strpos( $runtime_guards, "'allow_fallback' => false" ),
 	'Runtime client exposes a bounded Toolbox Site Ops Cloud analysis transport without proposal, scheduler, or WordPress write ownership.'
 );
 
 maca_assert(
 	false !== strpos( $runtime_client, 'execute_toolbox_web_search_runtime' )
-	&& false !== strpos( $runtime_client, "TOOLBOX_WEB_SEARCH_CONTRACT = 'web_search.v1'" )
-	&& false !== strpos( $runtime_client, "'channel'             => 'toolbox_web_search'" )
-	&& false !== strpos( $runtime_client, "'ability_name'        => 'npcink-cloud/web-search'" )
-	&& false !== strpos( $runtime_client, "'execution_kind'      => 'web_search'" )
-	&& false !== strpos( $runtime_client, "'source_extraction_preview'" )
-	&& false !== strpos( $runtime_client, "'write_posture']          = 'suggestion_only'" )
-	&& false !== strpos( $runtime_client, "'direct_wordpress_write'] = false" )
-	&& false !== strpos( $runtime_client, "'allow_fallback' => true" ),
+	&& false !== strpos( $runtime_guards, "TOOLBOX_WEB_SEARCH_CONTRACT = 'web_search.v1'" )
+	&& false !== strpos( $runtime_guards, "'channel'             => 'toolbox_web_search'" )
+	&& false !== strpos( $runtime_guards, "'ability_name'        => 'npcink-cloud/web-search'" )
+	&& false !== strpos( $runtime_guards, "'execution_kind'      => 'web_search'" )
+	&& false !== strpos( $runtime_guards, "'source_extraction_preview'" )
+	&& false !== strpos( $runtime_guards, "'write_posture']          = 'suggestion_only'" )
+	&& false !== strpos( $runtime_guards, "'direct_wordpress_write'] = false" )
+	&& false !== strpos( $runtime_guards, "'allow_fallback' => true" ),
 	'Runtime client exposes a bounded Toolbox web search transport without local search keys, proposal ownership, or WordPress writes.'
 );
 
 maca_assert(
 	false !== strpos( $runtime_client, 'execute_toolbox_image_source_runtime' )
-	&& false !== strpos( $runtime_client, "TOOLBOX_IMAGE_SOURCE_CONTRACT = 'image_source_cloud_request.v1'" )
-	&& false !== strpos( $runtime_client, "'channel'             => 'toolbox_image_source'" )
-	&& false !== strpos( $runtime_client, "'ability_name'        => 'npcink-toolbox/search-image-source'" )
-	&& false !== strpos( $runtime_client, "'execution_kind'      => 'image_source'" )
-	&& false !== strpos( $runtime_client, "'candidate_contract']     = 'image_candidate.v1'" )
-	&& false !== strpos( $runtime_client, "'direct_wordpress_write'] = false" )
-	&& false !== strpos( $runtime_client, "'allow_fallback' => true" ),
+	&& false !== strpos( $runtime_guards, "TOOLBOX_IMAGE_SOURCE_CONTRACT = 'image_source_cloud_request.v1'" )
+	&& false !== strpos( $runtime_guards, "'channel'             => 'toolbox_image_source'" )
+	&& false !== strpos( $runtime_guards, "'ability_name'        => 'npcink-toolbox/search-image-source'" )
+	&& false !== strpos( $runtime_guards, "'execution_kind'      => 'image_source'" )
+	&& false !== strpos( $runtime_guards, "'candidate_contract']     = 'image_candidate.v1'" )
+	&& false !== strpos( $runtime_guards, "'direct_wordpress_write'] = false" )
+	&& false !== strpos( $runtime_guards, "'allow_fallback' => true" ),
 	'Runtime client exposes a bounded Toolbox image-source transport without media import, featured-image writes, or attribution writes.'
 );
 
@@ -1052,9 +1056,9 @@ maca_assert(
 	&& false !== strpos( $runtime_client, "'ability_name'        => 'npcink-cloud/image-context-evidence'" )
 	&& false !== strpos( $runtime_client, "'profile_id'          => 'vision.ai'" )
 	&& false !== strpos( $runtime_client, "'execution_kind'      => 'image_context_evidence'" )
-	&& false !== strpos( $runtime_client, "'expected_response_contract' => 'image_context_evidence.v1'" )
-	&& false !== strpos( $runtime_client, "'no_local_model'             => true" )
-	&& false !== strpos( $runtime_client, "'no_media_write'             => true" ),
+	&& false !== strpos( $runtime_guards, "'expected_response_contract' => 'image_context_evidence.v1'" )
+	&& false !== strpos( $runtime_guards, "'no_local_model'             => true" )
+	&& false !== strpos( $runtime_guards, "'no_media_write'             => true" ),
 	'Runtime client exposes bounded image context evidence transport through the hosted runtime contract.'
 );
 
@@ -1734,7 +1738,7 @@ maca_assert(
 	&& false === strpos( $wordpress_ai_connector, "'site_excerpt_style'" )
 	&& false === strpos( $wordpress_ai_connector, "'site_meta_style'" )
 	&& false === strpos( $wordpress_ai_connector, "'site_taxonomy_history'" )
-	&& false !== strpos( $runtime_client, 'normalize_wordpress_ai_site_knowledge_reference' )
+	&& false !== strpos( $runtime_guards, 'normalize_wordpress_ai_site_knowledge_reference' )
 	&& false !== strpos( $settings_actions, "ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission'" )
 	&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_UPDATE_LOCAL_PERMISSION" )
 	&& false !== strpos( $settings_actions, 'function handle_update_local_permission' )
@@ -2204,7 +2208,8 @@ maca_assert(
 // complexity may stay, but these files must not grow unnoticed: raise a limit
 // only with a documented reason in docs/cloud-addon-complexity-budget.md.
 $complexity_ratchet_limits = array(
-	'includes/class-cloud-runtime-client.php'          => 4314,
+	'includes/class-cloud-runtime-client.php'          => 2324,
+	'includes/class-cloud-runtime-request-guards.php'  => 2020,
 	'includes/class-cloud-settings-page.php'           => 2207,
 	'includes/class-cloud-settings-actions.php'        => 1106,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 2767,

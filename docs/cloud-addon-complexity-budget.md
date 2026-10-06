@@ -71,7 +71,11 @@ Is this transport/detail, or is it control/write truth?
 `tests/static-contracts.php` enforces a line-count ratchet on the four widest
 connector classes so they cannot grow unnoticed:
 
-- `includes/class-cloud-runtime-client.php` — 4314 lines
+- `includes/class-cloud-runtime-client.php` — 2324 lines (was 4314 before the
+  2026-10-06 payload-guard split into `class-cloud-runtime-request-guards.php`)
+- `includes/class-cloud-runtime-request-guards.php` — 2020 lines (pure
+  `normalize_*` request validators, forbidden-key walkers, PII scan, and
+  bounded-text/sanitize helpers with zero instance state)
 - `includes/class-cloud-settings-page.php` — 2207 lines (was 3280 before the
   2026-10-04 handler split into `class-cloud-settings-actions.php`)
 - `includes/class-cloud-settings-actions.php` — 1106 lines (settings request
@@ -196,7 +200,7 @@ protection against overlapping delivery.
 的方法论（机械搬移 + 失败驱动的契约重定向 + 双文件棘轮 + manifest/
 bootstrap/POT/打包/Playground 门禁）：
 
-1. **载荷守卫（纯函数，约 1800 行，第一步）**：十五个
+1. **载荷守卫（纯函数，约 1800 行，第一步，2026-10-06 已落地）**：十五个
    `normalize_*` 请求校验器（wordpress-ai connector/alt-text/image-
    generation、toolbox image/audio/site-ops/media-governance/web-search/
    image-source、agent-feedback、image-context-evidence）及其
@@ -204,7 +208,10 @@ bootstrap/POT/打包/Playground 门禁）：
    引用的约 40 个场景常量。零实例状态 → 抽为
    `Npcink_Cloud_Runtime_Request_Guards`（静态方法 + 公开常量），客户端
    改为 `Guards::normalize_*(...)` 调用。行为逐字不变；端点允许清单与
-   签名内核不动。预期 runtime-client 降至约 2400 行。
+   签名内核不动。落地结果：runtime-client 4314 → 2324 行，守卫类 2020 行。
+   唯一环境读取点（connector 校验器的 site_id/site_url/addon version）改为
+   调用点参数注入；`MEDIA_ARTIFACT_ID_PATTERN` 与两个超时上限常量因传输侧
+   共用改为守卫类公开常量，客户端跨类引用。
 2. **诊断投影（约 450 行，第二步）**：`build_readiness_result`、诊断
    面板构建、severity/next-safe-action/分类与 `redact_support_text`
    → `Npcink_Cloud_Runtime_Diagnostics`（静态，输入为 probe 数组）。
