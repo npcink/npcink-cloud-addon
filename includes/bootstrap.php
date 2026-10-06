@@ -24,6 +24,8 @@ require_once __DIR__ . '/class-cloud-runtime-client.php';
 require_once __DIR__ . '/class-cloud-runtime-client-factory.php';
 require_once __DIR__ . '/class-cloud-media-artifact-verification.php';
 require_once __DIR__ . '/class-cloud-media-derivative-transport.php';
+require_once __DIR__ . '/class-cloud-media-governance-validation.php';
+require_once __DIR__ . '/class-cloud-media-plan-projection.php';
 require_once __DIR__ . '/class-cloud-media-source-validation.php';
 require_once __DIR__ . '/class-cloud-entitlement-summary.php';
 require_once __DIR__ . '/class-cloud-observability-collector.php';
@@ -738,7 +740,7 @@ if ( ! function_exists( 'npcink_cloud_addon_build_media_derivative_proposal_payl
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_build_media_derivative_proposal_payload( array $ability_response, array $cloud_result, array $derivative_artifact ) {
-		return Npcink_Cloud_Media_Derivative_Transport::build_local_proposal_payload(
+		return Npcink_Cloud_Media_Plan_Projection::build_local_proposal_payload(
 			$ability_response,
 			$cloud_result,
 			$derivative_artifact
@@ -821,7 +823,7 @@ if ( ! function_exists( 'npcink_cloud_addon_build_media_derivative_optimization_
 	 * @return array<string,mixed>|WP_Error
 	 */
 	function npcink_cloud_addon_build_media_derivative_optimization_payload( array $ability_response, array $cloud_result, array $derivative_artifact, array $media_details_input ) {
-		return Npcink_Cloud_Media_Derivative_Transport::build_media_optimization_payload(
+		return Npcink_Cloud_Media_Plan_Projection::build_media_optimization_payload(
 			$ability_response,
 			$cloud_result,
 			$derivative_artifact,

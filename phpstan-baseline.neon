@@ -58,7 +58,7 @@ parameters:
 			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 2
-			path: includes/class-cloud-media-derivative-transport.php
+			path: includes/class-cloud-media-plan-projection.php
 
 		-
 			message: '#^Strict comparison using \!\=\= between '''' and non\-empty\-string will always evaluate to true\.$#'

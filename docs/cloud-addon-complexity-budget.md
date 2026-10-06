@@ -101,7 +101,7 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-wordpress-ai-vision-text-model.php` — 119 lines
 - `includes/class-cloud-wordpress-ai-scene-model.php` — 142 lines (shared
   metadata/config plumbing and prompt/result projection helpers)
-- `includes/class-cloud-media-derivative-transport.php` — 1664 lines (was 2542 before
+- `includes/class-cloud-media-derivative-transport.php` — 714 lines (was 2542 before
   the 2026-10-06 source-validation and artifact-verification split into
   `class-cloud-media-source-validation.php` and
   `class-cloud-media-artifact-verification.php`)
@@ -109,6 +109,10 @@ connector classes so they cannot grow unnoticed:
   verification, verified pull-and-ack transfer, and the shared caps/normalizers)
 - `includes/class-cloud-media-source-validation.php` — 279 lines (local upload
   descriptor validation before job dispatch)
+- `includes/class-cloud-media-governance-validation.php` — 281 lines (strict
+  governance-canary result validation and bounded projection)
+- `includes/class-cloud-media-plan-projection.php` — 707 lines (local proposal and
+  optimization-plan projection with the request-contract validation)
 
 The ratchet is a ceiling, not a target. Raise a limit only together with a
 documented reason here; prefer paying it down instead. The settings-page
@@ -320,14 +324,20 @@ runtime-client 源码、其中约 13 处点名 `normalize_*`；搬移后按失�
    （`MAX_UPLOAD_BYTES`/维度/像素/警告）与标量归一助手随 E 公开，
    `normalize_governance_canary_result` 过渡性公开待第 3 步随迁。
    落地结果：transport 2542 → 1664 行。
-3. **治理金丝雀严格校验（约 240 行，纯）**：`normalize_governance_canary_result`
-   及其投影。
-4. **本地提案/优化计划投影（约 300 行，纯）**：
+3. **治理金丝雀严格校验（约 240 行，纯，2026-10-06 已落地）**：
+   `normalize_governance_canary_result` 及其投影 →
+   `Npcink_Cloud_Media_Governance_Validation`（281 行，含共享
+   `has_exact_keys` 与最低节省基点公开）。
+4. **本地提案/优化计划投影（约 300 行，纯，2026-10-06 已落地）**：
    `build_local_proposal_payload`、`build_media_optimization_payload`、
-   `media_optimization_plan_from_derivative_payload` 及计划助手。
+   `media_optimization_plan_from_derivative_payload` 及计划助手 →
+   `Npcink_Cloud_Media_Plan_Projection`（707 行，含随迁的
+   `validate_request_contract`、`contains_forbidden_secret_fields`、
+   `bounded_projection_*` 助手与 `REQUEST_CONTRACT_VERSION`）。
 5. **Cloud 任务编排留守**（`dispatch_from_ability_response` +
    `build_media_job_params` + `verified_client`，唯一状态触点为
-   `Npcink_Cloud_Addon_Settings`）。
+   `Npcink_Cloud_Addon_Settings`）。落地结果：transport 1664 → 714 行，
+   E 对治理类的过渡性跨类调用改指新类，双向耦合关闭。
 
 重复收口（拆分时顺手或独立小 PR）：两个 artifact descriptor 规范化约
 80% 重叠、`$mime_by_format` 映射逐字两份；跨文件重复三项——

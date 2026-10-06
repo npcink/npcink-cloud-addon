@@ -15,7 +15,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:960
+#: includes/bootstrap.php:962
 #: includes/class-cloud-settings-page.php:133
 #: includes/class-cloud-settings-page.php:144
 #: includes/class-cloud-settings-page.php:145
@@ -33,59 +33,59 @@ msgstr "用于 Npcink 托管运行时访问、签名、健康检查和权益摘�
 msgid "Npcink"
 msgstr "Npcink"
 
-#: includes/bootstrap.php:150
-#: includes/bootstrap.php:205
-#: includes/bootstrap.php:235
-#: includes/bootstrap.php:326
-#: includes/bootstrap.php:357
-#: includes/bootstrap.php:388
-#: includes/bootstrap.php:419
-#: includes/bootstrap.php:446
-#: includes/bootstrap.php:473
-#: includes/bootstrap.php:496
-#: includes/bootstrap.php:518
-#: includes/bootstrap.php:605
-#: includes/bootstrap.php:629
-#: includes/bootstrap.php:653
-#: includes/bootstrap.php:661
-#: includes/bootstrap.php:669
-#: includes/bootstrap.php:677
-#: includes/bootstrap.php:685
-#: includes/bootstrap.php:693
-#: includes/bootstrap.php:701
-#: includes/bootstrap.php:717
-#: includes/bootstrap.php:725
+#: includes/bootstrap.php:152
+#: includes/bootstrap.php:207
+#: includes/bootstrap.php:237
+#: includes/bootstrap.php:328
+#: includes/bootstrap.php:359
+#: includes/bootstrap.php:390
+#: includes/bootstrap.php:421
+#: includes/bootstrap.php:448
+#: includes/bootstrap.php:475
+#: includes/bootstrap.php:498
+#: includes/bootstrap.php:520
+#: includes/bootstrap.php:607
+#: includes/bootstrap.php:631
+#: includes/bootstrap.php:655
+#: includes/bootstrap.php:663
+#: includes/bootstrap.php:671
+#: includes/bootstrap.php:679
+#: includes/bootstrap.php:687
+#: includes/bootstrap.php:695
+#: includes/bootstrap.php:703
+#: includes/bootstrap.php:719
+#: includes/bootstrap.php:727
 #: includes/class-cloud-runtime-client.php:1052
 #: includes/class-cloud-runtime-client.php:1158
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr "Npcink Cloud 尚未配置。"
 
-#: includes/bootstrap.php:557
+#: includes/bootstrap.php:559
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr "Toolbox 运行请求超过固定大小限制。"
 
-#: includes/bootstrap.php:571
+#: includes/bootstrap.php:573
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr "Toolbox 运行请求包含固定合同之外的字段。"
 
-#: includes/bootstrap.php:579
+#: includes/bootstrap.php:581
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr "Toolbox 运行限制超出连接器固定策略。"
 
-#: includes/bootstrap.php:601
+#: includes/bootstrap.php:603
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr "Toolbox 内容支持需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:625
+#: includes/bootstrap.php:627
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr "Toolbox 站点助手需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:649
+#: includes/bootstrap.php:651
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr "夜间检查需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:990
+#: includes/bootstrap.php:992
 msgid "Settings"
 msgstr "设置"
 
@@ -198,19 +198,19 @@ msgstr "正在刷新套餐与权益。"
 msgid "Entitlement summary synced."
 msgstr "权益摘要已同步。"
 
-#: includes/class-cloud-media-derivative-transport.php:61
+#: includes/class-cloud-media-derivative-transport.php:56
 msgid "Source upload and source artifact id cannot be sent together."
 msgstr "不能同时发送源文件上传和源 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:89
+#: includes/class-cloud-media-derivative-transport.php:84
 msgid "Watermark upload and watermark artifact id cannot be sent together."
 msgstr "不能同时发送水印上传和水印 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:268
+#: includes/class-cloud-media-derivative-transport.php:263
 msgid "Cloud media derivative statuses require a data envelope."
 msgstr "Cloud 媒体衍生状态需要 data 信封。"
 
-#: includes/class-cloud-media-derivative-transport.php:279
+#: includes/class-cloud-media-derivative-transport.php:274
 msgid "Cloud media derivative statuses require a run id and canonical lifecycle status."
 msgstr "Cloud 媒体衍生状态需要运行 ID 和规范的生命周期状态。"
 
@@ -222,15 +222,15 @@ msgstr "已跳过的媒体治理金丝雀测试不会发布衍生工件。"
 msgid "Cloud media derivative results require the exact qualified media_derivative_result.v3 artifact envelope."
 msgstr "Cloud 媒体衍生结果需要精确且合格的 media_derivative_result.v3 工件信封。"
 
-#: includes/class-cloud-media-derivative-transport.php:411
+#: includes/class-cloud-media-governance-validation.php:55
 msgid "Skipped automatic optimization results require the exact media_derivative_result.v3 decision envelope."
 msgstr "已跳过的自动优化结果需要精确的 media_derivative_result.v3 决策信封。"
 
-#: includes/class-cloud-media-derivative-transport.php:442
+#: includes/class-cloud-media-governance-validation.php:86
 msgid "Skipped automatic optimization results require bounded decision facts."
 msgstr "已跳过的自动优化结果需要受限的决策事实。"
 
-#: includes/class-cloud-media-derivative-transport.php:620
+#: includes/class-cloud-media-governance-validation.php:264
 msgid "Cloud media governance canary evidence failed strict validation."
 msgstr "Cloud 媒体治理金丝雀测试证据未通过严格验证。"
 
@@ -266,103 +266,103 @@ msgstr "衍生工件的解码信息与 Cloud 描述符不一致。"
 msgid "Cloud media delivery acknowledgement does not bind to the verified transfer."
 msgstr "Cloud 媒体投递确认未绑定到已验证的传输。"
 
-#: includes/class-cloud-media-derivative-transport.php:993
+#: includes/class-cloud-media-derivative-transport.php:342
 msgid "Npcink Cloud credentials must verify before dispatching media derivative jobs."
 msgstr "派发媒体衍生任务前，Npcink Cloud 凭据必须先通过验证。"
 
-#: includes/class-cloud-media-derivative-transport.php:1036
+#: includes/class-cloud-media-plan-projection.php:416
 msgid "Local media derivative proposal building requires the exact Addon run-result projection."
 msgstr "构建本地媒体衍生提案需要精确的 Addon 运行结果投影。"
 
-#: includes/class-cloud-media-derivative-transport.php:1061
+#: includes/class-cloud-media-plan-projection.php:617
 msgid "Media derivative request contract version is invalid."
 msgstr "媒体衍生请求的合同版本无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:1068
+#: includes/class-cloud-media-plan-projection.php:624
 msgid "Media derivative request must be read-only and proposal-only."
 msgstr "媒体衍生请求必须是只读且仅生成提案。"
 
-#: includes/class-cloud-media-derivative-transport.php:1075
+#: includes/class-cloud-media-plan-projection.php:631
 msgid "Media derivative final write owner must remain the local WordPress host."
 msgstr "媒体衍生的最终写入所有者必须保留为本地 WordPress 主机。"
 
-#: includes/class-cloud-media-derivative-transport.php:1082
+#: includes/class-cloud-media-plan-projection.php:638
 msgid "Media derivative request must not include WordPress writes."
 msgstr "媒体衍生请求不得包含 WordPress 写入。"
 
-#: includes/class-cloud-media-derivative-transport.php:1089
+#: includes/class-cloud-media-plan-projection.php:645
 msgid "Media derivative ability payload must not include credentials or signed headers."
 msgstr "媒体衍生 ability payload 不得包含凭据或签名请求头。"
 
-#: includes/class-cloud-media-derivative-transport.php:1098
+#: includes/class-cloud-media-plan-projection.php:654
 msgid "Cloud media derivative job type is invalid."
 msgstr "Cloud 媒体衍生任务类型无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:1105
+#: includes/class-cloud-media-plan-projection.php:661
 msgid "Media derivative jobs must not request original file replacement."
 msgstr "媒体衍生任务不得请求替换原始文件。"
 
-#: includes/class-cloud-media-derivative-transport.php:1127
+#: includes/class-cloud-media-derivative-transport.php:364
 msgid "Media derivative optimization mode is invalid."
 msgstr "媒体衍生优化模式无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:1132
+#: includes/class-cloud-media-derivative-transport.php:369
 msgid "Automatic safe optimization requires the current fixed policy version."
 msgstr "自动安全优化需要使用当前固定策略版本。"
 
-#: includes/class-cloud-media-derivative-transport.php:1141
+#: includes/class-cloud-media-derivative-transport.php:378
 msgid "Watermark artifact transport requires a watermark plan in the ability response."
 msgstr "水印 artifact 传输要求 ability response 中包含水印计划。"
 
-#: includes/class-cloud-media-derivative-transport.php:1148
+#: includes/class-cloud-media-derivative-transport.php:385
 msgid "Text watermark plans must not include a watermark upload or artifact id."
 msgstr "文本水印计划不得包含水印上传或 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:1155
+#: includes/class-cloud-media-derivative-transport.php:392
 msgid "Watermark plans require a watermark upload or artifact id before Cloud dispatch."
 msgstr "派发到 Cloud 前，水印计划需要水印上传或 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:1162
+#: includes/class-cloud-media-derivative-transport.php:399
 msgid "Automatic safe optimization requires WebP output."
 msgstr "自动安全优化需要输出 WebP。"
 
-#: includes/class-cloud-media-derivative-transport.php:1167
+#: includes/class-cloud-media-derivative-transport.php:404
 msgid "Media derivative request must include a bounded target format from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 提供的受限目标格式。"
 
-#: includes/class-cloud-media-derivative-transport.php:1176
+#: includes/class-cloud-media-derivative-transport.php:413
 msgid "Media derivative request must include max_width from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 中的 max_width。"
 
-#: includes/class-cloud-media-derivative-transport.php:1185
+#: includes/class-cloud-media-derivative-transport.php:422
 msgid "Media derivative request must include quality from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 中的 quality。"
 
-#: includes/class-cloud-media-derivative-transport.php:1198
+#: includes/class-cloud-media-derivative-transport.php:435
 msgid "Media derivative resize mode is invalid."
 msgstr "媒体衍生缩放模式无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:1203
+#: includes/class-cloud-media-derivative-transport.php:440
 msgid "Automatic safe optimization does not accept quality, crop, watermark, or custom width parameters."
 msgstr "自动安全优化不接受质量、裁剪、水印或自定义宽度参数。"
 
-#: includes/class-cloud-media-derivative-transport.php:1217
+#: includes/class-cloud-media-derivative-transport.php:454
 msgid "Media derivative source media type must be a supported image type."
 msgstr "媒体衍生源媒体类型必须是受支持的图片类型。"
 
-#: includes/class-cloud-media-derivative-transport.php:1255
+#: includes/class-cloud-media-derivative-transport.php:492
 msgid "Media governance canaries require exact governance and batch context fields."
 msgstr "媒体治理金丝雀测试需要准确的治理和批次上下文字段。"
 
-#: includes/class-cloud-media-derivative-transport.php:1295
+#: includes/class-cloud-media-derivative-transport.php:532
 msgid "Media governance canaries require WebP preserve previews, no crop or watermark, and at most ten items."
 msgstr "媒体治理金丝雀测试要求生成保留原尺寸的 WebP 预览，不得裁剪或添加水印，且最多包含十项。"
 
-#: includes/class-cloud-media-derivative-transport.php:1347
+#: includes/class-cloud-media-derivative-transport.php:571
 msgid "Media derivative jobs require a canonical source artifact id."
 msgstr "媒体衍生任务需要规范的源工件 ID。"
 
-#: includes/class-cloud-media-derivative-transport.php:1362
+#: includes/class-cloud-media-derivative-transport.php:586
 msgid "Media derivative image watermarks require a canonical artifact id."
 msgstr "媒体衍生图像水印需要规范的工件 ID。"
 
@@ -472,19 +472,19 @@ msgstr "本地媒体衍生工件元数据无效。"
 msgid "Local media derivative processing warnings are invalid."
 msgstr "本地媒体衍生处理警告无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:1559
+#: includes/class-cloud-media-plan-projection.php:462
 msgid "Derivative artifact facts do not match the Cloud result."
 msgstr "衍生工件信息与 Cloud 结果不一致。"
 
-#: includes/class-cloud-media-derivative-transport.php:1567
+#: includes/class-cloud-media-plan-projection.php:470
 msgid "Derivative artifact checksum does not match the Cloud result."
 msgstr "衍生 artifact 校验和与 Cloud 结果不匹配。"
 
-#: includes/class-cloud-media-derivative-transport.php:1585
+#: includes/class-cloud-media-plan-projection.php:488
 msgid "Original media metrics are incomplete."
 msgstr "原始媒体指标不完整。"
 
-#: includes/class-cloud-media-derivative-transport.php:1588
+#: includes/class-cloud-media-plan-projection.php:491
 msgid "Derivative media metrics are incomplete."
 msgstr "衍生媒体指标不完整。"
 
@@ -1207,7 +1207,7 @@ msgstr "手动就绪测试已完成。连接器已就绪。"
 msgid "Cloud connector status and access settings for this WordPress site."
 msgstr "此 WordPress 站点的 Cloud 连接器状态和访问设置。"
 
-#: includes/bootstrap.php:962
+#: includes/bootstrap.php:964
 #: includes/class-cloud-settings-page.php:198
 msgid "Connect this site"
 msgstr "连接此站点"
@@ -2477,11 +2477,11 @@ msgstr "Npcink Cloud 无法投影替代文本 Ability 合同。"
 msgid "https://cloud.npc.ink/"
 msgstr "https://cloud.npc.ink/"
 
-#: includes/bootstrap.php:961
+#: includes/bootstrap.php:963
 msgid "The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features."
 msgstr "插件已启用，但本站点尚未连接 Npcink Cloud。连接站点后即可启用其 AI 功能。"
 
-#: includes/bootstrap.php:964
+#: includes/bootstrap.php:966
 msgid "Do not show again"
 msgstr "不再显示"
 

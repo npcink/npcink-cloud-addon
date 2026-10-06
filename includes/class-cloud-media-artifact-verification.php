@@ -39,7 +39,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Artifact_Verification' ) ) {
 		public static function artifact_from_cloud_result( array $cloud_result ) {
 			$data   = is_array( $cloud_result['data'] ?? null ) ? $cloud_result['data'] : array();
 			$result = is_array( $data['result'] ?? null ) ? $data['result'] : array();
-			$canary = Npcink_Cloud_Media_Derivative_Transport::normalize_governance_canary_result( $result );
+			$canary = Npcink_Cloud_Media_Governance_Validation::normalize_governance_canary_result( $result );
 			if ( is_wp_error( $canary ) ) {
 				return $canary;
 			}
