@@ -54,16 +54,16 @@ if (
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 			if ( 1 !== count( $prompt ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported' ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported' ) );
 			}
 
 			if ( null !== $this->config->getFunctionDeclarations() || null !== $this->config->getWebSearch() ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'tools_not_supported', 'cloud_wp_ai_tools_not_supported' ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'tools_not_supported', 'cloud_wp_ai_tools_not_supported' ) );
 			}
 
 			$text = $this->prompt_text( $prompt );
 			if ( '' === $text ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_input_required', 'cloud_wp_ai_scene_input_required' ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_input_required', 'cloud_wp_ai_scene_input_required' ) );
 			}
 
 			$request = array(
@@ -98,14 +98,14 @@ if (
 				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
 				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $response->get_error_code(), (string) ( $evidence['cloud_error_code'] ?? '' ), (string) $response->get_error_message() ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $response->get_error_code(), (string) ( $evidence['cloud_error_code'] ?? '' ), (string) $response->get_error_message() ) );
 			}
 
 			$result     = $this->extract_result( is_array( $response ) ? $response : array() );
 			try {
 				$candidates = $this->extract_image_candidates( $result, $trace_id );
 				if ( empty( $candidates ) ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_image_output_missing' ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_image_output_missing' ) );
 				}
 			} catch ( \Throwable $error ) {
 				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
@@ -156,7 +156,7 @@ if (
 			$parts = array();
 			foreach ( $message->getParts() as $part ) {
 				if ( null !== $part->getFile() ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'reference_image_not_supported', 'cloud_wp_ai_reference_image_not_supported' ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'reference_image_not_supported', 'cloud_wp_ai_reference_image_not_supported' ) );
 				}
 
 				$text = $part->getText();
@@ -290,29 +290,29 @@ if (
 			foreach ( $result['artifacts'] as $artifact ) {
 				$artifact_bytes = is_array( $artifact ) ? ( $artifact['filesize_bytes'] ?? null ) : null;
 				if ( ! is_int( $artifact_bytes ) || $artifact_bytes < 1 || $artifact_bytes > self::MAX_IMAGE_BYTES ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
 				}
 				$aggregate_bytes += $artifact_bytes;
 				if ( $aggregate_bytes > self::MAX_IMAGE_AGGREGATE_BYTES ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_preview_limit', 'cloud_wp_ai_image_preview_limit' ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_preview_limit', 'cloud_wp_ai_image_preview_limit' ) );
 				}
 			}
 
 			$client = Npcink_Cloud_Media_Derivative_Transport::verified_client();
 			if ( is_wp_error( $client ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $client->get_error_code(), '', (string) $client->get_error_message() ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $client->get_error_code(), '', (string) $client->get_error_message() ) );
 			}
 
 			$images = array();
 			foreach ( $result['artifacts'] as $artifact ) {
 				if ( ! is_array( $artifact ) ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
 				}
 
 				$artifact_contract = $artifact;
 				if ( array_key_exists( 'purged_at', $artifact_contract ) ) {
 					if ( null !== $artifact_contract['purged_at'] ) {
-						throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_expired', 'cloud_wp_ai_image_artifact_purged' ) ) );
+						self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_expired', 'cloud_wp_ai_image_artifact_purged' ) );
 					}
 					unset( $artifact_contract['purged_at'] );
 				}
@@ -352,12 +352,12 @@ if (
 					|| false === $expires_ts
 					|| $expires_ts <= time()
 				) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
 				}
 
 				$download = $client->pull_media_artifact( $artifact_id, $trace_id );
 				if ( is_wp_error( $download ) ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $download->get_error_code(), '', (string) $download->get_error_message() ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $download->get_error_code(), '', (string) $download->get_error_message() ) );
 				}
 
 				$contents      = is_string( $download['body'] ?? null ) ? $download['body'] : '';
@@ -386,7 +386,7 @@ if (
 					|| $ack_deadline <= time()
 					|| $ack_deadline > $expires_ts
 				) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_verification_failed', 'cloud_wp_ai_image_artifact_verification_failed' ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_verification_failed', 'cloud_wp_ai_image_artifact_verification_failed' ) );
 				}
 
 				$ack = $client->acknowledge_media_artifact_delivery(
@@ -400,7 +400,7 @@ if (
 					$trace_id
 				);
 				if ( is_wp_error( $ack ) ) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $ack->get_error_code(), '', (string) $ack->get_error_message() ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $ack->get_error_code(), '', (string) $ack->get_error_message() ) );
 				}
 				$acknowledged_at = $this->strict_image_timestamp( (string) ( $ack['acknowledged_at'] ?? '' ) );
 				$ack_expires_at  = $this->strict_image_timestamp( (string) ( $ack['artifact_expires_at'] ?? '' ) );
@@ -417,7 +417,7 @@ if (
 					|| $ack_expires_at !== $expires_ts
 					|| (string) ( $ack['artifact_expires_at'] ?? '' ) !== $expires_at
 				) {
-					throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_ack_invalid', 'cloud_wp_ai_image_delivery_ack_invalid' ) ) );
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_ack_invalid', 'cloud_wp_ai_image_delivery_ack_invalid' ) );
 				}
 
 				$images[] = array(

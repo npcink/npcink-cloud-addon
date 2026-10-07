@@ -35,25 +35,25 @@ if (
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 			$ability_input = Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context();
 			if ( array() === $ability_input ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_not_supported', 'cloud_wp_ai_scene_not_supported' ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_not_supported', 'cloud_wp_ai_scene_not_supported' ) );
 			}
 
 			if ( 1 !== count( $prompt ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported' ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported' ) );
 			}
 
 			if ( null !== $this->config->getFunctionDeclarations() || null !== $this->config->getWebSearch() ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'tools_not_supported', 'cloud_wp_ai_tools_not_supported' ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'tools_not_supported', 'cloud_wp_ai_tools_not_supported' ) );
 			}
 
 			$text = $this->prompt_text( $prompt );
 			if ( '' === $text ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_input_required', 'cloud_wp_ai_scene_input_required' ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_input_required', 'cloud_wp_ai_scene_input_required' ) );
 			}
 
 			$attachment_id = Npcink_Cloud_WordPress_AI_Alt_Text_Handoff::attachment_id_from_ability_input( $ability_input );
 			if ( is_wp_error( $attachment_id ) ) {
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_attachment_error( $attachment_id ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_attachment_error( $attachment_id ) );
 			}
 
 			$started  = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
@@ -73,7 +73,7 @@ if (
 				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
 				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $response->get_error_code(), (string) ( $evidence['cloud_error_code'] ?? '' ), (string) $response->get_error_message() ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $response->get_error_code(), (string) ( $evidence['cloud_error_code'] ?? '' ), (string) $response->get_error_message() ) );
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), 'alt_text_suggest' );
@@ -87,7 +87,7 @@ if (
 				) );
 				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_output_missing', 'Cloud response did not include valid alt text output.' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
-				throw new \WordPress\AiClient\Common\Exception\RuntimeException( esc_html( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_alt_text_output_missing' ) ) );
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_alt_text_output_missing' ) );
 			}
 
 			Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
