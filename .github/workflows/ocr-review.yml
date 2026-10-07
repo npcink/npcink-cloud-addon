@@ -103,17 +103,20 @@ jobs:
             core.setOutput('head_sha', pullRequest.head.sha);
 
       - name: Run OpenCodeReview
-        # alibaba/open-code-review v1.12.10 (tag object b465046, commit
-        # 579b931; pinned by commit SHA because the action receives the LLM
-        # auth token - bump deliberately and record the new tag->commit pair).
-        uses: alibaba/open-code-review@a758d9cbfb689937c7857ad64b2dd66adb58c0c2
+        # alibaba/open-code-review v1.12.12 (tag object 6b6a646, commit
+        # 182898c, release 2026-10-05; pinned by commit SHA because the
+        # action receives the LLM auth token - bump deliberately and record
+        # the new tag->commit pair). The previous pin a758d9c was an
+        # inter-release main commit mislabeled v1.12.10 in this comment;
+        # v1.12.12 supersedes it by exactly one commit.
+        uses: alibaba/open-code-review@182898cf522da3d04157b422752d028417974e19
         with:
           llm_url: ${{ secrets.OCR_LLM_URL }}
           llm_auth_token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
           llm_model: ${{ vars.OCR_LLM_MODEL }}
           llm_use_anthropic: ${{ vars.OCR_LLM_USE_ANTHROPIC }}
-          # Review-comment language; switch to Chinese if preferred.
-          language: English
+          # Review-comment language; switch to English if preferred.
+          language: Chinese
           base_ref: ${{ steps.pr-context.outputs.base_ref }}
           head_sha: ${{ steps.pr-context.outputs.head_sha }}
 
