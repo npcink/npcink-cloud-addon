@@ -529,6 +529,7 @@ maca_seed_settings( true );
 maca_set_monitoring_enabled( true );
 $legacy_buffered_event = maca_observability_event( 2 );
 unset( $legacy_buffered_event['prompt'], $legacy_buffered_event['raw_request'], $legacy_buffered_event['authorization'] );
+$legacy_buffered_event['event_id'] = 'evt_legacy_' . str_repeat( 'i', 140 );
 $legacy_buffered_event['status_detail'] = str_repeat( 'y', 200 );
 update_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array( $legacy_buffered_event ), false );
 $GLOBALS['maca_http_response_queue'][] = array(
