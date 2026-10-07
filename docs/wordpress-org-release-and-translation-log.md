@@ -122,6 +122,14 @@ Operational notes carried forward:
   advisory OpenCodeReview findings threads are open — reply with the
   disposition and resolve the threads before expecting the merge.
 
+Follow-up (open as of 2026-10-07): the opt-in image-generation and alt-text
+vision lanes of `smoke:wp-ai-abilities` have never passed against the local
+dev Cloud because no image provider is connected there and vision output is
+quality-rejected. When a Cloud environment has both providers connected, run
+both lanes and record the results here (see `docs/local-test-guide.md`
+"WordPress AI Abilities Smoke Test: Opt-In Provider Lanes" for the
+invocation and the interpretation rule).
+
 The release kept the addon a thin Cloud connector and added no router,
 prompt, preset, approval, proposal, workflow, scheduler, billing, WordPress
 write, or Cloud control-plane ownership.
