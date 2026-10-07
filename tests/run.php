@@ -35,6 +35,7 @@ if ( 0 !== $cleanup_custom_option_status ) {
 	exit( $cleanup_custom_option_status );
 }
 
+require __DIR__ . '/behavior-output-harness.php';
 require __DIR__ . '/behavior-performance-guards.php';
 require __DIR__ . '/behavior-public-api.php';
 require __DIR__ . '/behavior-pr-body-contract.php';
