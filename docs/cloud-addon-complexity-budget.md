@@ -169,6 +169,23 @@ bump is a compatibility-baseline change and owes Tier B playground evidence
 plus a CI matrix update in the same PR, per
 `docs/verification-evidence-standard.md`.
 
+Annual review record — 2026-10-07 (October trigger, ahead of the 0.3.0
+release): WordPress.org reported PHP 8.0 at 3.96% of installs
+(`api.wordpress.org/stats/php/1.1`), under the 5% trigger, but no raise
+qualified this cycle. The only single-step candidate, 8.1, left security
+support on 2025-12-31, and the next candidate, 8.2, exits it on
+2026-12-31 — raising that far this quarter would strand the 8.0 and 8.1
+cohorts together (15.2% of installs, about one in five installs the
+current floor serves) to buy at most three months of a supported floor,
+which does not serve the remaining installs. The floor therefore stays
+`PHP 8.0` for `0.3.0`. Future reviews should apply the same stranding
+check: sum the shares of every version at or above the current floor and
+below the proposed one, and treat a raise that strands materially more
+than the 5% trigger as failing the "serves the remaining installs" test
+even when both literal conditions pass. The expected next raise is one
+step to 8.3 (security support to 2027-12-31) once the 8.0 and 8.1 cohorts
+shrink.
+
 ## Test Structure
 
 Tests are split by purpose:
