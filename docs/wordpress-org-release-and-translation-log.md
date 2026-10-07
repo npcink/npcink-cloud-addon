@@ -2,7 +2,7 @@
 
 Status: active operational handoff.
 
-Last updated: 2026-08-18.
+Last updated: 2026-10-07.
 
 This document records the WordPress.org release, assets, legal pages, and zh_CN
 translation work completed for `npcink-cloud-addon`.
@@ -14,7 +14,7 @@ translation work completed for `npcink-cloud-addon`.
 - WordPress.org SVN URL: `https://plugins.svn.wordpress.org/npcink-cloud-addon/`
 - Historical local SVN working copy: `build/wporg-svn` (accidentally deleted 2026-10-01; recreated at r3723780 on 2026-10-02)
 - Release package: `build/npcink-cloud-addon.zip`
-- Stable tag: `0.2.0`
+- Stable tag: `0.3.0`
 
 The plugin has passed WordPress.org review and was submitted to SVN. Later asset
 updates were submitted separately.
@@ -38,9 +38,93 @@ Known SVN revisions:
 - `r3723719`: release `0.2.0` with release-readiness fixes: the packaged
   local permissions asset, reachable uninstall cleanup, the narrowed deprecated
   settings seam, and refreshed zh_CN catalogs.
+- `r3731913`: release `0.3.0` with the connector paydown split, hardened
+  alt-text handoff, the Cloud-strict observability field contract, and the
+  strict Plugin Check readiness fixes.
 - `r3652021`: release `0.1.8` with privacy-safe customer journey delivery,
   clearer monitoring disclosure, consent-gated editor quality evidence, the
   AI image extension fix, and the current 34-file release package.
+
+## 2026-10-07 0.3.0 Release Closeout
+
+Version `0.3.0` was published to WordPress.org SVN from clean merged Addon
+`origin/master` revision `8c56aae` (git tag `0.3.0`) after release PR `#238`
+passed the protected PHP matrix, advisory OpenCodeReview (v1.12.12, Chinese
+comments), PR body contract, and Release static gates:
+
+```text
+SVN revision: r3731913
+Tag: https://plugins.svn.wordpress.org/npcink-cloud-addon/tags/0.3.0/
+Local package SHA256: ca77825c9c9ce17a336e8b4e56940d18600552665a758027705913547ec2f184
+Official package SHA256: a2a23e95d290b2001c50e180bf09366c2026574ea2f6055cca8b0dad5ed9f774
+```
+
+WordPress.org API reported `version=0.3.0` after the release; the official
+download and the local package had different container hashes but identical
+extracted file contents (recursive comparison, 50 files).
+
+Release scope:
+
+- the paydown split pipeline `#220`–`#229`: runtime request guards,
+  diagnostics, media payloads, media source/artifact/governance/plan
+  satellites, the WordPress AI per-class split with the shared scene base,
+  settings request handlers, and single-sourced descriptor validation;
+- hardened alt-text handoff `#226`: fail-fast seam ordering, the
+  multibyte-safe 160-byte filename bound, and non-positive attachment ID
+  rejection;
+- the Cloud-strict observability field contract `#237` (per-field limits
+  mirrored from the Cloud schema, buffer-wide delivery bounding — the
+  previously wedged local monitoring buffer drained live from 110 to 0);
+- strict Plugin Check readiness `#238`: the centralized plain-text exception
+  sink `throw_user_facing()` on the scene base (ratchet 142→159) and the
+  site-knowledge translators comments;
+- the October PHP floor annual review `#235`: the floor stays `PHP 8.0` (8.0
+  at 3.96% of WordPress.org installs; 8.1 end-of-life, 8.2 support ends
+  2026-12-31 and would strand 15.2% — no qualifying raise this cycle).
+
+Verification evidence (all 2026-10-07, on the exact merged tree
+`dd171e342f05bb5bca9444931b9d6f02fee39d85`):
+
+- `composer run test:all` green, 948 assertions;
+- `composer run release:verify` exit 0 with
+  `WP_CLI_BIN=/opt/homebrew/bin/wp WP_DB_SOCKET=<Local socket>`: i18n audit,
+  WordPress.org review guard, JS checks, POT freshness, package
+  release/verify (50 files), strict Plugin Check `strict result: ok`;
+- `composer run smoke:playground` green (WordPress 7.0.4 / PHP 8.2) from a
+  tree without `build/` packaging output;
+- Tier C on the Local MySQL site `magick-ai.local` against the local dev
+  Cloud (`m4-preview` @ `b5cf4cf6`): `smoke:wp-ai-editor`,
+  `smoke:wp-ai-compatibility` lane `stable-primary`, and
+  `smoke:wp-ai-text-browser` (real browser, WP 7.1.1, title/summary/rephrase
+  HTTP 200, zero-write review then one explicit save) all green;
+  `acceptance:wp-ai-provider` 14/14 passed after the Cloud text providers
+  recovered; the opt-in image-generation and alt-text vision lanes remain
+  environment-limited (the local dev Cloud has no connected image provider
+  and rejects vision output quality) and are recorded as addon-external
+  gaps;
+- cross-repo matrix from the toolbox:
+  `composer quality:matrix:run -- --repo=npcink-cloud-addon` gates passed.
+
+Non-AI evidence anchor (production observation, 2026-10-07): the WordPress.org
+plugin API reported `0.2.0` live in production since 2026-10-01
+(`last_updated 2026-10-01 6:45pm GMT`), and the plugin support forum had no
+topics at all — no fatal reports, complaints, or unresolved issues following
+the `0.2.0` publication. This observation originates from WordPress.org
+production data outside the AI development loop.
+
+Operational notes carried forward:
+
+- run `smoke:playground` before `package:release`, or remove the generated
+  `build/npcink-cloud-addon*` output first (unchanged from 0.2.0);
+- `plugin-check:release` reads the packaged ZIP — rebuild the package before
+  re-running it after fixes, or it reports the stale build;
+- branch protection's conversation resolution blocks squash auto-merge while
+  advisory OpenCodeReview findings threads are open — reply with the
+  disposition and resolve the threads before expecting the merge.
+
+The release kept the addon a thin Cloud connector and added no router,
+prompt, preset, approval, proposal, workflow, scheduler, billing, WordPress
+write, or Cloud control-plane ownership.
 
 ## 2026-10-01 0.2.0 Release Closeout
 
