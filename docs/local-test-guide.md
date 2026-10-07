@@ -27,6 +27,8 @@ git diff --check
   bridge handlers with WordPress stubs to prove approved comments buffer their
   parent public post for Cloud refresh transport.
 - `tests/helpers.php` contains shared assertions, stubs, and fixtures.
+- `tests/behavior-output-harness.php` proves the fail-on-diagnostics guard in
+  throwaway subprocesses.
 
 Any test that pins a process-global (a constant such as
 `NPCINK_CLOUD_ADDON_OPTION_NAME`, or a function replacement) must run in its
@@ -36,6 +38,15 @@ also fail loudly (`[fail]` to STDERR, exit 1) if it is ever included after
 that global is already defined, instead of silently exercising the default
 state. See `tests/run.php` sandbox entries and the
 [test-suite vacuity retrospective](test-suite-vacuity-retrospective-2026-09-23.md).
+
+Unexpected PHP engine diagnostics are suite failures, not inspection noise:
+`tests/helpers.php` installs an error handler in every test process (the
+shared runner and the three subprocess sandboxes) that exits 1 with a
+`[fail] unexpected PHP diagnostic` line on `E_WARNING`, `E_NOTICE`,
+`E_DEPRECATED`, and their `E_USER_*` variants, mirroring the vacuity
+retrospective's rule that non-failure output is a defect signal. Intentionally
+suppressed diagnostics (`@`) keep normal PHP semantics; do not silence a
+diagnostic by widening suppression — fix the cause instead.
 
 Before expanding addon scope, read `docs/cloud-addon-complexity-budget.md`.
 

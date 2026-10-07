@@ -60,6 +60,46 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', MACA_TEST_ROOT . '/tests/wordpress-stub/' );
 }
 
+/**
+ * Installs the fail-on-diagnostics guard for every process that loads the
+ * shared helpers, including the three subprocess sandboxes.
+ *
+ * The 2026-09-23 vacuity retrospective proved a real defect can surface only
+ * as a PHP warning that never affects an exit code, leaving the suite green.
+ * Unexpected engine diagnostics therefore fail loudly instead of relying on
+ * inspection. Intentionally suppressed diagnostics (`@`) keep normal PHP
+ * semantics and do not fail.
+ *
+ * @return void
+ */
+function maca_install_php_diagnostics_guard(): void {
+	// Pin E_ALL so an ambient php.ini cannot silently disarm the guard; the
+	// handler still respects the @-mask applied during suppressed expressions.
+	error_reporting( E_ALL );
+	set_error_handler(
+		static function ( int $level, string $message, string $file, int $line ): bool {
+			$fatal_levels = E_WARNING | E_NOTICE | E_DEPRECATED | E_USER_WARNING | E_USER_NOTICE | E_USER_DEPRECATED;
+			if ( ! ( error_reporting() & $level ) || ! ( $level & $fatal_levels ) ) {
+				return false;
+			}
+
+			$level_names = array(
+				E_WARNING         => 'E_WARNING',
+				E_NOTICE          => 'E_NOTICE',
+				E_DEPRECATED      => 'E_DEPRECATED',
+				E_USER_WARNING    => 'E_USER_WARNING',
+				E_USER_NOTICE     => 'E_USER_NOTICE',
+				E_USER_DEPRECATED => 'E_USER_DEPRECATED',
+			);
+			$name = $level_names[ $level ] ?? (string) $level;
+			fwrite( STDERR, '[fail] unexpected PHP diagnostic ' . $name . ': ' . $message . ' in ' . $file . ' on line ' . $line . "\n" );
+			exit( 1 );
+		}
+	);
+}
+
+maca_install_php_diagnostics_guard();
+
 require_once MACA_TEST_ROOT . '/includes/class-cloud-outbound-policy.php';
 
 if ( ! defined( 'HOUR_IN_SECONDS' ) ) {

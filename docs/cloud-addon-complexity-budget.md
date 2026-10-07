@@ -166,7 +166,12 @@ Tests are split by purpose:
   the default fail-closed connector state. They do not use Cloud credentials or
   prove MySQL, media, Portal, browser, or production behavior.
 - `tests/helpers.php` contains shared assertions, file readers, WordPress stubs,
-  HTTP stubs, settings seed helpers, and media derivative fixtures.
+  HTTP stubs, settings seed helpers, and media derivative fixtures, and installs
+  the fail-on-diagnostics guard that turns unexpected warnings, notices, and
+  deprecations into loud suite failures in every test process.
+- `tests/behavior-output-harness.php` proves that guard in throwaway
+  subprocesses (unexpected diagnostic exits 1; `@`-suppressed diagnostics keep
+  PHP semantics).
 - `tests/run.php` is only the aggregate entry point used by Composer.
 
 Keep new tests in the narrowest matching file. Do not add product workflow
