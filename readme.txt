@@ -173,6 +173,7 @@ Terminal callback delivery is removed and media recognition continuation moves t
 * Rejected non-positive attachment IDs in alt-text generation instead of silently targeting a different attachment.
 * Localized connector failure feedback and surfaced dropped-delivery facts in WordPress AI flows.
 * Parsed media artifact expiry timestamps strictly and rejected malformed descriptor byte sources with an explicit contract error.
+* Bounded monitoring event fields to the Cloud per-field limits at capture and delivery, so one long field can no longer reject and wedge a whole upload batch.
 * Split the runtime client, WordPress AI connector, media transport, and settings request handlers into focused classes without behavior changes.
 * Made the test suite fail on unexpected PHP warnings, notices, and deprecations.
 
