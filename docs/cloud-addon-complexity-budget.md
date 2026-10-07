@@ -101,20 +101,25 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-wordpress-ai-vision-text-model.php` — 119 lines
 - `includes/class-cloud-wordpress-ai-scene-model.php` — 142 lines (shared
   metadata/config plumbing and prompt/result projection helpers)
-- `includes/class-cloud-media-derivative-transport.php` — 714 lines (was 2542 before
+- `includes/class-cloud-media-derivative-transport.php` — 713 lines (was 2542 before
   the 2026-10-06 source-validation and artifact-verification split into
   `class-cloud-media-source-validation.php` and
-  `class-cloud-media-artifact-verification.php`)
-- `includes/class-cloud-media-artifact-verification.php` — 699 lines (descriptor
+  `class-cloud-media-artifact-verification.php`; lowered from 714 with reason:
+  the 2026-10-07 auto-safe profile literal was single-sourced into
+  `Npcink_Cloud_Media_Governance_Validation::AUTO_SAFE_PROFILE`)
+- `includes/class-cloud-media-artifact-verification.php` — 701 lines (descriptor
   verification, verified pull-and-ack transfer, and the shared caps/normalizers;
-  raised from 636 with reason: the 2026-10-06 descriptor-normalizer dedup
-  single-sources the seven validation rules the two normalizers previously
-  duplicated inline — error mapping, check order, codes, and messages are
-  unchanged and future bound changes now touch exactly one place)
-- `includes/class-cloud-media-source-validation.php` — 279 lines (local upload
-  descriptor validation before job dispatch)
-- `includes/class-cloud-media-governance-validation.php` — 281 lines (strict
-  governance-canary result validation and bounded projection)
+  raised from 699 with reason: the 2026-10-07 delivery-header check parses the
+  artifact expiry with `strict_timestamp` like the rest of the class instead of
+  a one-off loose `strtotime`, failing closed on unparseable expiry)
+- `includes/class-cloud-media-source-validation.php` — 293 lines (local upload
+  descriptor validation before job dispatch; raised from 279 with reason: the
+  2026-10-07 explicit invalid-source rejection reports non-string direct byte
+  sources as a descriptor error instead of a misleading empty-file error)
+- `includes/class-cloud-media-governance-validation.php` — 282 lines (strict
+  governance-canary result validation and bounded projection; raised from 281
+  with reason: the public `AUTO_SAFE_PROFILE` constant single-sources the
+  auto-safe policy version shared with the transport)
 - `includes/class-cloud-media-plan-projection.php` — 707 lines (local proposal and
   optimization-plan projection with the request-contract validation)
 

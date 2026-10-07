@@ -17,6 +17,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Governance_Validation' ) ) {
 	 */
 	final class Npcink_Cloud_Media_Governance_Validation {
 		public const GOVERNANCE_MINIMUM_SAVINGS_BASIS_POINTS = 1500;
+		public const AUTO_SAFE_PROFILE = 'auto_safe.v1';
 		private const GOVERNANCE_RESULT_CONTRACT_VERSION = 'media_governance_canary_result.v1';
 		private const GOVERNANCE_MINIMUM_SOURCE_BYTES = 512000;
 
@@ -74,7 +75,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Governance_Validation' ) ) {
 				|| false !== $decision['qualified']
 				|| ! self::has_exact_keys( $facts, $fact_keys )
 				|| false !== ( $facts['qualified'] ?? null )
-				|| 'auto_safe.v1' !== (string) ( $facts['optimization_profile'] ?? '' )
+				|| self::AUTO_SAFE_PROFILE !== (string) ( $facts['optimization_profile'] ?? '' )
 				|| empty( $reasons )
 				|| $reasons !== $fact_reasons
 				|| array() !== array_diff( $reasons, $allowed_reasons )

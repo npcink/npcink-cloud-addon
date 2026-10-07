@@ -155,11 +155,13 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Artifact_Verification' ) ) {
 			$delivery_id = sanitize_text_field( (string) ( $download['delivery_id'] ?? '' ) );
 			$ack_deadline_at = sanitize_text_field( (string) ( $download['delivery_ack_deadline'] ?? '' ) );
 			$ack_deadline_timestamp = self::strict_timestamp( $ack_deadline_at );
+			$artifact_expiry_timestamp = self::strict_timestamp( (string) $artifact['expires_at'] );
 			if (
 				1 !== preg_match( '/^mdl_[0-9a-f]{32}$/', $delivery_id )
 				|| false === $ack_deadline_timestamp
+				|| false === $artifact_expiry_timestamp
 				|| $ack_deadline_timestamp <= time()
-				|| $ack_deadline_timestamp > (int) strtotime( (string) $artifact['expires_at'] )
+				|| $ack_deadline_timestamp > $artifact_expiry_timestamp
 			) {
 				return new WP_Error(
 					'cloud_media_derivative_delivery_headers_invalid',

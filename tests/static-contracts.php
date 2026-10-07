@@ -2241,11 +2241,11 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
 	'includes/class-cloud-wordpress-ai-text-model.php' => 383,
 	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 119,
-	'includes/class-cloud-media-derivative-transport.php' => 714,
-	'includes/class-cloud-media-governance-validation.php' => 281,
+	'includes/class-cloud-media-derivative-transport.php' => 713,
+	'includes/class-cloud-media-governance-validation.php' => 282,
 	'includes/class-cloud-media-plan-projection.php' => 707,
-	'includes/class-cloud-media-artifact-verification.php' => 699,
-	'includes/class-cloud-media-source-validation.php' => 279,
+	'includes/class-cloud-media-artifact-verification.php' => 701,
+	'includes/class-cloud-media-source-validation.php' => 293,
 );
 foreach ( $complexity_ratchet_limits as $ratchet_path => $ratchet_limit ) {
 	$ratchet_lines = substr_count( maca_read( $root . '/' . $ratchet_path ), "\n" );
