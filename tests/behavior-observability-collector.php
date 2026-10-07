@@ -177,7 +177,7 @@ $buffer = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array
 maca_assert(
 		1 === count( $buffer )
 		&& 'npcink-governance-core' === (string) ( $buffer[0]['plugin_slug'] ?? '' )
-		&& 200 === strlen( (string) ( $buffer[0]['route'] ?? '' ) )
+		&& 255 === strlen( (string) ( $buffer[0]['route'] ?? '' ) )
 		&& 'editor_assist_quality.v2' === (string) ( $buffer[0]['quality_contract'] ?? '' )
 		&& 'content_summary' === (string) ( $buffer[0]['task_key'] ?? '' )
 		&& 'omitted_metadata_only' === (string) ( $buffer[0]['content_storage'] ?? '' )
@@ -507,4 +507,51 @@ maca_assert(
 	&& false === (bool) ( $cached_agent_summary['production_mutation'] ?? true )
 	&& 'wordpress_local' === (string) ( $cached_agent_summary['approval_truth'] ?? '' ),
 	'Behavior: Agent feedback quality summary refresh is read-only, sanitized, and independent from monitoring upload opt-in.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_monitoring_enabled( true );
+$long_field_event = maca_observability_event( 1 );
+$long_field_event['status_detail'] = str_repeat( 'x', 120 );
+$long_field_event['error_code'] = str_repeat( 'e', 300 );
+Npcink_Cloud_Observability_Collector::capture_event( $long_field_event );
+$captured_long_fields = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
+maca_assert(
+	1 === count( $captured_long_fields )
+	&& 64 === strlen( (string) ( $captured_long_fields[0]['status_detail'] ?? '' ) )
+	&& 128 === strlen( (string) ( $captured_long_fields[0]['error_code'] ?? '' ) ),
+	'Behavior: observability capture bounds event text fields to the Cloud per-field limits.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_monitoring_enabled( true );
+$legacy_buffered_event = maca_observability_event( 2 );
+unset( $legacy_buffered_event['prompt'], $legacy_buffered_event['raw_request'], $legacy_buffered_event['authorization'] );
+$legacy_buffered_event['event_id'] = 'evt_legacy_' . str_repeat( 'i', 140 );
+$legacy_buffered_event['status_detail'] = str_repeat( 'y', 200 );
+update_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array( $legacy_buffered_event ), false );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array(
+				'accepted_count'  => 2,
+				'stored_count'    => 2,
+				'duplicate_count' => 0,
+			),
+		)
+	),
+);
+$legacy_flush = Npcink_Cloud_Observability_Collector::flush_buffer();
+$legacy_request = $GLOBALS['maca_http_requests'][0] ?? array();
+$legacy_body = json_decode( (string) ( $legacy_request['args']['body'] ?? '' ), true );
+$legacy_sent_events = is_array( $legacy_body['events'] ?? null ) ? $legacy_body['events'] : array();
+maca_assert(
+	2 === count( $legacy_sent_events )
+	&& 64 === strlen( (string) ( $legacy_sent_events[0]['status_detail'] ?? '' ) )
+	&& 0 === count( get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() ) ),
+	'Behavior: observability delivery re-bounds buffered events so legacy long fields cannot wedge the batch.'
 );

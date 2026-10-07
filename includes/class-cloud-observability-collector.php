@@ -26,6 +26,52 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		private const MAX_BUFFER_ITEMS = 200;
 		private const MAX_BATCH_ITEMS = 50;
 		private const MAX_TEXT_FIELD_LENGTH = 200;
+		/**
+		 * Cloud `/v1/observability/plugin-events` text-field limits, mirroring
+		 * `PluginEventPayload` in `npcink-ai-cloud` `app/api/routes/observability.py`
+		 * (observed at Cloud source revision `b5cf4cf6137b`). The Cloud rejects a
+		 * whole batch when any field exceeds its limit, so events are bounded at
+		 * capture and again before delivery; MAX_TEXT_FIELD_LENGTH stays the
+		 * fallback for fields the contract does not list. Re-check the mirror
+		 * when the Cloud event schema changes.
+		 *
+		 * @var array<string,int>
+		 */
+		private const FIELD_LENGTH_LIMITS = array(
+			'schema_version'            => 32,
+			'plugin_slug'               => 64,
+			'plugin_version'            => 64,
+			'wordpress_ai_version'      => 64,
+			'source'                    => 32,
+			'event_kind'                => 96,
+			'event_id'                  => 96,
+			'emitted_at'                => 64,
+			'captured_at'               => 64,
+			'status'                    => 32,
+			'status_detail'             => 64,
+			'error_code'                => 128,
+			'ability_id'                => 191,
+			'proposal_id'               => 191,
+			'correlation_id'            => 191,
+			'adapter_request_id'        => 191,
+			'method'                    => 16,
+			'route'                     => 255,
+			'mode'                      => 64,
+			'quality_contract'          => 64,
+			'quality_session_id'        => 191,
+			'generation_id'             => 191,
+			'task_key'                  => 64,
+			'object_scope_hash'         => 128,
+			'actor_scope_hash'          => 128,
+			'outcome'                   => 64,
+			'outcome_confidence'        => 32,
+			'evidence_type'             => 64,
+			'lifecycle_state'           => 32,
+			'save_kind'                 => 32,
+			'time_to_outcome_bucket'    => 32,
+			'content_storage'           => 64,
+			'monitoring_state_contract' => 64,
+		);
 
 		/**
 		 * Registers collection hooks.
@@ -115,6 +161,8 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 
 			$buffer = get_option( self::BUFFER_OPTION, array() );
 			$buffer = is_array( $buffer ) ? array_values( $buffer ) : array();
+			$buffer = array_map( array( self::class, 'bound_event_for_delivery' ), $buffer );
+			update_option( self::BUFFER_OPTION, $buffer, false );
 			$event_batch = array_slice( $buffer, 0, self::MAX_BATCH_ITEMS - 1 );
 			$batch = array_merge(
 				$event_batch,
@@ -361,7 +409,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 					continue;
 				}
 
-				$normalized[ $key ] = self::sanitize_event_value( $event[ $key ] );
+				$normalized[ $key ] = self::sanitize_event_value( $event[ $key ], $key );
 			}
 
 			$normalized['captured_at'] = gmdate( 'c' );
@@ -1178,10 +1226,11 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		/**
 		 * Sanitizes an event scalar.
 		 *
-		 * @param mixed $value Raw value.
+		 * @param mixed  $value Raw value.
+		 * @param string $field Field name the value belongs to.
 		 * @return bool|int|float|string
 		 */
-		private static function sanitize_event_value( $value ) {
+		private static function sanitize_event_value( $value, string $field = '' ) {
 			if ( is_bool( $value ) || is_int( $value ) || is_float( $value ) ) {
 				return $value;
 			}
@@ -1190,8 +1239,39 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 				return '';
 			}
 
-				return substr( sanitize_text_field( wp_unslash( (string) $value ) ), 0, self::MAX_TEXT_FIELD_LENGTH );
+			$limit = self::FIELD_LENGTH_LIMITS[ $field ] ?? self::MAX_TEXT_FIELD_LENGTH;
+			return self::bound_text( sanitize_text_field( wp_unslash( (string) $value ) ), $limit );
+		}
+
+		/**
+		 * Truncates to a character limit without splitting a multibyte
+		 * sequence; the Cloud rejects invalid UTF-8 in any event field.
+		 *
+		 * @param string $value Sanitized text.
+		 * @param int    $limit Character limit.
+		 * @return string
+		 */
+		private static function bound_text( string $value, int $limit ): string {
+			return function_exists( 'mb_substr' ) ? mb_substr( $value, 0, $limit ) : substr( $value, 0, $limit );
+		}
+
+		/**
+		 * Bounds one buffered event to the Cloud field limits before delivery,
+		 * so events captured under an older limit still flush instead of
+		 * failing the whole batch on the Cloud schema.
+		 *
+		 * @param array<string,mixed> $event Buffered event.
+		 * @return array<string,mixed>
+		 */
+		private static function bound_event_for_delivery( array $event ): array {
+			foreach ( self::FIELD_LENGTH_LIMITS as $field => $limit ) {
+				if ( isset( $event[ $field ] ) && is_string( $event[ $field ] ) ) {
+					$event[ $field ] = self::bound_text( $event[ $field ], $limit );
+				}
 			}
+
+			return $event;
+		}
 
 		/**
 		 * Returns active/installed state for known Npcink plugins.

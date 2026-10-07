@@ -488,9 +488,9 @@ msgstr "原始媒体指标不完整。"
 msgid "Derivative media metrics are incomplete."
 msgstr "衍生媒体指标不完整。"
 
-#: includes/class-cloud-observability-collector.php:168
-#: includes/class-cloud-observability-collector.php:242
-#: includes/class-cloud-observability-collector.php:276
+#: includes/class-cloud-observability-collector.php:216
+#: includes/class-cloud-observability-collector.php:290
+#: includes/class-cloud-observability-collector.php:324
 #: includes/class-cloud-settings-actions.php:336
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:88
@@ -500,23 +500,23 @@ msgstr "衍生媒体指标不完整。"
 msgid "Cloud Addon settings are not verified."
 msgstr "Cloud Addon 设置尚未验证。"
 
-#: includes/class-cloud-observability-collector.php:192
+#: includes/class-cloud-observability-collector.php:240
 msgid "Cloud did not accept the monitoring state projection."
 msgstr "Cloud 未接受监控状态投影。"
 
-#: includes/class-cloud-observability-collector.php:1204
+#: includes/class-cloud-observability-collector.php:1284
 msgid "Core"
 msgstr "治理核心"
 
-#: includes/class-cloud-observability-collector.php:1209
+#: includes/class-cloud-observability-collector.php:1289
 msgid "Abilities"
 msgstr "原子能力"
 
-#: includes/class-cloud-observability-collector.php:1214
+#: includes/class-cloud-observability-collector.php:1294
 msgid "Adapter"
 msgstr "渠道适配器"
 
-#: includes/class-cloud-observability-collector.php:1219
+#: includes/class-cloud-observability-collector.php:1299
 #: includes/class-cloud-settings-page.php:134
 #: includes/class-cloud-settings-page.php:1233
 msgid "Cloud Addon"
@@ -2485,7 +2485,7 @@ msgstr "插件已启用，但本站点尚未连接 Npcink Cloud。连接站点�
 msgid "Do not show again"
 msgstr "不再显示"
 
-#: includes/class-cloud-observability-collector.php:107
+#: includes/class-cloud-observability-collector.php:153
 msgid "Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again."
 msgstr "Cloud Addon 设置尚未通过验证。连接重新验证通过后，将自动恢复监控数据上传。"
 
