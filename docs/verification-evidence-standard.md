@@ -33,9 +33,16 @@ The tiers keep the meaning they have in `cloud-addon-complexity-budget.md`:
 | `docs/` only | required (static contracts read docs) | not applicable — record why | not applicable — record why |
 | CI job or `scripts/` gate change | required | as triggered by scope | observe one complete check rollup on the PR before merge |
 | Composer platform, PHP floor, or WordPress baseline change | required | required | re-run the WordPress AI compatibility lanes and record the rollup |
+| Exception-message construction or new placeholder-bearing translatable strings | required, plus a strict Plugin Check spot run: `composer run package:release && composer run plugin-check:release` on the branch (rebuild first — the check reads the packaged ZIP, so a stale `build/` reports already-fixed findings) | not applicable — record why | not applicable — record why |
 
 "Not applicable — record why" keeps the existing PR-template discipline: the
 reason is written into the PR's verification record, never silently omitted.
+
+Both 0.3.0 Plugin Check regressions — unescaped dynamic exception text
+(introduced by the localized connector failures) and placeholder strings
+without `translators:` comments — landed with every per-PR gate green and
+surfaced only when `release:verify` first ran at release time. The spot-run
+row exists so that class is caught at change time, not at the next release.
 
 ## Evidence Freshness
 
