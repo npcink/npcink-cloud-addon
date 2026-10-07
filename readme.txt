@@ -4,7 +4,7 @@ Tags: npcink, cloud, ai, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -159,10 +159,22 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 
 == Upgrade Notice ==
 
+= 0.3.0 =
+Connector internals were restructured with stricter input bounds and fail-fast ordering. No settings change or migration is required.
+
 = 0.2.0 =
 Terminal callback delivery is removed and media recognition continuation moves to Workflow Toolbox. Re-verify the Cloud connection after upgrading from 0.1.x.
 
 == Changelog ==
+
+= 0.3.0 =
+* Failed fast on missing WordPress AI runtime seams and local task-contract problems before any local read or upload.
+* Enforced a multibyte-safe 160-byte transport bound on upload and request filenames with the extension preserved.
+* Rejected non-positive attachment IDs in alt-text generation instead of silently targeting a different attachment.
+* Localized connector failure feedback and surfaced dropped-delivery facts in WordPress AI flows.
+* Parsed media artifact expiry timestamps strictly and rejected malformed descriptor byte sources with an explicit contract error.
+* Split the runtime client, WordPress AI connector, media transport, and settings request handlers into focused classes without behavior changes.
+* Made the test suite fail on unexpected PHP warnings, notices, and deprecations.
 
 = 0.2.0 =
 * Narrowed the addon to bounded Cloud connector and artifact transport facades.
