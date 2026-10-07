@@ -716,6 +716,40 @@ foreach ( $ambiguous_upload_descriptor_cases as $case => $ambiguous_descriptor )
 	);
 }
 
+$non_string_upload_descriptor_cases = array(
+	'bytes-array'    => array(
+		'bytes'     => array( $png ),
+		'filename'  => 'array-bytes.png',
+		'mime_type' => 'image/png',
+	),
+	'bytes-integer'  => array(
+		'bytes'     => 12345,
+		'filename'  => 'integer-bytes.png',
+		'mime_type' => 'image/png',
+	),
+	'content-integer' => array(
+		'content'   => 67890,
+		'filename'  => 'integer-content.png',
+		'mime_type' => 'image/png',
+	),
+);
+foreach ( $non_string_upload_descriptor_cases as $case => $non_string_descriptor ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$non_string_upload = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
+		maca_ability_fixture(),
+		$non_string_descriptor,
+		'trace-non-string-upload-' . $case,
+		'non-string-upload-' . $case
+	);
+	maca_assert(
+		is_wp_error( $non_string_upload )
+		&& 'cloud_media_derivative_upload_descriptor_invalid_source' === $non_string_upload->get_error_code()
+		&& 0 === count( $GLOBALS['maca_http_requests'] ),
+		'Behavior: media upload descriptor source ' . $case . ' fails closed as an invalid direct byte source instead of a misleading empty-file error.'
+	);
+}
+
 $canonical_path = tempnam( sys_get_temp_dir(), 'maca-media-' );
 maca_assert(
 	is_string( $canonical_path ) && false !== file_put_contents( $canonical_path, $png ),

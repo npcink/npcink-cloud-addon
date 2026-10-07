@@ -68,6 +68,20 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Source_Validation' ) ) {
 				return array();
 			}
 
+			if (
+				( 'bytes' === $source_fields[0] && ! is_string( $descriptor['bytes'] ) )
+				|| ( 'content' === $source_fields[0] && ! is_string( $descriptor['content'] ) )
+			) {
+				return new WP_Error(
+					'cloud_media_derivative_upload_descriptor_invalid_source',
+					__( 'Media upload descriptors require the direct byte source to be a string.', 'npcink-cloud-addon' ),
+					array(
+						'status' => 400,
+						'field'  => $source_fields[0],
+					)
+				);
+			}
+
 			$contents = '';
 			if ( 'bytes' === $source_fields[0] && is_string( $descriptor['bytes'] ) ) {
 				$contents = (string) $descriptor['bytes'];

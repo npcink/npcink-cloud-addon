@@ -18,7 +18,6 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 	final class Npcink_Cloud_Media_Derivative_Transport {
 		private const GOVERNANCE_REQUEST_CONTRACT_VERSION = 'media_governance_canary.v1';
 		private const GOVERNANCE_MAX_ITEMS = 10;
-			private const AUTO_SAFE_PROFILE = 'auto_safe.v1';
 		private const MAX_STATUS_ERROR_CODE_BYTES = 128;
 		private const MAX_STATUS_ERROR_MESSAGE_BYTES = 500;
 		private const MAX_STATUS_ERROR_STAGE_BYTES = 64;
@@ -365,7 +364,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				}
 				$auto_safe = 'auto_safe' === $optimization_mode;
 				$optimization_profile = sanitize_text_field( (string) ( $job_payload['optimization_profile'] ?? '' ) );
-				if ( $auto_safe && self::AUTO_SAFE_PROFILE !== $optimization_profile ) {
+				if ( $auto_safe && Npcink_Cloud_Media_Governance_Validation::AUTO_SAFE_PROFILE !== $optimization_profile ) {
 					return new WP_Error( 'cloud_media_derivative_auto_safe_profile_invalid', __( 'Automatic safe optimization requires the current fixed policy version.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 				}
 			if ( ! in_array( $watermark_type, array( 'image', 'text' ), true ) ) {
@@ -439,7 +438,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 					if ( 1920 !== $max_width || array_key_exists( 'quality', $job_payload ) || array_key_exists( 'quality', $requested ) || ! empty( $watermark ) || $has_watermark_source || ! empty( $job_payload['crop'] ) ) {
 						return new WP_Error( 'cloud_media_derivative_auto_safe_contract_invalid', __( 'Automatic safe optimization does not accept quality, crop, watermark, or custom width parameters.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 					}
-					$params['optimization_profile'] = self::AUTO_SAFE_PROFILE;
+					$params['optimization_profile'] = Npcink_Cloud_Media_Governance_Validation::AUTO_SAFE_PROFILE;
 				} else {
 					$params['quality'] = max( 1, min( 100, $quality ) );
 				}
