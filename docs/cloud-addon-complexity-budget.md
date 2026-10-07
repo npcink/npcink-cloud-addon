@@ -148,7 +148,21 @@ classified and future reduction must treat the classes differently:
 New findings follow the 2026-10-06 (PR #217) bar: fix real defects and
 provably dead expressions (duplicate catalog keys, stale PHPDoc, redundant
 `array_values`, conditions proven constant by narrowing); classify whatever
-remains instead of silently growing the baseline.
+remains instead of silently growing the baseline. Prefer fixing a new
+finding at the highest analysis level that reproduces it over baselining it
+at level 5; raising the global level stays a deliberate, separately reviewed
+step taken only as the defensive re-validation family shrinks.
+
+## PHP And WordPress Baseline Review
+
+The connector floor stays `PHP 8.0` (`Requires PHP: 8.0`, composer platform
+`8.0.99`) until an annual review — each October, and again before any
+WordPress.org release — shows that raising it serves the remaining installs:
+the current floor's share of WordPress.org installations has fallen under 5%
+and the proposed newer floor is itself in active security support. A floor
+bump is a compatibility-baseline change and owes Tier B playground evidence
+plus a CI matrix update in the same PR, per
+`docs/verification-evidence-standard.md`.
 
 ## Test Structure
 
@@ -362,3 +376,13 @@ runtime-client 源码、其中约 13 处点名 `normalize_*`；搬移后按失�
 执行顺序：C2 文件拆分先行（每步独立 PR，沿用 runtime 拆分方法论），
 C3 在 C2 合并后进行。settings-page 披露标记合并收益实测仅约 40–70 行，
 暂缓；phpstan 基线按 2026-10-06 分类维持机会主义收缩，不开专项。
+
+## Split Program Closure (2026-10-07)
+
+The 2026-10 mechanical split program (runtime client, WordPress AI connector,
+media derivative transport, settings actions; #220–#230) is closed. The size
+ratchets above stay as ceilings, not targets: further splits happen only when
+a real change — a new endpoint, integration, or incident — makes a seam
+necessary, never to chase line counts. The three recorded cross-file
+duplicates stay opportunistic-only. Verification work now follows
+`docs/verification-evidence-standard.md` instead of paydown campaigns.

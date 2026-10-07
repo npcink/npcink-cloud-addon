@@ -28,6 +28,8 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 - `ux-history-and-engineering-standard-2026-08-13.md` — user-facing error
   and UX surfacing rules.
 - `wordpress-ai-acceptance-standard-v1.md` — WordPress AI acceptance gates.
+- `verification-evidence-standard.md` — which evidence tier each change type
+  owes, when evidence expires, and the per-release non-AI evidence anchor.
 - `ai-plugin-localization-maintenance.md` — zh_CN compatibility-string rules.
 - `public-cloud-onboarding-checklist.md` — public onboarding prerequisites.
 
