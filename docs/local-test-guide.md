@@ -187,6 +187,32 @@ normalization, or the local AI-plugin compatibility shim. Browser review is a
 separate product/UI acceptance activity; this command is only the repeatable
 editor data-path regression gate described above.
 
+## WordPress AI Abilities Smoke Test: Opt-In Provider Lanes
+
+`composer run smoke:wp-ai-abilities` always exercises ability discovery plus
+the text lanes. Two opt-in lanes extend it:
+
+```bash
+WP_AI_SMOKE_IMAGE=1 composer run smoke:wp-ai-abilities
+WP_AI_SMOKE_ALT_TEXT_ATTACHMENT_ID=<image attachment id> composer run smoke:wp-ai-abilities
+```
+
+Both lanes exercise the addon transport end to end (signing, upload, handoff,
+error surfacing), but their PASS result additionally requires the local dev
+Cloud (`http://localhost:18010`, see
+`docs/public-cloud-readiness-closeout-2026-07-02.md`) to have a connected
+image-generation provider and a vision provider whose output passes the
+Cloud-side quality gate.
+
+Environment limitation observed 2026-10-07 and still open: the local dev
+Cloud (m4-preview) has no image provider connected, and vision output was
+rejected by provider quality (`provideroutput_quality_rejected`). Under those
+conditions the lanes fail with HTTP 500 while the addon side is provably
+correct — record the result as a Cloud-environment gap, not an addon defect
+(the 0.3.0 release closeout records exactly this). Revisit: once image and
+vision providers are connected to a Cloud environment, run both lanes and
+update the release-log follow-up instead of leaving the gap standing.
+
 ## WordPress AI Text Browser Acceptance
 
 Before spending a provider call or creating a disposable draft, run the
