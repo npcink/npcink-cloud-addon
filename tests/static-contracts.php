@@ -969,7 +969,7 @@ maca_assert(
 maca_assert(
 	false !== strpos( $wordpress_ai_connector, 'function user_facing_connector_error' )
 	&& false !== strpos( $wordpress_ai_connector, 'function user_facing_runtime_failure' )
-	&& 0 === preg_match( '#RuntimeException\((?!\s*Npcink_Cloud_WordPress_AI_Connector::user_facing)#', $wpai_bundle_scope )
+	&& 0 === preg_match( '#RuntimeException\((?!\s*(?:esc_html\( )?Npcink_Cloud_WordPress_AI_Connector::user_facing)#', $wpai_bundle_scope )
 	&& 0 === substr_count( $wpai_bundle_scope, 'RuntimeException( (string) $attachment_id->get_error_message() )' ),
 	'AI Client connector exceptions surface bounded, translated, code-tagged user messages instead of raw developer strings.'
 );

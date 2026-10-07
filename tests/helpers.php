@@ -244,6 +244,12 @@ if ( ! function_exists( 'esc_url_raw' ) ) {
 	}
 }
 
+if ( ! function_exists( 'esc_html' ) ) {
+	function esc_html( $value ): string {
+		return htmlspecialchars( (string) $value, ENT_QUOTES, 'UTF-8', false );
+	}
+}
+
 if ( ! function_exists( 'absint' ) ) {
 	function absint( $value ): int {
 		return abs( (int) $value );

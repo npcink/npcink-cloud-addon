@@ -40,10 +40,13 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 				$error_code = sanitize_key( (string) ( $status['last_error_code'] ?? '' ) );
 				if ( '' !== $message ) {
 					if ( in_array( $error_code, array( 'delivery_failed_retry_scheduled', 'full_index_delivery_retry_scheduled' ), true ) ) {
+						/* translators: %s: bounded delivery error detail from the last retry. */
 						$framing = __( 'The knowledge base update could not be delivered and will be retried automatically. Detail: %s', 'npcink-cloud-addon' );
 					} elseif ( in_array( $error_code, array( 'delivery_attempts_exhausted', 'full_index_delivery_blocked' ), true ) ) {
+						/* translators: %s: bounded delivery error detail from the last retry. */
 						$framing = __( 'The knowledge base update could not be delivered and automatic retries have stopped. Update the knowledge base again. Detail: %s', 'npcink-cloud-addon' );
 					} else {
+						/* translators: %s: bounded delivery error detail from the last retry. */
 						$framing = __( 'The knowledge base update could not be delivered. Check the Site Knowledge tab for the next step. Detail: %s', 'npcink-cloud-addon' );
 					}
 					$failure_message = sprintf( $framing, $message );
