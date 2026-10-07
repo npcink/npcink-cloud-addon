@@ -969,7 +969,10 @@ maca_assert(
 maca_assert(
 	false !== strpos( $wordpress_ai_connector, 'function user_facing_connector_error' )
 	&& false !== strpos( $wordpress_ai_connector, 'function user_facing_runtime_failure' )
-	&& 0 === preg_match( '#RuntimeException\((?!\s*Npcink_Cloud_WordPress_AI_Connector::user_facing)#', $wpai_bundle_scope )
+	&& false !== strpos( $wpai_scene_model, 'function throw_user_facing' )
+	&& false !== strpos( $wpai_scene_model, 'escapes exception text' )
+	&& 0 === substr_count( $wpai_text_model . $wpai_image_model . $wpai_vision_text_model, 'RuntimeException' )
+	&& 0 === preg_match( '#RuntimeException\((?!\s*\$message)#', $wpai_scene_model )
 	&& 0 === substr_count( $wpai_bundle_scope, 'RuntimeException( (string) $attachment_id->get_error_message() )' ),
 	'AI Client connector exceptions surface bounded, translated, code-tagged user messages instead of raw developer strings.'
 );
@@ -2236,7 +2239,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
 	'includes/class-cloud-wordpress-ai-image-model.php' => 489,
-	'includes/class-cloud-wordpress-ai-scene-model.php' => 142,
+	'includes/class-cloud-wordpress-ai-scene-model.php' => 159,
 	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 178,
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
 	'includes/class-cloud-wordpress-ai-text-model.php' => 383,

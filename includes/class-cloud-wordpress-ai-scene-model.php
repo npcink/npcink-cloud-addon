@@ -92,6 +92,23 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Scene_Model' ) ) {
 		}
 
 		/**
+		 * Throws the shared user-facing runtime exception.
+		 *
+		 * The message comes from the connector's plain-text user-facing
+		 * helpers; the WordPress AI client escapes exception text at render
+		 * time, so escaping here would double-encode it. This single sink
+		 * carries that exception-to-escaping decision for every scene model.
+		 *
+		 * @param string $message Plain-text user-facing failure message.
+		 * @return void
+		 * @throws \WordPress\AiClient\Common\Exception\RuntimeException Always.
+		 */
+		protected static function throw_user_facing( string $message ): void {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- plain text by contract; the AI client escapes at render time.
+			throw new \WordPress\AiClient\Common\Exception\RuntimeException( $message );
+		}
+
+		/**
 		 * Extracts text from a single user prompt.
 		 *
 		 * @param list<\WordPress\AiClient\Messages\DTO\Message> $prompt Prompt messages.

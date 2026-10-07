@@ -99,8 +99,10 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
 - `includes/class-cloud-wordpress-ai-text-model.php` — 383 lines
 - `includes/class-cloud-wordpress-ai-vision-text-model.php` — 119 lines
-- `includes/class-cloud-wordpress-ai-scene-model.php` — 142 lines (shared
-  metadata/config plumbing and prompt/result projection helpers)
+- `includes/class-cloud-wordpress-ai-scene-model.php` — 159 lines (shared
+  metadata/config plumbing, prompt/result projection helpers, and the
+  single plain-text exception sink `throw_user_facing()` required by the
+  strict Plugin Check gate)
 - `includes/class-cloud-media-derivative-transport.php` — 713 lines (was 2542 before
   the 2026-10-06 source-validation and artifact-verification split into
   `class-cloud-media-source-validation.php` and
