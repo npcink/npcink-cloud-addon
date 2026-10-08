@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-07T04:46:31+00:00\n"
+"POT-Creation-Date: 2026-10-08T06:34:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -108,81 +108,81 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:227
+#: includes/class-cloud-addon-settings.php:228
 #: includes/class-cloud-settings-page.php:1039
 #: includes/class-cloud-settings-page.php:1227
 msgid "Not configured"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:229
+#: includes/class-cloud-addon-settings.php:230
 msgid "Cloud settings are incomplete. Reconnect this site in Npcink Cloud to issue a new connection key."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:230
+#: includes/class-cloud-addon-settings.php:231
 msgid "Authorize this site in Npcink Cloud to create the connection."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:242
+#: includes/class-cloud-addon-settings.php:243
 msgid "Verified"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:243
+#: includes/class-cloud-addon-settings.php:244
 msgid "Cloud settings are saved and verified."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:255
+#: includes/class-cloud-addon-settings.php:256
 msgid "Connected, activation required"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:256
+#: includes/class-cloud-addon-settings.php:257
 msgid "This site is bound and its connection credential is stored, but Cloud runtime service is inactive. Activate it in Npcink Cloud, then verify the connection here."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:267
+#: includes/class-cloud-addon-settings.php:268
 #: includes/class-cloud-settings-page.php:1101
 msgid "Unavailable"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:267
+#: includes/class-cloud-addon-settings.php:268
 msgid "Pending verification"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:268
+#: includes/class-cloud-addon-settings.php:269
 msgid "Cloud settings are saved but have not passed verification."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:292
+#: includes/class-cloud-addon-settings.php:293
 #: includes/class-cloud-settings-actions.php:294
 #: includes/class-cloud-settings-actions.php:462
 msgid "Cloud Base URL must use HTTPS unless it points to localhost or 127.0.0.1."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:466
+#: includes/class-cloud-addon-settings.php:467
 msgid "Cloud verification completed, but the verified state could not be stored securely."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:684
+#: includes/class-cloud-addon-settings.php:685
 #: includes/class-cloud-credential-store.php:197
 msgid "Cloud credentials could not be stored or read securely. Reconnect this site after checking the WordPress security salts."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:716
+#: includes/class-cloud-addon-settings.php:717
 msgid "Cloud API Key cannot be empty."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:723
+#: includes/class-cloud-addon-settings.php:724
 msgid "Manual Cloud API Key recovery must use a Cloud-issued mak1_ wrapper. Reconnect this site in Npcink Cloud to issue a new key."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:731
+#: includes/class-cloud-addon-settings.php:732
 msgid "Cloud API Key could not be decoded."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:739
+#: includes/class-cloud-addon-settings.php:740
 msgid "Cloud API Key format is invalid. Use a key issued by Npcink Cloud."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:750
+#: includes/class-cloud-addon-settings.php:751
 msgid "Cloud API Key wrapper is missing required signing data."
 msgstr ""
 
@@ -511,13 +511,13 @@ msgstr ""
 msgid "Media derivative runtime artifacts require a valid future expiry."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:153
+#: includes/class-cloud-observability-collector.php:278
 msgid "Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:216
-#: includes/class-cloud-observability-collector.php:290
-#: includes/class-cloud-observability-collector.php:324
+#: includes/class-cloud-observability-collector.php:341
+#: includes/class-cloud-observability-collector.php:415
+#: includes/class-cloud-observability-collector.php:449
 #: includes/class-cloud-settings-actions.php:336
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:91
@@ -527,23 +527,23 @@ msgstr ""
 msgid "Cloud Addon settings are not verified."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:240
+#: includes/class-cloud-observability-collector.php:365
 msgid "Cloud did not accept the monitoring state projection."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1284
+#: includes/class-cloud-observability-collector.php:1410
 msgid "Core"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1289
+#: includes/class-cloud-observability-collector.php:1415
 msgid "Abilities"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1294
+#: includes/class-cloud-observability-collector.php:1420
 msgid "Adapter"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1299
+#: includes/class-cloud-observability-collector.php:1425
 #: includes/class-cloud-settings-page.php:134
 #: includes/class-cloud-settings-page.php:1233
 msgid "Cloud Addon"
