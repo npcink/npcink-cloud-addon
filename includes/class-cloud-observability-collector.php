@@ -167,8 +167,12 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			}
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
 			$client = new Npcink_Cloud_Runtime_Client();
+			$stored = get_option( self::EDITOR_FEEDBACK_OPTION, array() );
 			$buffer = self::editor_feedback_buffer();
-			update_option( self::EDITOR_FEEDBACK_OPTION, $buffer, false );
+			// Persist pruning only; never rewrite an unchanged queue before HTTP.
+			if ( $stored !== $buffer ) {
+				update_option( self::EDITOR_FEEDBACK_OPTION, $buffer, false );
+			}
 			foreach ( array_slice( $buffer, 0, 5, true ) as $key => $payload ) {
 				if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
 					delete_option( self::EDITOR_FEEDBACK_OPTION );

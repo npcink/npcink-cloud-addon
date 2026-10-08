@@ -33,9 +33,11 @@ foreach ( $options as $option ) {
 	$filters[] = array( 'pre_update_option_' . $option, $write );
 }
 $requests = array();
-$intercept = static function ( $pre, array $args, string $url ) use ( &$requests ) {
+$unexpected_requests = 0;
+$intercept = static function ( $pre, array $args, string $url ) use ( &$requests, &$unexpected_requests ) {
 	if ( ! str_ends_with( $url, '/v1/agent-feedback/events' ) ) {
-		return $pre;
+		++$unexpected_requests;
+		return new WP_Error( 'controlled_unexpected_http', 'Controlled smoke forbids unexpected outbound HTTP.' );
 	}
 	$requests[] = $args;
 	if ( 1 === count( $requests ) ) {
@@ -67,6 +69,7 @@ try {
 	Npcink_Cloud_Observability_Collector::flush_editor_feedback();
 	if (
 		2 !== count( $requests )
+		|| 0 !== $unexpected_requests
 		|| $requests[0]['body'] !== $requests[1]['body']
 		|| $requests[0]['headers']['Idempotency-Key'] !== $requests[1]['headers']['Idempotency-Key']
 		|| empty( $requests[1]['headers']['X-Npcink-Signature'] )

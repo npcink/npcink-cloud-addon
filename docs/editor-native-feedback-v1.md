@@ -30,8 +30,14 @@ not become adopted, rejected or subjectively scored native feedback.
   and sends at most five events per flush. This is disposable delivery state.
 - A failed round stops and preserves the original payload/idempotency key for
   the next hourly retry. Successful removal re-reads the buffer so events
-  captured during HTTP are preserved. Cloud's idempotency contract handles
+  captured in the same request during HTTP are retained. An unchanged queue
+  is not rewritten at flush start; pruning still persists expired or invalid
+  entries. Concurrent WordPress requests share a best-effort option buffer,
+  without an atomic delivery guarantee. Cloud's idempotency contract handles
   duplicate delivery; this is not an exactly-once transport promise.
+- All remote failures stop the round, including authorization failures that
+  may recover after settings repair. They are not assumed permanent from a
+  4xx status alone; expiry limits a blocked head to 24 hours.
 - Opt-out discards pending native delivery. Events captured for a different
   site binding are discarded. Disconnect/uninstall removes the buffer.
 
@@ -62,7 +68,8 @@ sh scripts/wp-cli-local.sh scripts/smoke-editor-native-feedback.php
 ```
 
 That smoke uses real WordPress options/hook/signing code, shadows addon option
-writes in memory and intercepts native HTTP. It makes zero post writes,
+writes in memory and intercepts native HTTP; unexpected endpoints fail closed.
+It makes zero post writes,
 Provider calls or Cloud feedback submissions. Its fixture is controlled test
 evidence, never natural operator adoption. WP-CLI `eval-file` scripts must not
 declare `strict_types`, and array HTTP fixtures use lowercase response-header
