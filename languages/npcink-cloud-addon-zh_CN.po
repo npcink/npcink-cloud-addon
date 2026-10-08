@@ -89,81 +89,81 @@ msgstr "夜间检查需要使用其固定运行时合同。"
 msgid "Settings"
 msgstr "设置"
 
-#: includes/class-cloud-addon-settings.php:227
+#: includes/class-cloud-addon-settings.php:228
 #: includes/class-cloud-settings-page.php:1039
 #: includes/class-cloud-settings-page.php:1227
 msgid "Not configured"
 msgstr "未配置"
 
-#: includes/class-cloud-addon-settings.php:229
+#: includes/class-cloud-addon-settings.php:230
 msgid "Cloud settings are incomplete. Reconnect this site in Npcink Cloud to issue a new connection key."
 msgstr "Cloud 设置不完整。请在 Npcink Cloud 中重新连接此站点以签发新的连接密钥。"
 
-#: includes/class-cloud-addon-settings.php:230
+#: includes/class-cloud-addon-settings.php:231
 msgid "Authorize this site in Npcink Cloud to create the connection."
 msgstr "在 Npcink Cloud 授权当前站点以创建连接。"
 
-#: includes/class-cloud-addon-settings.php:242
+#: includes/class-cloud-addon-settings.php:243
 msgid "Verified"
 msgstr "已验证"
 
-#: includes/class-cloud-addon-settings.php:243
+#: includes/class-cloud-addon-settings.php:244
 msgid "Cloud settings are saved and verified."
 msgstr "Cloud 设置已保存并通过验证。"
 
-#: includes/class-cloud-addon-settings.php:255
+#: includes/class-cloud-addon-settings.php:256
 msgid "Connected, activation required"
 msgstr "已连接，等待激活"
 
-#: includes/class-cloud-addon-settings.php:256
+#: includes/class-cloud-addon-settings.php:257
 msgid "This site is bound and its connection credential is stored, but Cloud runtime service is inactive. Activate it in Npcink Cloud, then verify the connection here."
 msgstr "此站点已绑定并保存连接凭据，但 Cloud 运行服务尚未激活。请先在 Npcink Cloud 中激活，再回到这里验证连接。"
 
-#: includes/class-cloud-addon-settings.php:267
+#: includes/class-cloud-addon-settings.php:268
 #: includes/class-cloud-settings-page.php:1101
 msgid "Unavailable"
 msgstr "不可用"
 
-#: includes/class-cloud-addon-settings.php:267
+#: includes/class-cloud-addon-settings.php:268
 msgid "Pending verification"
 msgstr "等待验证"
 
-#: includes/class-cloud-addon-settings.php:268
+#: includes/class-cloud-addon-settings.php:269
 msgid "Cloud settings are saved but have not passed verification."
 msgstr "Cloud 设置已保存，但尚未通过验证。"
 
-#: includes/class-cloud-addon-settings.php:292
+#: includes/class-cloud-addon-settings.php:293
 #: includes/class-cloud-settings-actions.php:294
 #: includes/class-cloud-settings-actions.php:462
 msgid "Cloud Base URL must use HTTPS unless it points to localhost or 127.0.0.1."
 msgstr "Cloud 基础 URL 必须使用 HTTPS，除非指向 localhost 或 127.0.0.1。"
 
-#: includes/class-cloud-addon-settings.php:466
+#: includes/class-cloud-addon-settings.php:467
 msgid "Cloud verification completed, but the verified state could not be stored securely."
 msgstr "Cloud 验证已完成，但无法安全存储已验证状态。"
 
-#: includes/class-cloud-addon-settings.php:684
+#: includes/class-cloud-addon-settings.php:685
 #: includes/class-cloud-credential-store.php:197
 msgid "Cloud credentials could not be stored or read securely. Reconnect this site after checking the WordPress security salts."
 msgstr "无法安全存储或读取 Cloud 凭据。请检查 WordPress 安全盐后重新连接此站点。"
 
-#: includes/class-cloud-addon-settings.php:716
+#: includes/class-cloud-addon-settings.php:717
 msgid "Cloud API Key cannot be empty."
 msgstr "Cloud API 密钥不能为空。"
 
-#: includes/class-cloud-addon-settings.php:723
+#: includes/class-cloud-addon-settings.php:724
 msgid "Manual Cloud API Key recovery must use a Cloud-issued mak1_ wrapper. Reconnect this site in Npcink Cloud to issue a new key."
 msgstr "手动恢复 Cloud API 密钥必须使用 Cloud 签发的 mak1_ 封装密钥。请在 Npcink Cloud 中重新连接此站点以签发新密钥。"
 
-#: includes/class-cloud-addon-settings.php:731
+#: includes/class-cloud-addon-settings.php:732
 msgid "Cloud API Key could not be decoded."
 msgstr "无法解码 Cloud API 密钥。"
 
-#: includes/class-cloud-addon-settings.php:739
+#: includes/class-cloud-addon-settings.php:740
 msgid "Cloud API Key format is invalid. Use a key issued by Npcink Cloud."
 msgstr "Cloud API 密钥格式无效。请使用 Npcink Cloud 签发的密钥。"
 
-#: includes/class-cloud-addon-settings.php:750
+#: includes/class-cloud-addon-settings.php:751
 msgid "Cloud API Key wrapper is missing required signing data."
 msgstr "Cloud API 密钥封装缺少必需的签名数据。"
 
@@ -488,9 +488,9 @@ msgstr "原始媒体指标不完整。"
 msgid "Derivative media metrics are incomplete."
 msgstr "衍生媒体指标不完整。"
 
-#: includes/class-cloud-observability-collector.php:216
-#: includes/class-cloud-observability-collector.php:290
-#: includes/class-cloud-observability-collector.php:324
+#: includes/class-cloud-observability-collector.php:345
+#: includes/class-cloud-observability-collector.php:419
+#: includes/class-cloud-observability-collector.php:453
 #: includes/class-cloud-settings-actions.php:336
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:91
@@ -500,23 +500,23 @@ msgstr "衍生媒体指标不完整。"
 msgid "Cloud Addon settings are not verified."
 msgstr "Cloud Addon 设置尚未验证。"
 
-#: includes/class-cloud-observability-collector.php:240
+#: includes/class-cloud-observability-collector.php:369
 msgid "Cloud did not accept the monitoring state projection."
 msgstr "Cloud 未接受监控状态投影。"
 
-#: includes/class-cloud-observability-collector.php:1284
+#: includes/class-cloud-observability-collector.php:1414
 msgid "Core"
 msgstr "治理核心"
 
-#: includes/class-cloud-observability-collector.php:1289
+#: includes/class-cloud-observability-collector.php:1419
 msgid "Abilities"
 msgstr "原子能力"
 
-#: includes/class-cloud-observability-collector.php:1294
+#: includes/class-cloud-observability-collector.php:1424
 msgid "Adapter"
 msgstr "渠道适配器"
 
-#: includes/class-cloud-observability-collector.php:1299
+#: includes/class-cloud-observability-collector.php:1429
 #: includes/class-cloud-settings-page.php:134
 #: includes/class-cloud-settings-page.php:1233
 msgid "Cloud Addon"
@@ -2485,7 +2485,7 @@ msgstr "插件已启用，但本站点尚未连接 Npcink Cloud。连接站点�
 msgid "Do not show again"
 msgstr "不再显示"
 
-#: includes/class-cloud-observability-collector.php:153
+#: includes/class-cloud-observability-collector.php:282
 msgid "Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again."
 msgstr "Cloud Addon 设置尚未通过验证。连接重新验证通过后，将自动恢复监控数据上传。"
 

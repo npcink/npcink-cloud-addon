@@ -21,6 +21,9 @@ bounded signed transport.
 
 ## Engineering Decisions and Standards
 
+- [Editor native feedback](docs/editor-native-feedback-v1.md) defines exact-save
+  adoption, consent/privacy boundaries, bounded retry and controlled verification.
+
 - [插件上报接通与验证交接（2026-09-11）](docs/observability-producer-handoff-2026-09-11.md)
   records producer hooks, consent boundaries, real delivery evidence, and remaining trial acceptance.
 

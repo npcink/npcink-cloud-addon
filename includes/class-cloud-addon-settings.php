@@ -165,6 +165,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		/**
 		 * Returns whether monitoring collection may run.
 		 *
+		 * @phpstan-impure Reads consent and verification from mutable WordPress options.
 		 * @return bool
 		 */
 			public static function is_monitoring_enabled(): bool {
