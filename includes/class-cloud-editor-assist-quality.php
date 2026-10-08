@@ -237,6 +237,7 @@ if ( ! class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 				$run_id = (string) ( $latest['run_id'] ?? '' );
 				if ( 'saved_exact_output' === $outcome ) {
 					$latest['lifecycle_state'] = 'adopted_exact';
+					Npcink_Cloud_Observability_Collector::capture_editor_adoption( $latest );
 					Npcink_Cloud_Customer_Journey::capture_generation(
 						$task_key,
 						'accepted',

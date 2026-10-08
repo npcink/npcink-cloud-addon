@@ -26,6 +26,7 @@ foreach (
 		'npcink_cloud_addon_observability_summary',
 		'npcink_cloud_addon_customer_journey_buffer',
 		'npcink_cloud_addon_agent_feedback_summary',
+		'npcink_cloud_addon_editor_feedback_buffer',
 		'npcink_cloud_addon_editor_assist_pending',
 		'npcink_cloud_addon_site_knowledge_change_buffer',
 		'npcink_cloud_addon_site_knowledge_change_status',

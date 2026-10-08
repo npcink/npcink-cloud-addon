@@ -11,6 +11,17 @@ require_once __DIR__ . '/helpers.php';
 
 maca_load_addon_classes();
 
+if ( ! function_exists( 'wp_is_post_autosave' ) ) {
+	function wp_is_post_autosave( int $post_id ) {
+		return ( $GLOBALS['maca_editor_autosave_id'] ?? 0 ) === $post_id ? $post_id : false;
+	}
+}
+if ( ! function_exists( 'wp_is_post_revision' ) ) {
+	function wp_is_post_revision( int $post_id ) {
+		return ( $GLOBALS['maca_editor_revision_id'] ?? 0 ) === $post_id ? $post_id : false;
+	}
+}
+
 /**
  * Returns buffered editor-assist events.
  *
@@ -121,6 +132,17 @@ $published_post = (object) array(
 	'post_content' => 'Better generated summary text',
 	'post_status'  => 'publish',
 );
+$GLOBALS['maca_editor_autosave_id'] = 42;
+Npcink_Cloud_Editor_Assist_Quality::observe_post_save( 42, $published_post, true, null );
+unset( $GLOBALS['maca_editor_autosave_id'] );
+$GLOBALS['maca_editor_revision_id'] = 42;
+Npcink_Cloud_Editor_Assist_Quality::observe_post_save( 42, $published_post, true, null );
+unset( $GLOBALS['maca_editor_revision_id'] );
+maca_assert(
+	array() === get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() )
+	&& $pending === get_option( Npcink_Cloud_Editor_Assist_Quality::PENDING_OPTION, array() ),
+	'Behavior: autosaves and revisions neither report adoption nor consume pending correlation.'
+);
 Npcink_Cloud_Editor_Assist_Quality::observe_post_save( 42, $published_post, true, null );
 $events = maca_editor_assist_events();
 $outcome = $events[ count( $events ) - 1 ];
@@ -139,6 +161,57 @@ maca_assert(
 	&& 'save' === (string) ( $journey_events[2]['journey'] ?? '' )
 	&& 'succeeded' === (string) ( $journey_events[2]['step'] ?? '' ),
 	'Behavior: an exact adoption records generation acceptance before the explicit save succeeds.'
+);
+
+$native_buffer = get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() );
+$native_payload = array_values( $native_buffer )[0] ?? array();
+maca_assert(
+	1 === count( $native_buffer )
+	&& 'run_summary_2' === ( $native_payload['source_run_id'] ?? '' )
+	&& ( $pending[1]['generation_id'] ?? '' ) === ( $native_payload['handoff_id'] ?? '' )
+	&& 'accepted' === ( $native_payload['local_outcome'] ?? '' )
+	&& array( 'exact_hash_match' ) === ( $native_payload['source_reason_codes'] ?? array() )
+	&& empty( $GLOBALS['maca_http_requests'] ),
+	'Behavior: exact adoption queues one native feedback associated with the matched run, without HTTP in the save hook.'
+);
+$native_json = wp_json_encode( $native_buffer );
+foreach ( array( 'Private source content', 'Better generated summary text', 'output_hash', 'post_id', 'actor_id', 'source_score', 'operator_note' ) as $forbidden ) {
+	maca_assert( false === strpos( (string) $native_json, $forbidden ), 'Behavior: native feedback omits private content, identity and subjective score: ' . $forbidden );
+}
+Npcink_Cloud_Editor_Assist_Quality::observe_post_save( 42, $published_post, true, null );
+maca_assert( $native_buffer === get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ), 'Behavior: repeated post saves do not duplicate a resolved adoption.' );
+Npcink_Cloud_Observability_Collector::capture_editor_adoption( $pending[1] );
+maca_assert( $native_buffer === get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ), 'Behavior: repeated capture preserves the first payload and stable identity.' );
+
+$GLOBALS['maca_http_response_queue'][] = new WP_Error( 'transport_unavailable', 'Controlled retry fixture' );
+Npcink_Cloud_Observability_Collector::flush_editor_feedback();
+$failed_request = $GLOBALS['maca_http_requests'][0] ?? array();
+maca_assert( $native_buffer === get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ), 'Behavior: failed native upload retains the original event.' );
+$GLOBALS['maca_http_response_queue'][] = static function ( string $url, array $args ): array {
+	unset( $url, $args );
+	Npcink_Cloud_Observability_Collector::capture_editor_adoption(
+		array( 'run_id' => 'run_captured_during_http', 'generation_id' => 'generation_late', 'task_key' => 'title_generation' )
+	);
+	return array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'data' => array( 'status' => 'accepted' ) ) ) );
+};
+Npcink_Cloud_Observability_Collector::flush_editor_feedback();
+$retry_request = $GLOBALS['maca_http_requests'][1] ?? array();
+$remaining_native = array_values( get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ) );
+maca_assert(
+	str_ends_with( (string) ( $retry_request['url'] ?? '' ), '/v1/agent-feedback/events' )
+	&& ( $failed_request['args']['headers']['Idempotency-Key'] ?? '' ) === ( $retry_request['args']['headers']['Idempotency-Key'] ?? '' )
+	&& ( $failed_request['args']['body'] ?? '' ) === ( $retry_request['args']['body'] ?? '' )
+	&& '' !== ( $retry_request['args']['headers']['X-Npcink-Signature'] ?? '' ),
+	'Behavior: native retry uses the existing signed endpoint with identical payload and idempotency key.'
+);
+maca_assert( 1 === count( $remaining_native ) && 'run_captured_during_http' === $remaining_native[0]['source_run_id'], 'Behavior: successful upload preserves a new event captured while HTTP was in flight.' );
+maca_set_monitoring_enabled( false );
+$requests_before_pause = count( $GLOBALS['maca_http_requests'] );
+Npcink_Cloud_Observability_Collector::flush_editor_feedback();
+maca_assert(
+	$requests_before_pause === count( $GLOBALS['maca_http_requests'] )
+	&& array() === get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ),
+	'Behavior: local opt-out discards pending native delivery without making HTTP requests.'
 );
 
 maca_reset_test_state();
@@ -173,6 +246,44 @@ maca_assert(
 	&& 'succeeded' === (string) ( $journey_events[0]['step'] ?? '' ),
 	'Behavior: an edited save records save success without falsely claiming generation acceptance.'
 );
+maca_assert( array() === get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ), 'Behavior: unmatched edits never become native adopted/rejected feedback.' );
+
+for ( $native_index = 0; $native_index < 105; ++$native_index ) {
+	Npcink_Cloud_Observability_Collector::capture_editor_adoption(
+		array( 'run_id' => 'run_bounded_' . $native_index, 'generation_id' => 'generation_bounded_' . $native_index, 'task_key' => 'title_generation' )
+	);
+}
+maca_assert( 100 === count( get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ) ), 'Behavior: native delivery cannot grow past its 100-event bound.' );
+for ( $native_index = 0; $native_index < 5; ++$native_index ) {
+	$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'data' => array( 'accepted_for_eval' => true ) ) ) );
+}
+$before_bounded_flush = count( $GLOBALS['maca_http_requests'] );
+Npcink_Cloud_Observability_Collector::flush_editor_feedback();
+maca_assert(
+	$before_bounded_flush + 5 === count( $GLOBALS['maca_http_requests'] )
+	&& 95 === count( get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ) ),
+	'Behavior: one cron round sends only five native events and leaves the remainder for later.'
+);
+
+// Exercise stale state, accidental extra fields, and a changed site binding.
+foreach ( array( 'expired', 'private_field', 'different_site' ) as $invalid_kind ) {
+	$invalid_payload = $native_payload;
+	if ( 'expired' === $invalid_kind ) {
+		$invalid_payload['created_at'] = gmdate( 'c', time() - 2 * DAY_IN_SECONDS );
+	} elseif ( 'private_field' === $invalid_kind ) {
+		$invalid_payload['operator_note'] = 'Private note must never leave automatic telemetry';
+	} else {
+		$invalid_payload['site_id'] = 'site_other';
+	}
+	update_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array( array_keys( $native_buffer )[0] => $invalid_payload ), false );
+	$count_before_flush = count( $GLOBALS['maca_http_requests'] );
+	Npcink_Cloud_Observability_Collector::flush_editor_feedback();
+	maca_assert(
+		$count_before_flush === count( $GLOBALS['maca_http_requests'] )
+		&& array() === get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ),
+		'Behavior: obsolete or private native delivery state is discarded without HTTP: ' . $invalid_kind
+	);
+}
 
 maca_reset_test_state();
 maca_seed_settings( true );

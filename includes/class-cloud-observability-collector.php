@@ -20,6 +20,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		public const STATUS_OPTION = 'npcink_cloud_addon_observability_status';
 		public const SUMMARY_OPTION = 'npcink_cloud_addon_observability_summary';
 		public const AGENT_SUMMARY_OPTION = 'npcink_cloud_addon_agent_feedback_summary';
+		public const EDITOR_FEEDBACK_OPTION = 'npcink_cloud_addon_editor_feedback_buffer';
 		public const CRON_HOOK = 'npcink_cloud_addon_flush_observability';
 		public const MONITORING_STATE_CONTRACT = 'wordpress_monitoring_state.v1';
 		public const MONITORING_STATE_EVENT_KIND = 'addon.monitoring.state_projected';
@@ -84,6 +85,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			add_action( 'npcink_governance_core_observability_event', array( __CLASS__, 'capture_event' ), 10, 1 );
 			add_action( 'npcink_openclaw_adapter_observability_event', array( __CLASS__, 'capture_event' ), 10, 1 );
 			add_action( self::CRON_HOOK, array( __CLASS__, 'flush_buffer' ) );
+			add_action( self::CRON_HOOK, array( __CLASS__, 'flush_editor_feedback' ), 20 );
 
 			self::sync_schedule();
 		}
@@ -102,6 +104,129 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
 				wp_clear_scheduled_hook( self::CRON_HOOK );
 			}
+			delete_option( self::EDITOR_FEEDBACK_OPTION );
+		}
+
+		/**
+		 * Queues only the exact adoption already observed by the local editor.
+		 * Content fingerprints, post IDs and actor IDs never enter this buffer.
+		 *
+		 * @param array<string,mixed> $record Locally matched generation metadata.
+		 * @return void
+		 */
+		public static function capture_editor_adoption( array $record ): void {
+			if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+				return;
+			}
+			$run_id = (string) ( $record['run_id'] ?? '' );
+			$generation_id = (string) ( $record['generation_id'] ?? '' );
+			if ( '' === $run_id || '' === $generation_id ) {
+				return;
+			}
+			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			$payload = Npcink_Cloud_Runtime_Request_Guards::normalize_agent_feedback_payload(
+				array(
+					'contract_version'    => 'cloud_agent_feedback.v1',
+					'site_id'             => (string) $settings['site_id'],
+					'agent_id'            => 'wordpress_ai_editor_assist',
+					'source_runtime'      => 'editor_assist',
+					'source_run_id'       => $run_id,
+					'handoff_id'          => $generation_id,
+					'handoff_type'        => 'editor_suggestion',
+					'local_surface'       => 'wordpress_ai_editor',
+					'local_outcome'       => 'accepted',
+					'source_action_id'    => (string) ( $record['task_key'] ?? '' ),
+					'source_reason_codes' => array( 'exact_hash_match' ),
+					'redaction_status'    => 'metadata_only',
+					'retention_class'     => 'bounded_observation',
+					'created_at'          => gmdate( 'c' ),
+				)
+			);
+			if ( is_wp_error( $payload ) ) {
+				return;
+			}
+			$key = 'editor_adoption_' . hash( 'sha256', $payload['site_id'] . '|' . $run_id . '|' . $generation_id );
+			$buffer = self::editor_feedback_buffer();
+			if ( ! isset( $buffer[ $key ] ) ) {
+				$buffer[ $key ] = $payload;
+			}
+			// Bounded delivery state, never an adoption or approval registry.
+			update_option( self::EDITOR_FEEDBACK_OPTION, array_slice( $buffer, -100, null, true ), false );
+		}
+
+		/**
+		 * Sends at most five native events through the existing signed endpoint.
+		 * Failed uploads keep their original payload and idempotency key.
+		 *
+		 * @return void
+		 */
+		public static function flush_editor_feedback(): void {
+			if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+				delete_option( self::EDITOR_FEEDBACK_OPTION );
+				return;
+			}
+			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			$client = new Npcink_Cloud_Runtime_Client();
+			$buffer = self::editor_feedback_buffer();
+			update_option( self::EDITOR_FEEDBACK_OPTION, $buffer, false );
+			foreach ( array_slice( $buffer, 0, 5, true ) as $key => $payload ) {
+				if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+					delete_option( self::EDITOR_FEEDBACK_OPTION );
+					return;
+				}
+				if ( (string) $settings['site_id'] !== (string) ( $payload['site_id'] ?? '' ) ) {
+					self::remove_editor_feedback( $key );
+					continue;
+				}
+				$result = $client->send_agent_feedback_event( $payload, 'trace_' . $key, $key );
+				if ( is_wp_error( $result ) ) {
+					// Stop this round on transport failure; hourly cron retries later.
+					return;
+				}
+				self::remove_editor_feedback( $key );
+			}
+		}
+
+		/**
+		 * @return array<string,array<string,mixed>>
+		 */
+		private static function editor_feedback_buffer(): array {
+			$buffer = get_option( self::EDITOR_FEEDBACK_OPTION, array() );
+			if ( ! is_array( $buffer ) ) {
+				return array();
+			}
+			return array_filter(
+				array_slice( $buffer, -100, null, true ),
+				static function ( $payload, $key ): bool {
+					$allowed_fields = array(
+						'contract_version', 'site_id', 'agent_id', 'source_runtime', 'source_run_id',
+						'handoff_id', 'handoff_type', 'local_surface', 'local_outcome', 'source_action_id',
+						'source_reason_codes', 'redaction_status', 'retention_class', 'created_at',
+					);
+					if (
+						! is_string( $key ) || 1 !== preg_match( '/\Aeditor_adoption_[a-f0-9]{64}\z/', $key )
+						|| ! is_array( $payload ) || ! is_string( $payload['created_at'] ?? null )
+						|| array() !== array_diff( array_keys( $payload ), $allowed_fields )
+					) {
+						return false;
+					}
+					$created_at = strtotime( $payload['created_at'] );
+					return false !== $created_at && $created_at <= time() && $created_at >= time() - DAY_IN_SECONDS;
+				},
+				ARRAY_FILTER_USE_BOTH
+			);
+		}
+
+		/**
+		 * Re-read after HTTP so captures during an upload are preserved.
+		 *
+		 * @param string $key Delivered or obsolete local identity.
+		 * @return void
+		 */
+		private static function remove_editor_feedback( string $key ): void {
+			$buffer = self::editor_feedback_buffer();
+			unset( $buffer[ $key ] );
+			update_option( self::EDITOR_FEEDBACK_OPTION, $buffer, false );
 		}
 
 		/**
@@ -345,6 +470,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			delete_option( self::STATUS_OPTION );
 			delete_option( self::SUMMARY_OPTION );
 			delete_option( self::AGENT_SUMMARY_OPTION );
+			delete_option( self::EDITOR_FEEDBACK_OPTION );
 			if ( class_exists( 'Npcink_Cloud_Editor_Assist_Quality' ) ) {
 				Npcink_Cloud_Editor_Assist_Quality::delete_data();
 			}
