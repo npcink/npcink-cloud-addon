@@ -21,7 +21,15 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 		 */
 		public static function delete_inactive_legacy_media_continuation(): void {
 			$cleanup_marker = 'npcink_cloud_addon_media_continuation_cleanup_0_2_0';
-			if ( get_option( $cleanup_marker, false ) ) {
+			$marker_complete = (bool) get_option( $cleanup_marker, false );
+			if ( $marker_complete && function_exists( 'wp_load_alloptions' )
+				&& ! array_key_exists( $cleanup_marker, wp_load_alloptions() ) ) {
+				// Markers written by earlier releases were stored non-autoloaded;
+				// re-add once so the completed marker rides the alloptions fetch.
+				delete_option( $cleanup_marker );
+				$marker_complete = false;
+			}
+			if ( $marker_complete ) {
 				return;
 			}
 

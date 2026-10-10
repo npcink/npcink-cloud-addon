@@ -428,29 +428,29 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			self::$post_document_memo = array();
 
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
-					return self::record_delivery_result( false, 0, __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'cloud_addon_unverified' );
-				}
+				return self::record_delivery_result( false, 0, __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'cloud_addon_unverified' );
+			}
 
-				if ( ! self::is_enabled() ) {
-					return self::record_delivery_result( false, 0, __( 'Site Knowledge delivery is disabled locally.', 'npcink-cloud-addon' ), 'cloud_site_knowledge_delivery_disabled' );
-				}
+			if ( ! self::is_enabled() ) {
+				return self::record_delivery_result( false, 0, __( 'Site Knowledge delivery is disabled locally.', 'npcink-cloud-addon' ), 'cloud_site_knowledge_delivery_disabled' );
+			}
 
-				$maintenance_result = self::flush_full_index_delivery();
-				if ( null !== $maintenance_result ) {
-					return $maintenance_result;
-				}
+			$maintenance_result = self::flush_full_index_delivery();
+			if ( null !== $maintenance_result ) {
+				return $maintenance_result;
+			}
 
 			$buffer = self::get_buffer();
 			if ( empty( $buffer['post_ids'] ) ) {
 				return self::record_delivery_result( true, 0, '' );
 			}
 
-				$post_ids = array_slice( $buffer['post_ids'], 0, self::MAX_BATCH_ITEMS );
-				$sent_fingerprints = self::delivery_fingerprints( $post_ids );
-				$result = self::request_site_knowledge_sync( 'refresh', $post_ids, 'change_bridge' );
-				if ( is_wp_error( $result ) ) {
-					return self::retry_or_drop_buffer( $buffer, $post_ids, $sent_fingerprints, $result->get_error_message() );
-				}
+			$post_ids = array_slice( $buffer['post_ids'], 0, self::MAX_BATCH_ITEMS );
+			$sent_fingerprints = self::delivery_fingerprints( $post_ids );
+			$result = self::request_site_knowledge_sync( 'refresh', $post_ids, 'change_bridge' );
+			if ( is_wp_error( $result ) ) {
+				return self::retry_or_drop_buffer( $buffer, $post_ids, $sent_fingerprints, $result->get_error_message() );
+			}
 
 			$latest_buffer = self::get_buffer();
 			$remaining = self::remaining_after_delivery( $latest_buffer['post_ids'], $post_ids, $sent_fingerprints );
@@ -459,8 +459,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				self::schedule_flush( self::RETRY_SECONDS );
 			}
 
-				return self::record_delivery_result( true, count( $post_ids ), '' );
-			}
+			return self::record_delivery_result( true, count( $post_ids ), '' );
+		}
 
 		/**
 		 * Queues one administrator-requested index operation for bounded delivery.

@@ -40,6 +40,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			add_action( 'update_option_' . self::option_name(), array( __CLASS__, 'invalidate_settings_cache' ) );
 			add_action( 'add_option_' . self::option_name(), array( __CLASS__, 'invalidate_settings_cache' ) );
 			add_action( 'deleted_option', array( __CLASS__, 'invalidate_settings_cache_for_option' ) );
+			add_action( 'switch_blog', array( __CLASS__, 'invalidate_settings_cache' ) );
 		}
 
 		/**
