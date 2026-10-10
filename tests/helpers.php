@@ -697,6 +697,10 @@ function maca_reset_test_state(): void {
 	$GLOBALS['maca_wp_salt'] = 'maca-test-auth-salt';
 	$GLOBALS['maca_wp_environment_type'] = 'local';
 	$GLOBALS['maca_non_image_attachment_ids'] = array();
+	if ( class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
+		// Static request caches outlive the globals reset in this shared process.
+		Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
+	}
 	maca_register_default_outbound_filters();
 }
 
