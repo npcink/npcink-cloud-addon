@@ -120,11 +120,6 @@ maca_assert(
 		'Configure an AI provider',
 		'ai'
 	)
-	&& '全局启用 AI 功能' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
-		'Globally enable AI Features',
-		'Globally enable AI Features',
-		'ai'
-	)
 	&& '文本生成' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Text Generation',
 		'Text Generation',
@@ -267,9 +262,9 @@ maca_assert(
 );
 
 maca_assert(
-	'分析情绪和毒性' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
-		'Analyze Sentiment and Toxicity',
-		'Analyze Sentiment and Toxicity',
+	'分析情绪、毒性和价值' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Analyze Sentiment, Toxicity, and Value',
+		'Analyze Sentiment, Toxicity, and Value',
 		'ai'
 	)
 	&& '正在分析…' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
@@ -801,6 +796,135 @@ maca_assert(
 );
 
 maca_assert(
+	'分析情绪、毒性和价值' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Analyze Sentiment, Toxicity, and Value',
+		'Analyze Sentiment, Toxicity, and Value',
+		'ai'
+	)
+	&& '价值' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Value', 'Value', 'ai' )
+	&& '所有价值分数' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'All Value Scores', 'All Value Scores', 'ai' )
+	&& '高价值分数（>=70%）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'High Value Score (>=70%)', 'High Value Score (>=70%)', 'ai' )
+	&& '中等价值分数（40%-69%）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Medium Value Score (40%-69%)', 'Medium Value Score (40%-69%)', 'ai' )
+	&& '低价值分数（<40%）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Low Value Score (<40%)', 'Low Value Score (<40%)', 'ai' )
+	&& '分析评论的毒性、情绪和价值。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Analyzes a comment for toxicity, sentiment, and value.',
+		'Analyzes a comment for toxicity, sentiment, and value.',
+		'ai'
+	)
+	&& '基于毒性检测和情绪分析自动审核评论，并为每条评论给出价值分数。需要支持文本生成模型的 AI 连接器。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Automatically moderate comments based on toxicity detection and sentiment analysis and give each comment a value score. Requires an AI connector that includes support for text generation models.',
+		'Automatically moderate comments based on toxicity detection and sentiment analysis and give each comment a value score. Requires an AI connector that includes support for text generation models.',
+		'ai'
+	)
+	&& '已达到批量上限，%d 条评论未加入队列。' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'%d comment was not queued because the batch limit was reached.',
+		'%d comment was not queued because the batch limit was reached.',
+		'%d comments were not queued because the batch limit was reached.',
+		3,
+		'ai'
+	),
+	'AI plugin localization translates the 1.4.0 comment moderation value score surface.'
+);
+
+maca_assert(
+	'Markdown 订阅源' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Markdown Feeds', 'Markdown Feeds', 'ai' )
+	&& '当请求通过 Accept 头表明偏好 Markdown 时返回 Markdown（可能与忽略 Vary 头的页面缓存冲突）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Serve Markdown when a request prefers it via the Accept header (may conflict with page caches that ignore the Vary header)',
+		'Serve Markdown when a request prefers it via the Accept header (may conflict with page caches that ignore the Vary header)',
+		'ai'
+	)
+	&& '%s Markdown 订阅源' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( '%s Markdown Feed', '%s Markdown Feed', 'ai' )
+	&& '作者：%s' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Author: %s', 'Author: %s', 'ai' )
+	&& '发布日期：%s' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Published: %s', 'Published: %s', 'ai' )
+	&& '链接：%s' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Link: %s', 'Link: %s', 'ai' )
+	&& '站点：%s' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Site: %s', 'Site: %s', 'ai' ),
+	'AI plugin localization translates the 1.4.0 Markdown feeds experiment surface.'
+);
+
+maca_assert(
+	'正在翻译…' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Translating…', 'Translating…', 'ai' )
+	&& '翻译文章标题失败。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Failed to translate the post title.', 'Failed to translate the post title.', 'ai' )
+	&& '重试失败的翻译' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Retry failed translations', 'Retry failed translations', 'ai' )
+	&& '标题至少达到 %d 个字符后可翻译。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Title translation will be available when the title has at least %d characters.',
+		'Title translation will be available when the title has at least %d characters.',
+		'ai'
+	)
+	&& '孟加拉语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Bengali', 'Bengali', 'ai' )
+	&& '印度尼西亚语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Indonesian', 'Indonesian', 'ai' )
+	&& '波兰语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Polish', 'Polish', 'ai' )
+	&& '葡萄牙语（葡萄牙）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Portuguese (Portugal)', 'Portuguese (Portugal)', 'ai' )
+	&& '俄语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Russian', 'Russian', 'ai' )
+	&& '瑞典语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Swedish', 'Swedish', 'ai' )
+	&& '土耳其语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Turkish', 'Turkish', 'ai' )
+	&& '乌克兰语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Ukrainian', 'Ukrainian', 'ai' )
+	&& '越南语' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Vietnamese', 'Vietnamese', 'ai' ),
+	'AI plugin localization translates the 1.4.0 content translation additions and language names.'
+);
+
+maca_assert(
+	'启用替代文本生成' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Enable alt text generation', 'Enable alt text generation', 'ai' )
+	&& '标记为装饰性图片' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Mark as decorative', 'Mark as decorative', 'ai' )
+	&& '这张图片似乎是装饰性图片。建议将其标记为装饰性图片，以便屏幕阅读器跳过。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'This image appears to be decorative. Consider marking it as decorative so screen readers can skip it.',
+		'This image appears to be decorative. Consider marking it as decorative so screen readers can skip it.',
+		'ai'
+	)
+	&& '此图片已标记为装饰性图片。此设置启用期间无法生成替代文本。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'This image is marked as decorative. Alt text generation is unavailable while this setting is enabled.',
+		'This image is marked as decorative. Alt text generation is unavailable while this setting is enabled.',
+		'ai'
+	),
+	'AI plugin localization translates the 1.4.0 alt text generation settings surface.'
+);
+
+maca_assert(
+	'无法生成编辑建议：当前模板不包含文章内容区块。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Unable to generate notes: the current template does not contain a post content block.',
+		'Unable to generate notes: the current template does not contain a post content block.',
+		'ai'
+	),
+	'AI plugin localization translates the 1.4.0 editorial notes template notice.'
+);
+
+maca_assert(
+	'找到 %d 个结果，可使用上下方向键导航。' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'%d result found, use up and down arrow keys to navigate.',
+		'%d result found, use up and down arrow keys to navigate.',
+		'%d results found, use up and down arrow keys to navigate.',
+		7,
+		'ai'
+	)
+	&& '<div>第</div>%1$s<div>页，共 %2$d 页</div>' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'<div>Page</div>%1$s<div>of %2$d</div>',
+		'<div>Page</div>%1$s<div>of %2$d</div>',
+		'ai'
+	)
+	&& '正在加载建议' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Loading suggestions', 'Loading suggestions', 'ai' ),
+	'AI plugin localization translates the 1.4.0 request log accessibility and pagination copy.'
+);
+
+maca_assert(
+	'%s（已弃用）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( '%s (deprecated)', '%s (deprecated)', 'ai' )
+	&& '已弃用：`%1$s` 自版本 %2$s 起已弃用。请改用 `%3$s`。%4$s' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'Deprecated: `%1$s` is deprecated since version %2$s. Use `%3$s` instead. %4$s',
+		'Deprecated: `%1$s` is deprecated since version %2$s. Use `%3$s` instead. %4$s',
+		'ai'
+	)
+	&& '嵌入模型以模型 ID 形式给出时，必须指定提供方。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'A provider must be specified when the embedding model is given as a model ID.',
+		'A provider must be specified when the embedding model is given as a model ID.',
+		'ai'
+	)
+	&& '必须指定嵌入模型。嵌入向量只能与同一模型生成的嵌入向量比较，因此系统不会自动选择模型。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'An embedding model must be specified. Embeddings are only comparable to other embeddings from the same model, so no model is selected automatically.',
+		'An embedding model must be specified. Embeddings are only comparable to other embeddings from the same model, so no model is selected automatically.',
+		'ai'
+	),
+	'AI plugin localization translates the 1.4.0 helper deprecation and embedding notices.'
+);
+
+maca_assert(
 	'%d 条评论已加入分析队列。' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
 		'%d comment queued for analysis.',
 		'%d comment queued for analysis.',
@@ -1210,7 +1334,13 @@ maca_assert(
 	&& '文章内容至少达到 %d 个字符后可生成编辑建议。' === ( $locale_data['Editorial Notes will be available when the post content has at least %d characters.'][0] ?? '' )
 	&& '文章内容至少达到 %d 个字符后可生成 SEO 描述。' === ( $locale_data['Meta Description generation will be available when the post content has at least %d characters.'][0] ?? '' )
 	&& '文章内容至少达到 %d 个字符后可使用内容分类建议。' === ( $locale_data['Content Classification will be available when the post content has at least %d characters.'][0] ?? '' )
-	&& '分析情绪和毒性' === ( $locale_data['Analyze Sentiment and Toxicity'][0] ?? '' )
+	&& '分析情绪、毒性和价值' === ( $locale_data['Analyze Sentiment, Toxicity, and Value'][0] ?? '' )
+	&& '价值' === ( $locale_data['Value'][0] ?? '' )
+	&& '孟加拉语' === ( $locale_data['Bengali'][0] ?? '' )
+	&& '启用替代文本生成' === ( $locale_data['Enable alt text generation'][0] ?? '' )
+	&& '正在翻译…' === ( $locale_data['Translating…'][0] ?? '' )
+	&& '%s Markdown 订阅源' === ( $locale_data['%s Markdown Feed'][0] ?? '' )
+	&& '找到 %d 个结果，可使用上下方向键导航。' === ( $locale_data['%d results found, use up and down arrow keys to navigate.'][0] ?? '' )
 	&& 'SEO 描述' === ( $locale_data['Meta Description'][0] ?? '' )
 	&& '建议%s' === ( $locale_data['Suggest %s'][0] ?? '' )
 	&& '添加“%s”' === ( $locale_data['Add "%s"'][0] ?? '' )
