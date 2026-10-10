@@ -110,10 +110,11 @@ The command should output:
     prompt copy that should not be bulk-translated in this addon.
 - Existing shim strings that no longer appear in the scanned plugin as
   `stale_review`.
-- Shim strings kept alive only by bundled `_n`/`_x`/`__` calls whose build
-  output drops the explicit `ai` domain literal, reported as
-  `domainless_rescue`. These discoveries never join the missing review groups
-  because the runtime domain cannot be confirmed from the bundle alone.
+- Shim strings kept alive only by `_n`/`_x`/`__` calls without an explicit
+  `ai` domain literal in scanned JS files (bundled output and build-scripts
+  sources; vendor trees excluded), reported as `domainless_rescue`. These
+  discoveries never join the missing review groups because the runtime domain
+  cannot be confirmed from the call alone.
 - Shim strings kept alive only as bare quoted literals inside `build/`
   output, reported as `literal_only_rescue`.
 - Near matches for likely changed English copy.
