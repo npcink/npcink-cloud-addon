@@ -53,10 +53,10 @@ test('synthetic failure evidence requires the actual fixture transport attempt',
 });
 
 test('accepts only explicitly reviewed active AI versions', () => {
-	for (const ai_version of ['1.2.0', '1.3.0']) {
+	for (const ai_version of ['1.2.0', '1.3.0', '1.4.0']) {
 		assert.doesNotThrow(() => check('http://fixture.local', { ...ready, ai_version }));
 	}
-	for (const ai_version of ['', '1.1.0', '1.3.1', '1.3.0-beta', '2.0.0']) {
+	for (const ai_version of ['', '1.1.0', '1.3.1', '1.3.0-beta', '1.4.1', '2.0.0']) {
 		assert.throws(() => check('http://fixture.local', { ...ready, ai_version }), /WordPress AI/);
 	}
 	assert.throws(() => check('http://fixture.local', { ...ready, ai_active: false }), /WordPress AI/);
@@ -73,10 +73,10 @@ test('declares stable and upstream-warning compatibility lanes without widening 
 	assert.equal(primary.wordpress, '7.0.4');
 	assert.equal(regression.wordpress, '7.1.1');
 	assert.equal(warning.wordpress, '7.1.1');
-	assert.deepEqual(primary.wordpress_ai_versions, ['1.3.0']);
-	assert.deepEqual(regression.wordpress_ai_versions, ['1.2.0']);
-	assert.deepEqual(primary.wordpress_ai_urls, ['https://api.github.com/repos/WordPress/ai/releases/assets/519975984']);
-	assert.deepEqual(regression.wordpress_ai_urls, ['https://api.github.com/repos/WordPress/ai/releases/assets/477122229']);
+	assert.deepEqual(primary.wordpress_ai_versions, ['1.4.0']);
+	assert.deepEqual(regression.wordpress_ai_versions, ['1.3.0']);
+	assert.deepEqual(primary.wordpress_ai_urls, ['https://api.github.com/repos/WordPress/ai/releases/assets/613524776']);
+	assert.deepEqual(regression.wordpress_ai_urls, ['https://api.github.com/repos/WordPress/ai/releases/assets/519975984']);
 	assert.equal(warning.gate, 'non_blocking_warning');
 	assert.equal(warning.wordpress_ai_versions[0], 'develop');
 	assert.deepEqual(warning.wordpress_ai_urls, ['https://github.com/WordPress/ai/archive/refs/heads/develop.zip']);
@@ -102,6 +102,7 @@ test('summary persistence reads the exact reviewed version key without legacy fa
 	const key = runInNewContext(`${code}\nsummaryMetaKey`);
 	assert.equal(key('1.2.0'), 'ai_generated_summary');
 	assert.equal(key('1.3.0'), 'wpai_generated_summary');
+	assert.equal(key('1.4.0'), 'wpai_generated_summary');
 	assert.throws(() => key('1.3.1'));
 });
 

@@ -224,7 +224,7 @@ composer run smoke:wp-ai-text-browser:preflight
 ```
 
 The preflight verifies the Local/development environment, site origin,
-official WordPress AI 1.2.0 or 1.3.0 plugin, verified Addon connector, required feature
+official WordPress AI 1.2.0, 1.3.0, or 1.4.0 plugin, verified Addon connector, required feature
 flags, and an editable administrator. It does not create a draft, start a
 browser, invoke an AI provider, or write WordPress data. Use
 `composer run smoke:wp-ai-text-browser -- --help` to inspect the two modes
@@ -258,7 +258,7 @@ also verifies monitoring permission, the open experiment, reserved items,
 dispatch conflicts, and available item capacity without claiming a call.
 
 Run this opt-in browser gate against a disposable local/development WordPress
-site with the official WordPress AI 1.2.0 or 1.3.0 plugin, a verified Cloud Addon
+site with the official WordPress AI 1.2.0, 1.3.0, or 1.4.0 plugin, a verified Cloud Addon
 connection, and only title generation, summarization, and content resizing
 enabled:
 
@@ -277,7 +277,7 @@ Use an installed Playwright module instead of `NODE_PATH` when available.
 
 The browser gate refuses non-local hosts and non-local/development WordPress
 environments. It creates an isolated draft, locks autosave, uses the real AI
-1.2.0/1.3.0 editor controls to review title, summary, and one whole-paragraph
+1.2.0/1.3.0/1.4.0 editor controls to review title, summary, and one whole-paragraph
 rephrase, proves zero post writes before the explicit Save/Update click, then
 verifies one local save, unchanged sentinel blocks, revision evidence, draft
 status, and forced fixture cleanup. Screenshots and the optional JSON summary
