@@ -145,11 +145,25 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		}
 
 		/**
-		 * Returns the fixed AI plugin translation map.
+		 * Returns the fixed AI plugin translation map, built once per request.
 		 *
 		 * @return array<string,string>
 		 */
 		public static function translations(): array {
+			static $map = null;
+			if ( null === $map ) {
+				$map = self::translation_entries();
+			}
+
+			return $map;
+		}
+
+		/**
+		 * Returns the uncached AI plugin translation entries.
+		 *
+		 * @return array<string,string>
+		 */
+		private static function translation_entries(): array {
 			return array(
 				'AI' => 'AI',
 				'Configure AI features and experiments for your WordPress site.' => '配置此 WordPress 站点的 AI 功能和实验功能。',

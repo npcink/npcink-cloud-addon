@@ -153,7 +153,10 @@ $valid_stored = get_option( Npcink_Cloud_Addon_Settings::option_name(), array() 
 $tampered = $valid_stored;
 $ciphertext = (string) ( $tampered['credential_envelope']['ciphertext'] ?? '' );
 $tampered['credential_envelope']['ciphertext'] = ( 'A' === substr( $ciphertext, 0, 1 ) ? 'B' : 'A' ) . substr( $ciphertext, 1 );
+// Raw stored-state writes bypass update_option hooks; drop the per-request
+// settings cache the way a real writer would.
 $GLOBALS['maca_options'][ Npcink_Cloud_Addon_Settings::option_name() ] = $tampered;
+Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
 $tampered_settings = Npcink_Cloud_Addon_Settings::get_settings();
 maca_assert(
 	'' === (string) $tampered_settings['site_id']
@@ -167,6 +170,7 @@ maca_assert(
 $truncated = $valid_stored;
 $truncated['credential_envelope']['ciphertext'] = base64_encode( 'x' );
 $GLOBALS['maca_options'][ Npcink_Cloud_Addon_Settings::option_name() ] = $truncated;
+Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
 maca_assert(
 	'' === (string) Npcink_Cloud_Addon_Settings::get_settings()['secret']
 	&& ! Npcink_Cloud_Addon_Settings::is_configured(),
@@ -175,6 +179,7 @@ maca_assert(
 
 $GLOBALS['maca_options'][ Npcink_Cloud_Addon_Settings::option_name() ] = $valid_stored;
 $GLOBALS['maca_wp_salt'] = 'changed-maca-test-auth-salt';
+Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
 $changed_salt_settings = Npcink_Cloud_Addon_Settings::get_settings();
 $changed_salt_update = $changed_salt_settings;
 $changed_salt_update['monitoring_enabled'] = false;
@@ -210,6 +215,7 @@ $GLOBALS['maca_options'][ Npcink_Cloud_Addon_Settings::option_name() ] = array(
 	'secret' => 'legacy_secret_plaintext',
 	'verified' => true,
 );
+Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
 $legacy = Npcink_Cloud_Addon_Settings::get_settings();
 maca_assert(
 	'https://legacy.example.test' === (string) $legacy['base_url']
@@ -221,6 +227,7 @@ maca_assert(
 );
 
 $GLOBALS['maca_options'][ Npcink_Cloud_Addon_Settings::option_name() ] = $valid_stored;
+Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
 $before_failed_write = get_option( Npcink_Cloud_Addon_Settings::option_name(), array() );
 $settings_for_failed_write = Npcink_Cloud_Addon_Settings::get_settings();
 $settings_for_failed_write['monitoring_enabled'] = false;

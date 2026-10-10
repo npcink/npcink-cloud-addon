@@ -93,6 +93,10 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		/**
 		 * Keeps the upload cron aligned with the verified monitoring setting.
 		 *
+		 * The disabled branch cleans up only on the enabled-to-disabled
+		 * transition (the hook is still scheduled), so steady-state requests
+		 * with monitoring off perform no extra option queries.
+		 *
 		 * @return void
 		 */
 		public static function sync_schedule(): void {
@@ -101,10 +105,12 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 				return;
 			}
 
-			if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
-				wp_clear_scheduled_hook( self::CRON_HOOK );
+			if ( ! function_exists( 'wp_next_scheduled' ) || wp_next_scheduled( self::CRON_HOOK ) ) {
+				if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
+					wp_clear_scheduled_hook( self::CRON_HOOK );
+				}
+				delete_option( self::EDITOR_FEEDBACK_OPTION );
 			}
-			delete_option( self::EDITOR_FEEDBACK_OPTION );
 		}
 
 		/**

@@ -24,12 +24,23 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		private const SETTINGS_SCHEMA_VERSION = 2;
 
 		/**
+		 * Decrypted settings for the current request, or null until first read.
+		 *
+		 * @var array<string,mixed>|null
+		 */
+		private static ?array $settings_cache = null;
+
+		/**
 		 * Registers WordPress settings metadata hook.
 		 *
 		 * @return void
 		 */
 		public static function register(): void {
 			add_action( 'admin_init', array( __CLASS__, 'register_setting' ) );
+			add_action( 'update_option_' . self::option_name(), array( __CLASS__, 'invalidate_settings_cache' ) );
+			add_action( 'add_option_' . self::option_name(), array( __CLASS__, 'invalidate_settings_cache' ) );
+			add_action( 'deleted_option', array( __CLASS__, 'invalidate_settings_cache_for_option' ) );
+			add_action( 'switch_blog', array( __CLASS__, 'invalidate_settings_cache' ) );
 		}
 
 		/**
@@ -64,11 +75,16 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		}
 
 		/**
-		 * Returns normalized settings.
+		 * Returns normalized settings, decrypting the credential envelope
+		 * once per request instead of on every read.
 		 *
 		 * @return array<string,mixed>
 		 */
 		public static function get_settings(): array {
+			if ( null !== self::$settings_cache ) {
+				return self::$settings_cache;
+			}
+
 			$stored = get_option( self::option_name(), false );
 			$stored = is_array( $stored ) ? $stored : array();
 			$settings = self::settings_from_stored_option( $stored );
@@ -87,7 +103,31 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				}
 			}
 
+			self::$settings_cache = $settings;
+
 			return $settings;
+		}
+
+		/**
+		 * Drops the per-request settings cache after stored state changes.
+		 *
+		 * @return void
+		 */
+		public static function invalidate_settings_cache(): void {
+			self::$settings_cache = null;
+		}
+
+		/**
+		 * Drops the per-request settings cache when the settings option itself
+		 * is deleted, including by writers outside this class.
+		 *
+		 * @param string $deleted_option Name of the deleted option.
+		 * @return void
+		 */
+		public static function invalidate_settings_cache_for_option( string $deleted_option ): void {
+			if ( $deleted_option === self::option_name() ) {
+				self::invalidate_settings_cache();
+			}
 		}
 
 		/**
@@ -377,7 +417,12 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				return false;
 			}
 
-			return false !== update_option( self::option_name(), $stored, false );
+			$updated = false !== update_option( self::option_name(), $stored, false );
+			if ( $updated ) {
+				self::invalidate_settings_cache();
+			}
+
+			return $updated;
 		}
 
 		/**
@@ -513,6 +558,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		 */
 		public static function delete_settings(): void {
 			delete_option( self::option_name() );
+			self::invalidate_settings_cache();
 		}
 
 		/**

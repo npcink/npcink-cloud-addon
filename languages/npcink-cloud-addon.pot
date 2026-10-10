@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-10T06:59:21+00:00\n"
+"POT-Creation-Date: 2026-10-10T09:23:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -108,81 +108,81 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:228
+#: includes/class-cloud-addon-settings.php:268
 #: includes/class-cloud-settings-page.php:1039
 #: includes/class-cloud-settings-page.php:1227
 msgid "Not configured"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:230
+#: includes/class-cloud-addon-settings.php:270
 msgid "Cloud settings are incomplete. Reconnect this site in Npcink Cloud to issue a new connection key."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:231
+#: includes/class-cloud-addon-settings.php:271
 msgid "Authorize this site in Npcink Cloud to create the connection."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:243
+#: includes/class-cloud-addon-settings.php:283
 msgid "Verified"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:244
+#: includes/class-cloud-addon-settings.php:284
 msgid "Cloud settings are saved and verified."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:256
+#: includes/class-cloud-addon-settings.php:296
 msgid "Connected, activation required"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:257
+#: includes/class-cloud-addon-settings.php:297
 msgid "This site is bound and its connection credential is stored, but Cloud runtime service is inactive. Activate it in Npcink Cloud, then verify the connection here."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:268
+#: includes/class-cloud-addon-settings.php:308
 #: includes/class-cloud-settings-page.php:1101
 msgid "Unavailable"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:268
+#: includes/class-cloud-addon-settings.php:308
 msgid "Pending verification"
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:269
+#: includes/class-cloud-addon-settings.php:309
 msgid "Cloud settings are saved but have not passed verification."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:293
+#: includes/class-cloud-addon-settings.php:333
 #: includes/class-cloud-settings-actions.php:294
 #: includes/class-cloud-settings-actions.php:462
 msgid "Cloud Base URL must use HTTPS unless it points to localhost or 127.0.0.1."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:467
+#: includes/class-cloud-addon-settings.php:512
 msgid "Cloud verification completed, but the verified state could not be stored securely."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:685
+#: includes/class-cloud-addon-settings.php:731
 #: includes/class-cloud-credential-store.php:197
 msgid "Cloud credentials could not be stored or read securely. Reconnect this site after checking the WordPress security salts."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:717
+#: includes/class-cloud-addon-settings.php:763
 msgid "Cloud API Key cannot be empty."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:724
+#: includes/class-cloud-addon-settings.php:770
 msgid "Manual Cloud API Key recovery must use a Cloud-issued mak1_ wrapper. Reconnect this site in Npcink Cloud to issue a new key."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:732
+#: includes/class-cloud-addon-settings.php:778
 msgid "Cloud API Key could not be decoded."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:740
+#: includes/class-cloud-addon-settings.php:786
 msgid "Cloud API Key format is invalid. Use a key issued by Npcink Cloud."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:751
+#: includes/class-cloud-addon-settings.php:797
 msgid "Cloud API Key wrapper is missing required signing data."
 msgstr ""
 
@@ -511,39 +511,39 @@ msgstr ""
 msgid "Media derivative runtime artifacts require a valid future expiry."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:282
+#: includes/class-cloud-observability-collector.php:288
 msgid "Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:345
-#: includes/class-cloud-observability-collector.php:419
-#: includes/class-cloud-observability-collector.php:453
+#: includes/class-cloud-observability-collector.php:351
+#: includes/class-cloud-observability-collector.php:425
+#: includes/class-cloud-observability-collector.php:459
 #: includes/class-cloud-settings-actions.php:336
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:91
 #: includes/class-cloud-site-knowledge-admin-actions.php:120
-#: includes/class-cloud-site-knowledge-change-bridge.php:419
-#: includes/class-cloud-site-knowledge-change-bridge.php:463
+#: includes/class-cloud-site-knowledge-change-bridge.php:431
+#: includes/class-cloud-site-knowledge-change-bridge.php:475
 msgid "Cloud Addon settings are not verified."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:369
+#: includes/class-cloud-observability-collector.php:375
 msgid "Cloud did not accept the monitoring state projection."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1414
+#: includes/class-cloud-observability-collector.php:1420
 msgid "Core"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1419
+#: includes/class-cloud-observability-collector.php:1425
 msgid "Abilities"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1424
+#: includes/class-cloud-observability-collector.php:1430
 msgid "Adapter"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1429
+#: includes/class-cloud-observability-collector.php:1435
 #: includes/class-cloud-settings-page.php:134
 #: includes/class-cloud-settings-page.php:1233
 msgid "Cloud Addon"
@@ -2360,7 +2360,7 @@ msgid "Article refresh requested. Check its index status again after Cloud finis
 msgstr ""
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:123
-#: includes/class-cloud-site-knowledge-change-bridge.php:472
+#: includes/class-cloud-site-knowledge-change-bridge.php:484
 msgid "The requested Site Knowledge index action is not supported."
 msgstr ""
 
@@ -2452,51 +2452,51 @@ msgstr ""
 msgid "Last verified: %s"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:401
-#: includes/class-cloud-site-knowledge-change-bridge.php:423
+#: includes/class-cloud-site-knowledge-change-bridge.php:411
+#: includes/class-cloud-site-knowledge-change-bridge.php:435
 msgid "Site Knowledge delivery is disabled locally."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:406
+#: includes/class-cloud-site-knowledge-change-bridge.php:416
 msgid "Only published posts and pages can be refreshed in Site Knowledge."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:480
+#: includes/class-cloud-site-knowledge-change-bridge.php:492
 msgid "Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:489
-#: includes/class-cloud-site-knowledge-change-bridge.php:509
-#: includes/class-cloud-site-knowledge-change-bridge.php:550
+#: includes/class-cloud-site-knowledge-change-bridge.php:501
+#: includes/class-cloud-site-knowledge-change-bridge.php:521
+#: includes/class-cloud-site-knowledge-change-bridge.php:562
 msgid "A Site Knowledge full-index delivery is already in progress."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:530
+#: includes/class-cloud-site-knowledge-change-bridge.php:542
 msgid "No public posts or pages were found for Site Knowledge indexing."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:641
+#: includes/class-cloud-site-knowledge-change-bridge.php:653
 msgid "Site Knowledge delete cleanup is waiting for a local retry."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:649
+#: includes/class-cloud-site-knowledge-change-bridge.php:661
 msgid "Site Knowledge full-index delivery is blocked after bounded retries."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:689
-#: includes/class-cloud-site-knowledge-change-bridge.php:758
+#: includes/class-cloud-site-knowledge-change-bridge.php:701
+#: includes/class-cloud-site-knowledge-change-bridge.php:770
 msgid "Cloud Site Knowledge run identifier is invalid."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:704
+#: includes/class-cloud-site-knowledge-change-bridge.php:716
 msgid "Cloud Site Knowledge run did not finish within the bounded polling window."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:721
+#: includes/class-cloud-site-knowledge-change-bridge.php:733
 msgid "Cloud Site Knowledge maintenance run failed."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1071
+#: includes/class-cloud-site-knowledge-change-bridge.php:1083
 msgid "Site Knowledge sync mode must be refresh, rebuild, or delete."
 msgstr ""
 

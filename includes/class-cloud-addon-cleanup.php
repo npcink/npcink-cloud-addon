@@ -21,7 +21,15 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 		 */
 		public static function delete_inactive_legacy_media_continuation(): void {
 			$cleanup_marker = 'npcink_cloud_addon_media_continuation_cleanup_0_2_0';
-			if ( get_option( $cleanup_marker, false ) ) {
+			$marker_complete = (bool) get_option( $cleanup_marker, false );
+			if ( $marker_complete && function_exists( 'wp_load_alloptions' )
+				&& ! array_key_exists( $cleanup_marker, wp_load_alloptions() ) ) {
+				// Markers written by earlier releases were stored non-autoloaded;
+				// re-add once so the completed marker rides the alloptions fetch.
+				delete_option( $cleanup_marker );
+				$marker_complete = false;
+			}
+			if ( $marker_complete ) {
 				return;
 			}
 
@@ -36,7 +44,10 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 			delete_option( 'npcink_cloud_addon_media_recognition_plan_lock' );
 			delete_transient( 'npcink_cloud_addon_media_index_status' );
 			wp_clear_scheduled_hook( 'npcink_cloud_addon_continue_media_recognition' );
-			update_option( $cleanup_marker, 'complete', false );
+			// The marker is final after the first completed run, so it rides
+			// the autoloaded options fetch instead of costing a per-request
+			// SELECT on every bootstrap.
+			update_option( $cleanup_marker, 'complete', true );
 		}
 
 		/**
@@ -92,6 +103,10 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 			) {
 				delete_option( $owned_option );
 			}
+
+			// The caller read settings before this wipe; drop the decrypted
+			// per-request snapshot so later reads see the removed state.
+			Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
 
 			foreach (
 				array(

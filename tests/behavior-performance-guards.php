@@ -74,3 +74,45 @@ maca_assert(
 	&& 'hourly' === wp_get_schedule( $site_knowledge_hook ),
 	'Performance guard: an incorrect recurring schedule is replaced once with the hourly contract.'
 );
+
+// Settings decryption is memoized per request: repeated reads must not
+// re-fetch and re-decrypt the stored option.
+$settings_option_name = Npcink_Cloud_Addon_Settings::option_name();
+$settings_reads_before = absint( $GLOBALS['maca_option_read_counts'][ $settings_option_name ] ?? 0 );
+for ( $iteration = 0; $iteration < 25; $iteration++ ) {
+	Npcink_Cloud_Addon_Settings::get_settings();
+}
+
+maca_assert(
+	$settings_reads_before === absint( $GLOBALS['maca_option_read_counts'][ $settings_option_name ] ?? 0 ),
+	'Performance guard: repeated settings reads are served from the per-request cache.'
+);
+
+// Monitoring-off steady state: with the flush cron already absent, schedule
+// synchronization must not churn option deletes on every request.
+maca_set_monitoring_enabled( false );
+unset( $GLOBALS['maca_scheduled_events'][ $observability_hook ], $GLOBALS['maca_scheduled_event_schedules'][ $observability_hook ] );
+update_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array( 'seeded' => 'buffer' ), false );
+Npcink_Cloud_Observability_Collector::sync_schedule();
+
+maca_assert(
+	array() === $GLOBALS['maca_http_requests']
+	&& ! wp_next_scheduled( $observability_hook )
+	&& array( 'seeded' => 'buffer' ) === get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ),
+	'Performance guard: monitoring-off steady state performs no editor feedback cleanup.'
+);
+
+// The enabled-to-disabled transition is the one moment cleanup must run: the
+// still-scheduled flush cron is cleared and the editor feedback buffer drops.
+$GLOBALS['maca_scheduled_events'][ $observability_hook ] = time() + 3600;
+$GLOBALS['maca_scheduled_event_schedules'][ $observability_hook ] = 'hourly';
+Npcink_Cloud_Observability_Collector::sync_schedule();
+
+maca_assert(
+	array() === $GLOBALS['maca_http_requests']
+	&& ! wp_next_scheduled( $observability_hook )
+	&& array() === get_option( Npcink_Cloud_Observability_Collector::EDITOR_FEEDBACK_OPTION, array() ),
+	'Performance guard: the monitoring-off transition clears the flush cron and editor feedback buffer.'
+);
+
+maca_set_monitoring_enabled( true );
