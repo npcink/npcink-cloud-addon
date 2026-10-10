@@ -96,3 +96,4 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 - `static-analysis-and-local-tooling-closeout-2026-10-04.md`
 - `branch-and-dependabot-maintenance-closeout-2026-10-05.md`
 - `solo-ai-development-review-closeout-2026-10-07.md`
+- `performance-paydown-closeout-2026-10-10.md`
