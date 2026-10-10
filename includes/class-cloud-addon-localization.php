@@ -101,11 +101,25 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 		}
 
 		/**
-		 * Returns fixed addon admin translation fallbacks.
+		 * Returns fixed addon admin translation fallbacks, built once per request.
 		 *
 		 * @return array<string,string>
 		 */
 		public static function translations(): array {
+			static $map = null;
+			if ( null === $map ) {
+				$map = self::translation_entries();
+			}
+
+			return $map;
+		}
+
+		/**
+		 * Returns the uncached addon admin translation fallback entries.
+		 *
+		 * @return array<string,string>
+		 */
+		private static function translation_entries(): array {
 			return array(
 				'Text generation' => '文本生成',
 				'Image generation' => '图片生成',
