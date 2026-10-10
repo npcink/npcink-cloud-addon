@@ -111,7 +111,24 @@ Operational notes carried forward: unchanged from 0.3.0 (playground before
 packaging; Plugin Check reads the packaged ZIP; resolve advisory review
 threads before expecting auto-merge). The browser smoke additionally needs
 `NODE_PATH` pointing at a Playwright installation when the repo has no
-local node_modules.
+local node_modules. Lessons added at 0.4.0:
+
+- A version bump fails the release-version consistency contract until the
+  zh_CN PO header is synced: `composer run i18n:refresh` rewrites the POT
+  `Project-Id-Version` but `wp i18n update-po` preserves the PO's old one —
+  edit the line by hand and re-run `i18n:make-mo`.
+- The Tier C site's dev Cloud is the SSH tunnel on `127.0.0.1:18010`
+  (remote `m4-preview`), not a local docker stack; starting
+  `npcink-ai-cloud` compose is unnecessary and only adds noise.
+- An expired capability snapshot (browser smoke preflight
+  `reason=snapshot_expired`) is refreshed out-of-band with
+  `Npcink_Cloud_Entitlement_Summary::refresh( true )` through
+  `wp eval`; preflight deliberately does not refresh it.
+- Sliding the compatibility matrix needs the official release asset id from
+  `https://api.github.com/repos/WordPress/ai/releases/tags/<version>` in
+  `tests/fixtures/wp-ai-compatibility-matrix.json`, plus the matching
+  `.github/workflows/ci.yml` matrix and the readiness allowlist, summary
+  meta-key map, static contracts, and local test guide kept in lockstep.
 
 ## 2026-10-07 0.3.0 Release Closeout
 
