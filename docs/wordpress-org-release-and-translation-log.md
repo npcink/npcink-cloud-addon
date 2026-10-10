@@ -14,7 +14,7 @@ translation work completed for `npcink-cloud-addon`.
 - WordPress.org SVN URL: `https://plugins.svn.wordpress.org/npcink-cloud-addon/`
 - Historical local SVN working copy: `build/wporg-svn` (accidentally deleted 2026-10-01; recreated at r3723780 on 2026-10-02)
 - Release package: `build/npcink-cloud-addon.zip`
-- Stable tag: `0.3.0`
+- Stable tag: `0.4.0`
 
 The plugin has passed WordPress.org review and was submitted to SVN. Later asset
 updates were submitted separately.
@@ -41,9 +41,77 @@ Known SVN revisions:
 - `r3731913`: release `0.3.0` with the connector paydown split, hardened
   alt-text handoff, the Cloud-strict observability field contract, and the
   strict Plugin Check readiness fixes.
+- `r3737707`: release `0.4.0` with native exact-editor adoption feedback,
+  the WordPress AI plugin 1.4.0 zh_CN compatibility shim, and the 1.4.0
+  compatibility matrix slide.
 - `r3652021`: release `0.1.8` with privacy-safe customer journey delivery,
   clearer monitoring disclosure, consent-gated editor quality evidence, the
   AI image extension fix, and the current 34-file release package.
+
+## 2026-10-10 0.4.0 Release Closeout
+
+Version `0.4.0` was published to WordPress.org SVN from clean merged Addon
+`origin/master` revision `895a606` (git tag `0.4.0`) after release PR `#247`
+and matrix PR `#248` passed the protected PHP matrix, advisory
+OpenCodeReview, PR body contract, and Release static gates:
+
+```text
+SVN revision: r3737707
+Tag: https://plugins.svn.wordpress.org/npcink-cloud-addon/tags/0.4.0/
+Local package SHA256: bc9ebf2943afb63aafbae6b9e338a9a3c3b5a0f685c9368004498eca46dd1934
+```
+
+WordPress.org API reported `version=0.4.0` (`last_updated 2026-10-10 7:46am
+GMT`); the official download and the local package had different container
+hashes but identical extracted file contents (recursive comparison, 50 files).
+
+Release scope:
+
+- native exact-editor adoption feedback `#243`: an observed main-post save
+  exactly matching a retained generated-output fingerprint queues bounded,
+  opt-in `cloud_agent_feedback.v1` through the existing observability
+  delivery;
+- the WordPress AI plugin 1.4.0 zh_CN compatibility shim `#244`: 44 new
+  fixed UI translations (comment moderation value scores, Markdown feeds,
+  content translation languages and editor copy, alt text settings, request
+  log accessibility) and the 9 strings retired upstream with the global AI
+  toggle;
+- the audit rescue tooling `#245`/`#246` (developer-only, not shipped) and
+  the compatibility matrix slide to AI 1.4.0 primary / 1.3.0 regression
+  `#248`.
+
+Verification evidence (all 2026-10-10, on the merged tree):
+
+- `composer run test:all` green;
+- `composer run release:verify` exit 0 (i18n audit vs the local AI 1.4.0
+  install with zero fixed-UI misses, WordPress.org review guard, JS checks,
+  POT freshness, package release/verify at 50 files, strict Plugin Check
+  `strict result: ok`), re-run on the final merged tree with an identical
+  package SHA256;
+- `composer run smoke:playground` green (WordPress 7.0.4 / PHP 8.2) before
+  packaging;
+- compatibility lane `stable-primary` green against official WordPress AI
+  1.4.0 (WP 7.0.4 / PHP 8.0, discovery + boundary checks);
+- real browser Tier C `smoke:wp-ai-text-browser` green on
+  `magick-ai.local` (WP 7.1.1, official AI 1.4.0, addon 0.4.0, configured
+  Cloud provider through the 18010 tunnel): title/summary/rephrase
+  abilities all HTTP 200, `pre_save_post_writes: 0`, one explicit save,
+  revision delta 1, fixture cleaned up;
+- cross-repo matrix from the toolbox:
+  `composer quality:matrix:run -- --repo=npcink-cloud-addon` gates passed.
+
+Cloud-environment gap (recorded, matching the 0.3.0 precedent):
+`acceptance:wp-ai-provider` failed 0/14 with `provider_unavailable` because
+the remote dev Cloud's text provider pool is unavailable at release time;
+the same lane passed 14/14 at 0.3.0 closeout and the browser smoke's live
+provider execution through the runtime path was green hours earlier. The
+opt-in image/vision lanes remain environment-limited as recorded for 0.3.0.
+
+Operational notes carried forward: unchanged from 0.3.0 (playground before
+packaging; Plugin Check reads the packaged ZIP; resolve advisory review
+threads before expecting auto-merge). The browser smoke additionally needs
+`NODE_PATH` pointing at a Playwright installation when the repo has no
+local node_modules.
 
 ## 2026-10-07 0.3.0 Release Closeout
 
