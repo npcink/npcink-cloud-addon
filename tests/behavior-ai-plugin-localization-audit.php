@@ -76,6 +76,17 @@ file_put_contents(
 (0,wp.i18n.__)("Ignored JS Label","default");
 (0,t._n)("First audit image.","First audit images.",d,"ai");
 (0,t._n)("Second audit image.","Second audit images.",d,"ai");
+(0,t._n)("%d Item selected","%d Items selected",d);
+(0,i._x)("Edit %s (has errors)","field");
+(0,wp.i18n.__)("Loading suggestions");
+(0,t._n)("High","High",d,"other-domain");
+JS
+);
+
+file_put_contents(
+	$fixture_root . '/build-scripts/admin/no-ai-chunk.js',
+	<<<'JS'
+var who=(0,t.__)("User");
 JS
 );
 
@@ -83,6 +94,14 @@ file_put_contents(
 	$fixture_root . '/build-scripts/features/image-generation.js',
 	<<<'JS'
 (0,wp.i18n.__)("Outpaint the image to create a wider panoramic view. Expand the scene outward in all directions to fill the empty transparent border while preserving the original style, lighting, colors, and perspective. Continue textures, structures, and environmental elements naturally so the extension blends with the original image.","ai");
+JS
+);
+
+mkdir( $fixture_root . '/build/routes', 0777, true );
+file_put_contents(
+	$fixture_root . '/build/routes/content.min.js',
+	<<<'JS'
+var wpai={density:[["Compact","compact"],["Comfortable","comfortable"]]};
 JS
 );
 
@@ -103,6 +122,13 @@ $schema_offset   = strpos( $report, "\nschema_or_json_fields:" );
 $prompt_offset   = strpos( $report, "\nlong_prompt_copy:" );
 $label_offset    = strpos( $report, '"Content Wizard"' );
 $prose_offset    = strpos( $report, '"Content of the demo object."' );
+$stale_offset      = strpos( $report, "\nstale_review:" );
+$domainless_offset = strpos( $report, "\ndomainless_rescue:" );
+$literal_offset    = strpos( $report, "\nliteral_only_rescue:" );
+$notes_offset      = strpos( $report, "\nReview notes:" );
+$stale_region      = substr( $report, (int) $stale_offset, (int) $domainless_offset - (int) $stale_offset );
+$domainless_region = substr( $report, (int) $domainless_offset, (int) $literal_offset - (int) $domainless_offset );
+$literal_region    = substr( $report, (int) $literal_offset, (int) $notes_offset - (int) $literal_offset );
 
 maca_assert(
 	0 === $status
@@ -146,6 +172,42 @@ maca_assert(
 	&& false === strpos( $report, 'Ignore Default Domain' )
 	&& false === strpos( $report, 'Ignored JS Label' ),
 	'AI plugin localization audit reports missing ai-domain strings, covers echo and minified plural forms, and ignores other domains.'
+);
+
+maca_assert(
+	0 === $status
+		&& false !== $stale_offset
+		&& false !== $domainless_offset
+		&& false !== $literal_offset
+		&& false !== $notes_offset
+		&& $stale_offset < $domainless_offset
+		&& $domainless_offset < $literal_offset
+		&& $literal_offset < $notes_offset
+		&& false !== strpos( $report, 'Domain-less bundle rescue:' )
+		&& false !== strpos( $report, 'Build literal rescue:' )
+	// Domain-less bundled calls rescue their shim strings from stale_review.
+	&& false !== strpos( $domainless_region, '"%d Item selected"' )
+	&& false !== strpos( $domainless_region, '"%d Items selected"' )
+	&& false !== strpos( $domainless_region, '"Edit %s (has errors)"' )
+	&& false !== strpos( $domainless_region, '"Loading suggestions"' )
+	&& false !== strpos( $domainless_region, 'files: build-scripts/admin/page.js' )
+	&& false === strpos( $stale_region, '"%d Item selected"' )
+	&& false === strpos( $stale_region, '"%d Items selected"' )
+	&& false === strpos( $stale_region, '"Edit %s (has errors)"' )
+	&& false === strpos( $stale_region, '"Loading suggestions"' )
+	// A domain-less call in a chunk without any 'ai' substring is still collected.
+	&& false !== strpos( $domainless_region, '"User"' )
+	&& false === strpos( $stale_region, '"User"' )
+	// Bare quoted literals inside build/ output rescue their shim strings separately.
+	&& false !== strpos( $literal_region, '"Comfortable"' )
+	&& false !== strpos( $literal_region, 'files: build/routes/content.min.js' )
+	&& false === strpos( $stale_region, '"Comfortable"' )
+	// A shim string whose only occurrence carries a foreign domain stays stale.
+	&& false !== strpos( $stale_region, '"High"' )
+	&& false === strpos( $domainless_region, '"High"' )
+	// A shim string absent from the fixture entirely is still reported stale.
+	&& false !== strpos( $stale_region, '"AI Status"' ),
+	'AI plugin localization audit rescues shim strings that only survive as bundled domain-less calls or bare build literals instead of reporting them stale.'
 );
 
 npcink_cloud_addon_ai_i18n_audit_test_rm_dir( $fixture_root );
