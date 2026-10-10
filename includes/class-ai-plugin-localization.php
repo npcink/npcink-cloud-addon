@@ -31,7 +31,11 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		}
 
 		/**
-		 * Translates selected AI plugin PHP strings when no upstream zh_CN language pack is present.
+		 * Translates selected AI plugin PHP strings only when upstream left them untranslated.
+		 *
+		 * The shim stands down per string: an official ai-domain zh_CN language
+		 * pack wins wherever it already provides a translation, and the map
+		 * fills only the remaining gaps.
 		 *
 		 * @param string $translation Existing translation.
 		 * @param string $text Original English string.
@@ -45,13 +49,18 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 
 			$translations = self::translations();
 
-			return $translations[ $text ] ?? $translation;
+			if ( $translation === $text && isset( $translations[ $text ] ) ) {
+				return $translations[ $text ];
+			}
+
+			return $translation;
 		}
 
 		/**
-		 * Translates selected AI plugin PHP plural strings when no upstream zh_CN language pack is present.
+		 * Translates selected AI plugin PHP plural strings only when upstream left them untranslated.
 		 *
-		 * Chinese locales have no plural distinction, so the singular source key always maps.
+		 * Chinese locales have no plural distinction, so the untranslated
+		 * resolved form equals the singular or plural source key.
 		 *
 		 * @param string $translation Existing translation.
 		 * @param string $single      Singular original string.
@@ -67,7 +76,11 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 
 			$translations = self::translations();
 
-			return $translations[ $single ] ?? $translation;
+			if ( ( $translation === $single || $translation === $plural ) && isset( $translations[ $single ] ) ) {
+				return $translations[ $single ];
+			}
+
+			return $translation;
 		}
 
 		/**

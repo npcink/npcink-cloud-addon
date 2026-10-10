@@ -1282,6 +1282,37 @@ maca_assert(
 );
 
 maca_assert(
+	'官方翻译优先保留' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+		'官方翻译优先保留',
+		'Generate Image',
+		'ai'
+	)
+	&& '生成图片' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Generate Image', 'Generate Image', 'ai' )
+	&& '官方复数翻译优先保留' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'官方复数翻译优先保留',
+		'%d comment queued for analysis.',
+		'%d comments queued for analysis.',
+		5,
+		'ai'
+	)
+	&& '%d 条评论已加入分析队列。' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'%d comment queued for analysis.',
+		'%d comment queued for analysis.',
+		'%d comments queued for analysis.',
+		1,
+		'ai'
+	)
+	&& '%d 条评论已加入分析队列。' === Npcink_Cloud_AI_Plugin_Localization::filter_ngettext(
+		'%d comments queued for analysis.',
+		'%d comment queued for analysis.',
+		'%d comments queued for analysis.',
+		5,
+		'ai'
+	),
+	'AI plugin localization stands down per string when an official ai-domain translation already exists.'
+);
+
+maca_assert(
 	'Generate Image' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Generate Image',
 		'Generate Image',

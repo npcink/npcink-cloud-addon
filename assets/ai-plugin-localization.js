@@ -6,5 +6,16 @@
 		return;
 	}
 
-	wp.i18n.setLocaleData( config.localeData, 'ai' );
+	// Stand down per string: entries an official ai-domain language pack has
+	// already registered win, and this shim fills only the remaining gaps.
+	const existing = ( wp.i18n.getLocaleData && wp.i18n.getLocaleData( 'ai' ) ) || {};
+	const fallback = {};
+
+	for ( const key of Object.keys( config.localeData ) ) {
+		if ( ! existing[ key ] ) {
+			fallback[ key ] = config.localeData[ key ];
+		}
+	}
+
+	wp.i18n.setLocaleData( fallback, 'ai' );
 }( window ) );

@@ -53,6 +53,25 @@ The implementation is intentionally static:
 - It must not call `npcink_cloud_addon_runtime_client()` or any Cloud runtime
   method.
 
+Stand-down rule (per string, verified 2026-10-10): the PHP filters apply an
+entry only when the incoming translation still equals the English source —
+an official ai-domain zh_CN language pack therefore always wins and the shim
+fills only the gaps. The JS asset prunes entries that
+`wp.i18n.getLocaleData('ai')` already carries before registering its locale
+data. If official coverage keeps growing, retire shim entries once the audit
+shows them fully covered upstream.
+
+Runtime domain caveat (verified 2026-10-10 against AI plugin 1.4.0): some
+bundled `wp.i18n` calls drop the explicit `ai` domain literal, so at runtime
+they resolve against the `default` domain, where neither the core zh_CN pack
+nor this shim translates them (probed: all six audited strings render
+English). The shim entries stay — they become effective if upstream restores
+the domain — but this addon must never feed the `default` domain to cover
+them: its map contains short generic words whose global default-domain
+translation would mistranslate other plugins. The correct fix is upstream
+(the plugin build keeping its text domain); the audit's `domainless_rescue`
+group lists the affected strings.
+
 ## Maintenance Problem
 
 The upstream WordPress AI plugin can change English strings when it updates.
