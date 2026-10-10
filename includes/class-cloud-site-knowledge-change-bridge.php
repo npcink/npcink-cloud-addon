@@ -41,6 +41,14 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		private static array $removed_comment_context = array();
 		/** @var array<int,bool> */
 		private static array $public_posts_pending_removal = array();
+		/**
+		 * Post documents memoized for the duration of one delivery run, so the
+		 * pre-send fingerprint and the sent payload share one build. Cleared at
+		 * delivery entry points and before post-send freshness verification.
+		 *
+		 * @var array<int,array<string,mixed>>
+		 */
+		private static array $post_document_memo = array();
 
 		/**
 		 * Registers content change hooks and delivery cron hooks.
@@ -397,6 +405,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		public static function request_public_post_refresh( int $post_id ) {
+			self::$post_document_memo = array();
+
 			if ( ! self::is_enabled() ) {
 				return new WP_Error( 'cloud_site_knowledge_delivery_disabled', __( 'Site Knowledge delivery is disabled locally.', 'npcink-cloud-addon' ) );
 			}
@@ -414,8 +424,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 *
 		 * @return array<string,mixed>
 		 */
-			public static function flush_buffer(): array {
-				if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
+		public static function flush_buffer(): array {
+			self::$post_document_memo = array();
+
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
 					return self::record_delivery_result( false, 0, __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'cloud_addon_unverified' );
 				}
 
@@ -1192,9 +1204,13 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 */
 		private static function post_document( $post ): array {
 			$post_id = self::post_id_from_value( $post );
+			if ( $post_id > 0 && isset( self::$post_document_memo[ $post_id ] ) ) {
+				return self::$post_document_memo[ $post_id ];
+			}
+
 			$content = self::bounded_text( (string) ( $post->post_content ?? '' ), self::MAX_DOCUMENT_CHARS );
 
-			return array(
+			$document = array(
 				'id' => 'wp_post_' . $post_id,
 				'source' => 'wordpress',
 				'kind' => 'post',
@@ -1208,6 +1224,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				'content_excerpt' => $content,
 				'taxonomies' => self::post_taxonomies( $post_id ),
 			);
+
+			if ( $post_id > 0 ) {
+				self::$post_document_memo[ $post_id ] = $document;
+			}
+
+			return $document;
 		}
 
 		/**
@@ -1291,6 +1313,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @return array<int,int>
 		 */
 		private static function remaining_after_delivery( array $buffered_post_ids, array $attempted_post_ids, array $sent_fingerprints ): array {
+			// The verification below must observe post state as of after the
+			// remote delivery, not the memoized pre-send documents.
+			self::$post_document_memo = array();
+
 			$attempted_lookup = array_fill_keys( array_map( 'absint', $attempted_post_ids ), true );
 			$remaining = array();
 			foreach ( $buffered_post_ids as $post_id ) {
