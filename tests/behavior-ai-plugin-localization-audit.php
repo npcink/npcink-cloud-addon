@@ -90,6 +90,14 @@ var who=(0,t.__)("User");
 JS
 );
 
+mkdir( $fixture_root . '/node_modules/third-party', 0777, true );
+file_put_contents(
+	$fixture_root . '/node_modules/third-party/index.js',
+	<<<'JS'
+(0,t.__)("Model");(0,t._n)("High","High",d);
+JS
+);
+
 file_put_contents(
 	$fixture_root . '/build-scripts/features/image-generation.js',
 	<<<'JS'
@@ -205,6 +213,9 @@ maca_assert(
 	// A shim string whose only occurrence carries a foreign domain stays stale.
 	&& false !== strpos( $stale_region, '"High"' )
 	&& false === strpos( $domainless_region, '"High"' )
+	// Vendor trees never provide rescue evidence.
+	&& false !== strpos( $stale_region, '"Model"' )
+	&& false === strpos( $domainless_region, '"Model"' )
 	// A shim string absent from the fixture entirely is still reported stale.
 	&& false !== strpos( $stale_region, '"AI Status"' ),
 	'AI plugin localization audit rescues shim strings that only survive as bundled domain-less calls or bare build literals instead of reporting them stale.'

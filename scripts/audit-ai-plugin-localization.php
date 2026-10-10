@@ -158,8 +158,10 @@ function npcink_cloud_addon_ai_i18n_audit_should_scan_file( string $path ): bool
 /**
  * Returns whether a file is a JavaScript-family file.
  *
- * Bundled JS is where build pipelines drop the explicit 'ai' domain literal
- * from wp.i18n calls, so the domain-less rescue pass only applies there.
+ * The domain-less rescue pass covers all JS-family files, not only build
+ * output: the WordPress AI plugin also emits domain-less wp.i18n calls from
+ * its build-scripts sources. Vendor trees stay excluded because their
+ * default-domain calls would rescue shim strings on unrelated evidence.
  *
  * @param string $path File path.
  * @return bool
@@ -171,7 +173,20 @@ function npcink_cloud_addon_ai_i18n_audit_is_js_file( string $path ): bool {
 }
 
 /**
- * Extracts bundled wp.i18n source strings whose call form drops the explicit domain.
+ * Returns whether a relative path is vendor code that the rescue pass must skip.
+ *
+ * @param string $relative Relative file path.
+ * @return bool
+ */
+function npcink_cloud_addon_ai_i18n_audit_is_vendor_path( string $relative ): bool {
+	$normalized = str_replace( '\\', '/', $relative );
+
+	return false !== strpos( '/' . $normalized . '/', '/node_modules/' )
+		|| false !== strpos( '/' . $normalized . '/', '/vendor/' );
+}
+
+/**
+ * Extracts wp.i18n source strings from JS files whose call form drops the explicit domain.
  *
  * These discoveries only rescue shim strings from stale_review; they never
  * join the missing review groups because the runtime domain cannot be
@@ -467,10 +482,12 @@ function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int
 
 		$relative = ltrim( substr( $path, strlen( $plugin_path ) ), DIRECTORY_SEPARATOR );
 
-		// Domain-less bundled calls and bare build literals do not imply an
+		// Domain-less JS calls and bare build literals do not imply an
 		// 'ai' substring (the dropped domain literal is what carried it), so
-		// collect them before the 'ai' fast-path filter below.
-		if ( npcink_cloud_addon_ai_i18n_audit_is_js_file( $path ) ) {
+		// collect them before the 'ai' fast-path filter below. Vendor trees
+		// stay out: their default-domain calls are not evidence about the shim.
+		if ( npcink_cloud_addon_ai_i18n_audit_is_js_file( $path )
+			&& ! npcink_cloud_addon_ai_i18n_audit_is_vendor_path( $relative ) ) {
 			npcink_cloud_addon_ai_i18n_audit_extract_domainless( $contents, $relative, $domainless );
 			if ( 0 === strpos( $relative, 'build' . DIRECTORY_SEPARATOR ) ) {
 				$build_contents[ $relative ] = $contents;
