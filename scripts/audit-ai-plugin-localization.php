@@ -156,6 +156,125 @@ function npcink_cloud_addon_ai_i18n_audit_should_scan_file( string $path ): bool
 }
 
 /**
+ * Returns whether a file is a JavaScript-family file.
+ *
+ * Bundled JS is where build pipelines drop the explicit 'ai' domain literal
+ * from wp.i18n calls, so the domain-less rescue pass only applies there.
+ *
+ * @param string $path File path.
+ * @return bool
+ */
+function npcink_cloud_addon_ai_i18n_audit_is_js_file( string $path ): bool {
+	$extension = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+
+	return in_array( $extension, array( 'js', 'jsx', 'mjs', 'cjs', 'ts', 'tsx' ), true );
+}
+
+/**
+ * Extracts bundled wp.i18n source strings whose call form drops the explicit domain.
+ *
+ * These discoveries only rescue shim strings from stale_review; they never
+ * join the missing review groups because the runtime domain cannot be
+ * confirmed from the bundle alone.
+ *
+ * @param string $contents File contents.
+ * @param string $relative Relative file path.
+ * @param array<string,array<string,mixed>> $domainless Collected domain-less strings.
+ * @return void
+ */
+function npcink_cloud_addon_ai_i18n_audit_extract_domainless( string $contents, string $relative, array &$domainless ): void {
+	$single_arg_patterns = array(
+		// __( 'Text' ) and member-call forms like wp.i18n.__( 'Text' ), no domain.
+		'/\b__\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*\)/s',
+		'/\b__\)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*\)/s',
+		// _x( 'Text', 'context' ), no domain.
+		'/\b_x\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])((?:\\\\.|(?!\3).)*?)\3\s*\)/s',
+		'/\b_x\)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])((?:\\\\.|(?!\3).)*?)\3\s*\)/s',
+	);
+
+	foreach ( $single_arg_patterns as $pattern ) {
+		if ( preg_match_all( $pattern, $contents, $matches, PREG_SET_ORDER ) ) {
+			foreach ( $matches as $match ) {
+				npcink_cloud_addon_ai_i18n_audit_add_string(
+					$domainless,
+					npcink_cloud_addon_ai_i18n_audit_decode_literal( (string) $match[2] ),
+					$relative
+				);
+			}
+		}
+	}
+
+	$plural_patterns = array(
+		// _n( 'Singular', 'Plural', <count expression>, no domain literal: anchor
+		// to the call close and reject a quoted fourth argument so domain-bearing
+		// calls (including foreign domains) never join the domain-less set.
+		'/\b_n\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])((?:\\\\.|(?!\3).)*?)\3\s*,\s*(?![\'"])[^,()]*\s*\)/s',
+		'/\b_n\)\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*?)\1\s*,\s*([\'"])((?:\\\\.|(?!\3).)*?)\3\s*,\s*(?![\'"])[^,()]*\s*\)/s',
+	);
+
+	foreach ( $plural_patterns as $pattern ) {
+		if ( preg_match_all( $pattern, $contents, $matches, PREG_SET_ORDER ) ) {
+			foreach ( $matches as $match ) {
+				npcink_cloud_addon_ai_i18n_audit_add_string(
+					$domainless,
+					npcink_cloud_addon_ai_i18n_audit_decode_literal( (string) $match[2] ),
+					$relative
+				);
+				npcink_cloud_addon_ai_i18n_audit_add_string(
+					$domainless,
+					npcink_cloud_addon_ai_i18n_audit_decode_literal( (string) $match[4] ),
+					$relative
+				);
+			}
+		}
+	}
+}
+
+/**
+ * Finds a quoted literal occurrence of a shim string inside bundled build output.
+ *
+ * Bundles keep string literals escaped, so the decoded shim text is probed
+ * alongside its common JS escape forms. Mixed unicode escapes stay unprobed;
+ * the tier is a conservative safety net, not an exhaustive matcher.
+ *
+ * @param string $text Shim source string.
+ * @param array<string,string> $build_contents Build-relative file path => contents.
+ * @return string Relative path of the first quoted occurrence, or '' when absent.
+ */
+function npcink_cloud_addon_ai_i18n_audit_find_build_literal( string $text, array $build_contents ): string {
+	$length = strlen( $text );
+	if ( 0 === $length ) {
+		return '';
+	}
+
+	$variants = array_unique(
+		array(
+			$text,
+			addslashes( $text ),
+			(string) addcslashes( $text, "\n\r\t\v\f" ),
+		)
+	);
+
+	foreach ( $build_contents as $relative => $contents ) {
+		foreach ( $variants as $variant ) {
+			$offset    = 0;
+			$variant_length = strlen( $variant );
+			while ( false !== ( $position = strpos( $contents, $variant, $offset ) ) ) {
+				$end    = $position + $variant_length;
+				$before = $position > 0 ? $contents[ $position - 1 ] : '';
+				$after  = $end < strlen( $contents ) ? $contents[ $end ] : '';
+				if ( ( '"' === $before || "'" === $before ) && $before === $after ) {
+					return (string) $relative;
+				}
+				$offset = $position + 1;
+			}
+		}
+	}
+
+	return '';
+}
+
+/**
  * Finds near source matches for a missing string.
  *
  * @param string        $missing Missing source.
@@ -324,6 +443,8 @@ function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int
 	$translations = Npcink_Cloud_AI_Plugin_Localization::translations();
 	$known        = array_keys( $translations );
 	$found        = array();
+	$domainless   = array();
+	$build_contents = array();
 
 	$iterator = new RecursiveIteratorIterator(
 		new RecursiveDirectoryIterator( $plugin_path, FilesystemIterator::SKIP_DOTS )
@@ -340,19 +461,60 @@ function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int
 		}
 
 		$contents = file_get_contents( $path );
-		if ( ! is_string( $contents ) || false === strpos( $contents, 'ai' ) ) {
+		if ( ! is_string( $contents ) ) {
 			continue;
 		}
 
 		$relative = ltrim( substr( $path, strlen( $plugin_path ) ), DIRECTORY_SEPARATOR );
+
+		// Domain-less bundled calls and bare build literals do not imply an
+		// 'ai' substring (the dropped domain literal is what carried it), so
+		// collect them before the 'ai' fast-path filter below.
+		if ( npcink_cloud_addon_ai_i18n_audit_is_js_file( $path ) ) {
+			npcink_cloud_addon_ai_i18n_audit_extract_domainless( $contents, $relative, $domainless );
+			if ( 0 === strpos( $relative, 'build' . DIRECTORY_SEPARATOR ) ) {
+				$build_contents[ $relative ] = $contents;
+			}
+		}
+
+		// The 'ai' fast path stays valid for the domain-bearing forms only.
+		if ( false === strpos( $contents, 'ai' ) ) {
+			continue;
+		}
+
 		npcink_cloud_addon_ai_i18n_audit_extract_strings( $contents, $relative, $found );
 	}
 
 	ksort( $found );
 	$found_keys = array_keys( $found );
 	$missing    = array_values( array_diff( $found_keys, $known ) );
-	$stale      = array_values( array_diff( $known, $found_keys ) );
+	$stale_raw  = array_values( array_diff( $known, $found_keys ) );
 	$groups     = npcink_cloud_addon_ai_i18n_audit_group_missing( $missing, $found );
+
+	$stale               = array();
+	$domainless_rescued  = array();
+	$literal_rescued     = array();
+	$literal_files       = array();
+
+	foreach ( $stale_raw as $text ) {
+		if ( isset( $domainless[ $text ] ) ) {
+			$domainless_rescued[] = $text;
+			continue;
+		}
+
+		$literal_file = npcink_cloud_addon_ai_i18n_audit_find_build_literal( $text, $build_contents );
+		if ( '' !== $literal_file ) {
+			$literal_rescued[]        = $text;
+			$literal_files[ $text ]   = $literal_file;
+			continue;
+		}
+
+		$stale[] = $text;
+	}
+
+	sort( $stale );
+	sort( $domainless_rescued );
+	sort( $literal_rescued );
 
 	echo "WordPress AI plugin localization audit\n";
 	echo 'AI plugin path: ' . $plugin_path . "\n";
@@ -360,7 +522,9 @@ function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int
 	echo 'Shim translations: ' . count( $known ) . "\n";
 	echo 'Missing strings: ' . count( $missing ) . "\n";
 	echo 'Fixed UI review candidates: ' . count( $groups['fixed_ui_candidates'] ) . "\n";
-	echo 'Possibly stale shim strings: ' . count( $stale ) . "\n\n";
+	echo 'Possibly stale shim strings: ' . count( $stale ) . "\n";
+	echo 'Domain-less bundle rescue: ' . count( $domainless_rescued ) . "\n";
+	echo 'Build literal rescue: ' . count( $literal_rescued ) . "\n\n";
 
 	echo "Missing review groups:\n";
 	foreach ( $groups as $category => $items ) {
@@ -387,9 +551,32 @@ function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int
 		}
 	}
 
+	echo "\ndomainless_rescue:\n";
+	if ( empty( $domainless_rescued ) ) {
+		echo "- none\n";
+	} else {
+		foreach ( $domainless_rescued as $text ) {
+			npcink_cloud_addon_ai_i18n_audit_print_entry( $text, $domainless, $known );
+		}
+	}
+
+	echo "\nliteral_only_rescue:\n";
+	if ( empty( $literal_rescued ) ) {
+		echo "- none\n";
+	} else {
+		foreach ( $literal_rescued as $text ) {
+			echo '- "' . $text . '"';
+			if ( isset( $literal_files[ $text ] ) ) {
+				echo "\n  files: " . $literal_files[ $text ];
+			}
+			echo "\n";
+		}
+	}
+
 	echo "\nReview notes:\n";
 	echo "- Do not add dynamic ability names, descriptions, schema labels, JSON keys, slugs, provider ids, or model ids to this addon.\n";
 	echo "- Add approved fixed UI strings to Npcink_Cloud_AI_Plugin_Localization::translations() with behavior coverage.\n";
+	echo "- Rescue groups are informational: the shim string is still alive in the plugin, but only through bundled calls without an explicit 'ai' domain or as bare build literals.\n";
 
 	$fail_on_missing = getenv( 'AI_I18N_AUDIT_FAIL_ON_MISSING' );
 
