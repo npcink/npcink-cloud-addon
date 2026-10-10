@@ -4,7 +4,7 @@ Tags: npcink, cloud, ai, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -159,6 +159,9 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 
 == Upgrade Notice ==
 
+= 0.4.0 =
+Editor adoption feedback reuses the existing monitoring opt-in and observability delivery. No settings change or migration is required.
+
 = 0.3.0 =
 Connector internals were restructured with stricter input bounds and fail-fast ordering. No settings change or migration is required.
 
@@ -166,6 +169,11 @@ Connector internals were restructured with stricter input bounds and fail-fast o
 Terminal callback delivery is removed and media recognition continuation moves to Workflow Toolbox. Re-verify the Cloud connection after upgrading from 0.1.x.
 
 == Changelog ==
+
+= 0.4.0 =
+* Reported native exact-editor adoption: an observed main-post save that exactly matches a locally retained generated-output fingerprint now queues bounded, opt-in agent feedback for the original run.
+* Expanded the zh_CN WordPress AI compatibility shim to the official AI plugin 1.4.0 surfaces, including comment moderation value scores, Markdown feeds, content translation languages and editor copy, alt text settings, and request log accessibility.
+* Dropped shim strings retired upstream with the global AI toggle and the reworded comment moderation copy.
 
 = 0.3.0 =
 * Failed fast on missing WordPress AI runtime seams and local task-contract problems before any local read or upload.
