@@ -81,7 +81,13 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 		 */
 		public static function should_localize(): bool {
 			if ( function_exists( 'is_admin' ) && ! is_admin() ) {
-				return false;
+				// Editor-facing REST and AJAX calls run outside is_admin(),
+				// but they render the same admin-adjacent error strings.
+				$rest_request = defined( 'REST_REQUEST' ) && REST_REQUEST;
+				$doing_ajax = function_exists( 'wp_doing_ajax' ) && wp_doing_ajax();
+				if ( ! $rest_request && ! $doing_ajax ) {
+					return false;
+				}
 			}
 
 			$locale = '';
@@ -200,6 +206,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits.' => '已用 %1$s AI 积分；剩余 %2$s AI 积分；上限 %3$s AI 积分。',
 				'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.' => '此处显示的 AI 积分属于当前连接的 Cloud 账户。断开、移除或更换此 WordPress 站点不会转移这些 AI 积分。',
 				'Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud.' => '免费服务和 AI 积分属于授权时选择的 Cloud 账户，不属于此站点。同一账户可随时重新连接；更换到其他账户时，须遵守 Cloud 显示的站点移除和冷却要求。',
+				'After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time.' => '连接后，WordPress AI 连接器将默认启用。站点知识库投递可随时在“概览”中开启或关闭。',
+				'The new Cloud connection could not be verified: %s. The connection details were saved, so use Check connection on this page to verify again.' => '新的 Cloud 连接未能通过验证：%s。连接信息已保存，请使用本页的“检查连接”重新验证。',
 				'%s remaining' => '剩余 %s',
 				'%1$d of %2$d runs remaining' => '剩余 %1$d / %2$d 次',
 				'Entitlement details' => '权益详情',
@@ -246,7 +254,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Not ready' => '未就绪',
 				'WordPress AI connector' => 'WordPress AI 连接器',
 				'Allow WordPress AI to use Npcink Cloud.' => '允许 WordPress AI 使用 Npcink Cloud。',
-				'Allow WordPress AI to use Npcink Cloud. Enabled by default after connection; turn it off in Overview when needed.' => '允许 WordPress AI 使用 Npcink Cloud。连接成功后默认启用，需要时可在“概览”中关闭。',
+				'Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected.' => '允许 WordPress AI 使用 Npcink Cloud。站点保持连接期间默认启用。',
 				'Site Knowledge delivery' => '站点知识库投递',
 				'Enable Site Knowledge' => '启用站点知识库',
 				'Keep public posts and pages updated automatically so AI can reference them.' => '自动更新公开文章和页面，供 AI 在生成内容时参考。',
@@ -417,6 +425,9 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Image-to-image refinement is not supported by the Npcink Cloud AI connection yet.' => 'Npcink Cloud AI 连接暂不支持图生图细化。',
 				'This AI feature is not currently available through the Npcink Cloud connection.' => '该 AI 功能当前无法通过 Npcink Cloud 连接使用。',
 				'Npcink Cloud did not return usable output for this request. Please try again.' => 'Npcink Cloud 未返回可用的结果，请重试。',
+				'Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run.' => 'Npcink Cloud 仍在处理此请求。请稍候再试，以免重复执行产生额外消耗。',
+				'View upload detail' => '查看上传详情',
+				'View Site Knowledge status' => '查看站点知识库状态',
 				'Npcink Cloud returned an unexpected image result. Please try again.' => 'Npcink Cloud 返回了异常的图片结果，请重试。',
 				'The generated image previews are too large to show. Try generating fewer images at once.' => '生成的图片预览过大，无法显示。请尝试一次生成更少的图片。',
 				'The generated image could not be verified for safe delivery. Please try again.' => '生成的图片未能通过安全投递校验，请重试。',

@@ -315,6 +315,27 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		}
 
 		/**
+		 * Returns whether a non-error runtime response still reports an
+		 * in-progress run, so callers must not present it as missing output.
+		 *
+		 * @param mixed $response Runtime response.
+		 * @return bool
+		 */
+		public static function response_indicates_in_progress_run( $response ): bool {
+			if ( ! is_array( $response ) ) {
+				return false;
+			}
+
+			$status = sanitize_key( self::first_response_string(
+				$response,
+				array( 'status', 'data.status', 'data.result.status', 'result.status' ),
+				''
+			) );
+
+			return in_array( $status, array( 'submitted', 'queued', 'running' ), true );
+		}
+
+		/**
 		 * Returns the current validated text ability context without consuming it.
 		 *
 		 * @return array<string,mixed>
@@ -740,6 +761,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'reference_image_not_supported' => __( 'Image-to-image refinement is not supported by the Npcink Cloud AI connection yet.', 'npcink-cloud-addon' ),
 				'task_contract_rejected'        => __( 'This AI feature is not currently available through the Npcink Cloud connection.', 'npcink-cloud-addon' ),
 				'output_missing'                => __( 'Npcink Cloud did not return usable output for this request. Please try again.', 'npcink-cloud-addon' ),
+				'runtime_run_in_progress'       => __( 'Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run.', 'npcink-cloud-addon' ),
 				'artifact_contract_invalid'     => __( 'Npcink Cloud returned an unexpected image result. Please try again.', 'npcink-cloud-addon' ),
 				'artifact_preview_limit'        => __( 'The generated image previews are too large to show. Try generating fewer images at once.', 'npcink-cloud-addon' ),
 				'artifact_verification_failed'  => __( 'The generated image could not be verified for safe delivery. Please try again.', 'npcink-cloud-addon' ),

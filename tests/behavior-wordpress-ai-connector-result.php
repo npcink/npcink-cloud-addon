@@ -403,4 +403,16 @@ namespace {
 		&& str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_failed', 'cloud_upstream_error:poll', 'detail https://example.test/signed?token=abc' ), '[url]' ),
 		'Behavior: runtime failure classification keys off structured codes with a readable code-stage separator, and connector detail strips request URLs.'
 	);
+
+	maca_assert(
+		Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( array( 'status' => 'running' ) )
+		&& Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( array( 'data' => array( 'status' => 'queued' ) ) )
+		&& Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( array( 'data' => array( 'result' => array( 'status' => 'submitted' ) ) ) )
+		&& ! Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( array( 'status' => 'succeeded' ) )
+		&& ! Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( array( 'status' => 'ok' ) )
+		&& ! Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( array() )
+		&& false === strpos( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_run_in_progress', 'cloud_wp_ai_run_in_progress' ), 'did not return usable output' )
+		&& false !== strpos( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_run_in_progress', 'cloud_wp_ai_run_in_progress' ), 'still processing' ),
+		'Behavior: an in-progress run reports a wait hint instead of an output-missing retry prompt.'
+	);
 }

@@ -88,17 +88,22 @@ connector classes so they cannot grow unnoticed:
   the bounded media endpoints)
 - `includes/class-cloud-settings-page.php` — 2207 lines (was 3280 before the
   2026-10-04 handler split into `class-cloud-settings-actions.php`)
-- `includes/class-cloud-settings-actions.php` — 1106 lines (settings request
-  handlers and their transient state; the render class stays a projection)
-- `includes/class-cloud-wordpress-ai-connector.php` — 1002 lines (was 2767 before the
-  2026-10-06 per-class split into seven satellite files)
+- `includes/class-cloud-settings-actions.php` — 1131 lines (settings request
+  handlers and their transient state; the render class stays a projection;
+  raised from 1106 with reason: the 2026-10-11 first-connection verify-failure
+  path keeps exchanged credentials in the unverified state instead of
+  discarding them)
+- `includes/class-cloud-wordpress-ai-connector.php` — 1024 lines (was 2767 before the
+  2026-10-06 per-class split into seven satellite files; raised from 1002 with
+  reason: the 2026-10-11 in-progress run probe shares one
+  `response_indicates_in_progress_run()` helper across the three models)
 - `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 338 lines
 - `includes/class-cloud-wordpress-ai-availability.php` — 32 lines
-- `includes/class-cloud-wordpress-ai-image-model.php` — 489 lines
+- `includes/class-cloud-wordpress-ai-image-model.php` — 492 lines
 - `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
-- `includes/class-cloud-wordpress-ai-text-model.php` — 383 lines
-- `includes/class-cloud-wordpress-ai-vision-text-model.php` — 119 lines
+- `includes/class-cloud-wordpress-ai-text-model.php` — 390 lines
+- `includes/class-cloud-wordpress-ai-vision-text-model.php` — 126 lines
 - `includes/class-cloud-wordpress-ai-scene-model.php` — 159 lines (shared
   metadata/config plumbing, prompt/result projection helpers, and the
   single plain-text exception sink `throw_user_facing()` required by the

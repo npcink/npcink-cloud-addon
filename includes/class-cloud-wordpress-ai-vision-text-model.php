@@ -80,13 +80,20 @@ if (
 			if ( '' === $output_text ) {
 				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
+				$run_in_progress = Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( $response );
 				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
 					'run_id'         => $cloud_run_id,
 					'error_stage'    => 'output_validation',
-					'quality_reason' => 'output_missing',
+					'quality_reason' => $run_in_progress ? 'run_in_progress' : 'output_missing',
 				) );
-				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_output_missing', 'Cloud response did not include valid alt text output.' );
+				$log_event['validation_error'] = new WP_Error(
+					$run_in_progress ? 'cloud_wp_ai_alt_text_run_in_progress' : 'cloud_wp_ai_output_missing',
+					$run_in_progress ? 'Cloud run was still in progress.' : 'Cloud response did not include valid alt text output.'
+				);
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
+				if ( $run_in_progress ) {
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_run_in_progress', 'cloud_wp_ai_alt_text_run_in_progress' ) );
+				}
 				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_alt_text_output_missing' ) );
 			}
 

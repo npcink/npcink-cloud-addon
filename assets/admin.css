@@ -84,6 +84,7 @@
 }
 
 .npcink-cloud-badge--pending,
+.npcink-cloud-badge--warning,
 .npcink-cloud-badge--inactive {
 	background: #fcf9e8;
 	color: #8a5a00;
