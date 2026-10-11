@@ -274,6 +274,27 @@ maca_assert(
 );
 
 Npcink_Cloud_Addon_Settings::delete_settings();
+Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
+$first_connection_settings = Npcink_Cloud_Addon_Settings::get_settings();
+$first_connection_settings['base_url'] = 'https://first.example.test';
+$first_connection_settings['site_id'] = 'site_first';
+$first_connection_settings['key_id'] = 'key_first';
+$first_connection_settings['secret'] = 'secret_first';
+$first_connection_settings['verified'] = false;
+$GLOBALS['maca_http_response_queue'][] = new WP_Error( 'first_connection_unavailable', 'First connection unavailable.' );
+$persist_method->invoke( null, $first_connection_settings, 'Verified.' );
+$first_connection_stored = Npcink_Cloud_Addon_Settings::get_settings();
+$first_connection_notice = get_transient( 'npcink_cloud_notice_1' );
+maca_assert(
+	! Npcink_Cloud_Addon_Settings::is_verified()
+	&& 'site_first' === (string) $first_connection_stored['site_id']
+	&& 'https://first.example.test' === (string) $first_connection_stored['base_url']
+	&& '' !== (string) $first_connection_stored['last_verification_error']
+	&& false !== strpos( (string) ( $first_connection_notice['message'] ?? '' ), 'use Check connection' ),
+	'Behavior: a failed first-connection probe keeps the exchanged credentials unverified for a Check connection retry.'
+);
+
+Npcink_Cloud_Addon_Settings::delete_settings();
 maca_assert(
 	! array_key_exists( Npcink_Cloud_Addon_Settings::option_name(), $GLOBALS['maca_options'] )
 	&& ! Npcink_Cloud_Addon_Settings::is_configured(),

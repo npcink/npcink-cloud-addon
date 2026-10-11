@@ -105,6 +105,9 @@ if (
 			try {
 				$candidates = $this->extract_image_candidates( $result, $trace_id );
 				if ( empty( $candidates ) ) {
+					if ( Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( $response ) ) {
+						self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_run_in_progress', 'cloud_wp_ai_image_run_in_progress' ) );
+					}
 					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'output_missing', 'cloud_wp_ai_image_output_missing' ) );
 				}
 			} catch ( \Throwable $error ) {

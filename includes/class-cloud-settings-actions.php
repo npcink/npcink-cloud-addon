@@ -534,6 +534,31 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			$message = self::format_probe_failure_message( $probe );
 			if ( ! $same_connection ) {
+				if ( empty( $current['verified'] ) ) {
+					// The one-time portal code is already consumed, so the
+					// exchanged credentials are kept in the unverified state
+					// (same as an activation-pending exchange) and Check
+					// connection can retry verification without a new code.
+					$settings['verified'] = false;
+					$settings['verified_at'] = '';
+					$settings['last_verification_error'] = sanitize_text_field( $message );
+					if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
+						self::set_admin_notice(
+							'error',
+							__( 'Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect.', 'npcink-cloud-addon' )
+						);
+						return;
+					}
+					self::set_admin_notice(
+						'error',
+						sprintf(
+							/* translators: %s: Cloud connectivity error. */
+							__( 'The new Cloud connection could not be verified: %s. The connection details were saved, so use Check connection on this page to verify again.', 'npcink-cloud-addon' ),
+							$message
+						)
+					);
+					return;
+				}
 				self::set_admin_notice(
 					'error',
 					sprintf(
@@ -698,7 +723,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 					sprintf(
 						/* translators: %s: request error message. */
 						__( 'Cloud authorization exchange failed: %s', 'npcink-cloud-addon' ),
-						$response->get_error_message()
+						self::bound_admin_error_detail( self::redact_sensitive_message( $response->get_error_message() ) )
 					)
 				);
 			}
@@ -1045,7 +1070,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			return array(
 				'wordpress_ai_connector_enabled' => array(
 					'label'       => __( 'WordPress AI connector', 'npcink-cloud-addon' ),
-					'description' => __( 'Allow WordPress AI to use Npcink Cloud. Enabled by default after connection; turn it off in Overview when needed.', 'npcink-cloud-addon' ),
+					'description' => __( 'Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected.', 'npcink-cloud-addon' ),
 				),
 				'site_knowledge_delivery_enabled' => array(
 					'label'       => __( 'Enable Site Knowledge', 'npcink-cloud-addon' ),

@@ -429,3 +429,62 @@ maca_assert(
 	),
 	'Addon localization fallback covers verified-settings and artifact validation alt text error messages in zh_CN admin.'
 );
+
+$GLOBALS['maca_is_admin'] = false;
+maca_assert(
+	'' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'Advanced connection',
+		'npcink-cloud-addon'
+	)
+	&& false === Npcink_Cloud_Addon_Localization::should_localize(),
+	'Addon localization fallback stays off for pure front-end requests even in zh_CN locales.'
+);
+unset( $GLOBALS['maca_is_admin'] );
+
+if ( ! defined( 'REST_REQUEST' ) ) {
+	define( 'REST_REQUEST', true );
+}
+maca_assert(
+	Npcink_Cloud_Addon_Localization::should_localize()
+	&& '高级连接' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'Advanced connection',
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback covers editor-facing REST requests so Cloud errors stay localized without a language pack.'
+);
+
+maca_assert(
+	'连接后，WordPress AI 连接器将默认启用。站点知识库投递可随时在“概览”中开启或关闭。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time.',
+		'npcink-cloud-addon'
+	)
+	&& '允许 WordPress AI 使用 Npcink Cloud。站点保持连接期间默认启用。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected.',
+		'npcink-cloud-addon'
+	)
+	&& 'Npcink Cloud 仍在处理此请求。请稍候再试，以免重复执行产生额外消耗。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run.',
+		'npcink-cloud-addon'
+	)
+	&& '新的 Cloud 连接未能通过验证：%s。连接信息已保存，请使用本页的“检查连接”重新验证。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'The new Cloud connection could not be verified: %s. The connection details were saved, so use Check connection on this page to verify again.',
+		'npcink-cloud-addon'
+	)
+	&& '查看上传详情' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'View upload detail',
+		'npcink-cloud-addon'
+	)
+	&& '查看站点知识库状态' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'',
+		'View Site Knowledge status',
+		'npcink-cloud-addon'
+	),
+	'Addon localization fallback covers the 2026-10-11 admin copy, connection recovery, and in-progress run strings in zh_CN.'
+);

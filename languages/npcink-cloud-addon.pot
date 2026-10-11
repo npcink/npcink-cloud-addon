@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-11T04:27:39+00:00\n"
+"POT-Creation-Date: 2026-10-11T13:54:03+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -1174,6 +1174,7 @@ msgstr ""
 #: includes/class-cloud-settings-actions.php:230
 #: includes/class-cloud-settings-actions.php:492
 #: includes/class-cloud-settings-actions.php:508
+#: includes/class-cloud-settings-actions.php:548
 msgid "Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect."
 msgstr ""
 
@@ -1235,111 +1236,117 @@ msgid "Unknown entitlement refresh result."
 msgstr ""
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:541
+#: includes/class-cloud-settings-actions.php:556
+#, php-format
+msgid "The new Cloud connection could not be verified: %s. The connection details were saved, so use Check connection on this page to verify again."
+msgstr ""
+
+#. translators: %s: Cloud connectivity error.
+#: includes/class-cloud-settings-actions.php:566
 #, php-format
 msgid "The replacement Cloud connection could not be verified, so the existing connection was kept: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:555
+#: includes/class-cloud-settings-actions.php:580
 msgid "Cloud verification completed, but the activation state could not be stored securely."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:560
+#: includes/class-cloud-settings-actions.php:585
 msgid "The Cloud connection works, but this site is not active in Cloud yet. Activate the site in Npcink Cloud, then check the activation again here."
 msgstr ""
 
 #. translators: %s: request error message.
-#: includes/class-cloud-settings-actions.php:700
+#: includes/class-cloud-settings-actions.php:725
 #, php-format
 msgid "Cloud authorization exchange failed: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:719
-#: includes/class-cloud-settings-actions.php:785
+#: includes/class-cloud-settings-actions.php:744
+#: includes/class-cloud-settings-actions.php:810
 msgid "Cloud authorization exchange did not return a valid connection key."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:727
+#: includes/class-cloud-settings-actions.php:752
 msgid "Cloud authorization exchange returned an invalid activation state."
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:757
+#: includes/class-cloud-settings-actions.php:782
 #, php-format
 msgid "The Cloud account has reached its active-site limit. Deactivate another active site in Npcink Cloud or upgrade the account plan, then start the connection again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:763
+#: includes/class-cloud-settings-actions.php:788
 #, php-format
 msgid "The Cloud account has reached its connected-site limit. Remove an unused site in Npcink Cloud, then start the connection again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:772
+#: includes/class-cloud-settings-actions.php:797
 #, php-format
 msgid "The Cloud authorization request expired or is invalid. Start the connection again from WordPress. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:779
+#: includes/class-cloud-settings-actions.php:804
 #, php-format
 msgid "Cloud authorization exchange failed. Start the connection again or contact support with this error code: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:822
+#: includes/class-cloud-settings-actions.php:847
 msgid "The site is connected, but Cloud service is not active yet. Activate this site in Npcink Cloud, then check activation again here."
 msgstr ""
 
 #. translators: %s: liveness error.
-#: includes/class-cloud-settings-actions.php:828
+#: includes/class-cloud-settings-actions.php:853
 #, php-format
 msgid "Live check failed: %s"
 msgstr ""
 
 #. translators: %s: signed verification error.
-#: includes/class-cloud-settings-actions.php:835
+#: includes/class-cloud-settings-actions.php:860
 #, php-format
 msgid "Signed verification failed: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:842
+#: includes/class-cloud-settings-actions.php:867
 msgid "Cloud verification failed."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1047
+#: includes/class-cloud-settings-actions.php:1072
 msgid "WordPress AI connector"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1048
-msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default after connection; turn it off in Overview when needed."
+#: includes/class-cloud-settings-actions.php:1073
+msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1051
+#: includes/class-cloud-settings-actions.php:1076
 msgid "Enable Site Knowledge"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1052
+#: includes/class-cloud-settings-actions.php:1077
 msgid "Keep public posts and pages updated automatically so AI can reference them."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1055
+#: includes/class-cloud-settings-actions.php:1080
 msgid "Reference site content during generation"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1056
+#: includes/class-cloud-settings-actions.php:1081
 msgid "Use indexed public articles as generation context."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1059
+#: includes/class-cloud-settings-actions.php:1084
 msgid "Send anonymous diagnostics"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1060
+#: includes/class-cloud-settings-actions.php:1085
 msgid "Send metadata-only diagnostic events (feature steps, outcomes, timing, and error codes) to improve reliability. Never includes prompts, content, user or post IDs, emails, URLs, or credentials. Off by default."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1061
+#: includes/class-cloud-settings-actions.php:1086
 msgid "Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time."
 msgstr ""
 
@@ -1625,8 +1632,16 @@ msgstr ""
 msgid "Monitoring needs attention"
 msgstr ""
 
+#: includes/class-cloud-settings-page.php:900
+msgid "View upload detail"
+msgstr ""
+
 #: includes/class-cloud-settings-page.php:903
 msgid "Site Knowledge needs attention"
+msgstr ""
+
+#: includes/class-cloud-settings-page.php:903
+msgid "View Site Knowledge status"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:928
@@ -1929,7 +1944,7 @@ msgid "Cloud will create or activate this site connection and return here with a
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1333
-msgid "After connection, the WordPress AI connector is enabled by default. You can turn it off later in Overview under Local permissions."
+msgid "After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time."
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1334
@@ -2576,71 +2591,75 @@ msgstr ""
 msgid "The local attachment image type is not supported for Cloud alt text generation."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:378
+#: includes/class-cloud-wordpress-ai-connector.php:399
 msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:736
+#: includes/class-cloud-wordpress-ai-connector.php:757
 msgid "This request is not supported by the Npcink Cloud AI connection yet."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:737
+#: includes/class-cloud-wordpress-ai-connector.php:758
 msgid "The Npcink Cloud AI connection does not support conversation history for this request."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:738
+#: includes/class-cloud-wordpress-ai-connector.php:759
 msgid "The Npcink Cloud AI connection does not support tool calls or web search."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:739
+#: includes/class-cloud-wordpress-ai-connector.php:760
 msgid "The Npcink Cloud AI connection needs text input for this request."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:740
+#: includes/class-cloud-wordpress-ai-connector.php:761
 msgid "Image-to-image refinement is not supported by the Npcink Cloud AI connection yet."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:741
+#: includes/class-cloud-wordpress-ai-connector.php:762
 msgid "This AI feature is not currently available through the Npcink Cloud connection."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:742
+#: includes/class-cloud-wordpress-ai-connector.php:763
 msgid "Npcink Cloud did not return usable output for this request. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:743
+#: includes/class-cloud-wordpress-ai-connector.php:764
+msgid "Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run."
+msgstr ""
+
+#: includes/class-cloud-wordpress-ai-connector.php:765
 msgid "Npcink Cloud returned an unexpected image result. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:744
+#: includes/class-cloud-wordpress-ai-connector.php:766
 msgid "The generated image previews are too large to show. Try generating fewer images at once."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:745
+#: includes/class-cloud-wordpress-ai-connector.php:767
 msgid "The generated image could not be verified for safe delivery. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:746
+#: includes/class-cloud-wordpress-ai-connector.php:768
 msgid "Npcink Cloud could not confirm delivery of the generated image. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:747
+#: includes/class-cloud-wordpress-ai-connector.php:769
 msgid "The generated image is no longer available. Please generate it again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:748
+#: includes/class-cloud-wordpress-ai-connector.php:770
 msgid "Npcink Cloud could not complete this AI request. Please try again in a moment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:749
+#: includes/class-cloud-wordpress-ai-connector.php:771
 msgid "Npcink Cloud could not be reached from this site. Please try again in a moment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:750
+#: includes/class-cloud-wordpress-ai-connector.php:772
 msgid "The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:751
+#: includes/class-cloud-wordpress-ai-connector.php:773
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr ""
 

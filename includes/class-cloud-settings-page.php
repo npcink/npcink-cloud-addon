@@ -817,7 +817,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				</div>
 				<div class="npcink-cloud-overview-panel">
 					<div class="npcink-cloud-overview-panel__header">
-						<span class="npcink-cloud-badge npcink-cloud-badge--ok"><?php esc_html_e( 'Connected', 'npcink-cloud-addon' ); ?></span>
+						<span class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( 'warning' === (string) $service_health['severity'] ? 'warning' : 'ok' ); ?>"><?php esc_html_e( 'Connected', 'npcink-cloud-addon' ); ?></span>
 						<span class="npcink-cloud-overview-service npcink-cloud-overview-service--<?php echo esc_attr( (string) $service_health['severity'] ); ?>"><?php echo esc_html( (string) $service_health['label'] ); ?></span>
 						<span class="npcink-cloud-entitlement npcink-cloud-overview-panel__plan" data-npcink-entitlement-state="<?php echo esc_attr( $entitlement_state ); ?>">
 							<span class="npcink-cloud-overview-panel__plan-label" data-npcink-entitlement-summary aria-live="polite"><?php echo esc_html( self::format_overview_entitlement( $entitlement, $is_verified ) ); ?></span>
@@ -897,10 +897,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php if ( $monitoring_needs_attention || $site_knowledge_needs_attention ) : ?>
 					<div class="npcink-cloud-overview-panel__notices">
 						<?php if ( $monitoring_needs_attention ) : ?>
-							<p class="npcink-cloud-overview-notice npcink-cloud-overview-notice--warning"><strong><?php esc_html_e( 'Monitoring needs attention', 'npcink-cloud-addon' ); ?></strong> <?php echo esc_html( self::format_monitoring_overview( $monitoring ) ); ?></p>
+							<p class="npcink-cloud-overview-notice npcink-cloud-overview-notice--warning"><strong><?php esc_html_e( 'Monitoring needs attention', 'npcink-cloud-addon' ); ?></strong> <?php echo esc_html( self::format_monitoring_overview( $monitoring ) ); ?> <a href="<?php echo esc_url( add_query_arg( array( 'tab' => 'advanced' ), Npcink_Cloud_Settings_Actions::page_url() ) ); ?>"><?php esc_html_e( 'View upload detail', 'npcink-cloud-addon' ); ?></a></p>
 						<?php endif; ?>
 						<?php if ( $site_knowledge_needs_attention ) : ?>
-							<p class="npcink-cloud-overview-notice npcink-cloud-overview-notice--warning"><strong><?php esc_html_e( 'Site Knowledge needs attention', 'npcink-cloud-addon' ); ?></strong> <?php echo esc_html( self::format_site_knowledge_overview( $site_knowledge ) ); ?></p>
+							<p class="npcink-cloud-overview-notice npcink-cloud-overview-notice--warning"><strong><?php esc_html_e( 'Site Knowledge needs attention', 'npcink-cloud-addon' ); ?></strong> <?php echo esc_html( self::format_site_knowledge_overview( $site_knowledge ) ); ?> <a href="<?php echo esc_url( add_query_arg( array( 'tab' => 'site_knowledge' ), Npcink_Cloud_Settings_Actions::page_url() ) ); ?>"><?php esc_html_e( 'View Site Knowledge status', 'npcink-cloud-addon' ); ?></a></p>
 						<?php endif; ?>
 					</div>
 					<?php endif; ?>
@@ -1330,7 +1330,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<div class="npcink-cloud-connect-actions">
 					<?php self::render_authorization_form( __( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary button-hero' ); ?>
 				<p class="description"><?php esc_html_e( 'Cloud will create or activate this site connection and return here with a one-time authorization code.', 'npcink-cloud-addon' ); ?></p>
-				<p class="description"><?php esc_html_e( 'After connection, the WordPress AI connector is enabled by default. You can turn it off later in Overview under Local permissions.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description"><?php esc_html_e( 'After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time.', 'npcink-cloud-addon' ); ?></p>
 				<p class="description"><a href="https://cloud.npc.ink/terms/en/privacy.html" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Review Cloud privacy and data retention information', 'npcink-cloud-addon' ); ?></a></p>
 				<p class="description"><?php esc_html_e( 'Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud.', 'npcink-cloud-addon' ); ?></p>
 			</div>

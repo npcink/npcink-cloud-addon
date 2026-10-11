@@ -1133,6 +1133,7 @@ msgstr "Cloud 设置已保存并验证。"
 #: includes/class-cloud-settings-actions.php:230
 #: includes/class-cloud-settings-actions.php:492
 #: includes/class-cloud-settings-actions.php:508
+#: includes/class-cloud-settings-actions.php:548
 msgid "Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect."
 msgstr "无法安全存储 Cloud 凭据。现有连接未更改。请检查 WordPress 安全盐并重新连接。"
 
@@ -1159,12 +1160,12 @@ msgid "Unknown entitlement refresh result."
 msgstr "未知的权益刷新结果。"
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:541
+#: includes/class-cloud-settings-actions.php:566
 #, php-format
 msgid "The replacement Cloud connection could not be verified, so the existing connection was kept: %s"
 msgstr "新的 Cloud 连接验证失败，因此保留了现有连接：%s"
 
-#: includes/class-cloud-settings-actions.php:555
+#: includes/class-cloud-settings-actions.php:580
 msgid "Cloud verification completed, but the activation state could not be stored securely."
 msgstr "Cloud 检查已完成，但无法安全保存站点激活状态。"
 
@@ -1242,40 +1243,40 @@ msgid "Cloud addon sections"
 msgstr "Cloud addon 分区"
 
 #. translators: %s: request error message.
-#: includes/class-cloud-settings-actions.php:700
+#: includes/class-cloud-settings-actions.php:725
 #, php-format
 msgid "Cloud authorization exchange failed: %s"
 msgstr "Cloud 授权交换失败：%s"
 
-#: includes/class-cloud-settings-actions.php:719
-#: includes/class-cloud-settings-actions.php:785
+#: includes/class-cloud-settings-actions.php:744
+#: includes/class-cloud-settings-actions.php:810
 msgid "Cloud authorization exchange did not return a valid connection key."
 msgstr "Cloud 授权交换没有返回有效的连接密钥。"
 
-#: includes/class-cloud-settings-actions.php:727
+#: includes/class-cloud-settings-actions.php:752
 msgid "Cloud authorization exchange returned an invalid activation state."
 msgstr "Cloud 授权交换返回了无效的激活状态。"
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:757
+#: includes/class-cloud-settings-actions.php:782
 #, php-format
 msgid "The Cloud account has reached its active-site limit. Deactivate another active site in Npcink Cloud or upgrade the account plan, then start the connection again. (%s)"
 msgstr "Cloud 账户已达到启用站点上限。请在 Npcink Cloud 中停用另一个启用中的站点，或升级账户套餐，然后重新开始连接。（%s）"
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:763
+#: includes/class-cloud-settings-actions.php:788
 #, php-format
 msgid "The Cloud account has reached its connected-site limit. Remove an unused site in Npcink Cloud, then start the connection again. (%s)"
 msgstr "Cloud 账户已达到已连接站点上限。请在 Npcink Cloud 中移除不再使用的站点，然后重新开始连接。（%s）"
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:772
+#: includes/class-cloud-settings-actions.php:797
 #, php-format
 msgid "The Cloud authorization request expired or is invalid. Start the connection again from WordPress. (%s)"
 msgstr "Cloud 授权请求已过期或无效。请从 WordPress 重新开始连接。（%s）"
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:779
+#: includes/class-cloud-settings-actions.php:804
 #, php-format
 msgid "Cloud authorization exchange failed. Start the connection again or contact support with this error code: %s"
 msgstr "Cloud 授权交换失败。请重新开始连接，或联系支持并提供此错误代码：%s"
@@ -1300,31 +1301,27 @@ msgstr "上次验证"
 msgid "Never"
 msgstr "从未"
 
-#: includes/class-cloud-settings-actions.php:1047
+#: includes/class-cloud-settings-actions.php:1072
 msgid "WordPress AI connector"
 msgstr "WordPress AI 连接器"
 
-#: includes/class-cloud-settings-actions.php:1048
-msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default after connection; turn it off in Overview when needed."
-msgstr "允许 WordPress AI 使用 Npcink Cloud。连接成功后默认启用，需要时可在“概览”中关闭。"
-
-#: includes/class-cloud-settings-actions.php:1051
+#: includes/class-cloud-settings-actions.php:1076
 msgid "Enable Site Knowledge"
 msgstr "启用站点知识库"
 
-#: includes/class-cloud-settings-actions.php:1052
+#: includes/class-cloud-settings-actions.php:1077
 msgid "Keep public posts and pages updated automatically so AI can reference them."
 msgstr "自动更新公开文章和页面，供 AI 在生成内容时参考。"
 
-#: includes/class-cloud-settings-actions.php:1055
+#: includes/class-cloud-settings-actions.php:1080
 msgid "Reference site content during generation"
 msgstr "生成时参考站点内容"
 
-#: includes/class-cloud-settings-actions.php:1056
+#: includes/class-cloud-settings-actions.php:1081
 msgid "Use indexed public articles as generation context."
 msgstr "使用已索引的公开文章作为生成上下文。"
 
-#: includes/class-cloud-settings-actions.php:1059
+#: includes/class-cloud-settings-actions.php:1084
 msgid "Send anonymous diagnostics"
 msgstr "发送匿名诊断信息"
 
@@ -1687,10 +1684,6 @@ msgstr "在 Npcink Cloud 添加当前站点"
 msgid "Cloud will create or activate this site connection and return here with a one-time authorization code."
 msgstr "Cloud 会创建或激活此站点连接，并通过一次性授权码返回这里。"
 
-#: includes/class-cloud-settings-page.php:1333
-msgid "After connection, the WordPress AI connector is enabled by default. You can turn it off later in Overview under Local permissions."
-msgstr "连接成功后默认启用 WordPress AI connector。之后可在“概览”的本地权限中关闭。"
-
 #: includes/class-cloud-settings-page.php:1334
 msgid "Review Cloud privacy and data retention information"
 msgstr "查看 Cloud 隐私和数据保留信息"
@@ -1937,23 +1930,23 @@ msgstr "Cloud 错误分类"
 msgid "Last failure"
 msgstr "上次失败"
 
-#: includes/class-cloud-settings-actions.php:822
+#: includes/class-cloud-settings-actions.php:847
 msgid "The site is connected, but Cloud service is not active yet. Activate this site in Npcink Cloud, then check activation again here."
 msgstr "站点已连接，但 Cloud 运行服务尚未激活。请先在 Npcink Cloud 中激活此站点，再返回这里重新检查。"
 
 #. translators: %s: liveness error.
-#: includes/class-cloud-settings-actions.php:828
+#: includes/class-cloud-settings-actions.php:853
 #, php-format
 msgid "Live check failed: %s"
 msgstr "存活检查失败：%s"
 
 #. translators: %s: signed verification error.
-#: includes/class-cloud-settings-actions.php:835
+#: includes/class-cloud-settings-actions.php:860
 #, php-format
 msgid "Signed verification failed: %s"
 msgstr "签名验证失败：%s"
 
-#: includes/class-cloud-settings-actions.php:842
+#: includes/class-cloud-settings-actions.php:867
 msgid "Cloud verification failed."
 msgstr "Cloud 验证失败。"
 
@@ -2236,7 +2229,7 @@ msgstr "无法编码站点知识库运行时 payload。"
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr "站点知识库运行时 payload 超过传输大小限制。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:378
+#: includes/class-cloud-wordpress-ai-connector.php:399
 msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr "使用已验证的 Npcink Cloud 设置，为 WordPress AI 的固定编辑场景提供云端建议能力。"
 
@@ -2394,11 +2387,11 @@ msgstr "前往 WordPress AI 设置启用能力测试与请求日志"
 msgid "Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here."
 msgstr "执行测试可能消耗额度。测试使用当前 WordPress AI 配置；请求日志只记录每次请求由哪个模型处理。模型由 Npcink Cloud 按任务自动选择，这里没有需要你选择的模型。"
 
-#: includes/class-cloud-settings-actions.php:1060
+#: includes/class-cloud-settings-actions.php:1085
 msgid "Send metadata-only diagnostic events (feature steps, outcomes, timing, and error codes) to improve reliability. Never includes prompts, content, user or post IDs, emails, URLs, or credentials. Off by default."
 msgstr "发送仅含元数据的诊断事件（功能步骤、结果、耗时和错误码）以改进可靠性。绝不包含 Prompt、内容、用户或文章 ID、邮箱、URL 或凭据。默认关闭。"
 
-#: includes/class-cloud-settings-actions.php:1061
+#: includes/class-cloud-settings-actions.php:1086
 msgid "Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time."
 msgstr "完整说明：仅含元数据的事件涵盖功能步骤、结果、耗时和机器可读错误码。绝不发送 Prompt、源内容或生成内容、原始 WordPress 用户或文章 ID、邮箱、URL、DOM 数据、凭据或自由文本错误消息。默认关闭；管理员可以随时关闭。"
 
@@ -2493,7 +2486,7 @@ msgstr "Cloud Addon 设置尚未通过验证。连接重新验证通过后，将
 msgid "The Cloud authorization request expired or is invalid. Start the connection again from WordPress."
 msgstr "Cloud 授权请求已过期或无效。请从 WordPress 重新开始连接。"
 
-#: includes/class-cloud-settings-actions.php:560
+#: includes/class-cloud-settings-actions.php:585
 msgid "The Cloud connection works, but this site is not active in Cloud yet. Activate the site in Npcink Cloud, then check the activation again here."
 msgstr "Cloud 连接可用，但本站点尚未在 Cloud 激活。请先在 Npcink Cloud 激活站点，然后回到这里再次检查激活状态。"
 
@@ -2567,67 +2560,67 @@ msgstr "最近一次 Cloud 验证未完成。"
 msgid "The knowledge base update could not be delivered and will be retried automatically. Detail: %s"
 msgstr "知识库更新未能投递，系统会自动重试。详情：%s"
 
-#: includes/class-cloud-wordpress-ai-connector.php:736
+#: includes/class-cloud-wordpress-ai-connector.php:757
 msgid "This request is not supported by the Npcink Cloud AI connection yet."
 msgstr "Npcink Cloud AI 连接暂不支持该请求。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:737
+#: includes/class-cloud-wordpress-ai-connector.php:758
 msgid "The Npcink Cloud AI connection does not support conversation history for this request."
 msgstr "Npcink Cloud AI 连接不支持在此请求中使用对话历史。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:738
+#: includes/class-cloud-wordpress-ai-connector.php:759
 msgid "The Npcink Cloud AI connection does not support tool calls or web search."
 msgstr "Npcink Cloud AI 连接不支持工具调用或网页搜索。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:739
+#: includes/class-cloud-wordpress-ai-connector.php:760
 msgid "The Npcink Cloud AI connection needs text input for this request."
 msgstr "此请求需要为 Npcink Cloud AI 连接提供文本输入。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:740
+#: includes/class-cloud-wordpress-ai-connector.php:761
 msgid "Image-to-image refinement is not supported by the Npcink Cloud AI connection yet."
 msgstr "Npcink Cloud AI 连接暂不支持图生图细化。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:741
+#: includes/class-cloud-wordpress-ai-connector.php:762
 msgid "This AI feature is not currently available through the Npcink Cloud connection."
 msgstr "该 AI 功能当前无法通过 Npcink Cloud 连接使用。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:742
+#: includes/class-cloud-wordpress-ai-connector.php:763
 msgid "Npcink Cloud did not return usable output for this request. Please try again."
 msgstr "Npcink Cloud 未返回可用的结果，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:743
+#: includes/class-cloud-wordpress-ai-connector.php:765
 msgid "Npcink Cloud returned an unexpected image result. Please try again."
 msgstr "Npcink Cloud 返回了异常的图片结果，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:744
+#: includes/class-cloud-wordpress-ai-connector.php:766
 msgid "The generated image previews are too large to show. Try generating fewer images at once."
 msgstr "生成的图片预览过大，无法显示。请尝试一次生成更少的图片。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:745
+#: includes/class-cloud-wordpress-ai-connector.php:767
 msgid "The generated image could not be verified for safe delivery. Please try again."
 msgstr "生成的图片未能通过安全投递校验，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:746
+#: includes/class-cloud-wordpress-ai-connector.php:768
 msgid "Npcink Cloud could not confirm delivery of the generated image. Please try again."
 msgstr "Npcink Cloud 未能确认图片已投递，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:747
+#: includes/class-cloud-wordpress-ai-connector.php:769
 msgid "The generated image is no longer available. Please generate it again."
 msgstr "生成的图片已失效，请重新生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:748
+#: includes/class-cloud-wordpress-ai-connector.php:770
 msgid "Npcink Cloud could not complete this AI request. Please try again in a moment."
 msgstr "Npcink Cloud 暂时无法完成该 AI 请求，请稍后重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:749
+#: includes/class-cloud-wordpress-ai-connector.php:771
 msgid "Npcink Cloud could not be reached from this site. Please try again in a moment."
 msgstr "本站点暂时无法连接 Npcink Cloud，请稍后重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:750
+#: includes/class-cloud-wordpress-ai-connector.php:772
 msgid "The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page."
 msgstr "Npcink Cloud 连接的授权已失效。请在 Cloud Addon 设置页面重新连接站点。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:751
+#: includes/class-cloud-wordpress-ai-connector.php:773
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr "该请求已达到 Npcink Cloud 的限额。请稍后重试，或在 Cloud 中查看套餐用量。"
 
@@ -2646,3 +2639,29 @@ msgstr "知识库更新未能投递。请在站点知识库标签页查看下一
 #: includes/class-cloud-media-source-validation.php:77
 msgid "Media upload descriptors require the direct byte source to be a string."
 msgstr "媒体上传描述符的直接字节源必须是字符串。"
+
+#. translators: %s: Cloud connectivity error.
+#: includes/class-cloud-settings-actions.php:556
+#, php-format
+msgid "The new Cloud connection could not be verified: %s. The connection details were saved, so use Check connection on this page to verify again."
+msgstr "新的 Cloud 连接未能通过验证：%s。连接信息已保存，请使用本页的“检查连接”重新验证。"
+
+#: includes/class-cloud-settings-actions.php:1073
+msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected."
+msgstr "允许 WordPress AI 使用 Npcink Cloud。站点保持连接期间默认启用。"
+
+#: includes/class-cloud-settings-page.php:900
+msgid "View upload detail"
+msgstr "查看上传详情"
+
+#: includes/class-cloud-settings-page.php:903
+msgid "View Site Knowledge status"
+msgstr "查看站点知识库状态"
+
+#: includes/class-cloud-settings-page.php:1333
+msgid "After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time."
+msgstr "连接后，WordPress AI 连接器将默认启用。站点知识库投递可随时在“概览”中开启或关闭。"
+
+#: includes/class-cloud-wordpress-ai-connector.php:764
+msgid "Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run."
+msgstr "Npcink Cloud 仍在处理此请求。请稍候再试，以免重复执行产生额外消耗。"
