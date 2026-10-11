@@ -75,6 +75,14 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		);
 
 		/**
+		 * Captured events waiting for the single end-of-request persistence
+		 * pass, or null when nothing has been captured yet.
+		 *
+		 * @var array<int,array<string,mixed>>|null
+		 */
+		private static ?array $pending_capture_events = null;
+
+		/**
 		 * Registers collection hooks.
 		 *
 		 * @return void
@@ -86,6 +94,10 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			add_action( 'npcink_openclaw_adapter_observability_event', array( __CLASS__, 'capture_event' ), 10, 1 );
 			add_action( self::CRON_HOOK, array( __CLASS__, 'flush_buffer' ) );
 			add_action( self::CRON_HOOK, array( __CLASS__, 'flush_editor_feedback' ), 20 );
+			// Registered up front instead of lazily: a callback re-added while
+			// its own hook is iterating never re-fires, so shutdown-time
+			// captures need the late-priority slot to persist.
+			add_action( 'shutdown', array( __CLASS__, 'persist_pending_events' ), PHP_INT_MAX, 0 );
 
 			self::sync_schedule();
 		}
@@ -255,22 +267,52 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 				return;
 			}
 
+			if ( null === self::$pending_capture_events ) {
+				self::$pending_capture_events = array();
+			}
+			self::$pending_capture_events[] = $normalized;
+		}
+
+		/**
+		 * Persists the events captured during this request in one bounded pass.
+		 *
+		 * @return void
+		 */
+		public static function persist_pending_events(): void {
+			$events = self::$pending_capture_events;
+			self::$pending_capture_events = null;
+			if ( null === $events || array() === $events ) {
+				return;
+			}
+			// Consent is re-checked at persistence time on purpose: once the
+			// operator turns monitoring off mid-request, no further monitoring
+			// rows are written — already-captured events are dropped without a
+			// status update (delete_data() clears the pending buffer the same
+			// way), unlike flush's explicit paused-state record, because there
+			// is nothing left to record once consent is gone.
+			if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+				return;
+			}
+
 			$buffer = get_option( self::BUFFER_OPTION, array() );
 			$buffer = is_array( $buffer ) ? array_values( $buffer ) : array();
-			$buffer[] = $normalized;
+			foreach ( $events as $normalized ) {
+				$buffer[] = $normalized;
+			}
 			if ( count( $buffer ) > self::MAX_BUFFER_ITEMS ) {
 				$buffer = array_slice( $buffer, -1 * self::MAX_BUFFER_ITEMS );
 			}
-
 			update_option( self::BUFFER_OPTION, $buffer, false );
+
+			$last_event = $events[ count( $events ) - 1 ];
 			update_option(
 				self::STATUS_OPTION,
 				array_merge(
 					self::get_raw_status(),
 					array(
 						'last_captured_at' => gmdate( 'c' ),
-						'last_event_kind'  => (string) $normalized['event_kind'],
-						'last_plugin_slug' => (string) $normalized['plugin_slug'],
+						'last_event_kind'  => (string) $last_event['event_kind'],
+						'last_plugin_slug' => (string) $last_event['plugin_slug'],
 						'buffer_count'     => count( $buffer ),
 					)
 				),
@@ -293,6 +335,11 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 				// an upload failure, so clear any prior error and stay quiet.
 				return self::record_monitoring_paused_result();
 			}
+
+			// Producer events fired earlier in this same cron round (for
+			// example editor-assist expiry at priority 5) must join the batch
+			// this flush is about to build, not wait for the next one.
+			self::persist_pending_events();
 
 			$buffer = get_option( self::BUFFER_OPTION, array() );
 			$buffer = is_array( $buffer ) ? array_values( $buffer ) : array();
@@ -476,6 +523,9 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		 * @return void
 		 */
 		public static function delete_data(): void {
+			// Drop captured-but-unsent events too, so a shutdown persist after
+			// this purge cannot re-create the just-deleted options.
+			self::$pending_capture_events = null;
 			delete_option( self::BUFFER_OPTION );
 			delete_option( self::STATUS_OPTION );
 			delete_option( self::SUMMARY_OPTION );

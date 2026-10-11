@@ -36,6 +36,7 @@ foreach ( array( false, true ) as $verified ) {
 				) );
 			}
 		}
+		Npcink_Cloud_Observability_Collector::persist_pending_events();
 		$events = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
 		maca_assert( ( $verified && $enabled ? 3 : 0 ) === count( $events ), 'Behavior: producer hooks retain verification and opt-in gates.' );
 		if ( $verified && $enabled ) {
@@ -173,6 +174,7 @@ maca_reset_test_state();
 maca_seed_settings( true );
 maca_set_monitoring_enabled( true );
 Npcink_Cloud_Observability_Collector::capture_event( maca_observability_event( 3 ) );
+Npcink_Cloud_Observability_Collector::persist_pending_events();
 $buffer = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
 maca_assert(
 		1 === count( $buffer )
@@ -193,6 +195,7 @@ maca_set_monitoring_enabled( true );
 for ( $i = 1; $i <= 205; $i++ ) {
 	Npcink_Cloud_Observability_Collector::capture_event( maca_observability_event( $i ) );
 }
+Npcink_Cloud_Observability_Collector::persist_pending_events();
 $buffer = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
 maca_assert(
 	200 === count( $buffer )
@@ -204,9 +207,31 @@ maca_assert(
 maca_reset_test_state();
 maca_seed_settings( true );
 maca_set_monitoring_enabled( true );
+$batch_reads_before = absint( $GLOBALS['maca_option_read_counts'][ Npcink_Cloud_Observability_Collector::BUFFER_OPTION ] ?? 0 );
+$batch_updates_before = absint( $GLOBALS['maca_option_update_counts'][ Npcink_Cloud_Observability_Collector::BUFFER_OPTION ] ?? 0 );
+for ( $i = 1; $i <= 4; $i++ ) {
+	Npcink_Cloud_Observability_Collector::capture_event( maca_observability_event( $i ) );
+}
+maca_assert(
+	$batch_reads_before === absint( $GLOBALS['maca_option_read_counts'][ Npcink_Cloud_Observability_Collector::BUFFER_OPTION ] ?? 0 )
+	&& $batch_updates_before === absint( $GLOBALS['maca_option_update_counts'][ Npcink_Cloud_Observability_Collector::BUFFER_OPTION ] ?? 0 ),
+	'Behavior: captured events perform no buffer option I/O until end-of-request persistence.'
+);
+Npcink_Cloud_Observability_Collector::persist_pending_events();
+maca_assert(
+	$batch_reads_before + 1 === absint( $GLOBALS['maca_option_read_counts'][ Npcink_Cloud_Observability_Collector::BUFFER_OPTION ] ?? 0 )
+	&& $batch_updates_before + 1 === absint( $GLOBALS['maca_option_update_counts'][ Npcink_Cloud_Observability_Collector::BUFFER_OPTION ] ?? 0 )
+	&& 4 === count( get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() ) ),
+	'Behavior: end-of-request persistence writes the whole captured batch once.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_monitoring_enabled( true );
 for ( $i = 1; $i <= 3; $i++ ) {
 	Npcink_Cloud_Observability_Collector::capture_event( maca_observability_event( $i ) );
 }
+Npcink_Cloud_Observability_Collector::persist_pending_events();
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 500 ),
 	'body'     => wp_json_encode(
@@ -321,6 +346,7 @@ maca_set_monitoring_enabled( true );
 for ( $i = 1; $i <= 3; $i++ ) {
 	Npcink_Cloud_Observability_Collector::capture_event( maca_observability_event( $i ) );
 }
+Npcink_Cloud_Observability_Collector::persist_pending_events();
 $GLOBALS['maca_http_response_queue'][] = static function ( string $url, array $args ): array {
 	unset( $url, $args );
 	Npcink_Cloud_Observability_Collector::capture_event( maca_observability_event( 4 ) );
@@ -336,6 +362,7 @@ $GLOBALS['maca_http_response_queue'][] = static function ( string $url, array $a
 	);
 };
 Npcink_Cloud_Observability_Collector::flush_buffer();
+Npcink_Cloud_Observability_Collector::persist_pending_events();
 $buffer = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
 maca_assert(
 	array( 'evt_3', 'evt_4' ) === array_column( $buffer, 'event_id' ),
@@ -516,6 +543,7 @@ $long_field_event = maca_observability_event( 1 );
 $long_field_event['status_detail'] = str_repeat( 'x', 120 );
 $long_field_event['error_code'] = str_repeat( 'e', 300 );
 Npcink_Cloud_Observability_Collector::capture_event( $long_field_event );
+Npcink_Cloud_Observability_Collector::persist_pending_events();
 $captured_long_fields = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
 maca_assert(
 	1 === count( $captured_long_fields )

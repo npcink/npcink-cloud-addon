@@ -28,6 +28,7 @@ if ( ! function_exists( 'wp_is_post_revision' ) ) {
  * @return array<int,array<string,mixed>>
  */
 function maca_editor_assist_events(): array {
+	Npcink_Cloud_Observability_Collector::persist_pending_events();
 	$events = get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() );
 
 	return is_array( $events ) ? array_values( $events ) : array();
