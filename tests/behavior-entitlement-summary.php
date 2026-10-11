@@ -609,3 +609,97 @@ maca_assert(
 	&& '' === (string) ( $inactive_state['last_verification_error'] ?? '' ),
 	'Behavior: auth.site_inactive becomes the connected activation-required state instead of a signature failure.'
 );
+
+maca_reset_test_state();
+maca_seed_settings( true );
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response(
+	array(
+		'status' => 'ok',
+		'data'   => array(
+			'contract_version' => 'cloud-billing-entitlement-v1',
+			'package'          => 'Pro',
+			'quota_summary'    => array(
+				'ai_credit_usage_detail' => array(
+					'summary'      => array(
+						'used'      => 12.5,
+						'limit'     => 100,
+						'remaining' => 87.5,
+						'unit'      => 'ai_credits',
+					),
+					'portal_paths' => array(
+						'ai_credit_usage'  => 'https://evil.example.test/phish',
+						'ai_credit_ledger' => '//evil.example.test/protocol-relative',
+					),
+				),
+			),
+		),
+	)
+);
+$hostile_links = is_array( Npcink_Cloud_Entitlement_Summary::get_cached_summary()['links'] ?? null )
+	? Npcink_Cloud_Entitlement_Summary::get_cached_summary()['links']
+	: array();
+
+maca_assert(
+	'https://cloud.example.test/portal/billing' === (string) ( $hostile_links['billing_url'] ?? '' )
+	&& ! array_key_exists( 'ai_credit_usage_url', $hostile_links )
+	&& ! array_key_exists( 'ai_credit_ledger_url', $hostile_links )
+	&& false === strpos( (string) wp_json_encode( $hostile_links ), 'evil.example.test' ),
+	'Behavior: absolute and protocol-relative Cloud portal paths are dropped instead of becoming admin links.'
+);
+
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response(
+	array(
+		'status' => 'ok',
+		'data'   => array(
+			'contract_version' => 'cloud-billing-entitlement-v1',
+			'package'          => 'Pro',
+			'quota_summary'    => array(
+				'ai_credit_usage_detail' => array(
+					'summary'      => array(
+						'used'      => 1,
+						'limit'     => 10,
+						'remaining' => 9,
+						'unit'      => 'ai_credits',
+					),
+					'portal_paths' => array(
+						'ai_credit_usage'  => '/portal/usage',
+						'ai_credit_ledger' => 'portal/ledger',
+					),
+				),
+			),
+		),
+	)
+);
+$anchored_summary = Npcink_Cloud_Entitlement_Summary::get_cached_summary();
+$anchored_links = is_array( $anchored_summary['links'] ?? null ) ? $anchored_summary['links'] : array();
+
+maca_assert(
+	'https://cloud.example.test/portal/usage' === (string) ( $anchored_links['ai_credit_usage_url'] ?? '' )
+	&& 'https://cloud.example.test/portal/ledger' === (string) ( $anchored_links['ai_credit_ledger_url'] ?? '' ),
+	'Behavior: relative Cloud portal paths stay anchored to the verified base URL.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$legacy_cache_key = 'npcink_cloud_entitlement_' . md5( 'https://cloud.example.test|site_test|key_test' );
+set_transient(
+	$legacy_cache_key,
+	array(
+		'state' => 'fresh',
+		'available' => true,
+		'links' => array(
+			'billing_url' => 'https://cloud.example.test/portal/billing',
+			'ai_credit_usage_url' => 'https://evil.example.test/phish',
+		),
+		'fresh_until' => gmdate( 'Y-m-d H:i:s', time() + 300 ) . ' UTC',
+	),
+	3600
+);
+$legacy_summary = Npcink_Cloud_Entitlement_Summary::get_cached_summary();
+
+maca_assert(
+	empty( $legacy_summary['available'] )
+	&& array() === ( $legacy_summary['links'] ?? null )
+	&& false === strpos( (string) wp_json_encode( $legacy_summary ), 'evil.example.test' ),
+	'Behavior: a pre-hardening entitlement cache entry under the legacy key is no longer served.'
+);

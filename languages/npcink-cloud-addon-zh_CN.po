@@ -194,7 +194,7 @@ msgstr "暂时无法获取套餐与权益。"
 msgid "Plan and entitlement are already being refreshed."
 msgstr "正在刷新套餐与权益。"
 
-#: includes/class-cloud-entitlement-summary.php:352
+#: includes/class-cloud-entitlement-summary.php:357
 msgid "Entitlement summary synced."
 msgstr "权益摘要已同步。"
 

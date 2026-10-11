@@ -284,6 +284,11 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 			$seed = implode(
 				'|',
 				array(
+				// Bump this schema marker when the cached summary shape or
+				// its sanitization rules change, so pre-change transients
+				// miss on the first read instead of serving stale content;
+				// keep Npcink_Cloud_Addon_Cleanup::delete_all() in lockstep.
+				'portal-links-v2',
 					(string) ( $settings['base_url'] ?? '' ),
 					(string) ( $settings['site_id'] ?? '' ),
 					(string) ( $settings['key_id'] ?? '' ),
@@ -599,11 +604,13 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 			);
 			$ai_credit_usage_path = sanitize_text_field( (string) ( $portal_paths['ai_credit_usage'] ?? '' ) );
 			$ai_credit_ledger_path = sanitize_text_field( (string) ( $portal_paths['ai_credit_ledger'] ?? '' ) );
-			if ( '' !== $ai_credit_usage_path ) {
-				$links['ai_credit_usage_url'] = self::build_portal_url( $base_url, $ai_credit_usage_path );
+			$ai_credit_usage_url = '' !== $ai_credit_usage_path ? self::build_portal_url( $base_url, $ai_credit_usage_path ) : '';
+			$ai_credit_ledger_url = '' !== $ai_credit_ledger_path ? self::build_portal_url( $base_url, $ai_credit_ledger_path ) : '';
+			if ( '' !== $ai_credit_usage_url ) {
+				$links['ai_credit_usage_url'] = $ai_credit_usage_url;
 			}
-			if ( '' !== $ai_credit_ledger_path ) {
-				$links['ai_credit_ledger_url'] = self::build_portal_url( $base_url, $ai_credit_ledger_path );
+			if ( '' !== $ai_credit_ledger_url ) {
+				$links['ai_credit_ledger_url'] = $ai_credit_ledger_url;
 			}
 
 			return $links;
@@ -613,16 +620,22 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 		 * Builds an absolute Cloud portal URL from a base URL and path.
 		 *
 		 * @param string $base_url Cloud base URL.
-		 * @param string $path Relative or absolute portal path.
-		 * @return string
+		 * @param string $path Cloud-supplied portal path.
+		 * @return string Absolute URL anchored to the base URL, or an empty
+		 *                string when the path is empty or carries any scheme
+		 *                or is protocol-relative (even on the same origin);
+		 *                only relative paths are accepted.
 		 */
 		private static function build_portal_url( string $base_url, string $path ): string {
 			$path = trim( $path );
 			if ( '' === $path ) {
-				$path = '/portal/usage';
+				return '';
 			}
-			if ( preg_match( '#^https?://#i', $path ) ) {
-				return esc_url_raw( $path );
+			// Portal destinations must stay anchored to the verified base URL so
+			// a compromised Cloud endpoint cannot aim the trusted admin settings
+			// page at an arbitrary host.
+			if ( preg_match( '#^[a-z][a-z0-9+.\-]*:#i', $path ) || str_starts_with( $path, '//' ) ) {
+				return '';
 			}
 
 			return esc_url_raw( $base_url . '/' . ltrim( $path, '/' ) );

@@ -15,7 +15,12 @@ maca_seed_settings( true );
 
 $settings = Npcink_Cloud_Addon_Settings::get_settings();
 $seed = implode( '|', array( $settings['base_url'], $settings['site_id'], $settings['key_id'] ) );
-$entitlement_key = 'npcink_cloud_entitlement_' . md5( $seed );
+$legacy_entitlement_key = 'npcink_cloud_entitlement_' . md5( $seed );
+$entitlement_cache_key_method = new ReflectionMethod( 'Npcink_Cloud_Entitlement_Summary', 'cache_key' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$entitlement_cache_key_method->setAccessible( true );
+}
+$entitlement_key = $entitlement_cache_key_method->invoke( null, $settings );
 $site_knowledge_key = 'npcink_cloud_site_knowledge_status_' . md5( $seed );
 
 foreach (
@@ -40,6 +45,8 @@ foreach (
 }
 $GLOBALS['maca_transients'][ $entitlement_key ] = array( 'cached' => true );
 $GLOBALS['maca_transients'][ $entitlement_key . '_refresh_failure' ] = array( 'message' => 'failed' );
+$GLOBALS['maca_transients'][ $legacy_entitlement_key ] = array( 'pre_schema' => true );
+$GLOBALS['maca_transients'][ $legacy_entitlement_key . '_refresh_failure' ] = array( 'message' => 'failed' );
 $GLOBALS['maca_transients'][ $site_knowledge_key ] = array( 'cached' => true );
 $GLOBALS['maca_transients'][ $site_knowledge_key . '_media_evidence_ids' ] = array( 501, 502 );
 foreach (
