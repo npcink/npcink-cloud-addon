@@ -70,12 +70,20 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 					(string) ( $settings['key_id'] ?? '' ),
 				)
 			);
-			$entitlement_key = 'npcink_cloud_entitlement_' . md5( $credential_seed );
+			// Entitlement keys must stay in lockstep with the entitlement
+			// summary cache key derivation, schema marker included;
+			// behavior-cleanup.php fails when they drift. Legacy keys
+			// predate the marker and are removed best-effort until they expire.
+			$entitlement_key = 'npcink_cloud_entitlement_' . md5( 'portal-links-v2|' . $credential_seed );
+			$legacy_entitlement_key = 'npcink_cloud_entitlement_' . md5( $credential_seed );
 			$site_knowledge_status_key = 'npcink_cloud_site_knowledge_status_' . md5( $credential_seed );
 
 			delete_transient( $entitlement_key );
 			delete_transient( $entitlement_key . '_refresh_failure' );
 			delete_option( $entitlement_key . '_refresh_lock' );
+			delete_transient( $legacy_entitlement_key );
+			delete_transient( $legacy_entitlement_key . '_refresh_failure' );
+			delete_option( $legacy_entitlement_key . '_refresh_lock' );
 			delete_transient( $site_knowledge_status_key );
 			delete_transient( $site_knowledge_status_key . '_media_evidence_ids' );
 			delete_option( $site_knowledge_status_key . '_lock' );

@@ -123,6 +123,7 @@ maca_assert(
 maca_assert(
 	false !== strpos( $bootstrap, "require_once __DIR__ . '/class-cloud-addon-cleanup.php'" )
 	&& false !== strpos( $cleanup, 'npcink_cloud_addon_wp_ai_connector_connected' )
+	&& false !== strpos( $cleanup, "'portal-links-v2|'" )
 	&& false !== strpos( $cleanup, "'_refresh_failure'" )
 	&& false !== strpos( $cleanup, "'_refresh_lock'" )
 	&& false !== strpos( $cleanup, "'_lock'" )
@@ -1323,6 +1324,7 @@ maca_assert(
 	&& false !== strpos( $entitlement_summary, "'available' => 'ai_credits' === \$unit" )
 	&& false === strpos( $entitlement_summary, "?? 'ai_credits'" )
 	&& false === strpos( $entitlement_summary, "['credit_usage_detail']" )
+	&& false === strpos( $entitlement_summary, 'return esc_url_raw( $path );' )
 	&& false !== strpos( $settings_page, 'get_overview_entitlement_metrics' )
 	&& false !== strpos( $settings_page, 'format_overview_package_label' )
 	&& false !== strpos( $settings_page, "'Free plan'" )
