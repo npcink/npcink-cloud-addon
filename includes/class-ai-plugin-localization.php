@@ -19,6 +19,13 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		private const AI_TEXT_DOMAIN = 'ai';
 
 		/**
+		 * Whether the inline JS locale payload already shipped this request.
+		 *
+		 * @var bool
+		 */
+		private static bool $script_payload_enqueued = false;
+
+		/**
 		 * Registers admin-only localization hooks.
 		 *
 		 * @return void
@@ -27,7 +34,6 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 			add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
 			add_filter( 'ngettext', array( __CLASS__, 'filter_ngettext' ), 20, 5 );
 			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_script_locale_data' ), 1 );
-			add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_script_locale_data' ), 1 );
 		}
 
 		/**
@@ -86,10 +92,22 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		/**
 		 * Adds JS locale data for AI plugin React/admin screens.
 		 *
+		 * @param string $hook Admin hook suffix from admin_enqueue_scripts.
+		 *                     An empty suffix (direct call, or the no-argument
+		 *                     enqueue_block_editor_assets hook) skips: every
+		 *                     real admin screen already passes its suffix, and
+		 *                     the post editor is covered by post.php /
+		 *                     post-new.php.
 		 * @return void
 		 */
-		public static function enqueue_script_locale_data(): void {
-			if ( ! self::should_localize() || ! function_exists( 'wp_enqueue_script' ) || ! function_exists( 'wp_localize_script' ) ) {
+		public static function enqueue_script_locale_data( string $hook = '' ): void {
+			if ( self::$script_payload_enqueued
+				|| ! self::should_localize()
+				|| ! function_exists( 'wp_enqueue_script' )
+				|| ! function_exists( 'wp_localize_script' ) ) {
+				return;
+			}
+			if ( ! self::is_ai_payload_surface( $hook ) ) {
 				return;
 			}
 
@@ -115,6 +133,42 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				$handle,
 				'NpcinkCloudAiPluginLocalization',
 				array( 'localeData' => $locale_data )
+			);
+			// Both the admin and block editor hooks fire on post editor
+			// screens; WordPress appends a second copy of localized data on
+			// repeat calls, so the payload must ship exactly once.
+			self::$script_payload_enqueued = true;
+		}
+
+		/**
+		 * Returns whether an admin screen renders ai-domain JS.
+		 *
+		 * The payload is an uncacheable inline script, so it may only ship on
+		 * surfaces that consume it: the AI plugin's own admin screens, its
+		 * Connectors screen, the core Comments screen and dashboard Activity
+		 * widget decorated by the reply-suggestion and comment-moderation
+		 * features, the media library bulk alt-text surfaces, and the post
+		 * editor screens.
+		 *
+		 * @param string $hook Admin hook suffix.
+		 * @return bool
+		 */
+		private static function is_ai_payload_surface( string $hook ): bool {
+			if ( false !== strpos( $hook, '_page_ai-' ) ) {
+				return true;
+			}
+
+			return in_array(
+				$hook,
+				array(
+					'edit-comments.php',
+					'index.php',
+					'upload.php',
+					'post.php',
+					'post-new.php',
+					'options-connectors',
+				),
+				true
 			);
 		}
 
