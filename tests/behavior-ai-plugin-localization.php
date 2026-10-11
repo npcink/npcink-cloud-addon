@@ -1343,7 +1343,7 @@ maca_assert(
 );
 
 $GLOBALS['maca_is_admin'] = true;
-Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data();
+Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data( 'post.php' );
 $enqueued_script = $GLOBALS['maca_enqueued_scripts'][0] ?? array();
 $localized_script = $GLOBALS['maca_localized_scripts'][0] ?? array();
 $locale_data = isset( $localized_script['data']['localeData'] ) && is_array( $localized_script['data']['localeData'] )
@@ -1399,4 +1399,47 @@ maca_assert(
 	&& '无法生成回复建议。请确保已连接支持文本生成的提供方。' === ( $locale_data['Reply suggestion could not be generated. Please ensure you have a connected provider that supports text generation.'][0] ?? '' )
 	&& '%d 条评论已加入分析队列。' === ( $locale_data['%d comment queued for analysis.'][0] ?? '' ),
 	'AI plugin localization enqueues an asset-backed wp.i18n locale data shim for JS admin screens.'
+);
+
+$payload_guard = new ReflectionProperty( 'Npcink_Cloud_AI_Plugin_Localization', 'script_payload_enqueued' );
+$payload_guard->setAccessible( true );
+$payload_hook_cases = array(
+	'settings_page_ai-wp-admin'     => true,
+	'tools_page_ai-request-logs'    => true,
+	'tools_page_ai-abilities-explorer' => true,
+	'options-connectors'            => true,
+	'edit-comments.php'             => true,
+	'index.php'                     => true,
+	'upload.php'                    => true,
+	'post.php'                      => true,
+	'post-new.php'                  => true,
+	''                              => false,
+	'plugins.php'                   => false,
+	'settings_page_general'         => false,
+	'edit.php'                      => false,
+	'tools_page_export.php'         => false,
+	'site-editor.php'               => false,
+	'widgets.php'                   => false,
+);
+foreach ( $payload_hook_cases as $payload_hook_case => $payload_hook_allowed ) {
+	$payload_guard->setValue( null, false );
+	$GLOBALS['maca_enqueued_scripts'] = array();
+	$GLOBALS['maca_localized_scripts'] = array();
+	Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data( $payload_hook_case );
+	maca_assert(
+		( $payload_hook_allowed ? 1 : 0 ) === count( $GLOBALS['maca_enqueued_scripts'] )
+		&& ( $payload_hook_allowed ? 1 : 0 ) === count( $GLOBALS['maca_localized_scripts'] ),
+		'AI plugin localization payload gate ' . ( $payload_hook_allowed ? 'allows' : 'skips' ) . ' hook ' . ( '' === $payload_hook_case ? '(empty suffix)' : $payload_hook_case ) . '.'
+	);
+}
+
+$payload_guard->setValue( null, false );
+$GLOBALS['maca_enqueued_scripts'] = array();
+$GLOBALS['maca_localized_scripts'] = array();
+Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data( 'post.php' );
+Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data();
+maca_assert(
+	1 === count( $GLOBALS['maca_enqueued_scripts'] )
+	&& 1 === count( $GLOBALS['maca_localized_scripts'] ),
+	'AI plugin localization prints the inline payload once per request; the no-argument block editor hook adds nothing beyond the post editor suffix.'
 );

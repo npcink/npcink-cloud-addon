@@ -47,6 +47,16 @@ The implementation is intentionally static:
 - It only runs in `wp-admin`.
 - It only runs for Chinese locales (`zh_*`).
 - It only targets text domain `ai`.
+- Its inline JS locale payload enqueues only on surfaces that render
+  `ai`-domain JS — the AI plugin's own admin screens (hook suffix containing
+  `_page_ai-`), its Connectors screen (`options-connectors`), the core
+  Comments screen and dashboard Activity widget used by the reply-suggestion
+  and comment-moderation features, the media library bulk alt-text surfaces,
+  and the post editor screens — not on every `wp-admin` page. The payload is
+  uncacheable inline HTML that must ship exactly once per request, so it must
+  not ship to screens that never render `ai`-domain JS; when the AI plugin
+  decorates a new surface, extend the `is_ai_payload_surface()` allowlist in
+  the same change.
 - It feeds PHP gettext, PHP ngettext (Chinese locales have no plural
   distinction, so the singular source key always maps), and
   `wp.i18n.setLocaleData()` through the same translation map.
