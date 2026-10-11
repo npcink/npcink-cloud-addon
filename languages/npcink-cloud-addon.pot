@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-11T02:33:39+00:00\n"
+"POT-Creation-Date: 2026-10-11T04:27:39+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -511,13 +511,13 @@ msgstr ""
 msgid "Media derivative runtime artifacts require a valid future expiry."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:288
+#: includes/class-cloud-observability-collector.php:330
 msgid "Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:351
-#: includes/class-cloud-observability-collector.php:425
-#: includes/class-cloud-observability-collector.php:459
+#: includes/class-cloud-observability-collector.php:398
+#: includes/class-cloud-observability-collector.php:472
+#: includes/class-cloud-observability-collector.php:506
 #: includes/class-cloud-settings-actions.php:336
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:91
@@ -527,23 +527,23 @@ msgstr ""
 msgid "Cloud Addon settings are not verified."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:375
+#: includes/class-cloud-observability-collector.php:422
 msgid "Cloud did not accept the monitoring state projection."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1420
+#: includes/class-cloud-observability-collector.php:1470
 msgid "Core"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1425
+#: includes/class-cloud-observability-collector.php:1475
 msgid "Abilities"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1430
+#: includes/class-cloud-observability-collector.php:1480
 msgid "Adapter"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1435
+#: includes/class-cloud-observability-collector.php:1485
 #: includes/class-cloud-settings-page.php:134
 #: includes/class-cloud-settings-page.php:1233
 msgid "Cloud Addon"
