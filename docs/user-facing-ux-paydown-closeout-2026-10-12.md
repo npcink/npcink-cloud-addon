@@ -25,10 +25,11 @@ persistent field, router/prompt/preset ownership, scheduler truth, billing
 truth, or WordPress write authority. Endpoint allowlists, credential handling,
 Site Knowledge delivery ownership, and Cloud index lifecycle remain unchanged.
 
-The following remain explicitly open: GlotPress stable/dev Waiting, Fuzzy and
-Untranslated work; stable/dev readme translations; B-class admin UX items;
-provider acceptance rerun; image artifact continuation; and capability
-stale-while-revalidate. These require browser access, provider recovery, or
+GlotPress stable/dev and readme translations were subsequently completed in a
+separate operational step; see the [2026-10-12 translation closeout](wordpress-org-release-and-translation-log.md#2026-10-12-zh_cn-glotpress-closeout)
+for the live counts and scope limits. B-class admin UX items, the provider
+acceptance rerun, image artifact continuation, and capability
+stale-while-revalidate remain open. These require provider recovery or
 Cloud/contract-level work and are not represented as completed here.
 
 ## Verification evidence
