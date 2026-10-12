@@ -310,6 +310,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			check_admin_referer( self::ACTION_DISCONNECT );
 
+			if ( ! self::has_disconnect_confirmation() ) {
+				self::set_admin_notice(
+					'error',
+					__( 'Confirm the local disconnect before submitting this action.', 'npcink-cloud-addon' )
+				);
+				self::redirect_to_page( 'status' );
+			}
+
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
 			Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
 
@@ -884,6 +892,18 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			wp_safe_redirect( $url );
 			exit;
+		}
+
+		/**
+		 * Checks the explicit confirmation marker from either the JS or noscript path.
+		 *
+		 * @return bool
+		 */
+		private static function has_disconnect_confirmation(): bool {
+			$js_confirmation       = isset( $_POST['js_confirmation'] ) && '1' === (string) wp_unslash( $_POST['js_confirmation'] );
+			$noscript_confirmation = isset( $_POST['noscript_confirmation'] ) && '1' === (string) wp_unslash( $_POST['noscript_confirmation'] );
+
+			return $js_confirmation || $noscript_confirmation;
 		}
 
 		/**

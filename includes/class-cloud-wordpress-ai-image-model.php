@@ -352,10 +352,14 @@ if (
 					|| $byte_size < 1
 					|| $byte_size > self::MAX_IMAGE_BYTES
 					|| 1 !== preg_match( '/^sha256:[0-9a-f]{64}$/', $checksum )
-					|| false === $expires_ts
-					|| $expires_ts <= time()
 				) {
 					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
+				}
+				if ( false === $expires_ts ) {
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
+				}
+				if ( $expires_ts <= time() ) {
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_expired', 'cloud_wp_ai_image_artifact_purged' ) );
 				}
 
 				$download = $client->pull_media_artifact( $artifact_id, $trace_id );

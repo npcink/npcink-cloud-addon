@@ -130,12 +130,12 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		public static function project_registered_ability( string $ability_name ) {
 			$ability_name = trim( $ability_name );
 			if ( '' === $ability_name || ! function_exists( 'wp_get_ability' ) ) {
-				return self::error( 'cloud_ai_task_ability_unavailable', 'A registered WordPress Ability is required for Cloud AI task execution.' );
+				return self::error( 'cloud_ai_task_ability_unavailable', __( 'A registered WordPress Ability is required for Cloud AI task execution.', 'npcink-cloud-addon' ) );
 			}
 
 			$ability = wp_get_ability( $ability_name );
 			if ( ! is_object( $ability ) || ! method_exists( $ability, 'get_name' ) || ! method_exists( $ability, 'get_meta' ) || ! method_exists( $ability, 'get_output_schema' ) ) {
-				return self::error( 'cloud_ai_task_ability_not_registered', 'The requested WordPress Ability is not registered.' );
+				return self::error( 'cloud_ai_task_ability_not_registered', __( 'The requested WordPress Ability is not registered.', 'npcink-cloud-addon' ) );
 			}
 
 			$meta       = $ability->get_meta();
@@ -151,7 +151,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			 */
 			$projection = apply_filters( 'npcink_cloud_ai_task_contract_projection', $projection, $ability );
 			if ( ! is_array( $projection ) || empty( $projection ) ) {
-				return self::error( 'cloud_ai_task_contract_missing', 'The registered Ability does not publish a Cloud AI task contract.' );
+				return self::error( 'cloud_ai_task_contract_missing', __( 'The registered Ability does not publish a Cloud AI task contract.', 'npcink-cloud-addon' ) );
 			}
 
 			$projection['contract_version'] = self::VERSION;
@@ -190,24 +190,24 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		 */
 		private static function validate_toolkit_contract( string $ability_name, array $input_schema, array $output_schema, array $ability_meta ) {
 			if ( ! function_exists( 'npcink_abilities_toolkit_get_registered' ) ) {
-				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract source is unavailable for this Ability.' );
+				return self::error( 'cloud_ai_task_contract_drift', __( 'The Toolkit contract source is unavailable for this Ability.', 'npcink-cloud-addon' ) );
 			}
 
 			$registered = npcink_abilities_toolkit_get_registered();
 			$toolkit    = is_array( $registered ) && is_array( $registered[ $ability_name ] ?? null ) ? $registered[ $ability_name ] : null;
 			if ( ! is_array( $toolkit ) ) {
-				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract is missing for this Ability.' );
+				return self::error( 'cloud_ai_task_contract_drift', __( 'The Toolkit contract is missing for this Ability.', 'npcink-cloud-addon' ) );
 			}
 
 			$toolkit_input  = is_array( $toolkit['input_schema'] ?? null ) ? $toolkit['input_schema'] : array();
 			$toolkit_output = is_array( $toolkit['output_schema'] ?? null ) ? $toolkit['output_schema'] : array();
 			$toolkit_hash   = (string) ( $toolkit['schema_hash'] ?? self::schema_hash( $toolkit_input, $toolkit_output ) );
 			if ( self::schema_hash( $input_schema, $output_schema ) !== $toolkit_hash || self::schema_hash( $toolkit_input, $toolkit_output ) !== $toolkit_hash ) {
-				return self::error( 'cloud_ai_task_contract_drift', 'The WordPress Ability schema does not match the Toolkit contract.' );
+				return self::error( 'cloud_ai_task_contract_drift', __( 'The WordPress Ability schema does not match the Toolkit contract.', 'npcink-cloud-addon' ) );
 			}
 
 			if ( self::TOOLKIT_CONTRACT_VERSION !== (string) ( $toolkit['contract_version'] ?? '' ) || (string) ( $toolkit['ability_id'] ?? $ability_name ) !== $ability_name ) {
-				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract version or Ability identity is invalid.' );
+				return self::error( 'cloud_ai_task_contract_drift', __( 'The Toolkit contract version or Ability identity is invalid.', 'npcink-cloud-addon' ) );
 			}
 
 			$risk_level        = (string) ( $toolkit['risk_level'] ?? 'read' );
@@ -216,15 +216,15 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			$implementation    = is_array( $toolkit['implementation_posture'] ?? null ) ? $toolkit['implementation_posture'] : array();
 			$write_posture     = (string) ( $toolkit['write_posture'] ?? $implementation['write_posture'] ?? ( 'read' === $risk_level ? 'read_only' : '' ) );
 			if ( ! in_array( $risk_level, array( 'read', 'write', 'destructive' ), true ) || $requires_approval !== $expected_approval || ! in_array( $write_posture, array( 'read_only', 'host_governed_dry_run_first' ), true ) ) {
-				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit contract permission or write posture is incompatible with the local Ability.' );
+				return self::error( 'cloud_ai_task_contract_drift', __( 'The Toolkit contract permission or write posture is incompatible with the local Ability.', 'npcink-cloud-addon' ) );
 			}
 
 			$local_npcink = is_array( $ability_meta['npcink'] ?? null ) ? $ability_meta['npcink'] : array();
 			if ( isset( $local_npcink['risk_level'] ) && (string) $local_npcink['risk_level'] !== $risk_level ) {
-				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit risk level does not match the registered WordPress Ability.' );
+				return self::error( 'cloud_ai_task_contract_drift', __( 'The Toolkit risk level does not match the registered WordPress Ability.', 'npcink-cloud-addon' ) );
 			}
 			if ( isset( $local_npcink['requires_approval'] ) && (bool) $local_npcink['requires_approval'] !== $requires_approval ) {
-				return self::error( 'cloud_ai_task_contract_drift', 'The Toolkit approval requirement does not match the registered WordPress Ability.' );
+				return self::error( 'cloud_ai_task_contract_drift', __( 'The Toolkit approval requirement does not match the registered WordPress Ability.', 'npcink-cloud-addon' ) );
 			}
 
 			return true;
@@ -238,7 +238,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		 */
 		public static function normalize( array $projection ) {
 			if ( self::VERSION !== (string) ( $projection['contract_version'] ?? '' ) ) {
-				return self::error( 'cloud_ai_task_contract_version_invalid', 'AI task contracts require ai_task_contract.v1.' );
+				return self::error( 'cloud_ai_task_contract_version_invalid', __( 'AI task contracts require ai_task_contract.v1.', 'npcink-cloud-addon' ) );
 			}
 
 			$ability_name = trim( (string) ( $projection['ability_name'] ?? '' ) );
@@ -250,32 +250,32 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			$family       = sanitize_key( (string) ( $projection['task_family'] ?? '' ) );
 			$valid_ability_name = 1 === preg_match( '/^[a-z0-9_-]+\/[a-z0-9_-]+$/', $ability_name );
 			if ( ! $valid_ability_name || $ability_id !== $ability_name || ! in_array( $contract_source, array( self::CONTRACT_SOURCE_WORDPRESS, self::CONTRACT_SOURCE_TOOLKIT ), true ) || ! in_array( $verification_state, array( 'registered', 'mapped', 'schema_valid', 'mapping_current', 'contract_drift', 'unsupported' ), true ) || '' === $task || $task !== $raw_task || strlen( $task ) > 64 || ! in_array( $family, self::ALLOWED_FAMILIES, true ) ) {
-				return self::error( 'cloud_ai_task_contract_identity_invalid', 'AI task contracts require a registered ability, task, and supported task family.' );
+				return self::error( 'cloud_ai_task_contract_identity_invalid', __( 'AI task contracts require a registered ability, task, and supported task family.', 'npcink-cloud-addon' ) );
 			}
 			if ( 'mapping_current' !== $verification_state ) {
-				return self::error( 'cloud_ai_task_contract_not_current', 'AI task contract verification must be mapping_current before Cloud execution.' );
+				return self::error( 'cloud_ai_task_contract_not_current', __( 'AI task contract verification must be mapping_current before Cloud execution.', 'npcink-cloud-addon' ) );
 			}
 
 			$contexts    = self::normalize_list( $projection['context_requirements'] ?? array(), self::ALLOWED_CONTEXTS );
 			$constraints = self::normalize_list( $projection['constraints'] ?? array(), self::ALLOWED_CONSTRAINTS );
 			if ( is_wp_error( $contexts ) || is_wp_error( $constraints ) ) {
-				return self::error( 'cloud_ai_task_contract_vocabulary_invalid', 'AI task contracts contain an unsupported context requirement or constraint.' );
+				return self::error( 'cloud_ai_task_contract_vocabulary_invalid', __( 'AI task contracts contain an unsupported context requirement or constraint.', 'npcink-cloud-addon' ) );
 			}
 
 			$output_schema = is_array( $projection['output_schema'] ?? null ) ? $projection['output_schema'] : array();
 			$input_schema  = is_array( $projection['input_schema'] ?? null ) ? $projection['input_schema'] : array();
 			$schema_hash  = (string) ( $projection['schema_hash'] ?? '' );
 			if ( '' !== $schema_hash && 1 !== preg_match( '/^sha256:[a-f0-9]{64}$/', $schema_hash ) ) {
-				return self::error( 'cloud_ai_task_schema_hash_invalid', 'AI task contracts require a stable sha256 schema hash.' );
+				return self::error( 'cloud_ai_task_schema_hash_invalid', __( 'AI task contracts require a stable sha256 schema hash.', 'npcink-cloud-addon' ) );
 			}
 			$encoded       = wp_json_encode( $output_schema );
 			if ( ! is_string( $encoded ) || strlen( $encoded ) > 12000 ) {
-				return self::error( 'cloud_ai_task_output_schema_invalid', 'The Ability output schema is too large for runtime projection.' );
+				return self::error( 'cloud_ai_task_output_schema_invalid', __( 'The Ability output schema is too large for runtime projection.', 'npcink-cloud-addon' ) );
 			}
 			if ( '' !== $schema_hash ) {
 				$expected_hash = self::schema_hash( $input_schema, $output_schema );
 				if ( $expected_hash !== $schema_hash ) {
-					return self::error( 'cloud_ai_task_schema_hash_mismatch', 'The AI task contract schema hash does not match its input and output schemas.' );
+					return self::error( 'cloud_ai_task_schema_hash_mismatch', __( 'The AI task contract schema hash does not match its input and output schemas.', 'npcink-cloud-addon' ) );
 				}
 			}
 
@@ -301,25 +301,25 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		/** @return array<int,string>|WP_Error */
 		private static function normalize_list( $value, array $allowed ) {
 			if ( ! is_array( $value ) ) {
-				return self::error( 'cloud_ai_task_contract_list_invalid', 'AI task contract list fields must be arrays.' );
+				return self::error( 'cloud_ai_task_contract_list_invalid', __( 'AI task contract list fields must be arrays.', 'npcink-cloud-addon' ) );
 			}
 			$is_list = empty( $value ) || array_keys( $value ) === range( 0, count( $value ) - 1 );
 			if ( ! $is_list ) {
-				return self::error( 'cloud_ai_task_contract_list_invalid', 'AI task contract list fields must be arrays.' );
+				return self::error( 'cloud_ai_task_contract_list_invalid', __( 'AI task contract list fields must be arrays.', 'npcink-cloud-addon' ) );
 			}
 			foreach ( $value as $item ) {
 				if ( ! is_string( $item ) ) {
-					return self::error( 'cloud_ai_task_contract_value_invalid', 'AI task contract list fields must contain strings.' );
+					return self::error( 'cloud_ai_task_contract_value_invalid', __( 'AI task contract list fields must contain strings.', 'npcink-cloud-addon' ) );
 				}
 			}
 			$normalized = array_values( array_unique( array_map( 'sanitize_key', $value ) ) );
 			foreach ( $normalized as $item ) {
 				if ( ! in_array( $item, $allowed, true ) ) {
-					return self::error( 'cloud_ai_task_contract_value_invalid', 'AI task contract list fields contain an unsupported value.' );
+					return self::error( 'cloud_ai_task_contract_value_invalid', __( 'AI task contract list fields contain an unsupported value.', 'npcink-cloud-addon' ) );
 				}
 			}
 			if ( in_array( 'none', $normalized, true ) && 1 !== count( $normalized ) ) {
-				return self::error( 'cloud_ai_task_contract_none_invalid', 'AI task contract context none cannot be combined with other values.' );
+				return self::error( 'cloud_ai_task_contract_none_invalid', __( 'AI task contract context none cannot be combined with other values.', 'npcink-cloud-addon' ) );
 			}
 			return $normalized;
 		}

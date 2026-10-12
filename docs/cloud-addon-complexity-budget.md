@@ -86,20 +86,25 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-runtime-media-payloads.php` — 280 lines (static
   multipart assembly and exact upload/delivery-ack response validation for
   the bounded media endpoints)
-- `includes/class-cloud-settings-page.php` — 2207 lines (was 3280 before the
-  2026-10-04 handler split into `class-cloud-settings-actions.php`)
-- `includes/class-cloud-settings-actions.php` — 1131 lines (settings request
+- `includes/class-cloud-settings-page.php` — 2221 lines (was 3280 before the
+  2026-10-04 handler split into `class-cloud-settings-actions.php`; raised from
+  2207 for the 2026-10-12 locale-aware privacy URL, no-JS disconnect confirmation,
+  and removal of the retired Site Knowledge coverage renderer)
+- `includes/class-cloud-settings-actions.php` — 1151 lines (settings request
   handlers and their transient state; the render class stays a projection;
   raised from 1106 with reason: the 2026-10-11 first-connection verify-failure
   path keeps exchanged credentials in the unverified state instead of
-  discarding them)
+  discarding them; raised again for the 2026-10-12 server-side no-JS disconnect
+  confirmation guard)
 - `includes/class-cloud-wordpress-ai-connector.php` — 1024 lines (was 2767 before the
   2026-10-06 per-class split into seven satellite files; raised from 1002 with
   reason: the 2026-10-11 in-progress run probe shares one
   `response_indicates_in_progress_run()` helper across the three models)
 - `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 338 lines
 - `includes/class-cloud-wordpress-ai-availability.php` — 32 lines
-- `includes/class-cloud-wordpress-ai-image-model.php` — 492 lines
+- `includes/class-cloud-wordpress-ai-image-model.php` — 496 lines (raised from
+  492 for the 2026-10-12 precise expired-artifact classification before
+  verified media delivery)
 - `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
 - `includes/class-cloud-wordpress-ai-text-model.php` — 390 lines

@@ -683,13 +683,21 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<form class="npcink-cloud-disconnect-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( Npcink_Cloud_Settings_Actions::ACTION_DISCONNECT ) ); ?>" />
 				<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_DISCONNECT ); ?>" />
+				<input type="hidden" name="js_confirmation" value="0" />
 				<button
 					type="submit"
 					class="button button-secondary npcink-cloud-button-danger"
-					onclick="return confirm('<?php echo esc_js( __( 'Disconnect this WordPress site? Cloud features will stop here and local connection data will be cleared. The site and its data will remain in Cloud.', 'npcink-cloud-addon' ) ); ?>');"
+					onclick="if (!window.confirm('<?php echo esc_js( __( 'Disconnect this WordPress site? Cloud features will stop here and local connection data will be cleared. The site and its data will remain in Cloud.', 'npcink-cloud-addon' ) ); ?>')) { return false; } this.form.elements.namedItem('js_confirmation').value = '1'; return true;"
 				>
 					<?php esc_html_e( 'Disconnect this site', 'npcink-cloud-addon' ); ?>
 				</button>
+				<noscript>
+					<p class="description"><strong><?php esc_html_e( 'Confirm local disconnect before submitting.', 'npcink-cloud-addon' ); ?></strong></p>
+					<label>
+						<input type="checkbox" name="noscript_confirmation" value="1" required />
+						<?php esc_html_e( 'I understand that this clears only the WordPress-side connection and addon buffers.', 'npcink-cloud-addon' ); ?>
+					</label>
+				</noscript>
 			</form>
 			<?php
 		}
@@ -1331,7 +1339,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php self::render_authorization_form( __( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary button-hero' ); ?>
 				<p class="description"><?php esc_html_e( 'Cloud will create or activate this site connection and return here with a one-time authorization code.', 'npcink-cloud-addon' ); ?></p>
 				<p class="description"><?php esc_html_e( 'After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time.', 'npcink-cloud-addon' ); ?></p>
-				<p class="description"><a href="https://cloud.npc.ink/terms/en/privacy.html" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Review Cloud privacy and data retention information', 'npcink-cloud-addon' ); ?></a></p>
+				<p class="description"><a href="<?php echo esc_url( self::privacy_policy_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Review Cloud privacy and data retention information', 'npcink-cloud-addon' ); ?></a></p>
 				<p class="description"><?php esc_html_e( 'Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud.', 'npcink-cloud-addon' ); ?></p>
 			</div>
 			<details class="npcink-cloud-endpoint-advanced">
@@ -1528,7 +1536,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					return;
 					endif;
 					?>
-					<?php self::render_site_knowledge_article_coverage( $status_summary ); ?>
 					<span hidden data-npcink-site-knowledge-refresh data-npcink-site-knowledge-state="<?php echo esc_attr( (string) ( $cloud_usage['state'] ?? 'not_refreshed' ) ); ?>"></span>
 		<?php
 		}
@@ -1544,12 +1551,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				</form>
 			</div>
 			<?php
-		}
-
-		/** Renders the JS anchor for the article-level Cloud index comparison. */
-		private static function render_site_knowledge_article_coverage( array $summary ): void {
-			unset( $summary );
-			?><span hidden data-npcink-site-knowledge-article-coverage></span><?php
 		}
 
 		/**
@@ -2199,6 +2200,21 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			return function_exists( 'wp_date' ) ? wp_date( 'Y-m-d H:i', $timestamp ) : gmdate( 'Y-m-d H:i', $timestamp );
+		}
+
+		/**
+		 * Returns the fixed Cloud privacy URL for the current administrator locale.
+		 *
+		 * @return string
+		 */
+		private static function privacy_policy_url(): string {
+			$locale = function_exists( 'determine_locale' )
+				? (string) determine_locale()
+				: ( function_exists( 'get_locale' ) ? (string) get_locale() : '' );
+			$locale = strtolower( str_replace( '-', '_', $locale ) );
+			$path = ( 'zh' === $locale || 0 === strpos( $locale, 'zh_' ) ) ? 'zh' : 'en';
+
+			return 'https://cloud.npc.ink/terms/' . $path . '/privacy.html';
 		}
 
 	}
