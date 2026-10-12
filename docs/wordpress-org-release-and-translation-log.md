@@ -2,7 +2,7 @@
 
 Status: active operational handoff.
 
-Last updated: 2026-10-07.
+Last updated: 2026-10-12.
 
 This document records the WordPress.org release, assets, legal pages, and zh_CN
 translation work completed for `npcink-cloud-addon`.
@@ -47,6 +47,62 @@ Known SVN revisions:
 - `r3652021`: release `0.1.8` with privacy-safe customer journey delivery,
   clearer monitoring disclosure, consent-gated editor quality evidence, the
   AI image extension fix, and the current 34-file release package.
+
+## 2026-10-12 zh_CN GlotPress Closeout
+
+The logged-in Google Chrome session showed `Howdy, Npcink` (profile
+`muze233`) and allowed imports as `Current`. All four Chinese (China)
+default sets were verified through the live GlotPress UI on 2026-10-12:
+
+| Translation set | Current / originals | Untranslated | Waiting | Fuzzy | Warnings |
+| --- | --- | --- | --- | --- | --- |
+| [Stable](https://translate.wordpress.org/projects/wp-plugins/npcink-cloud-addon/stable/zh-cn/default/) | 604 / 604 | 0 | 0 | 0 | 0 |
+| [Development](https://translate.wordpress.org/projects/wp-plugins/npcink-cloud-addon/dev/zh-cn/default/) | 604 / 604 | 0 | 0 | 0 | 0 |
+| [Stable Readme](https://translate.wordpress.org/projects/wp-plugins/npcink-cloud-addon/stable-readme/zh-cn/default/) | 84 / 84 | 0 | 0 | 0 | 0 |
+| [Development Readme](https://translate.wordpress.org/projects/wp-plugins/npcink-cloud-addon/dev-readme/zh-cn/default/) | 84 / 84 | 0 | 0 | 0 | 0 |
+
+Changes requested was also zero in every set. The plugin sets started at
+144 current, 420 waiting, 40 untranslated, 8 fuzzy, and 1 warning; the
+readme sets started at 36 current and 48 untranslated.
+
+Operational evidence:
+
+- Regenerated the ignored stable/dev import PO files from the merged addon
+  zh_CN catalog at `3c5ed67`: 633 translated messages each, including the
+  25 entries added by UX paydown PR #263. Both passed
+  `msgfmt --check --statistics`.
+- After the first page of 15 waiting translations was approved, stable
+  reported 159 current and 405 waiting. The `Current` PO import then
+  reported `442 translations were added`, with 601 current and 3 waiting.
+  The two connection-default explanations were approved individually.
+- The remaining artifact-format warning treated the descriptive
+  `<32 lowercase hex>` placeholder as an HTML tag and expected it unchanged
+  in Chinese. Verified the translated 32-character lowercase-hex meaning,
+  discarded this false positive, and approved the existing translation.
+  Stable then reported 604 current and zero warnings.
+- The dev `Current` import reported `0 translations were added`; the live
+  dev page already reflected 604 current and zero pending items after the
+  stable work.
+- Exported the 84-entry stable-readme PO through GlotPress, retained its
+  36 existing translations, and translated the remaining 48 privacy,
+  connection, Site Knowledge, and changelog entries. Both readme import
+  files passed `msgfmt --check --statistics`; all HTML tags were preserved.
+  The stable-readme `Current` import reported `48 translations were added`.
+  The dev-readme page subsequently showed the same 84/84 completed state,
+  so another upload was unnecessary.
+- Local screenshots and accessibility-state evidence are in the ignored
+  `build/glotpress-evidence-2026-10-12/` directory. The dev screenshot shows
+  the full 604/604 count and all zero pending/warning counters. These are
+  local operational evidence, not release-package contents.
+
+Scope limits: GlotPress currently has 604 published plugin originals; the
+633-entry local catalog is not evidence that unpublished source strings are
+already available on WordPress.org. Recheck after the next SVN source sync.
+This operation published translations only, without an SVN/plugin release.
+Language-pack generation and plugin-directory propagation were not verified.
+The provider acceptance rerun remains open: the configured local Cloud
+tunnel at `127.0.0.1:18010` was unreachable on 2026-10-12, so no new 14/14
+acceptance result is claimed. B-class UX and Cloud contract work remain open.
 
 ## 2026-10-10 0.4.0 Release Closeout
 
