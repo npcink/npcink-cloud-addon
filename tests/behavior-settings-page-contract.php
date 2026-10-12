@@ -391,6 +391,31 @@ maca_assert(
 	'Behavior: local permission switches expose a saving state, row-level feedback, and focus restoration after redirect.'
 );
 
+$set_admin_notice = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'set_admin_notice' );
+$set_local_permission_feedback = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'set_local_permission_feedback' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$set_admin_notice->setAccessible( true );
+	$set_local_permission_feedback->setAccessible( true );
+}
+maca_reset_test_state();
+$set_admin_notice->invoke( null, 'success', 'Settings saved.' );
+$notice_key = 'npcink_cloud_notice_' . get_current_user_id();
+$notice_expiration = (int) ( $GLOBALS['maca_transient_expirations'][ $notice_key ] ?? 0 );
+$notice = Npcink_Cloud_Settings_Actions::get_admin_notice();
+$set_local_permission_feedback->invoke( null, 'error', 'Permission failed.', 'wordpress_ai_connector' );
+$permission_feedback_key = 'npcink_cloud_permission_feedback_' . get_current_user_id();
+$permission_feedback_expiration = (int) ( $GLOBALS['maca_transient_expirations'][ $permission_feedback_key ] ?? 0 );
+$permission_feedback = Npcink_Cloud_Settings_Actions::get_local_permission_feedback();
+maca_assert(
+	60 === $notice_expiration
+	&& 'success' === (string) ( $notice['type'] ?? '' )
+	&& false === get_transient( $notice_key )
+	&& 60 === $permission_feedback_expiration
+	&& 'wordpress_ai_connector' === (string) ( $permission_feedback['permission'] ?? '' )
+	&& false === get_transient( $permission_feedback_key ),
+	'Behavior: admin notices and local permission feedback retain a 60-second TTL and are consumed once.'
+);
+
 maca_assert(
 	false !== strpos( $settings_page_source, 'npcink-cloud-monitoring-consent' )
 	&& false !== strpos( $settings_page_source, 'Allow anonymous diagnostics' )

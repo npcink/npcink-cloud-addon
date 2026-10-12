@@ -290,6 +290,7 @@ $GLOBALS['maca_options'] = array();
 $GLOBALS['maca_option_update_counts'] = array();
 $GLOBALS['maca_option_update_failures'] = array();
 $GLOBALS['maca_transients'] = array();
+$GLOBALS['maca_transient_expirations'] = array();
 $GLOBALS['maca_http_requests'] = array();
 $GLOBALS['maca_http_response_queue'] = array();
 $GLOBALS['maca_actions'] = array();
@@ -348,6 +349,7 @@ if ( ! function_exists( 'get_transient' ) ) {
 if ( ! function_exists( 'set_transient' ) ) {
 	function set_transient( string $name, $value, int $expiration = 0 ): bool {
 		$GLOBALS['maca_transients'][ $name ] = $value;
+		$GLOBALS['maca_transient_expirations'][ $name ] = $expiration;
 		return true;
 	}
 }
@@ -355,6 +357,7 @@ if ( ! function_exists( 'set_transient' ) ) {
 if ( ! function_exists( 'delete_transient' ) ) {
 	function delete_transient( string $name ): void {
 		unset( $GLOBALS['maca_transients'][ $name ] );
+		unset( $GLOBALS['maca_transient_expirations'][ $name ] );
 	}
 }
 
@@ -686,6 +689,7 @@ function maca_reset_test_state(): void {
 	$GLOBALS['maca_option_update_failures'] = array();
 	$GLOBALS['maca_option_read_counts'] = array();
 	$GLOBALS['maca_transients'] = array();
+	$GLOBALS['maca_transient_expirations'] = array();
 	$GLOBALS['maca_http_requests'] = array();
 	$GLOBALS['maca_http_response_queue'] = array();
 	$GLOBALS['maca_actions'] = array();
