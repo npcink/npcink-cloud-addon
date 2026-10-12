@@ -27,10 +27,11 @@ Site Knowledge delivery ownership, and Cloud index lifecycle remain unchanged.
 
 GlotPress stable/dev and readme translations were subsequently completed in a
 separate operational step; see the [2026-10-12 translation closeout](wordpress-org-release-and-translation-log.md#2026-10-12-zh_cn-glotpress-closeout)
-for the live counts and scope limits. B-class admin UX items, the provider
-acceptance rerun, image artifact continuation, and capability
-stale-while-revalidate remain open. These require provider recovery or
-Cloud/contract-level work and are not represented as completed here.
+for the live counts and scope limits. The default provider acceptance batch
+also subsequently passed 14/14; see the [provider acceptance rerun](wordpress-org-release-and-translation-log.md#2026-10-12-provider-acceptance-rerun)
+for the environment, run IDs, and skipped optional lanes. B-class admin UX
+items, image artifact continuation, and capability stale-while-revalidate
+remain open and are not represented as completed here.
 
 ## Verification evidence
 
