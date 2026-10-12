@@ -100,9 +100,68 @@ Scope limits: GlotPress currently has 604 published plugin originals; the
 already available on WordPress.org. Recheck after the next SVN source sync.
 This operation published translations only, without an SVN/plugin release.
 Language-pack generation and plugin-directory propagation were not verified.
-The provider acceptance rerun remains open: the configured local Cloud
-tunnel at `127.0.0.1:18010` was unreachable on 2026-10-12, so no new 14/14
-acceptance result is claimed. B-class UX and Cloud contract work remain open.
+The configured local Cloud tunnel at `127.0.0.1:18010` was initially
+unreachable; its later recovery and the successful provider acceptance rerun
+are recorded below. B-class UX and Cloud contract work remain open.
+
+## 2026-10-12 Provider Acceptance Rerun
+
+Restored the existing loopback-only foreground SSH tunnel with
+`pnpm run m4:preview:auto` from the Cloud repository. The canonical command
+selected the LAN route and reported `tunnel_ready=true`; it did not sync or
+deploy source, change containers, or edit Cloud files.
+
+Environment and time:
+
+- Addon source: merged `a5c289e` (0.4.0; plugin code unchanged from UX
+  paydown `24ea1b5`), mounted from the main addon workspace.
+- Local site: `magick-ai.local`, WordPress 7.1.1, official WordPress AI 1.4.0.
+- Cloud Base URL: `http://127.0.0.1:18010`, development `m4-preview`.
+- Cloud backend revision: `21d58e0d412a`, `source_dirty=false`, verified via
+  `/health/live` before and after the run. Portal/frontend revision was
+  `2419fdd55f819707c761b842f534d1809f753546`; it is a separate revision.
+- Fresh signed capability evidence at `2026-10-12T09:29:56Z` reported text
+  generation `configured`, with no provider call during that configuration
+  check. Vision was configured; image generation reported `no_eligible_model`.
+- Report timestamp: `2026-10-12T09:30:20Z`; completion verified by
+  `2026-10-12T09:33:18Z` (17:33:18 Asia/Shanghai).
+
+One authorized default batch was run:
+
+```bash
+composer run acceptance:wp-ai-provider
+```
+
+Exit 0: **14/14 passed**, zero failed, `evidence_state=local_verified`,
+`quality_status=passed`, and `write_detected=false`
+(`content_state_unchanged`). The quota preflight was available. Every case
+executed, returned HTTP 200, passed the output/quality checks, and retained a
+Cloud provider run ID:
+
+| Scenario | HTTP | Quality | Provider run ID |
+| --- | --- | --- | --- |
+| `excerpt-default` | 200 | passed | `run_591c959f5d1340c3a4db0965effb7e76` |
+| `meta-description-default` | 200 | passed | `run_e7c13a60abd54dd6984047cc9bdf9560` |
+| `content-translation-en-us` | 200 | passed | `run_e1ab28981eba474882452fd73e2685c6` |
+| `content-translation-blocks-en-us` | 200 | passed | `run_5cac6a3ac27749168299272a41ec36fb` |
+| `summarization-short` | 200 | passed | `run_76391fe7b5044d2bb5c0c2f2bc8c3efb` |
+| `slug-generation-default` | 200 | passed | `run_09e29a2df622473ea67fc40aa14a56a2` |
+| `slug-generation-mixed-language` | 200 | passed | `run_5a38db899e9c4655bc30e752315ba86f` |
+| `content-resizing-short` | 200 | passed | `run_0bedc6644bff487e9eac42ec3eeb557d` |
+| `editorial-notes-readability-grammar` | 200 | passed | `run_3d06d77e43334d55a6f70afbc96ba468` |
+| `editorial-updates-with-notes` | 200 | passed | `run_adf145b0e58e448eb5b8ee3e124e228a` |
+| `classification-post-tag-existing-only` | 200 | passed | `run_1c6c9de948a54cc182dcbcfde70998b9` |
+| `classification-category-existing-only` | 200 | passed | `run_9679e906ea424169aba44f1956675023` |
+| `image-prompt-generation-default` | 200 | passed | `run_e9273721260e4fa88314eb0ee21f67f2` |
+| `title-generation-default` | 200 | passed | `run_549165fe0c8e412ba8e067d72a11fb5d` |
+
+The full local report is
+`build/glotpress-evidence-2026-10-12/provider-acceptance.json` (ignored by Git).
+The four optional comment analysis/reply, alt-text vision, and image-generation
+lanes were skipped by the default runner; 14/14 does not claim those lanes or
+human editorial acceptance. No repeat batch was run. The foreground tunnel
+was temporary for this acceptance check; later runtime checks must verify
+reachability again.
 
 ## 2026-10-10 0.4.0 Release Closeout
 
