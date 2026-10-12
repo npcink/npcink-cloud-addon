@@ -327,6 +327,22 @@ namespace {
 	$aggregate_too_large['artifacts'][1]['filesize_bytes'] = 16777216;
 	$invalid_image_results[] = $aggregate_too_large;
 
+	$expired_artifact = $image_result;
+	$expired_artifact['artifacts'][0]['expires_at'] = gmdate( 'Y-m-d\\TH:i:s\\Z', time() - 60 );
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$expired_artifact_code = '';
+	try {
+		$image_parser->invoke( $image_model, $expired_artifact, 'trace-expired-image-result' );
+	} catch ( \WordPress\AiClient\Common\Exception\RuntimeException $error ) {
+		$expired_artifact_code = $error->getMessage();
+	}
+	maca_assert(
+		false !== strpos( $expired_artifact_code, 'cloud_wp_ai_image_artifact_purged' )
+			&& array() === $GLOBALS['maca_http_requests'],
+		'Behavior: a structurally valid but expired image artifact reports the stable expired-artifact code before HTTP.'
+	);
+
 	$invalid_results_rejected = true;
 	foreach ( $invalid_image_results as $invalid_image_result ) {
 		maca_reset_test_state();

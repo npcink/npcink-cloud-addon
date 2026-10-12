@@ -15,12 +15,11 @@
 	const spinner = usageContainer ? usageContainer.querySelector( '.npcink-cloud-site-knowledge-usage__spinner' ) : null;
 	const actions = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-actions]' ) : null;
 	const waitingLabel = document.querySelector( '[data-npcink-site-knowledge-waiting]' );
-	const articleCoverageRefresh = document.querySelector( '[data-npcink-site-knowledge-coverage-refresh]' );
 	const initialState = refreshController.dataset.npcinkSiteKnowledgeState || '';
 	const initialValueLabel = valueLabel ? valueLabel.textContent : '';
 	let requestInFlight = false;
 
-	if ( ! valueLabel && ! waitingLabel && ! articleCoverageRefresh ) {
+	if ( ! valueLabel && ! waitingLabel ) {
 		return;
 	}
 
@@ -35,9 +34,6 @@
 		}
 		if ( actions ) {
 			actions.hidden = ! loading && ( ! retry || retry.hidden );
-		}
-		if ( articleCoverageRefresh ) {
-			articleCoverageRefresh.disabled = loading;
 		}
 	};
 
@@ -157,10 +153,6 @@
 	if ( retry ) {
 		retry.addEventListener( 'click', refresh );
 	}
-	if ( articleCoverageRefresh ) {
-		articleCoverageRefresh.addEventListener( 'click', refresh );
-	}
-
 	if ( 'not_refreshed' === initialState || 'stale' === initialState ) {
 		refresh();
 	}

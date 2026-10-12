@@ -2000,7 +2000,8 @@ maca_assert(
 		&& 1 === substr_count( $settings_page, "esc_html_e( 'Available knowledge documents'" )
 		&& false !== strpos( $admin_site_knowledge_js, "'not_refreshed' === initialState || 'stale' === initialState" )
 		&& false === strpos( $admin_site_knowledge_js, 'data-npcink-site-knowledge-detail' )
-		&& false !== strpos( $admin_site_knowledge_js, '! valueLabel && ! waitingLabel && ! articleCoverageRefresh' )
+		&& false !== strpos( $admin_site_knowledge_js, '! valueLabel && ! waitingLabel' )
+		&& false === strpos( $admin_site_knowledge_js, 'articleCoverageRefresh' )
 	&& false === strpos( $admin_site_knowledge_js, 'window.location.reload' )
 	&& false !== strpos( $admin_site_knowledge_js, "progress.setAttribute( 'aria-valuenow', String( percent ) )" )
 	&& false !== strpos( $settings_page, 'class="npcink-cloud-metric-actions"' )
@@ -2248,12 +2249,12 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2207,
-	'includes/class-cloud-settings-actions.php'        => 1131,
+	'includes/class-cloud-settings-page.php'           => 2221,
+	'includes/class-cloud-settings-actions.php'        => 1151,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1024,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
-	'includes/class-cloud-wordpress-ai-image-model.php' => 492,
+	'includes/class-cloud-wordpress-ai-image-model.php' => 496,
 	'includes/class-cloud-wordpress-ai-scene-model.php' => 159,
 	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 178,
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,

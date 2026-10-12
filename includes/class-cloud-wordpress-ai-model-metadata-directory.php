@@ -52,7 +52,7 @@ if (
 		 */
 		public function getModelMetadata( string $model_id ): \WordPress\AiClient\Providers\Models\DTO\ModelMetadata {
 			if ( ! $this->hasModelMetadata( $model_id ) ) {
-				throw new \WordPress\AiClient\Common\Exception\InvalidArgumentException( 'Npcink Cloud model metadata not found.' );
+				throw new \WordPress\AiClient\Common\Exception\InvalidArgumentException( esc_html__( 'Npcink Cloud model metadata not found.', 'npcink-cloud-addon' ) );
 			}
 
 			if ( Npcink_Cloud_WordPress_AI_Connector::IMAGE_MODEL_ID === $model_id ) {

@@ -488,3 +488,35 @@ maca_assert(
 	),
 	'Addon localization fallback covers the 2026-10-11 admin copy, connection recovery, and in-progress run strings in zh_CN.'
 );
+
+$task_contract_messages = array(
+	'A registered WordPress Ability is required for Cloud AI task execution.',
+	'The requested WordPress Ability is not registered.',
+	'The registered Ability does not publish a Cloud AI task contract.',
+	'The Toolkit contract source is unavailable for this Ability.',
+	'The Toolkit contract is missing for this Ability.',
+	'The WordPress Ability schema does not match the Toolkit contract.',
+	'The Toolkit contract version or Ability identity is invalid.',
+	'The Toolkit contract permission or write posture is incompatible with the local Ability.',
+	'The Toolkit risk level does not match the registered WordPress Ability.',
+	'The Toolkit approval requirement does not match the registered WordPress Ability.',
+	'AI task contracts require ai_task_contract.v1.',
+	'AI task contracts require a registered ability, task, and supported task family.',
+	'AI task contract verification must be mapping_current before Cloud execution.',
+	'AI task contracts contain an unsupported context requirement or constraint.',
+	'AI task contracts require a stable sha256 schema hash.',
+	'The Ability output schema is too large for runtime projection.',
+	'The AI task contract schema hash does not match its input and output schemas.',
+	'AI task contract list fields must be arrays.',
+	'AI task contract list fields must contain strings.',
+	'AI task contract list fields contain an unsupported value.',
+	'AI task contract context none cannot be combined with other values.',
+	'Npcink Cloud model metadata not found.',
+);
+$translation_map = Npcink_Cloud_Addon_Localization::translations();
+maca_assert(
+	count( $task_contract_messages ) === count( array_intersect( $task_contract_messages, array_keys( $translation_map ) ) )
+		&& '提交前请确认要在本地断开连接。' === Npcink_Cloud_Addon_Localization::filter_gettext( '', 'Confirm local disconnect before submitting.', 'npcink-cloud-addon' )
+		&& '未找到 Npcink Cloud 模型元数据。' === Npcink_Cloud_Addon_Localization::filter_gettext( '', 'Npcink Cloud model metadata not found.', 'npcink-cloud-addon' ),
+	'Addon localization fallback covers the disconnect, model metadata, and complete AI task contract error vocabulary in zh_CN.'
+);

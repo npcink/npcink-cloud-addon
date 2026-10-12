@@ -9,6 +9,12 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
 
+if ( ! function_exists( 'determine_locale' ) ) {
+	function determine_locale(): string {
+		return (string) ( $GLOBALS['maca_locale'] ?? 'en_US' );
+	}
+}
+
 if ( ! function_exists( 'wp_get_ability' ) ) {
 	function wp_get_ability( string $name ) {
 		return $GLOBALS['maca_abilities'][ $name ] ?? null;
@@ -556,11 +562,52 @@ maca_assert(
 	&& false !== strpos( $connection_management_rendered, 'button button-primary' )
 	&& false !== strpos( $connection_management_rendered, 'Disconnect this site' )
 	&& false !== strpos( $connection_management_rendered, 'The site and its data will remain in Cloud.' )
+		&& false !== strpos( $connection_management_rendered, 'js_confirmation' )
+		&& false !== strpos( $connection_management_rendered, 'noscript_confirmation' )
+		&& false !== strpos( $connection_management_rendered, 'Confirm local disconnect before submitting.' )
 	&& false === strpos( $connection_management_rendered, 'Check connection' )
 	&& false === strpos( $connection_management_rendered, 'Re-verify and refresh' )
 	&& strpos( $connection_management_rendered, 'Change Cloud account' ) < strpos( $connection_management_rendered, 'Disconnect this site' )
 	&& $http_before_connection_management === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: Connection Management presents one Cloud account action and separates the local destructive action without Cloud HTTP.'
+);
+
+$settings_page_source = (string) file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php' );
+maca_assert(
+	false === strpos( $settings_page_source, 'render_site_knowledge_article_coverage' )
+		&& false === strpos( $settings_page_source, 'data-npcink-site-knowledge-article-coverage' ),
+	'Behavior: Site Knowledge settings do not render the retired article coverage anchor.'
+);
+
+$privacy_policy_url_method = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'privacy_policy_url' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$privacy_policy_url_method->setAccessible( true );
+}
+	$GLOBALS['maca_locale'] = 'zh_CN';
+$zh_privacy_policy_url = (string) $privacy_policy_url_method->invoke( null );
+$GLOBALS['maca_locale'] = 'en_US';
+$en_privacy_policy_url = (string) $privacy_policy_url_method->invoke( null );
+maca_assert(
+	'https://cloud.npc.ink/terms/zh/privacy.html' === $zh_privacy_policy_url
+		&& 'https://cloud.npc.ink/terms/en/privacy.html' === $en_privacy_policy_url,
+	'Behavior: the Cloud privacy link follows the fixed Chinese or English administrator locale.'
+);
+$GLOBALS['maca_locale'] = 'en_US';
+
+$disconnect_confirmation_method = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'has_disconnect_confirmation' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$disconnect_confirmation_method->setAccessible( true );
+}
+$_POST = array();
+$missing_disconnect_confirmation = (bool) $disconnect_confirmation_method->invoke( null );
+$_POST = array( 'js_confirmation' => '1' );
+$js_disconnect_confirmation = (bool) $disconnect_confirmation_method->invoke( null );
+$_POST = array( 'noscript_confirmation' => '1' );
+$noscript_disconnect_confirmation = (bool) $disconnect_confirmation_method->invoke( null );
+$_POST = array();
+maca_assert(
+	! $missing_disconnect_confirmation && $js_disconnect_confirmation && $noscript_disconnect_confirmation,
+	'Behavior: disconnect requires an explicit confirmation marker from either the JS or noscript form path.'
 );
 
 $site_knowledge_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_site_knowledge_summary' );
