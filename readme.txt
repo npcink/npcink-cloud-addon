@@ -4,7 +4,7 @@ Tags: npcink, cloud, ai, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -159,6 +159,9 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 
 == Upgrade Notice ==
 
+= 0.4.1 =
+The verified overview now marks expired entitlement data as not recently checked. No settings change or migration is required.
+
 = 0.4.0 =
 Editor adoption feedback reuses the existing monitoring opt-in and observability delivery. No settings change or migration is required.
 
@@ -169,6 +172,10 @@ Connector internals were restructured with stricter input bounds and fail-fast o
 Terminal callback delivery is removed and media recognition continuation moves to Workflow Toolbox. Re-verify the Cloud connection after upgrading from 0.1.x.
 
 == Changelog ==
+
+= 0.4.1 =
+* Marked expired cached Cloud entitlement reads as not recently checked in the verified overview while preserving automatic refresh and retained summary data.
+* Kept administrator feedback transient behavior bounded to 60 seconds and added regression coverage for one-time consumption.
 
 = 0.4.0 =
 * Reported native exact-editor adoption: an observed main-post save that exactly matches a locally retained generated-output fingerprint now queues bounded, opt-in agent feedback for the original run.

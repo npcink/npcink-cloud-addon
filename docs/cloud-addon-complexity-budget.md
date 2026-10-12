@@ -86,10 +86,12 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-runtime-media-payloads.php` — 280 lines (static
   multipart assembly and exact upload/delivery-ack response validation for
   the bounded media endpoints)
-- `includes/class-cloud-settings-page.php` — 2221 lines (was 3280 before the
+- `includes/class-cloud-settings-page.php` — 2228 lines (was 3280 before the
   2026-10-04 handler split into `class-cloud-settings-actions.php`; raised from
   2207 for the 2026-10-12 locale-aware privacy URL, no-JS disconnect confirmation,
-  and removal of the retired Site Knowledge coverage renderer)
+  and removal of the retired Site Knowledge coverage renderer; raised again for
+  the 0.4.1 stale-entitlement service-health projection and its bounded
+  behavior coverage)
 - `includes/class-cloud-settings-actions.php` — 1151 lines (settings request
   handlers and their transient state; the render class stays a projection;
   raised from 1106 with reason: the 2026-10-11 first-connection verify-failure

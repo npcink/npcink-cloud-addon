@@ -595,6 +595,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			$entitlement_state = sanitize_key( (string) ( $entitlement['state'] ?? '' ) );
+			if ( ! empty( $entitlement['stale'] ) ) {
+				return array(
+					'severity' => 'warning',
+					'label' => __( 'Not recently checked', 'npcink-cloud-addon' ),
+					'message' => __( 'The cached Cloud read is out of date. Re-check the connection to confirm current service status.', 'npcink-cloud-addon' ),
+				);
+			}
 			if ( ! empty( $entitlement['available'] ) ) {
 				return array( 'severity' => 'ok', 'label' => __( 'Recently reachable', 'npcink-cloud-addon' ), 'message' => __( 'A cached signed Cloud read is available.', 'npcink-cloud-addon' ) );
 			}

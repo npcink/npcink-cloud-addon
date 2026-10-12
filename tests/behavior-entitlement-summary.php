@@ -162,7 +162,34 @@ maca_assert(
 $format_overview_entitlement = maca_private_method( Npcink_Cloud_Settings_Page::class, 'format_overview_entitlement' );
 $overview_metrics_method = maca_private_method( Npcink_Cloud_Settings_Page::class, 'get_overview_entitlement_metrics' );
 $site_knowledge_usage_method = maca_private_method( Npcink_Cloud_Settings_Page::class, 'get_site_knowledge_usage_projection' );
+$service_health_method = maca_private_method( Npcink_Cloud_Settings_Page::class, 'get_current_service_health' );
 $normalize_cloud_entitlement = maca_private_method( Npcink_Cloud_Entitlement_Summary::class, 'normalize_cloud_entitlement' );
+$fresh_health = $service_health_method->invoke( null, true, $read_summary, array() );
+$stale_health = $service_health_method->invoke( null, true, $stale_summary, array() );
+$unavailable_health = $service_health_method->invoke( null, true, array( 'state' => 'unavailable', 'available' => false ), array() );
+$delivery_failure_health = $service_health_method->invoke(
+	null,
+	true,
+	array( 'state' => 'stale', 'available' => true, 'stale' => true ),
+	array( 'last_delivery_error' => 'Cloud delivery failed.' )
+);
+$health_assertions = array(
+	'fresh' => $fresh_health,
+	'stale' => $stale_health,
+	'unavailable' => $unavailable_health,
+	'delivery_failure' => $delivery_failure_health,
+);
+maca_assert(
+	'ok' === (string) ( $health_assertions['fresh']['severity'] ?? '' )
+	&& 'Recently reachable' === (string) ( $health_assertions['fresh']['label'] ?? '' )
+	&& 'warning' === (string) ( $health_assertions['stale']['severity'] ?? '' )
+	&& 'Not recently checked' === (string) ( $health_assertions['stale']['label'] ?? '' )
+	&& false !== strpos( (string) ( $health_assertions['stale']['message'] ?? '' ), 'out of date' )
+	&& 'warning' === (string) ( $health_assertions['unavailable']['severity'] ?? '' )
+	&& 'Temporarily unavailable' === (string) ( $health_assertions['unavailable']['label'] ?? '' )
+	&& 'Needs attention' === (string) ( $health_assertions['delivery_failure']['label'] ?? '' ),
+	'Behavior: fresh entitlement is reachable, stale entitlement is visibly out of date, and delivery failures retain priority.'
+);
 $overview_metrics = $overview_metrics_method->invoke( null, $read_summary );
 $site_knowledge_input = array(
 	'state' => 'fresh',
