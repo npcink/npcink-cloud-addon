@@ -46,9 +46,9 @@ jobs:
               def redirect_request(self, *args, **kwargs):
                   return None
 
-          # Strip Action extras to distinguish model configuration from payload compatibility.
+          # Test the Action default thinking setting without offering tools.
           body = {"model": model, "messages": [{"role": "user", "content": "Reply OK."}],
-                  "max_tokens": 32}
+                  "max_tokens": 32, "thinking": {"type": "disabled"}}
           request = urllib.request.Request(url, data=json.dumps(body).encode(), headers={
               "Authorization": "Bearer " + token, "Content-Type": "application/json"})
           try:
@@ -76,7 +76,7 @@ jobs:
               except (ValueError, AttributeError):
                   provider_code = None
               safe_code = int(provider_code) if str(provider_code).isdigit() and len(str(provider_code)) <= 6 else None
-              terms = ["model", "thinking", "tools", "max_tokens", "unsupported", "not found", "invalid", "模型", "参数", "不存在", "不支持", "无效", "名称", "编码", "错误", "套餐", "无权限", "已下线", "不可用"]
+              terms = ["model", "thinking", "tools", "max_tokens", "unsupported", "not found", "invalid", "模型", "参数", "不存在", "不支持", "无效", "名称", "编码", "错误", "套餐", "无权限", "已下线", "不可用", "思考", "推理", "关闭", "禁用", "工具", "流式"]
               print(json.dumps({"provider_numeric_code": safe_code,
                                 "diagnostic_terms": {word: word in detail for word in terms}}))
               report(error.code, classification)
