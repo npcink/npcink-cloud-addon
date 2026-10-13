@@ -79,7 +79,7 @@
 				node.classList.add( 'npcink-cloud-badge--ok' );
 			} else if ( 'label' === kind ) {
 				node.className = 'npcink-cloud-overview-service npcink-cloud-overview-service--ok';
-				node.textContent = node.dataset.npcinkEntitlementFreshLabel;
+				node.textContent = node.dataset.npcinkEntitlementFreshLabel || '';
 			}
 		} );
 	};

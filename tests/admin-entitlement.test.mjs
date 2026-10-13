@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync( new URL( '../assets/admin-entitlement.js', import.meta.url ), 'utf8' );
 
-async function refreshFixture( { failure = false, deliveryFailure = false, state = 'fresh' } = {} ) {
+async function refreshFixture( { failure = false, deliveryFailure = false, state = 'fresh', missingLabel = false } = {} ) {
 	const node = ( dataset = {}, classes = [] ) => ( {
 		dataset, textContent: 'Not recently checked', hidden: false, disabled: false,
 		classes: new Set( classes ),
@@ -23,8 +23,10 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 	const badge = node( { npcinkEntitlementHealth: 'badge' }, [ 'npcink-cloud-badge--warning' ] );
 	badge.classList.owner = badge;
 	const label = node( { npcinkEntitlementHealth: 'label', npcinkEntitlementFreshLabel: '最近可连接' } );
+	if ( missingLabel ) { delete label.dataset.npcinkEntitlementFreshLabel; }
 	const container = node( { npcinkEntitlementState: 'stale' } );
-	container.querySelector = ( selector ) => selector.includes( '-summary' ) ? summary : selector.includes( '-retry' ) ? retry : null;
+	const selectors = { '[data-npcink-entitlement-summary]': summary, '[data-npcink-entitlement-retry]': retry };
+	container.querySelector = ( selector ) => selectors[ selector ] || null;
 	let requests = 0;
 	runInNewContext( source, {
 		URLSearchParams,
@@ -69,3 +71,8 @@ for ( const scenario of [ { failure: true }, { state: 'stale' }, { deliveryFailu
 		}
 	} );
 }
+
+test( 'missing localized healthy label never displays undefined', async () => {
+	const f = await refreshFixture( { missingLabel: true } );
+	assert.equal( f.label.textContent, '' );
+} );

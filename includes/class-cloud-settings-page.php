@@ -587,7 +587,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				);
 			}
 
-			if ( '' !== (string) ( $site_knowledge['last_delivery_error'] ?? '' ) ) {
+			if ( '' !== (string) ( $site_knowledge['last_delivery_error'] ?? '' )
+				|| '' !== (string) ( $site_knowledge['last_error_code'] ?? '' ) ) {
 				return array(
 					'severity' => 'warning',
 					'delivery_failure' => true,

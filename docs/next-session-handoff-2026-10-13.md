@@ -10,7 +10,7 @@
 - 版本头、`NPCINK_CLOUD_ADDON_VERSION`、`readme.txt` 和本地语言目录均为
   `0.4.1`。
 - 候选包 SHA256 为
-  `e0df7c52ab155775aa20ddd8cc0ae885daf359096580d4bb7eae5d08283d21ea`。
+  `5f9606f038799b1cb123020d97b724ed1abb24f7e8711de0162ed69a28db10af`。
 - 0.4.1 尚无 Git tag，也没有提交 WordPress.org SVN；WordPress.org 当前
   稳定版本仍为 0.4.0。
 - 候选代码门禁、CI、Release static gates、PHP 版本矩阵和 WordPress AI
@@ -75,7 +75,7 @@
 
 浏览器证据位于忽略目录 `build/release-evidence-2026-10-13/`：
 `refresh-stale-before.png`、`refresh-fresh-after.png`、`refresh-failure.png`、
-`refresh-dropped.png`、`refresh-delivery-error.png`、`refresh-live-overview.png`。
+`refresh-dropped.png`、`refresh-delivery-error.png`、`refresh-error-code-only.png`、`refresh-live-overview.png`。
 隔离页由 Local WordPress 的隔离分支 PHP 私有渲染方法生成（仅在临时脚本替换类名，避免与已加载
 的插件类冲突），使用打包 zh_CN MO、
 生产 CSS/JS 和显式模拟的 Cloud 响应；没有持久化状态修改或 Provider 调用。
@@ -85,7 +85,7 @@
 隔离静态 fixture，实际 viewport 为 1265×744（仓库未声明 PC viewport）。
 规则 1/3/4/5/7/11：pass；规则 2：not_applicable（无仓库尺寸契约）；
 规则 6/8/9/10：not_applicable（本次不改动作布局、选择/焦点或对话框）；
-规则 12：隔离页无外部请求，四例日志无 error/warn，真实后台日志也为空，pass。
+规则 12：隔离页无外部请求，五例日志无 error/warn，真实后台日志也为空，pass。
 截图扫描：过期态警告在顶部，fresh 态隐藏后工作区上移，文字与徽章一致，pass。
 M4、生产验收和人类视觉接受均 unmeasured，不声称已完成。
 
@@ -99,5 +99,15 @@ bootstrap、激活、默认凭据、公共 API 或兼容基线；引用 2026-10-
 上传成功、错误为空；Site Knowledge 仍有 11 条 dropped，不声称已全部恢复。
 
 隔离分支重新通过 composer validate、test:all、PHPStan 和完整 release:verify
-（含 WordPress.org、JS 13/13、i18n、50 文件包验证及 strict Plugin Check）。
+（含 WordPress.org、JS 14/14、i18n、50 文件包验证及 strict Plugin Check）。
 旧候选包哈希已作废；以上新哈希才是本轮权益刷新修复的候选包。
+
+首轮修复 OCR session `3abcc533-7b2e-4acc-842a-e6d6e14a9616` 有四项发现，
+其中一个组触及设置的 token 上限，属于部分审查，不能记为全绿：
+
+- 补齐 error-code-only 的真实知识库失败优先级，并增加 PHP/浏览器回归。
+- 缺失 fresh 标签数据时避免渲染 `undefined`；简化测试的嵌套三元表达式。
+- 不采纳保留健康状态顶部连接卡的建议：`admin-surface-standard.md` 明确该卡
+  仅用于未验证/异常态，健康态只保留概览紧凑行；`render_connection_summary()`
+  在健康 verified 状态本来就直接 return。低频连接管理仍在高级页。移除已经
+  恢复的异常卡符合既定行为，并不移除永久的连接管理入口。

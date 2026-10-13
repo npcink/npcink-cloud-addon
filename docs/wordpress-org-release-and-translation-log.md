@@ -63,7 +63,7 @@ localization rounds (#258, #263), and the stale entitlement/feedback candidate
 After the entitlement-refresh follow-up described below, the reproducible local package is `build/npcink-cloud-addon.zip` with SHA256:
 
 ```text
-e0df7c52ab155775aa20ddd8cc0ae885daf359096580d4bb7eae5d08283d21ea
+5f9606f038799b1cb123020d97b724ed1abb24f7e8711de0162ed69a28db10af
 ```
 
 The candidate passed the recorded local gates (`composer validate`, full tests,
@@ -138,8 +138,8 @@ short label and full stale warning are translated. The follow-up reuses existing
 strings, refreshes POT/PO source references, and leaves MO bytes unchanged.
 
 Production PHP rendering and JS were tested with explicit, process-local
-fixtures: stale → fresh, failed refresh, dropped content, and delivery error.
-No persistent state or Provider calls were used. The four Chinese browser cases
+fixtures: stale → fresh, failed refresh, dropped content, delivery error, and error-code-only failure.
+No persistent state or Provider calls were used. The five Chinese browser cases
 passed, with no console errors or horizontal overflow at 1265×744. Screenshots,
 limits, rule results, and exact isolation details are recorded in
 `next-session-handoff-2026-10-13.md`. Live wp-admin was observed separately;

@@ -826,7 +826,7 @@ if ( PHP_VERSION_ID < 80100 ) {
 	$render_summary->setAccessible( true );
 	$render_overview->setAccessible( true );
 }
-foreach ( array( array(), array( 'dropped_count' => 1 ), array( 'last_delivery_error' => 'Failed' ) ) as $delivery ) {
+foreach ( array( array(), array( 'dropped_count' => 1 ), array( 'last_delivery_error' => 'Failed' ), array( 'last_error_code' => 'fixture_failed' ) ) as $delivery ) {
 	$settings = Npcink_Cloud_Addon_Settings::get_settings();
 	$state = Npcink_Cloud_Addon_Settings::get_credential_state();
 	$entitlement = array( 'available' => true, 'stale' => true, 'state' => 'stale' );
