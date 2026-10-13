@@ -2,7 +2,7 @@
 
 Status: active operational handoff.
 
-Last updated: 2026-10-12.
+Last updated: 2026-10-13.
 
 This document records the WordPress.org release, assets, legal pages, and zh_CN
 translation work completed for `npcink-cloud-addon`.
@@ -47,6 +47,80 @@ Known SVN revisions:
 - `r3652021`: release `0.1.8` with privacy-safe customer journey delivery,
   clearer monitoring disclosure, consent-gated editor quality evidence, the
   AI image extension fix, and the current 34-file release package.
+
+## 2026-10-13 0.4.1 Candidate Status
+
+The Addon source is prepared as a reviewable `0.4.1` candidate on merged
+`master@9ae7e6a` (PR #267). The plugin header, `NPCINK_CLOUD_ADDON_VERSION`,
+`readme.txt`, and bundled translation headers all agree on `0.4.1`.
+
+The publication envelope includes the accumulated changes since published
+0.4.0 source `895a606`: portal-link validation (#254), request-overhead and
+monitoring persistence reductions (#250, #252, #255, #256), the two UX and
+localization rounds (#258, #263), and the stale entitlement/feedback candidate
+(#267). It preserves the existing public connector and Cloud contracts.
+
+The reproducible local package is `build/npcink-cloud-addon.zip` with SHA256:
+
+```text
+e0c885f6a50a55ba73d8931c43c4b5862e0b13055ac29ed49030ee29fb2cfdbf
+```
+
+The candidate passed the recorded local gates (`composer validate`, full tests,
+PHPStan, WordPress.org and JavaScript checks, i18n checks, package release and
+verification, strict Plugin Check, release verification, and `git diff --check`)
+and the required CI, release-static, PHP, and WordPress AI compatibility lanes.
+No `0.4.1` Git tag or WordPress.org SVN upload has been made; the directory
+stable tag remains `0.4.0` until the separate publication confirmation.
+
+The local wp-admin check on `https://magick-ai.local` confirmed the Chinese
+overview, Site Knowledge recovery page, and connection-management actions.
+At check time the loopback Cloud service at `127.0.0.1:18010` was unavailable
+(cURL error 7), so the page correctly showed the existing recovery state:
+eight dropped Site Knowledge deliveries, 782 pending updates, and 200 buffered
+monitoring events. The browser did not independently display
+`Not recently checked` because the recorded Site Knowledge failure takes
+precedence; fresh/stale/unavailable entitlement behavior remains covered by the
+automated tests.
+
+During the 2026-10-13 recheck, the existing loopback tunnel was already live:
+`/health/live` reported development `m4-preview`, backend revision
+`e6e2a07f4870`, and `source_dirty=false`. No tunnel, sync, deployment, or Provider
+operation was started by this task. A signed connection check returned the
+Chinese success notice; an unsupported FTP URL was rejected before persistence
+and produced the Chinese failure notice. Reloading consumed each notice once.
+The mounted Addon was `0.4.1`, locale `zh_CN`, and the cached entitlement was
+available and fresh. Site Knowledge still had 11 dropped deliveries and 782
+pending updates; monitoring still had 200 buffered events. These counts are
+observations, not a successful recovery claim. Recovery may invoke Cloud index
+work, so it remains separate from the budget-free connection check.
+
+Screenshots of both settings notices are retained locally in the ignored
+`build/release-evidence-2026-10-13/` directory. The manual fallback still showed
+two English descriptions because the site-level GlotPress language file was
+dated 2026-07-02 and lacked those originals; the bundled 0.4.1 PO contains both
+Chinese translations. Refresh and verify the official language pack after
+publication rather than masking this installation-state gap with code changes.
+
+WordPress.org's public plugin API was observed on 2026-10-13 reporting `0.4.0`,
+last updated `2026-10-10 7:46am GMT`. This production directory observation is
+the release record's non-AI evidence anchor; it does not prove live Cloud or
+site behavior. The latest cited Tier B result remains the 2026-10-10 Playground
+pass. Playground is not applicable to the 0.4.1 admin-only change because
+bootstrap, activation, default credentials, public APIs, and compatibility
+baselines are unchanged.
+
+Remaining release work is operational: finish the restored OCR advisory, obtain
+the explicit SVN publication confirmation, verify the generated 0.4.1 language
+pack and directory propagation after upload, and run the cross-repository matrix
+only after all participating worktrees are clean. Dependabot PRs #260 (OCR
+action), #261 (PHPStan), and #262 (WordPress stubs) are separate maintenance;
+they are not part of this frozen candidate.
+
+A temporary SVN working copy at `/tmp/npcink-041-svn-20261013` was prepared at
+repository revision `r3742751`. Both `trunk` and the locally scheduled
+`tags/0.4.1` copy match all 50 package files and Git candidate `9ae7e6a`
+byte-for-byte. No SVN commit was performed; this is preparation evidence only.
 
 ## 2026-10-12 zh_CN GlotPress Closeout
 
