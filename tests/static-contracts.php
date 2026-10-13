@@ -2000,7 +2000,7 @@ maca_assert(
 		&& 1 === substr_count( $settings_page, "esc_html_e( 'Available knowledge documents'" )
 		&& false !== strpos( $admin_site_knowledge_js, "'not_refreshed' === initialState || 'stale' === initialState" )
 		&& false === strpos( $admin_site_knowledge_js, 'data-npcink-site-knowledge-detail' )
-		&& false !== strpos( $admin_site_knowledge_js, '! valueLabel && ! waitingLabel' )
+		&& false !== strpos( $admin_site_knowledge_js, '! valueLabel && ! initialWaitingLabel' )
 		&& false === strpos( $admin_site_knowledge_js, 'articleCoverageRefresh' )
 	&& false === strpos( $admin_site_knowledge_js, 'window.location.reload' )
 	&& false !== strpos( $admin_site_knowledge_js, "progress.setAttribute( 'aria-valuenow', String( percent ) )" )
@@ -2250,7 +2250,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2270,
+	'includes/class-cloud-settings-page.php'           => 2278,
 	'includes/class-cloud-settings-actions.php'        => 1154,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1024,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,

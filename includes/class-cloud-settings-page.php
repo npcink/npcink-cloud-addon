@@ -67,9 +67,17 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			wp_enqueue_script(
+				'npcink-cloud-addon-admin-status-fragments',
+				plugins_url( 'assets/admin-status-fragments.js', NPCINK_CLOUD_ADDON_FILE ),
+				array(),
+				NPCINK_CLOUD_ADDON_VERSION,
+				true
+			);
+
+			wp_enqueue_script(
 				'npcink-cloud-addon-admin-entitlement',
 				plugins_url( 'assets/admin-entitlement.js', NPCINK_CLOUD_ADDON_FILE ),
-				array(),
+				array( 'npcink-cloud-addon-admin-status-fragments' ),
 				NPCINK_CLOUD_ADDON_VERSION,
 				true
 			);
@@ -88,7 +96,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			wp_enqueue_script(
 				'npcink-cloud-addon-admin-site-knowledge',
 				plugins_url( 'assets/admin-site-knowledge.js', NPCINK_CLOUD_ADDON_FILE ),
-				array(),
+				array( 'npcink-cloud-addon-admin-status-fragments' ),
 				NPCINK_CLOUD_ADDON_VERSION,
 				true
 			);
@@ -223,10 +231,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
 			$state = Npcink_Cloud_Addon_Settings::get_credential_state();
 			$health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+			$entitlement = Npcink_Cloud_Entitlement_Summary::get_cached_summary();
 			ob_start();
-			self::render_connection_summary( $settings, $state, Npcink_Cloud_Entitlement_Summary::get_cached_summary(), $health );
+			self::render_connection_summary( $settings, $state, $entitlement, $health );
 			$fragments = array( 'connection' => (string) ob_get_clean() );
-			$fragments['service'] = self::get_current_service_health( ! empty( $state['verified'] ), Npcink_Cloud_Entitlement_Summary::get_cached_summary(), $health );
+			$fragments['service'] = self::get_current_service_health( ! empty( $state['verified'] ), $entitlement, $health );
 			if ( $include_knowledge ) {
 				ob_start();
 				self::render_site_knowledge_summary( $health, $settings, ! empty( $state['verified'] ) );
@@ -1535,15 +1544,15 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							<?php endif; ?>
 							<p class="npcink-cloud-site-knowledge-summary__support"><a href="<?php echo esc_url( self::tab_view_url( 'advanced', 'checks' ) ); ?>"><?php esc_html_e( 'View advanced troubleshooting', 'npcink-cloud-addon' ); ?></a></p>
 							<?php self::render_site_knowledge_refresh_form( __( 'Update again', 'npcink-cloud-addon' ) ); ?>
-						<?php elseif ( $recovery_in_progress ) : ?>
-							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php esc_html_e( 'Public content is being re-sent to Cloud. The warning will clear when delivery finishes.', 'npcink-cloud-addon' ); ?></p>
 						<?php elseif ( $capacity_needs_attention ) : ?>
 							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php echo esc_html( sprintf(
 								/* translators: %d: content count skipped by Cloud quota. */
 								__( '%d public items were not included. Review the plan details in Cloud.', 'npcink-cloud-addon' ),
 								$quota_skipped_count
 							) ); ?></p>
-						<?php elseif ( ! $update_in_progress && empty( $status_summary['available'] ) ) : ?>
+						<?php elseif ( $recovery_in_progress ) : ?>
+							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php esc_html_e( 'Public content is being re-sent to Cloud. The warning will clear when delivery finishes.', 'npcink-cloud-addon' ); ?></p>
+						<?php elseif ( ! $update_in_progress && ! $cloud_status_current ) : ?>
 							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php esc_html_e( 'Updates will appear here after public content changes.', 'npcink-cloud-addon' ); ?></p>
 						<?php endif; ?>
 						<?php if ( $show_start_indexing ) : ?>

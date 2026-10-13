@@ -372,7 +372,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 				self::record_monitoring_state_projection( false, true, $message );
 				return self::record_flush_result( false, 0, $message );
 			}
-			$accepted_total = min( count( $batch ), max( 0, absint( $data['accepted_count'] ?? count( $batch ) ) ) );
+			$accepted_total = min( count( $batch ), max( 0, (int) $data['accepted_count'] ) );
 			$accepted = min( count( $event_batch ), $accepted_total );
 			$stored = min( $accepted, max( 0, absint( $data['stored_count'] ?? $accepted ) ) );
 			$duplicate = min( $accepted, max( 0, absint( $data['duplicate_count'] ?? ( $accepted - $stored ) ) ) );
@@ -430,7 +430,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 					__( 'Cloud observability response did not include an accepted event count.', 'npcink-cloud-addon' )
 				);
 			}
-			$accepted = min( 1, max( 0, absint( $data['accepted_count'] ) ) );
+			$accepted = min( 1, max( 0, (int) $data['accepted_count'] ) );
 			return self::record_monitoring_state_projection(
 				1 === $accepted,
 				$enabled,

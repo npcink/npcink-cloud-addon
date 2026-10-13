@@ -166,8 +166,24 @@ $malformed_flush = Npcink_Cloud_Observability_Collector::flush_buffer();
 maca_assert(
 	empty( $malformed_flush['last_upload_ok'] )
 	&& false !== strpos( (string) ( $malformed_flush['last_upload_error'] ?? '' ), 'accepted event count' )
+	&& empty( $malformed_flush['last_projection_ok'] )
+	&& false !== strpos( (string) ( $malformed_flush['last_projection_error'] ?? '' ), 'accepted event count' )
 	&& 1 === count( get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() ) ),
 	'Behavior: an observability response without an accepted count cannot report success or drop the buffered event.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_monitoring_enabled( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ),
+);
+$missing_projection = Npcink_Cloud_Observability_Collector::project_monitoring_state( true );
+maca_assert(
+	empty( $missing_projection['last_projection_ok'] )
+	&& false !== strpos( (string) ( $missing_projection['last_projection_error'] ?? '' ), 'accepted event count' ),
+	'Behavior: a monitoring state response without an accepted count cannot report a successful projection.'
 );
 
 maca_reset_test_state();

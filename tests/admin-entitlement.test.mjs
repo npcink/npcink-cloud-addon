@@ -28,6 +28,7 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 	const badge = node( {}, [ 'npcink-cloud-badge--warning' ] );
 	const label = node();
 	label.className = 'npcink-cloud-overview-service npcink-cloud-overview-service--warning';
+	label.textContent = 'Before refresh';
 	const container = node( { npcinkEntitlementState: 'stale' } );
 	const selectors = { '[data-npcink-entitlement-summary]': summary, '[data-npcink-entitlement-retry]': retry };
 	container.querySelector = ( selector ) => selectors[ selector ] || null;
@@ -39,6 +40,16 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 		'.npcink-cloud-overview-service': label,
 	};
 	let requests = 0;
+	const applyStatusFragments = ( fragments = {} ) => {
+		if ( typeof fragments.connection === 'string' ) { warning.innerHTML = fragments.connection; }
+		if ( fragments.service ) {
+			label.textContent = fragments.service.label;
+			label.className = 'npcink-cloud-overview-service npcink-cloud-overview-service--' + fragments.service.severity;
+			badge.classes.delete( 'npcink-cloud-badge--warning' );
+			badge.classes.delete( 'npcink-cloud-badge--ok' );
+			badge.classes.add( 'warning' === fragments.service.severity ? 'npcink-cloud-badge--warning' : 'npcink-cloud-badge--ok' );
+		}
+	};
 	runInNewContext( source, {
 		URLSearchParams,
 		document: {
@@ -47,13 +58,24 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 		},
 		window: {
 			npcinkCloudEntitlement: { ajaxUrl: '/ajax', action: 'refresh', nonce: 'fixture', updateFailedLabel: '更新失败' },
+			npcinkCloudApplyStatusFragments: applyStatusFragments,
 			fetch: async () => {
 				requests++;
 				if ( failure ) { throw new Error( 'Network error' ); }
+				let fragmentSeverity = 'warning';
+				let fragmentLabel = 'Not recently checked';
+				let fragmentConnection = 'Cached warning';
+				if ( deliveryFailure ) {
+					fragmentLabel = 'Needs attention';
+				}
+				if ( 'fresh' === state && ! deliveryFailure ) {
+					fragmentSeverity = 'ok';
+					fragmentLabel = '最近可连接';
+					fragmentConnection = '';
+				}
 				const statusFragments = missingFragments ? undefined : {
-					connection: deliveryFailure || state !== 'fresh' ? 'Cached warning' : '',
-					service: { severity: deliveryFailure || state !== 'fresh' ? 'warning' : 'ok',
-						label: deliveryFailure ? 'Needs attention' : state !== 'fresh' ? 'Not recently checked' : '最近可连接' },
+					connection: fragmentConnection,
+					service: { severity: fragmentSeverity, label: fragmentLabel },
 				};
 				return { ok: true, json: async () => ( { success: true, data: { label: 'Pro · available', state, status_fragments: statusFragments } } ) };
 			},
@@ -80,7 +102,10 @@ for ( const scenario of [ { failure: true }, { state: 'stale' }, { state: null }
 		const f = await refreshFixture( scenario );
 		assert.equal( f.warning.innerHTML, 'Cached warning' );
 		assert.equal( f.badge.classes.has( 'npcink-cloud-badge--warning' ), true );
-		assert.equal( f.label.textContent, scenario.deliveryFailure ? 'Needs attention' : 'Not recently checked' );
+		let expectedLabel = 'Not recently checked';
+		if ( scenario.failure ) { expectedLabel = 'Before refresh'; }
+		if ( scenario.deliveryFailure ) { expectedLabel = 'Needs attention'; }
+		assert.equal( f.label.textContent, expectedLabel );
 		if ( null === scenario.state ) {
 			assert.equal( f.container.dataset.npcinkEntitlementState, 'stale' );
 		}
@@ -93,6 +118,8 @@ for ( const scenario of [ { failure: true }, { state: 'stale' }, { state: null }
 
 test( 'missing status fragments preserve the previous warning and service label', async () => {
 	const f = await refreshFixture( { missingFragments: true } );
-	assert.equal( f.label.textContent, 'Not recently checked' );
+	assert.equal( f.label.textContent, 'Before refresh' );
 	assert.equal( f.warning.innerHTML, 'Cached warning' );
+	assert.equal( f.summary.textContent, 'Pro · available' );
+	assert.equal( f.retry.hidden, true );
 } );

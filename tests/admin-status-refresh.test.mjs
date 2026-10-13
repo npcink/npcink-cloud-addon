@@ -16,12 +16,20 @@ const settle = () => new Promise((resolve) => setImmediate(resolve));
 function run(asset, nodes, config, responses, DOMParser) {
 	let calls = 0;
 	const document = { querySelector: (selector) => nodes[selector] || null, querySelectorAll: () => [] };
+	const applyStatusFragments = (fragments = {}) => {
+		if ( nodes['[data-npcink-connection-summary]'] && typeof fragments.connection === 'string' ) {
+			nodes['[data-npcink-connection-summary]'].innerHTML = fragments.connection;
+		}
+		if ( nodes['.npcink-cloud-overview-service'] && fragments.service ) {
+			nodes['.npcink-cloud-overview-service'].textContent = fragments.service.label;
+		}
+	};
 	const window = { ...config, fetch: async () => {
 		calls++;
 		const response = responses.shift();
 		if (response instanceof Error) throw response;
 		return { ok: true, json: async () => response };
-	} };
+	}, npcinkCloudApplyStatusFragments: applyStatusFragments };
 	vm.runInNewContext(readFileSync(new URL('../assets/' + asset, import.meta.url), 'utf8'), { window, document, URLSearchParams, DOMParser });
 	return () => calls;
 }
@@ -66,7 +74,12 @@ test('knowledge read failure offers a Chinese retry; retry replaces the whole ol
 	const newRetry = node();
 	newRetry.hidden = true;
 	const replacement = node('All public content is up to date');
-	replacement.querySelector = (selector) => selector === '[data-npcink-site-knowledge-status-retry]' ? newRetry : null;
+	const replacementReadStatus = node();
+	replacement.querySelector = (selector) => {
+		if ( '[data-npcink-site-knowledge-status-retry]' === selector ) { return newRetry; }
+		if ( '[data-npcink-site-knowledge-read-status]' === selector ) { return replacementReadStatus; }
+		return null;
+	};
 	const nodes = {
 		'[data-npcink-site-knowledge-refresh]': controller,
 		'[data-npcink-site-knowledge-waiting]': waiting,
@@ -75,7 +88,13 @@ test('knowledge read failure offers a Chinese retry; retry replaces the whole ol
 		'[data-npcink-connection-summary]': connection,
 		'.npcink-cloud-site-knowledge-summary': knowledge,
 	};
-	knowledge.replaceWith = (value) => { nodes['.npcink-cloud-site-knowledge-summary'] = value; };
+	let replaced = false;
+	knowledge.replaceWith = (value) => {
+		replaced = true;
+		nodes['.npcink-cloud-site-knowledge-summary'] = value;
+		nodes['[data-npcink-site-knowledge-status-retry]'] = newRetry;
+		nodes['[data-npcink-site-knowledge-read-status]'] = replacementReadStatus;
+	};
 	class Parser {
 		parseFromString(html, type) {
 			assert.equal(html, 'Escaped current server markup');
@@ -94,7 +113,7 @@ test('knowledge read failure offers a Chinese retry; retry replaces the whole ol
 	assert.equal(connection.innerHTML, 'Old warning');
 	retry.listeners.click();
 	await settle();
-	assert.equal(nodes['.npcink-cloud-site-knowledge-summary'], replacement);
+	assert.equal(replaced, true);
 	assert.equal(connection.innerHTML, '');
 	assert.equal(newRetry.hidden, true);
 	assert.equal(newRetry.disabled, false);

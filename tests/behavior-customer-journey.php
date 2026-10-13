@@ -136,11 +136,13 @@ $GLOBALS['maca_http_response_queue'][] = array(
 	),
 );
 $successful = Npcink_Cloud_Customer_Journey::flush_buffer();
-$retry_key = (string) ( $GLOBALS['maca_http_requests'][1]['args']['headers']['Idempotency-Key'] ?? '' );
+$retry_request = end( $GLOBALS['maca_http_requests'] );
+$retry_key = (string) ( is_array( $retry_request ) ? ( $retry_request['args']['headers']['Idempotency-Key'] ?? '' ) : '' );
 maca_assert(
 	! empty( $successful['ok'] )
 	&& 2 === absint( $successful['sent_count'] ?? 0 )
 	&& 1 === count( maca_customer_journey_events() )
+	&& 3 === count( $GLOBALS['maca_http_requests'] )
 	&& '' !== $failed_key
 	&& $failed_key === $retry_key,
 	'Behavior: a journey retry is content-addressed and removes only the accepted event prefix.'

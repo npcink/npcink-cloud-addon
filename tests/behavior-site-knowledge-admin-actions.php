@@ -154,6 +154,16 @@ maca_assert(
 );
 
 maca_reset_site_knowledge_admin_actions();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result = array( 'maintenance_status' => 'blocked' );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_result = array( 'last_index_action_selected_count' => 1, 'last_index_action_batch_count' => 1 );
+$blocked_only_recovery = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+maca_assert(
+	! empty( $blocked_only_recovery['ok'] ) && 'refresh_scheduled' === $blocked_only_recovery['code']
+	&& array( 'start' ) === Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_calls,
+	'Behavior: a blocked full-index delivery can be recovered even when no dropped item count remains.'
+);
+
+maca_reset_site_knowledge_admin_actions();
 Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_result = array(
 	'last_delivery_ok' => false,
 	'last_delivery_error' => ' Delivery failed. ',
