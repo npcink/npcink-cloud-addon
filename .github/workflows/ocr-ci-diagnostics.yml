@@ -1,0 +1,79 @@
+name: One-off OCR CI connectivity diagnostic
+
+on:
+  push:
+    branches: [codex/ocr-ci-diagnostics-20261013]
+
+permissions: {}
+
+jobs:
+  connectivity:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 3
+    steps:
+      - name: Probe configured CI model without exposing provider data
+        env:
+          OCR_PROBE_URL: ${{ secrets.OCR_LLM_URL }}
+          OCR_PROBE_TOKEN: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
+          OCR_PROBE_MODEL: ${{ vars.OCR_LLM_MODEL }}
+          OCR_PROBE_ANTHROPIC: ${{ vars.OCR_LLM_USE_ANTHROPIC }}
+        shell: python
+        run: |
+          import json
+          import os
+          import socket
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          def report(status, classification, exit_code=1):
+              print(json.dumps({"http_status": status, "classification": classification}))
+              raise SystemExit(exit_code)
+
+          url = os.environ["OCR_PROBE_URL"].strip().rstrip("/")
+          token = os.environ["OCR_PROBE_TOKEN"].strip()
+          model = os.environ["OCR_PROBE_MODEL"].strip()
+          if not all((url, token, model)):
+              report(None, "missing_configuration")
+          if os.environ["OCR_PROBE_ANTHROPIC"].lower() != "false":
+              report(None, "unexpected_protocol")
+          if urllib.parse.urlsplit(url).scheme != "https":
+              report(None, "unexpected_url_scheme")
+          if not url.endswith("/chat/completions"):
+              url += "/chat/completions"
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          body = {"model": model, "messages": [{"role": "user", "content": "Reply OK."}],
+                  "max_tokens": 32, "thinking": {"type": "disabled"},
+                  "tools": [{"type": "function", "function": {"name": "probe",
+                            "description": "Connectivity test only", "parameters": {"type": "object", "properties": {}}}}]}
+          request = urllib.request.Request(url, data=json.dumps(body).encode(), headers={
+              "Authorization": "Bearer " + token, "Content-Type": "application/json"})
+          try:
+              with urllib.request.build_opener(NoRedirect()).open(request, timeout=60) as response:
+                  payload = json.loads(response.read(65536))
+                  if not isinstance(payload, dict) or not payload.get("choices"):
+                      report(response.status, "invalid_completion_response")
+                  report(response.status, "completion_received", 0)
+          except urllib.error.HTTPError as error:
+              # Inspect privately; output only fixed classifications, never provider text.
+              detail = error.read(65536).decode("utf-8", errors="replace").lower()
+              classification = "provider_http_error"
+              if any(word in detail for word in ("quota", "balance", "credit", "余额", "额度")):
+                  classification = "quota_or_balance"
+              elif error.code in (401, 403):
+                  classification = "authentication_or_access"
+              elif error.code == 429:
+                  classification = "rate_limit"
+              elif error.code in (400, 404, 422):
+                  classification = "model_endpoint_or_request"
+              report(error.code, classification)
+          except (TimeoutError, socket.timeout):
+              report(None, "timeout")
+          except urllib.error.URLError:
+              report(None, "network_or_tls")
+          except (ValueError, TypeError):
+              report(None, "invalid_configuration_or_response")
