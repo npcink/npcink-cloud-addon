@@ -60,10 +60,10 @@ monitoring persistence reductions (#250, #252, #255, #256), the two UX and
 localization rounds (#258, #263), and the stale entitlement/feedback candidate
 (#267). It preserves the existing public connector and Cloud contracts.
 
-The reproducible local package is `build/npcink-cloud-addon.zip` with SHA256:
+After the entitlement-refresh follow-up described below, the reproducible local package is `build/npcink-cloud-addon.zip` with SHA256:
 
 ```text
-e0c885f6a50a55ba73d8931c43c4b5862e0b13055ac29ed49030ee29fb2cfdbf
+e0df7c52ab155775aa20ddd8cc0ae885daf359096580d4bb7eae5d08283d21ea
 ```
 
 The candidate passed the recorded local gates (`composer validate`, full tests,
@@ -110,7 +110,7 @@ pass. Playground is not applicable to the 0.4.1 admin-only change because
 bootstrap, activation, default credentials, public APIs, and compatibility
 baselines are unchanged.
 
-Remaining release work is operational: finish the restored OCR advisory, obtain
+Remaining release work: close the entitlement-refresh follow-up PR and its OCR advisory, obtain
 the explicit SVN publication confirmation, verify the generated 0.4.1 language
 pack and directory propagation after upload, and run the cross-repository matrix
 only after all participating worktrees are clean. Dependabot PRs #260 (OCR
@@ -119,8 +119,33 @@ they are not part of this frozen candidate.
 
 A temporary SVN working copy at `/tmp/npcink-041-svn-20261013` was prepared at
 repository revision `r3742751`. Both `trunk` and the locally scheduled
-`tags/0.4.1` copy match all 50 package files and Git candidate `9ae7e6a`
-byte-for-byte. No SVN commit was performed; this is preparation evidence only.
+`tags/0.4.1` copy initially matched all 50 files of Git candidate `9ae7e6a`.
+That package is superseded: re-sync and re-verify the working copy against the
+merged refresh-fix package before any upload. No SVN commit was performed.
+
+### Entitlement Refresh Follow-Up (2026-10-13)
+
+OCR session `866da943-0798-4a52-8f26-c65286516ab4` reviewed
+`aacce25..9ae7e6a` and returned two findings. The medium finding was valid:
+a fresh automatic entitlement read left the stale global warning and Overview
+badge unchanged. The isolated follow-up marks entitlement-owned nodes and
+updates them only after a fresh response; recorded Site Knowledge delivery
+failures stay visible. No public PHP or AJAX response contract changes.
+
+The high finding about a missing MO update was a false positive. Direct
+`gettext.GNUTranslations` inspection of the committed MO confirmed both the
+short label and full stale warning are translated. The follow-up reuses existing
+strings, refreshes POT/PO source references, and leaves MO bytes unchanged.
+
+Production PHP rendering and JS were tested with explicit, process-local
+fixtures: stale → fresh, failed refresh, dropped content, and delivery error.
+No persistent state or Provider calls were used. The four Chinese browser cases
+passed, with no console errors or horizontal overflow at 1265×744. Screenshots,
+limits, rule results, and exact isolation details are recorded in
+`next-session-handoff-2026-10-13.md`. Live wp-admin was observed separately;
+it still showed the recorded Site Knowledge warning. These fixtures are not
+Cloud/Provider acceptance. Another chat owns the recovery-button/style changes
+in the primary checkout; the user excluded those changes from this follow-up.
 
 ## 2026-10-12 zh_CN GlotPress Closeout
 

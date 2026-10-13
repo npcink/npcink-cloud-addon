@@ -1,6 +1,7 @@
 # 2026-10-13 当前交接：0.4.1 候选与跨仓收口
 
-状态：Addon 0.4.1 候选已经合并到 `master@9ae7e6a`；WordPress.org SVN
+状态：Addon 0.4.1 基础候选已合并（PR #267）；后续权益刷新修复在独立
+`codex/041-refresh-closeout` 分支完成本地门禁，等待 PR 收口。WordPress.org SVN
 发布和跨仓质量矩阵仍未执行。
 
 ## 当前已确认事实
@@ -9,12 +10,12 @@
 - 版本头、`NPCINK_CLOUD_ADDON_VERSION`、`readme.txt` 和本地语言目录均为
   `0.4.1`。
 - 候选包 SHA256 为
-  `e0c885f6a50a55ba73d8931c43c4b5862e0b13055ac29ed49030ee29fb2cfdbf`。
+  `e0df7c52ab155775aa20ddd8cc0ae885daf359096580d4bb7eae5d08283d21ea`。
 - 0.4.1 尚无 Git tag，也没有提交 WordPress.org SVN；WordPress.org 当前
   稳定版本仍为 0.4.0。
 - 候选代码门禁、CI、Release static gates、PHP 版本矩阵和 WordPress AI
-  兼容性矩阵均已通过。OCR advisory 曾因额度不足返回 429；本次正在补审
-  0.4.1 实际代码差异，不以空的文档审查代替代码审查。
+  兼容性矩阵均已通过。OCR advisory 曾因额度不足返回 429；恢复后的原候选代码审查返回两项发现，
+  处置和本轮刷新回归见下节，修复差异另行审查。
 - GlotPress 2026-10-12 的 stable/dev 插件和 readme 中文集合均已显示完整，
   但 0.4.1 发布后的语言包生成和目录缓存传播尚未验证。
 - 本地 wp-admin 的中文概览、Site Knowledge 和连接管理页面已检查。本次
@@ -26,7 +27,8 @@
 
 ## 下一步顺序
 
-1. 在发布前重新运行恢复后的 OCR advisory，并记录结果。
+1. OCR 已返回：修复权益刷新后残留 stale 警告；MO 未生成的发现经二进制核验为误报。
+   修复差异仍需完成 OCR、PR 和更新后的候选包核对，旧候选包不得发布。
 2. 获得单独的 WordPress.org 发布确认后，用临时 SVN 工作副本上传 trunk 和
    `tags/0.4.1`，核对 API、下载包、稳定版本、中文语言包和目录缓存。
 3. 待所有参与仓库的工作树进入干净窗口并获得用户确认后，从
@@ -56,3 +58,46 @@
 
 若 0.4.1 出现问题，使用后续补丁版本修复；不删除已发布 SVN 版本。候选阶段
 仍可按 PR #267 粒度回滚，无需数据迁移。
+
+## OCR 发现处置与刷新回归（2026-10-13）
+
+原候选代码审查：`aacce25..9ae7e6a`，session
+`866da943-0798-4a52-8f26-c65286516ab4`，8 个文件、2 项发现。
+
+- medium 有效：成功的权益自动刷新原来只更新套餐/额度，顶部 stale 卡和服务
+  徽章仍残留。修复在原页面标记权益自身的状态节点，仅在 AJAX 返回 fresh
+  后隐藏该卡、更新徽章和已翻译的标签；不扩展 AJAX 返回契约。
+- high 误报：Python `gettext.GNUTranslations` 直接读取已提交的 MO，确认
+  `Not recently checked` 与完整 stale 消息都有中文；原候选 PR 已更新 MO。
+  本轮复用现有翻译串，仅刷新 POT/PO 引用行号，MO 内容保持一致。
+- PHP 渲染回归验证首屏警告与零 Cloud 读取；JS 回归验证 fresh、刷新失败、
+  stale 响应和真实投递失败保护。刷新不能表示知识库恢复或索引完成。
+
+浏览器证据位于忽略目录 `build/release-evidence-2026-10-13/`：
+`refresh-stale-before.png`、`refresh-fresh-after.png`、`refresh-failure.png`、
+`refresh-dropped.png`、`refresh-delivery-error.png`、`refresh-live-overview.png`。
+隔离页由 Local WordPress 的隔离分支 PHP 私有渲染方法生成（仅在临时脚本替换类名，避免与已加载
+的插件类冲突），使用打包 zh_CN MO、
+生产 CSS/JS 和显式模拟的 Cloud 响应；没有持久化状态修改或 Provider 调用。
+真实 wp-admin 概览另行检查，仍显示需要注意，不把隔离测试当作 Cloud 验收。
+
+浏览器回执：页面模型为 connector summary/detail，环境为 Local MySQL +
+隔离静态 fixture，实际 viewport 为 1265×744（仓库未声明 PC viewport）。
+规则 1/3/4/5/7/11：pass；规则 2：not_applicable（无仓库尺寸契约）；
+规则 6/8/9/10：not_applicable（本次不改动作布局、选择/焦点或对话框）；
+规则 12：隔离页无外部请求，四例日志无 error/warn，真实后台日志也为空，pass。
+截图扫描：过期态警告在顶部，fresh 态隐藏后工作区上移，文字与徽章一致，pass。
+M4、生产验收和人类视觉接受均 unmeasured，不声称已完成。
+
+本次 Playground not_applicable：只改后台状态投影及其原有刷新行为，不触及
+bootstrap、激活、默认凭据、公共 API 或兼容基线；引用 2026-10-10 Tier B。
+
+隔离交付工作树：`/Users/muze/.codex/worktrees/041-refresh-closeout/npcink-cloud-addon`。
+原工作区的恢复按钮及样式改动由另一聊天负责，用户明确要求本 PR 不纳入。
+本轮只运行只读 `composer quality:matrix`；其他仓库及原工作区仍有改动，
+没有运行跨仓矩阵门禁。监控在 2026-10-13T02:21:21Z 只读检查中已显示最近
+上传成功、错误为空；Site Knowledge 仍有 11 条 dropped，不声称已全部恢复。
+
+隔离分支重新通过 composer validate、test:all、PHPStan 和完整 release:verify
+（含 WordPress.org、JS 13/13、i18n、50 文件包验证及 strict Plugin Check）。
+旧候选包哈希已作废；以上新哈希才是本轮权益刷新修复的候选包。

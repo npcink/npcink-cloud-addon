@@ -816,3 +816,29 @@ maca_assert(
 	'Behavior: disabled host test and log pages lead to AI settings instead of broken tools links.'
 );
 $GLOBALS['maca_abilities'] = $previous_abilities;
+
+// Only entitlement-owned status nodes may be updated by an entitlement read.
+maca_reset_test_state();
+maca_seed_settings( true );
+$render_summary = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_connection_summary' );
+$render_overview = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_overview_page' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$render_summary->setAccessible( true );
+	$render_overview->setAccessible( true );
+}
+foreach ( array( array(), array( 'dropped_count' => 1 ), array( 'last_delivery_error' => 'Failed' ) ) as $delivery ) {
+	$settings = Npcink_Cloud_Addon_Settings::get_settings();
+	$state = Npcink_Cloud_Addon_Settings::get_credential_state();
+	$entitlement = array( 'available' => true, 'stale' => true, 'state' => 'stale' );
+	$http_before = count( $GLOBALS['maca_http_requests'] );
+	ob_start();
+	$render_summary->invoke( null, $settings, $state, $entitlement, $delivery );
+	$render_overview->invoke( null, $settings, $state, $entitlement, array(), $delivery, true );
+	$html = (string) ob_get_clean();
+	maca_assert(
+		( empty( $delivery ) ? 3 : 0 ) === substr_count( $html, 'data-npcink-entitlement-health=' )
+		&& false !== strpos( $html, empty( $delivery ) ? 'out of date' : 'Needs attention' )
+		&& $http_before === count( $GLOBALS['maca_http_requests'] ),
+		'Behavior: stale warning renders without Cloud reads, and real delivery failures cannot be cleared by entitlement refresh.'
+	);
+}
