@@ -120,7 +120,7 @@
 			}
 
 			summary.textContent = payload.data.label;
-			container.dataset.npcinkEntitlementState = payload.data.state || 'fresh';
+			container.dataset.npcinkEntitlementState = payload.data.state || container.dataset.npcinkEntitlementState;
 			updateMetrics( payload.data.metrics || {} );
 			updateServiceHealth( payload.data.state || '' );
 			retry.hidden = true;

@@ -842,7 +842,8 @@ foreach ( array( array(), array( 'dropped_count' => 1 ), array( 'last_delivery_e
 		);
 	}
 	maca_assert(
-		false !== strpos( $html, empty( $delivery ) ? 'out of date' : 'Needs attention' )
+		( empty( $delivery ) ? 1 : 0 ) === substr_count( $html, 'data-npcink-entitlement-fresh-label="Recently reachable"' )
+		&& false !== strpos( $html, empty( $delivery ) ? 'out of date' : 'Needs attention' )
 		&& $http_before === count( $GLOBALS['maca_http_requests'] ),
 		'Behavior: stale warning renders without Cloud reads, and real delivery failures cannot be cleared by entitlement refresh.'
 	);

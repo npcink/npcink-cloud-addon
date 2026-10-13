@@ -63,7 +63,7 @@ localization rounds (#258, #263), and the stale entitlement/feedback candidate
 After the entitlement-refresh follow-up described below, the reproducible local package is `build/npcink-cloud-addon.zip` with SHA256:
 
 ```text
-582431a1616aed8aa65925f9e7c6391c970b9b431925c0511bb455d0cde5128b
+5ac5bc5287d6eb6eb2bc4d18ed1998637287c2df7e6e1f92e79f5347351594a7
 ```
 
 The candidate passed the recorded local gates (`composer validate`, full tests,
@@ -110,12 +110,18 @@ pass. Playground is not applicable to the 0.4.1 admin-only change because
 bootstrap, activation, default credentials, public APIs, and compatibility
 baselines are unchanged.
 
-Remaining release work: close the entitlement-refresh follow-up PR and its OCR advisory, obtain
+Remaining release work: confirm the follow-up PR complete CI rollup, obtain
 the explicit SVN publication confirmation, verify the generated 0.4.1 language
 pack and directory propagation after upload, and run the cross-repository matrix
 only after all participating worktrees are clean. Dependabot PRs #260 (OCR
 action), #261 (PHPStan), and #262 (WordPress stubs) are separate maintenance;
 they are not part of this frozen candidate.
+
+The follow-up OCR delta review (session `0ad146bd-5c15-4d2a-b369-1dfa73dceb7d`)
+completed with two non-blocking low findings, both addressed and covered by the
+final 15/15 JS and six-state browser verification. Earlier capped reviews and
+all finding dispositions are recorded in the handoff; no unresolved blocker is
+being represented as a clean zero-finding review.
 
 A temporary SVN working copy at `/tmp/npcink-041-svn-20261013` was prepared at
 repository revision `r3742751`. Both `trunk` and the locally scheduled
@@ -139,8 +145,8 @@ short label and full stale warning are translated. The follow-up reuses existing
 strings, refreshes POT/PO source references, and leaves MO bytes unchanged.
 
 Production PHP rendering and JS were tested with explicit, process-local
-fixtures: stale → fresh, failed refresh, dropped content, delivery error, and error-code-only failure.
-No persistent state or Provider calls were used. The five Chinese browser cases
+fixtures: stale → fresh, failed refresh, dropped content, delivery error, error-code-only failure, and missing response state.
+No persistent state or Provider calls were used. The six Chinese browser cases
 passed, with no console errors or horizontal overflow at 1265×744. Screenshots,
 limits, rule results, and exact isolation details are recorded in
 `next-session-handoff-2026-10-13.md`. Live wp-admin was observed separately;

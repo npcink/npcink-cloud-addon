@@ -74,6 +74,9 @@ for ( const scenario of [ { failure: true }, { state: 'stale' }, { state: null }
 		assert.equal( f.warning.removed, undefined );
 		assert.equal( f.badge.classes.has( 'npcink-cloud-badge--warning' ), true );
 		assert.equal( f.label.textContent, scenario.deliveryFailure ? 'Needs attention' : 'Not recently checked' );
+		if ( null === scenario.state ) {
+			assert.equal( f.container.dataset.npcinkEntitlementState, 'stale' );
+		}
 		if ( scenario.failure ) {
 			assert.equal( f.retry.hidden, false );
 			assert.equal( f.summary.textContent, 'Pro · cached · 更新失败' );
