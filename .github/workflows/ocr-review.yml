@@ -120,6 +120,9 @@ jobs:
           llm_auth_token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
           llm_model: ${{ vars.OCR_LLM_MODEL }}
           llm_use_anthropic: ${{ vars.OCR_LLM_USE_ANTHROPIC }}
+          # GLM-5.3 rejects the Action default thinking.type=disabled (1210).
+          # Leave reasoning behavior to the configured model/provider.
+          llm_extra_body: '{}'
           # Review-comment language; switch to English if preferred.
           language: Chinese
           base_ref: ${{ steps.pr-context.outputs.base_ref }}
