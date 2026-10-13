@@ -63,7 +63,7 @@ localization rounds (#258, #263), and the stale entitlement/feedback candidate
 After the entitlement-refresh follow-up described below, the reproducible local package is `build/npcink-cloud-addon.zip` with SHA256:
 
 ```text
-5f9606f038799b1cb123020d97b724ed1abb24f7e8711de0162ed69a28db10af
+582431a1616aed8aa65925f9e7c6391c970b9b431925c0511bb455d0cde5128b
 ```
 
 The candidate passed the recorded local gates (`composer validate`, full tests,
@@ -120,8 +120,9 @@ they are not part of this frozen candidate.
 A temporary SVN working copy at `/tmp/npcink-041-svn-20261013` was prepared at
 repository revision `r3742751`. Both `trunk` and the locally scheduled
 `tags/0.4.1` copy initially matched all 50 files of Git candidate `9ae7e6a`.
-That package is superseded: re-sync and re-verify the working copy against the
-merged refresh-fix package before any upload. No SVN commit was performed.
+That package is superseded. The working copy was subsequently re-synced using
+content checksums and matched all 50 refresh-fix package files; verify it again
+against the final merged candidate before upload. No SVN commit was performed.
 
 ### Entitlement Refresh Follow-Up (2026-10-13)
 
@@ -231,7 +232,7 @@ One authorized default batch was run:
 composer run acceptance:wp-ai-provider
 ```
 
-Exit 0: **14/14 passed**, zero failed, `evidence_state=local_verified`,
+Exit 0: **15/15 passed**, zero failed, `evidence_state=local_verified`,
 `quality_status=passed`, and `write_detected=false`
 (`content_state_unchanged`). The quota preflight was available. Every case
 executed, returned HTTP 200, passed the output/quality checks, and retained a
@@ -257,7 +258,7 @@ Cloud provider run ID:
 The full local report is
 `build/glotpress-evidence-2026-10-12/provider-acceptance.json` (ignored by Git).
 The four optional comment analysis/reply, alt-text vision, and image-generation
-lanes were skipped by the default runner; 14/14 does not claim those lanes or
+lanes were skipped by the default runner; 15/15 does not claim those lanes or
 human editorial acceptance. No repeat batch was run. The foreground tunnel
 was temporary for this acceptance check; later runtime checks must verify
 reachability again.
@@ -317,7 +318,7 @@ Verification evidence (all 2026-10-10, on the merged tree):
 Cloud-environment gap (recorded, matching the 0.3.0 precedent):
 `acceptance:wp-ai-provider` failed 0/14 with `provider_unavailable` because
 the remote dev Cloud's text provider pool is unavailable at release time;
-the same lane passed 14/14 at 0.3.0 closeout and the browser smoke's live
+the same lane passed 15/15 at 0.3.0 closeout and the browser smoke's live
 provider execution through the runtime path was green hours earlier. The
 opt-in image/vision lanes remain environment-limited as recorded for 0.3.0.
 
@@ -396,7 +397,7 @@ Verification evidence (all 2026-10-07, on the exact merged tree
   `smoke:wp-ai-compatibility` lane `stable-primary`, and
   `smoke:wp-ai-text-browser` (real browser, WP 7.1.1, title/summary/rephrase
   HTTP 200, zero-write review then one explicit save) all green;
-  `acceptance:wp-ai-provider` 14/14 passed after the Cloud text providers
+  `acceptance:wp-ai-provider` 15/15 passed after the Cloud text providers
   recovered; the opt-in image-generation and alt-text vision lanes remain
   environment-limited (the local dev Cloud has no connected image provider
   and rejects vision output quality) and are recorded as addon-external

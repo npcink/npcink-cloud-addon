@@ -835,9 +835,14 @@ foreach ( array( array(), array( 'dropped_count' => 1 ), array( 'last_delivery_e
 	$render_summary->invoke( null, $settings, $state, $entitlement, $delivery );
 	$render_overview->invoke( null, $settings, $state, $entitlement, array(), $delivery, true );
 	$html = (string) ob_get_clean();
+	foreach ( array( 'summary', 'badge', 'label' ) as $marker ) {
+		maca_assert(
+			( empty( $delivery ) ? 1 : 0 ) === substr_count( $html, 'data-npcink-entitlement-health="' . $marker . '"' ),
+			'Behavior: the exact ' . $marker . ' update marker is present only for entitlement-owned health.'
+		);
+	}
 	maca_assert(
-		( empty( $delivery ) ? 3 : 0 ) === substr_count( $html, 'data-npcink-entitlement-health=' )
-		&& false !== strpos( $html, empty( $delivery ) ? 'out of date' : 'Needs attention' )
+		false !== strpos( $html, empty( $delivery ) ? 'out of date' : 'Needs attention' )
 		&& $http_before === count( $GLOBALS['maca_http_requests'] ),
 		'Behavior: stale warning renders without Cloud reads, and real delivery failures cannot be cleared by entitlement refresh.'
 	);

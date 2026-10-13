@@ -810,6 +810,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$entitlement_state = sanitize_key( (string) ( $entitlement['state'] ?? '' ) );
 			$show_entitlement_retry = in_array( $entitlement_state, array( 'unavailable', 'refreshing' ), true );
 			$service_health = self::get_current_service_health( $is_verified, $entitlement, $site_knowledge );
+			$fresh_service_health = self::get_current_service_health( true, array( 'available' => true ), array() );
 			$entitlement_metrics = self::get_overview_entitlement_metrics( $entitlement );
 			$credit_metric = is_array( $entitlement_metrics['credits'] ?? null ) ? $entitlement_metrics['credits'] : array();
 			$runtime_metric = is_array( $entitlement_metrics['runtime'] ?? null ) ? $entitlement_metrics['runtime'] : array();
@@ -836,7 +837,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<div class="npcink-cloud-overview-panel">
 					<div class="npcink-cloud-overview-panel__header">
 						<span<?php echo empty( $service_health['delivery_failure'] ) ? ' data-npcink-entitlement-health="badge"' : ''; ?> class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( 'warning' === (string) $service_health['severity'] ? 'warning' : 'ok' ); ?>"><?php esc_html_e( 'Connected', 'npcink-cloud-addon' ); ?></span>
-						<span<?php echo empty( $service_health['delivery_failure'] ) ? ' data-npcink-entitlement-health="label"' : ''; ?> data-npcink-entitlement-fresh-label="<?php esc_attr_e( 'Recently reachable', 'npcink-cloud-addon' ); ?>" class="npcink-cloud-overview-service npcink-cloud-overview-service--<?php echo esc_attr( (string) $service_health['severity'] ); ?>"><?php echo esc_html( (string) $service_health['label'] ); ?></span>
+						<span<?php if ( empty( $service_health['delivery_failure'] ) ) : ?> data-npcink-entitlement-health="label" data-npcink-entitlement-fresh-label="<?php echo esc_attr( $fresh_service_health['label'] ); ?>"<?php endif; ?> class="npcink-cloud-overview-service npcink-cloud-overview-service--<?php echo esc_attr( (string) $service_health['severity'] ); ?>"><?php echo esc_html( (string) $service_health['label'] ); ?></span>
 						<span class="npcink-cloud-entitlement npcink-cloud-overview-panel__plan" data-npcink-entitlement-state="<?php echo esc_attr( $entitlement_state ); ?>">
 							<span class="npcink-cloud-overview-panel__plan-label" data-npcink-entitlement-summary aria-live="polite"><?php echo esc_html( self::format_overview_entitlement( $entitlement, $is_verified ) ); ?></span>
 							<span class="spinner npcink-cloud-entitlement__spinner" aria-hidden="true"></span>

@@ -10,7 +10,7 @@
 - 版本头、`NPCINK_CLOUD_ADDON_VERSION`、`readme.txt` 和本地语言目录均为
   `0.4.1`。
 - 候选包 SHA256 为
-  `5f9606f038799b1cb123020d97b724ed1abb24f7e8711de0162ed69a28db10af`。
+  `582431a1616aed8aa65925f9e7c6391c970b9b431925c0511bb455d0cde5128b`。
 - 0.4.1 尚无 Git tag，也没有提交 WordPress.org SVN；WordPress.org 当前
   稳定版本仍为 0.4.0。
 - 候选代码门禁、CI、Release static gates、PHP 版本矩阵和 WordPress AI
@@ -77,7 +77,7 @@
 `refresh-stale-before.png`、`refresh-fresh-after.png`、`refresh-failure.png`、
 `refresh-dropped.png`、`refresh-delivery-error.png`、`refresh-error-code-only.png`、`refresh-live-overview.png`。
 隔离页由 Local WordPress 的隔离分支 PHP 私有渲染方法生成（仅在临时脚本替换类名，避免与已加载
-的插件类冲突），使用打包 zh_CN MO、
+的插件类冲突，权限操作反馈使用空的隔离 stub，避免消费真实站点反馈），使用打包 zh_CN MO、
 生产 CSS/JS 和显式模拟的 Cloud 响应；没有持久化状态修改或 Provider 调用。
 真实 wp-admin 概览另行检查，仍显示需要注意，不把隔离测试当作 Cloud 验收。
 
@@ -99,7 +99,7 @@ bootstrap、激活、默认凭据、公共 API 或兼容基线；引用 2026-10-
 上传成功、错误为空；Site Knowledge 仍有 11 条 dropped，不声称已全部恢复。
 
 隔离分支重新通过 composer validate、test:all、PHPStan 和完整 release:verify
-（含 WordPress.org、JS 14/14、i18n、50 文件包验证及 strict Plugin Check）。
+（含 WordPress.org、JS 15/15、i18n、50 文件包验证及 strict Plugin Check）。
 旧候选包哈希已作废；以上新哈希才是本轮权益刷新修复的候选包。
 
 首轮修复 OCR session `3abcc533-7b2e-4acc-842a-e6d6e14a9616` 有四项发现，
@@ -111,3 +111,14 @@ bootstrap、激活、默认凭据、公共 API 或兼容基线；引用 2026-10-
   仅用于未验证/异常态，健康态只保留概览紧凑行；`render_connection_summary()`
   在健康 verified 状态本来就直接 return。低频连接管理仍在高级页。移除已经
   恢复的异常卡符合既定行为，并不移除永久的连接管理入口。
+
+第二轮 OCR session `6b8eb129-97dc-4a72-9338-cc8927ff9e1a` 返回 6 文件、
+5 项发现，并报告用量上限警告；不把该警告掩盖成无条件全绿。
+已处理其 medium 严格 fresh 判断和四项低级别建议：清除警告必须使用明确
+服务端状态；保留徽章附加类；健康文案复用同一 PHP 私有投影；PHP 逐个验证
+summary/badge/label 标记；JS fixture 保留未标记的真实失败节点并验证不变。
+修正后的生产行为和五种浏览器状态重新通过，后续仅对这些修正差异补审。
+
+临时 SVN `trunk` 和 `tags/0.4.1` 必须使用内容校验同步（如 `rsync -ac`），
+再比较所有文件字节。可复现包规范化文件时间后，仅比较大小/时间的同步可能
+遗漏同长度的 POT/PO 行号变化；最终上传前需再核对上述最新候选包哈希。
