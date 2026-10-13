@@ -70,6 +70,16 @@ jobs:
                   classification = "rate_limit"
               elif error.code in (400, 404, 422):
                   classification = "model_endpoint_or_request"
+              try:
+                  structured = json.loads(detail)
+                  provider_error = structured.get("error", {})
+                  provider_code = provider_error.get("code") if isinstance(provider_error, dict) else None
+              except (ValueError, AttributeError):
+                  provider_code = None
+              safe_code = int(provider_code) if str(provider_code).isdigit() and len(str(provider_code)) <= 6 else None
+              terms = ["model", "thinking", "tools", "max_tokens", "unsupported", "not found", "invalid", "模型", "参数", "不存在"]
+              print(json.dumps({"provider_numeric_code": safe_code,
+                                "diagnostic_terms": {word: word in detail for word in terms}}))
               report(error.code, classification)
           except (TimeoutError, socket.timeout):
               report(None, "timeout")
