@@ -123,7 +123,6 @@
 			updateUsage( payload.data );
 			retainedValueLabel = valueLabel ? valueLabel.textContent : '';
 			hasRetainedUsage = '' !== retainedValueLabel;
-			updateWaitingLabel( payload.data );
 			// Reuse the escaped server renderer so counts, warnings and recovery
 			// controls describe the same snapshot after an asynchronous refresh.
 			const fragments = payload.data.status_fragments || {};
@@ -146,6 +145,7 @@
 			if ( retry ) {
 				retry.hidden = true;
 			}
+			updateWaitingLabel( payload.data );
 		} catch ( error ) {
 			// A failed refresh cannot confirm the waiting count; drop the
 			// stale value instead of showing it next to an error status.

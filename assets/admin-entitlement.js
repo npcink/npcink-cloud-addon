@@ -104,11 +104,16 @@
 			retainedLabel = payload.data.label;
 			hasRetainedSummary = true;
 			container.dataset.npcinkEntitlementState = payload.data.state || container.dataset.npcinkEntitlementState;
-			updateMetrics( payload.data.metrics || {} );
-			if ( typeof window.npcinkCloudApplyStatusFragments === 'function' ) {
-				window.npcinkCloudApplyStatusFragments( payload.data.status_fragments || {} );
-			}
 			retry.hidden = true;
+			try {
+				updateMetrics( payload.data.metrics || {} );
+				if ( typeof window.npcinkCloudApplyStatusFragments === 'function' ) {
+					window.npcinkCloudApplyStatusFragments( payload.data.status_fragments || {} );
+				}
+			} catch ( renderError ) {
+				// A valid signed read remains successful if a replaced DOM node cannot
+				// render its optional metrics or status fragments.
+			}
 		} catch ( error ) {
 			// Only server-provided messages are display-ready; a browser network
 			// error text such as "Failed to fetch" must fall back to the

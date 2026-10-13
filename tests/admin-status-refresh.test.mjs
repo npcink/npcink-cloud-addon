@@ -5,9 +5,15 @@ import vm from 'node:vm';
 
 // Minimal DOM seams for the shipped controllers; PHP tests cover escaped markup.
 function node(textContent = '') {
+	const classes = new Set();
 	return {
 		textContent, hidden: false, disabled: false, dataset: {}, listeners: {},
-		classList: { toggle() {}, remove() {}, add() {} },
+		classes,
+		classList: {
+			toggle(name, enabled) { enabled ? classes.add(name) : classes.delete(name); },
+			remove(...names) { names.forEach((name) => classes.delete(name)); },
+			add(...names) { names.forEach((name) => classes.add(name)); },
+		},
 		setAttribute() {}, querySelector() { return null; },
 		closest() { return null; }, addEventListener(type, listener) { this.listeners[type] = listener; },
 	};
@@ -16,21 +22,15 @@ const settle = () => new Promise((resolve) => setImmediate(resolve));
 function run(asset, nodes, config, responses, DOMParser) {
 	let calls = 0;
 	const document = { querySelector: (selector) => nodes[selector] || null, querySelectorAll: () => [] };
-	const applyStatusFragments = (fragments = {}) => {
-		if ( nodes['[data-npcink-connection-summary]'] && typeof fragments.connection === 'string' ) {
-			nodes['[data-npcink-connection-summary]'].innerHTML = fragments.connection;
-		}
-		if ( nodes['.npcink-cloud-overview-service'] && fragments.service ) {
-			nodes['.npcink-cloud-overview-service'].textContent = fragments.service.label;
-		}
-	};
 	const window = { ...config, fetch: async () => {
 		calls++;
 		const response = responses.shift();
 		if (response instanceof Error) throw response;
 		return { ok: true, json: async () => response };
-	}, npcinkCloudApplyStatusFragments: applyStatusFragments };
-	vm.runInNewContext(readFileSync(new URL('../assets/' + asset, import.meta.url), 'utf8'), { window, document, URLSearchParams, DOMParser });
+	} };
+	const context = { window, document, URLSearchParams, DOMParser };
+	vm.runInNewContext(readFileSync(new URL('../assets/admin-status-fragments.js', import.meta.url), 'utf8'), context);
+	vm.runInNewContext(readFileSync(new URL('../assets/' + asset, import.meta.url), 'utf8'), context);
 	return () => calls;
 }
 const config = { ajaxUrl: '/admin-ajax.php', action: 'read', nonce: 'test', failedLabel: '暂时无法读取。', updateFailedLabel: '更新失败' };
@@ -52,6 +52,7 @@ test('entitlement refresh clears stale banner and retains the latest successful 
 	await settle();
 	assert.equal(connection.innerHTML, '');
 	assert.equal(service.textContent, 'Recently reachable');
+	assert.equal(service.className, 'npcink-cloud-overview-service npcink-cloud-overview-service--ok');
 	assert.equal(retry.hidden, true);
 	retry.listeners.click();
 	await settle();

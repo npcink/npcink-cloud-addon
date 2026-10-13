@@ -30,7 +30,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			}
 
 			$health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
-			if ( in_array( (string) ( $health['maintenance_status'] ?? '' ), array( 'queued', 'delivering', 'retrying' ), true ) ) {
+			if ( ! empty( $health['maintenance_active'] ) ) {
 				return self::result( true, 'refresh_in_progress', __( 'A knowledge base update is already in progress. No new request was started.', 'npcink-cloud-addon' ), 'refresh' );
 			}
 			if ( 0 < absint( $health['dropped_count'] ?? 0 ) || 'blocked' === (string) ( $health['maintenance_status'] ?? '' ) ) {

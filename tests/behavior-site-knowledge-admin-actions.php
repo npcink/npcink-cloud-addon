@@ -135,6 +135,7 @@ maca_assert(
 );
 
 Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result['maintenance_status'] = 'delivering';
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result['maintenance_active'] = true;
 $in_progress = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
 maca_assert(
 	'refresh_in_progress' === $in_progress['code']

@@ -650,10 +650,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		/** Keeps historical drops in diagnostics while their recovery is being delivered. */
 		private static function is_site_knowledge_recovery_in_progress( array $site_knowledge ): bool {
 			$maintenance = (string) ( $site_knowledge['maintenance_status'] ?? '' );
+			$operation = (string) ( $site_knowledge['maintenance_operation'] ?? 'rebuild' );
+			$maintenance_active = array_key_exists( 'maintenance_active', $site_knowledge )
+				? ! empty( $site_knowledge['maintenance_active'] )
+				: in_array( $maintenance, array( 'queued', 'delivering', 'retrying' ), true );
 			return 0 < absint( $site_knowledge['dropped_count'] ?? 0 )
-				&& in_array( $maintenance, array( 'queued', 'delivering' ), true )
-				&& empty( $site_knowledge['wp_cron_disabled'] ) && empty( $site_knowledge['reconcile_overdue'] )
-				&& ( 'queued' === $maintenance || ( '' === (string) ( $site_knowledge['last_delivery_error'] ?? '' ) && '' === (string) ( $site_knowledge['last_error_code'] ?? '' ) ) );
+				&& $maintenance_active
+				&& in_array( $operation, array( 'start', 'rebuild' ), true );
 		}
 
 		/**

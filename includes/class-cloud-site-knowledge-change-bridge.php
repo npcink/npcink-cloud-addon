@@ -144,6 +144,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				'last_index_action_sent_count' => absint( $status['last_index_action_sent_count'] ?? 0 ),
 				'last_index_action_batch_count' => absint( $status['last_index_action_batch_count'] ?? 0 ),
 				'maintenance_status' => sanitize_key( (string) ( $maintenance['status'] ?? 'idle' ) ),
+				'maintenance_operation' => sanitize_key( (string) ( $maintenance['operation'] ?? '' ) ),
+				'maintenance_active' => $full_index_active,
 				'maintenance_completed_batches' => absint( $maintenance['next_batch'] ?? 0 ),
 				'maintenance_total_batches' => absint( $maintenance['batch_count'] ?? 0 ),
 				'next_flush_at' => false === $next_flush ? '' : gmdate( 'c', (int) $next_flush ),

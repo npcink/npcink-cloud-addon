@@ -18,6 +18,7 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 	final class Npcink_Cloud_Customer_Journey {
 		public const CONTRACT_VERSION = 'customer_journey_event.v1';
 		public const BUFFER_OPTION = 'npcink_cloud_addon_customer_journey_buffer';
+		public const STATUS_OPTION = 'npcink_cloud_addon_customer_journey_status';
 		public const COHORT_ID_CONSTANT = 'NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID';
 
 		private const MAX_BUFFER_ITEMS = 200;
@@ -172,10 +173,10 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 		public static function flush_buffer(): array {
 			$buffer = self::buffer();
 			if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
-				return array( 'ok' => false, 'sent_count' => 0, 'buffer_count' => count( $buffer ) );
+				return self::remember_flush_result( array( 'ok' => false, 'sent_count' => 0, 'buffer_count' => count( $buffer ) ) );
 			}
 			if ( empty( $buffer ) ) {
-				return array( 'ok' => true, 'sent_count' => 0, 'buffer_count' => 0 );
+				return self::remember_flush_result( array( 'ok' => true, 'sent_count' => 0, 'buffer_count' => 0 ) );
 			}
 
 			$batch = array_slice( $buffer, 0, self::MAX_BATCH_ITEMS );
@@ -186,24 +187,24 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 				self::batch_idempotency_key( $batch )
 			);
 			if ( is_wp_error( $result ) ) {
-				return array(
+				return self::remember_flush_result( array(
 					'ok'           => false,
 					'sent_count'   => 0,
 					'buffer_count' => count( $buffer ),
 					'error'        => sanitize_text_field( $result->get_error_message() ),
-				);
+				) );
 			}
 
 			$data = is_array( $result['data'] ?? null ) ? $result['data'] : array();
 			if ( ! array_key_exists( 'accepted_count', $data ) || ! is_numeric( $data['accepted_count'] ) ) {
-				return array(
+				return self::remember_flush_result( array(
 					'ok' => false,
 					'sent_count' => 0,
 					'buffer_count' => count( $buffer ),
 					'error' => __( 'Cloud customer journey response did not include an accepted event count.', 'npcink-cloud-addon' ),
-				);
+				) );
 			}
-			$accepted = min( count( $batch ), max( 0, absint( $data['accepted_count'] ) ) );
+			$accepted = min( count( $batch ), max( 0, (int) $data['accepted_count'] ) );
 			if ( $accepted > 0 ) {
 				$latest = self::buffer();
 				$accepted_ids = array_column( array_slice( $batch, 0, $accepted ), 'event_id' );
@@ -219,13 +220,33 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 				$buffer = $latest;
 			}
 
-			return array(
+			return self::remember_flush_result( array(
 				'ok'              => true,
 				'sent_count'      => $accepted,
 				'stored_count'    => min( $accepted, max( 0, absint( $data['stored_count'] ?? $accepted ) ) ),
 				'duplicate_count' => min( $accepted, max( 0, absint( $data['duplicate_count'] ?? 0 ) ) ),
 				'buffer_count'    => count( $buffer ),
+			) );
+		}
+
+		/**
+		 * Persists only the latest bounded transport outcome so cron failures remain
+		 * diagnosable even though the scheduled caller discards the return value.
+		 *
+		 * @param array<string,mixed> $result Flush result.
+		 * @return array<string,mixed>
+		 */
+		private static function remember_flush_result( array $result ): array {
+			$status = array(
+				'last_flush_ok' => ! empty( $result['ok'] ),
+				'last_flush_at' => gmdate( 'c' ),
+				'last_flush_error' => empty( $result['ok'] ) ? sanitize_text_field( (string) ( $result['error'] ?? '' ) ) : '',
+				'last_sent_count' => absint( $result['sent_count'] ?? 0 ),
+				'buffer_count' => absint( $result['buffer_count'] ?? 0 ),
 			);
+			update_option( self::STATUS_OPTION, $status, false );
+
+			return $result;
 		}
 
 		/**
@@ -235,6 +256,7 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 		 */
 		public static function delete_data(): void {
 			delete_option( self::BUFFER_OPTION );
+			delete_option( self::STATUS_OPTION );
 		}
 
 		/**

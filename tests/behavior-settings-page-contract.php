@@ -788,12 +788,14 @@ maca_assert(
 foreach ( array( 'queued', 'delivering', 'retrying', 'blocked' ) as $maintenance_state ) {
 	$recovering_status = $dropped_status;
 	$recovering_status['maintenance_status'] = $maintenance_state;
+	$recovering_status['maintenance_active'] = in_array( $maintenance_state, array( 'queued', 'delivering', 'retrying' ), true );
+	$recovering_status['maintenance_operation'] = 'rebuild';
 	// Queuing preserves the previous failure until the first delivery runs.
 	$recovering_status['last_delivery_error'] = 'queued' === $maintenance_state ? 'Previous failure' : '';
 	ob_start();
 	$site_knowledge_renderer->invoke( null, $recovering_status, Npcink_Cloud_Addon_Settings::get_settings(), true );
 	$recovery_html = (string) ob_get_clean();
-	$is_recovering = in_array( $maintenance_state, array( 'queued', 'delivering' ), true );
+	$is_recovering = in_array( $maintenance_state, array( 'queued', 'delivering', 'retrying' ), true );
 	maca_assert(
 		$is_recovering
 			? false !== strpos( $recovery_html, 'Public content is being re-sent to Cloud.' ) && false === strpos( $recovery_html, 'Update again' ) && false === strpos( $recovery_html, 'were dropped' )
