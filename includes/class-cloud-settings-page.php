@@ -421,7 +421,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$summary_label = $service_needs_attention ? (string) $service_health['label'] : (string) $state['label'];
 			$summary_message = $service_needs_attention ? (string) $service_health['message'] : (string) $state['message'];
 			?>
-			<section class="npcink-cloud-summary">
+			<section class="npcink-cloud-summary"<?php echo $service_needs_attention && empty( $service_health['delivery_failure'] ) ? ' data-npcink-entitlement-health="summary"' : ''; ?>>
 				<div class="npcink-cloud-summary__header">
 					<div>
 						<p class="npcink-cloud-summary__state">
@@ -571,7 +571,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param bool                $is_verified Whether credentials were verified.
 		 * @param array<string,mixed> $entitlement Cached entitlement summary.
 		 * @param array<string,mixed> $site_knowledge Site Knowledge delivery health.
-		 * @return array{severity:string,label:string,message:string}
+		 * @return array{severity:string,label:string,message:string,delivery_failure?:bool}
 		 */
 		private static function get_current_service_health( bool $is_verified, array $entitlement, array $site_knowledge ): array {
 			if ( ! $is_verified ) {
@@ -581,14 +581,17 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			if ( 0 < absint( $site_knowledge['dropped_count'] ?? 0 ) ) {
 				return array(
 					'severity' => 'warning',
+					'delivery_failure' => true,
 					'label' => __( 'Needs attention', 'npcink-cloud-addon' ),
 					'message' => __( 'Some content updates could not be delivered to the knowledge base. Open the Site Knowledge tab to update it again.', 'npcink-cloud-addon' ),
 				);
 			}
 
-			if ( '' !== (string) ( $site_knowledge['last_delivery_error'] ?? '' ) ) {
+			if ( '' !== (string) ( $site_knowledge['last_delivery_error'] ?? '' )
+				|| '' !== (string) ( $site_knowledge['last_error_code'] ?? '' ) ) {
 				return array(
 					'severity' => 'warning',
+					'delivery_failure' => true,
 					'label' => __( 'Needs attention', 'npcink-cloud-addon' ),
 					'message' => __( 'A recent Site Knowledge delivery could not reach or authenticate with Cloud. Re-check the connection or open Cloud for service detail.', 'npcink-cloud-addon' ),
 				);
@@ -807,6 +810,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$entitlement_state = sanitize_key( (string) ( $entitlement['state'] ?? '' ) );
 			$show_entitlement_retry = in_array( $entitlement_state, array( 'unavailable', 'refreshing' ), true );
 			$service_health = self::get_current_service_health( $is_verified, $entitlement, $site_knowledge );
+			$fresh_service_health = self::get_current_service_health( true, array( 'available' => true ), array() );
 			$entitlement_metrics = self::get_overview_entitlement_metrics( $entitlement );
 			$credit_metric = is_array( $entitlement_metrics['credits'] ?? null ) ? $entitlement_metrics['credits'] : array();
 			$runtime_metric = is_array( $entitlement_metrics['runtime'] ?? null ) ? $entitlement_metrics['runtime'] : array();
@@ -832,8 +836,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				</div>
 				<div class="npcink-cloud-overview-panel">
 					<div class="npcink-cloud-overview-panel__header">
-						<span class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( 'warning' === (string) $service_health['severity'] ? 'warning' : 'ok' ); ?>"><?php esc_html_e( 'Connected', 'npcink-cloud-addon' ); ?></span>
-						<span class="npcink-cloud-overview-service npcink-cloud-overview-service--<?php echo esc_attr( (string) $service_health['severity'] ); ?>"><?php echo esc_html( (string) $service_health['label'] ); ?></span>
+						<span<?php echo empty( $service_health['delivery_failure'] ) ? ' data-npcink-entitlement-health="badge"' : ''; ?> class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( 'warning' === (string) $service_health['severity'] ? 'warning' : 'ok' ); ?>"><?php esc_html_e( 'Connected', 'npcink-cloud-addon' ); ?></span>
+						<span<?php if ( empty( $service_health['delivery_failure'] ) ) : ?> data-npcink-entitlement-health="label" data-npcink-entitlement-fresh-label="<?php echo esc_attr( $fresh_service_health['label'] ); ?>"<?php endif; ?> class="npcink-cloud-overview-service npcink-cloud-overview-service--<?php echo esc_attr( (string) $service_health['severity'] ); ?>"><?php echo esc_html( (string) $service_health['label'] ); ?></span>
 						<span class="npcink-cloud-entitlement npcink-cloud-overview-panel__plan" data-npcink-entitlement-state="<?php echo esc_attr( $entitlement_state ); ?>">
 							<span class="npcink-cloud-overview-panel__plan-label" data-npcink-entitlement-summary aria-live="polite"><?php echo esc_html( self::format_overview_entitlement( $entitlement, $is_verified ) ); ?></span>
 							<span class="spinner npcink-cloud-entitlement__spinner" aria-hidden="true"></span>

@@ -65,6 +65,26 @@
 		} );
 	};
 
+	const updateServiceHealth = ( state ) => {
+		if ( 'fresh' !== state ) {
+			return;
+		}
+		// Only entitlement-owned warnings may be cleared by this signed read.
+		document.querySelectorAll( '[data-npcink-entitlement-health]' ).forEach( ( node ) => {
+			const kind = node.dataset.npcinkEntitlementHealth;
+			if ( 'summary' === kind ) {
+				node.remove();
+			} else if ( 'badge' === kind ) {
+				node.classList.remove( 'npcink-cloud-badge--warning' );
+				node.classList.add( 'npcink-cloud-badge--ok' );
+			} else if ( 'label' === kind ) {
+				node.classList.remove( 'npcink-cloud-overview-service--warning', 'npcink-cloud-overview-service--pending' );
+				node.classList.add( 'npcink-cloud-overview-service--ok' );
+				node.textContent = node.dataset.npcinkEntitlementFreshLabel || '';
+			}
+		} );
+	};
+
 	const refresh = async ( mode ) => {
 		if ( requestInFlight ) {
 			return;
@@ -100,8 +120,9 @@
 			}
 
 			summary.textContent = payload.data.label;
-			container.dataset.npcinkEntitlementState = payload.data.state || 'fresh';
+			container.dataset.npcinkEntitlementState = payload.data.state || container.dataset.npcinkEntitlementState;
 			updateMetrics( payload.data.metrics || {} );
+			updateServiceHealth( payload.data.state || '' );
 			retry.hidden = true;
 		} catch ( error ) {
 			const hasRetainedSummary = 'stale' === initialState && '' !== initialLabel;

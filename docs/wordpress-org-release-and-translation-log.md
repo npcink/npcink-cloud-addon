@@ -60,10 +60,10 @@ monitoring persistence reductions (#250, #252, #255, #256), the two UX and
 localization rounds (#258, #263), and the stale entitlement/feedback candidate
 (#267). It preserves the existing public connector and Cloud contracts.
 
-The reproducible local package is `build/npcink-cloud-addon.zip` with SHA256:
+After the entitlement-refresh follow-up described below, the reproducible local package is `build/npcink-cloud-addon.zip` with SHA256:
 
 ```text
-e0c885f6a50a55ba73d8931c43c4b5862e0b13055ac29ed49030ee29fb2cfdbf
+5ac5bc5287d6eb6eb2bc4d18ed1998637287c2df7e6e1f92e79f5347351594a7
 ```
 
 The candidate passed the recorded local gates (`composer validate`, full tests,
@@ -110,17 +110,49 @@ pass. Playground is not applicable to the 0.4.1 admin-only change because
 bootstrap, activation, default credentials, public APIs, and compatibility
 baselines are unchanged.
 
-Remaining release work is operational: finish the restored OCR advisory, obtain
+Remaining release work: confirm the follow-up PR complete CI rollup, obtain
 the explicit SVN publication confirmation, verify the generated 0.4.1 language
 pack and directory propagation after upload, and run the cross-repository matrix
 only after all participating worktrees are clean. Dependabot PRs #260 (OCR
 action), #261 (PHPStan), and #262 (WordPress stubs) are separate maintenance;
 they are not part of this frozen candidate.
 
+The follow-up OCR delta review (session `0ad146bd-5c15-4d2a-b369-1dfa73dceb7d`)
+completed with two non-blocking low findings, both addressed and covered by the
+final 15/15 JS and six-state browser verification. Earlier capped reviews and
+all finding dispositions are recorded in the handoff; no unresolved blocker is
+being represented as a clean zero-finding review.
+
 A temporary SVN working copy at `/tmp/npcink-041-svn-20261013` was prepared at
 repository revision `r3742751`. Both `trunk` and the locally scheduled
-`tags/0.4.1` copy match all 50 package files and Git candidate `9ae7e6a`
-byte-for-byte. No SVN commit was performed; this is preparation evidence only.
+`tags/0.4.1` copy initially matched all 50 files of Git candidate `9ae7e6a`.
+That package is superseded. The working copy was subsequently re-synced using
+content checksums and matched all 50 refresh-fix package files; verify it again
+against the final merged candidate before upload. No SVN commit was performed.
+
+### Entitlement Refresh Follow-Up (2026-10-13)
+
+OCR session `866da943-0798-4a52-8f26-c65286516ab4` reviewed
+`aacce25..9ae7e6a` and returned two findings. The medium finding was valid:
+a fresh automatic entitlement read left the stale global warning and Overview
+badge unchanged. The isolated follow-up marks entitlement-owned nodes and
+updates them only after a fresh response; recorded Site Knowledge delivery
+failures stay visible. No public PHP or AJAX response contract changes.
+
+The high finding about a missing MO update was a false positive. Direct
+`gettext.GNUTranslations` inspection of the committed MO confirmed both the
+short label and full stale warning are translated. The follow-up reuses existing
+strings, refreshes POT/PO source references, and leaves MO bytes unchanged.
+
+Production PHP rendering and JS were tested with explicit, process-local
+fixtures: stale → fresh, failed refresh, dropped content, delivery error, error-code-only failure, and missing response state.
+No persistent state or Provider calls were used. The six Chinese browser cases
+passed, with no console errors or horizontal overflow at 1265×744. Screenshots,
+limits, rule results, and exact isolation details are recorded in
+`next-session-handoff-2026-10-13.md`. Live wp-admin was observed separately;
+it still showed the recorded Site Knowledge warning. These fixtures are not
+Cloud/Provider acceptance. Another chat owns the recovery-button/style changes
+in the primary checkout; the user excluded those changes from this follow-up.
 
 ## 2026-10-12 zh_CN GlotPress Closeout
 
@@ -206,7 +238,7 @@ One authorized default batch was run:
 composer run acceptance:wp-ai-provider
 ```
 
-Exit 0: **14/14 passed**, zero failed, `evidence_state=local_verified`,
+Exit 0: **15/15 passed**, zero failed, `evidence_state=local_verified`,
 `quality_status=passed`, and `write_detected=false`
 (`content_state_unchanged`). The quota preflight was available. Every case
 executed, returned HTTP 200, passed the output/quality checks, and retained a
@@ -232,7 +264,7 @@ Cloud provider run ID:
 The full local report is
 `build/glotpress-evidence-2026-10-12/provider-acceptance.json` (ignored by Git).
 The four optional comment analysis/reply, alt-text vision, and image-generation
-lanes were skipped by the default runner; 14/14 does not claim those lanes or
+lanes were skipped by the default runner; 15/15 does not claim those lanes or
 human editorial acceptance. No repeat batch was run. The foreground tunnel
 was temporary for this acceptance check; later runtime checks must verify
 reachability again.
@@ -292,7 +324,7 @@ Verification evidence (all 2026-10-10, on the merged tree):
 Cloud-environment gap (recorded, matching the 0.3.0 precedent):
 `acceptance:wp-ai-provider` failed 0/14 with `provider_unavailable` because
 the remote dev Cloud's text provider pool is unavailable at release time;
-the same lane passed 14/14 at 0.3.0 closeout and the browser smoke's live
+the same lane passed 15/15 at 0.3.0 closeout and the browser smoke's live
 provider execution through the runtime path was green hours earlier. The
 opt-in image/vision lanes remain environment-limited as recorded for 0.3.0.
 
@@ -371,7 +403,7 @@ Verification evidence (all 2026-10-07, on the exact merged tree
   `smoke:wp-ai-compatibility` lane `stable-primary`, and
   `smoke:wp-ai-text-browser` (real browser, WP 7.1.1, title/summary/rephrase
   HTTP 200, zero-write review then one explicit save) all green;
-  `acceptance:wp-ai-provider` 14/14 passed after the Cloud text providers
+  `acceptance:wp-ai-provider` 15/15 passed after the Cloud text providers
   recovered; the opt-in image-generation and alt-text vision lanes remain
   environment-limited (the local dev Cloud has no connected image provider
   and rejects vision output quality) and are recorded as addon-external
