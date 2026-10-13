@@ -25,6 +25,43 @@ if ( ! function_exists( 'determine_locale' ) ) {
 	}
 }
 
+// Simulate an installed language pack that lacks newer fixed admin strings.
+$admin_string_pattern = <<<'REGEX'
+~(?:__|_e|esc_html__|esc_html_e|esc_attr__|esc_attr_e)\(\s*'((?:\\.|[^'\\])*)'\s*,\s*'npcink-cloud-addon'~s
+REGEX;
+$untranslated_admin_strings = array();
+foreach ( array( 'settings-page', 'settings-actions', 'site-knowledge-admin-actions', 'addon-settings', 'site-knowledge-change-bridge', 'observability-collector' ) as $admin_module ) {
+	preg_match_all( $admin_string_pattern, maca_read( MACA_TEST_ROOT . '/includes/class-cloud-' . $admin_module . '.php' ), $admin_matches );
+	foreach ( $admin_matches[1] as $admin_source ) {
+		$admin_source = str_replace( array( "\\'", '\\\\' ), array( "'", '\\' ), $admin_source );
+		// Brand, accessibility glyph, number pair and currency identifier.
+		if ( in_array( $admin_source, array( 'Npcink Cloud Addon', 'Cloud', 'i', '%1$s / %2$s', '%s USD' ), true ) ) {
+			continue;
+		}
+		if ( $admin_source === Npcink_Cloud_Addon_Localization::filter_gettext( $admin_source, $admin_source, 'npcink-cloud-addon' ) ) {
+			$untranslated_admin_strings[] = $admin_source;
+		}
+	}
+}
+maca_assert(
+	array() === $untranslated_admin_strings,
+	'Behavior: fixed connector admin and action strings remain Chinese with a lagging language pack: ' . implode( '; ', array_unique( $untranslated_admin_strings ) )
+);
+
+foreach ( array(
+	'Site Knowledge refresh requested. Public content items sent: %d.' => '已请求站点知识库刷新。已发送公开内容项：%d。',
+	'Knowledge base recovery has been scheduled. The warning will clear after all public content has been delivered to Cloud.' => '已安排知识库恢复更新。全部公开内容投递到 Cloud 后，警告将自动解除。',
+	'A knowledge base update is already in progress. No new request was started.' => '知识库正在更新中，本次未重复发起请求。',
+	'Public content is being re-sent to Cloud. The warning will clear when delivery finishes.' => '正在向 Cloud 重新投递公开内容。投递完成后，警告将自动解除。',
+	'The cached Cloud read is out of date. Re-check the connection to confirm current service status.' => '缓存的 Cloud 读取已过期。请重新检查连接以确认当前服务状态。',
+) as $source => $translation ) {
+	maca_assert(
+		$translation === Npcink_Cloud_Addon_Localization::filter_gettext( $source, $source, 'npcink-cloud-addon' )
+		&& 'Existing translation' === Npcink_Cloud_Addon_Localization::filter_gettext( 'Existing translation', $source, 'npcink-cloud-addon' ),
+		'Behavior: knowledge base recovery notices have a Chinese fallback when the installed language pack lags, preserving supplied translations.'
+	);
+}
+
 maca_assert(
 	'已连接，等待激活' === Npcink_Cloud_Addon_Localization::filter_gettext(
 		'Connected, activation required',

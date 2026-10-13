@@ -11,12 +11,13 @@
 	const valueLabel = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-usage-value]' ) : null;
 	const statusLabel = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-usage-status]' ) : null;
 	const progress = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-progress]' ) : null;
-	const retry = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-retry]' ) : null;
+	let retry = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-retry]' ) : document.querySelector( '[data-npcink-site-knowledge-status-retry]' );
 	const spinner = usageContainer ? usageContainer.querySelector( '.npcink-cloud-site-knowledge-usage__spinner' ) : null;
 	const actions = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-actions]' ) : null;
 	const waitingLabel = document.querySelector( '[data-npcink-site-knowledge-waiting]' );
 	const initialState = refreshController.dataset.npcinkSiteKnowledgeState || '';
-	const initialValueLabel = valueLabel ? valueLabel.textContent : '';
+	let retainedValueLabel = valueLabel ? valueLabel.textContent : '';
+	let hasRetainedUsage = 'stale' === initialState && '' !== retainedValueLabel;
 	let requestInFlight = false;
 
 	if ( ! valueLabel && ! waitingLabel ) {
@@ -69,6 +70,7 @@
 	};
 
 	const updateWaitingLabel = ( usage ) => {
+		const waitingLabel = document.querySelector( '[data-npcink-site-knowledge-waiting]' );
 		if ( ! waitingLabel ) {
 			return;
 		}
@@ -118,7 +120,39 @@
 			}
 
 			updateUsage( payload.data );
+			retainedValueLabel = valueLabel ? valueLabel.textContent : '';
+			hasRetainedUsage = '' !== retainedValueLabel;
 			updateWaitingLabel( payload.data );
+			// Reuse the escaped server renderer so counts, warnings and recovery
+			// controls describe the same snapshot after an asynchronous refresh.
+			const fragments = payload.data.status_fragments || {};
+			const connection = document.querySelector( '[data-npcink-connection-summary]' );
+			if ( connection && typeof fragments.connection === 'string' ) {
+				connection.innerHTML = fragments.connection;
+			}
+			const service = document.querySelector( '.npcink-cloud-overview-service' );
+			const badge = document.querySelector( '[data-npcink-service-connection-badge]' );
+			if ( service && fragments.service ) {
+				service.textContent = fragments.service.label;
+				service.className = 'npcink-cloud-overview-service npcink-cloud-overview-service--' + fragments.service.severity;
+				if ( badge ) {
+					badge.classList.toggle( 'npcink-cloud-badge--warning', fragments.service.severity === 'warning' );
+					badge.classList.toggle( 'npcink-cloud-badge--ok', fragments.service.severity !== 'warning' );
+				}
+			}
+			const knowledge = document.querySelector( '.npcink-cloud-site-knowledge-summary' );
+			if ( knowledge && typeof fragments.knowledge === 'string' ) {
+				const parsed = new DOMParser().parseFromString( fragments.knowledge, 'text/html' );
+				const replacement = parsed.querySelector( '.npcink-cloud-site-knowledge-summary' );
+				if ( replacement ) {
+					knowledge.replaceWith( replacement );
+					const statusRetry = replacement.querySelector( '[data-npcink-site-knowledge-status-retry]' );
+					if ( statusRetry ) {
+						retry = statusRetry;
+						statusRetry.addEventListener( 'click', refresh );
+					}
+				}
+			}
 			if ( retry ) {
 				retry.hidden = true;
 			}
@@ -126,15 +160,23 @@
 			// A failed refresh cannot confirm the waiting count; drop the
 			// stale value instead of showing it next to an error status.
 			updateWaitingLabel( null );
-			const hasRetainedUsage = 'stale' === initialState && '' !== initialValueLabel;
 			// Only server-provided messages are display-ready; browser network
 			// error text must fall back to the translated config labels below.
 			const actionableMessage = error && error.fromServer && error.message && 'site_knowledge_usage_refresh_failed' !== error.message ? error.message : '';
+			const readStatus = document.querySelector( '[data-npcink-site-knowledge-read-status]' );
+			const statusRetry = document.querySelector( '[data-npcink-site-knowledge-status-retry]' );
+			if ( readStatus ) {
+				readStatus.textContent = actionableMessage || config.failedLabel || 'Site Knowledge usage is temporarily unavailable.';
+				readStatus.hidden = false;
+			}
+			if ( statusRetry ) {
+				statusRetry.hidden = false;
+			}
 			// The English literals below are a last-resort fallback for a broken
 			// server injection; normal rendering always uses config labels.
 			if ( valueLabel ) {
 				valueLabel.textContent = hasRetainedUsage
-					? initialValueLabel
+					? retainedValueLabel
 					: ( actionableMessage || config.failedLabel || 'Site Knowledge usage is temporarily unavailable.' );
 			}
 			if ( statusLabel ) {

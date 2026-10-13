@@ -671,6 +671,36 @@ maca_assert(
 
 maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
+require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-admin-actions.php';
+for ( $post_id = 9001; $post_id <= 9201; $post_id++ ) {
+	maca_add_public_post_fixture( $post_id );
+	$GLOBALS['maca_posts'][ $post_id ]->post_modified_gmt = '2020-01-01 00:00:00';
+}
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array( 'dropped_count' => 11, 'last_dropped_at' => gmdate( 'c' ) ), false );
+$recovery = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+$repeated_recovery = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+maca_assert(
+	'refresh_scheduled' === $recovery['code'] && 201 === $recovery['selected_count']
+	&& 'refresh_in_progress' === $repeated_recovery['code']
+	&& array() === $GLOBALS['maca_http_requests']
+	&& 11 === Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['dropped_count'],
+	'Behavior: the recovery button selects old public content across batches, retains dropped facts, and avoids duplicate requests.'
+);
+maca_queue_site_knowledge_inline_success( 2 );
+$first_recovery_batch = maca_run_site_knowledge_flush();
+$final_recovery_batch = maca_run_site_knowledge_flush();
+$recovery_body = json_decode( (string) $GLOBALS['maca_http_requests'][0]['args']['body'], true );
+maca_assert(
+	11 === $first_recovery_batch['dropped_count']
+	&& 0 === $final_recovery_batch['dropped_count']
+	&& 'completed' === $final_recovery_batch['last_index_action_status']
+	&& 'refresh' === $recovery_body['input']['sync_mode']
+	&& 2 === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: recovery re-sends existing public content without rebuilding or deleting, clearing historical warnings only after the final batch.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
 maca_add_public_post_fixture( 803 );
 update_option(
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,

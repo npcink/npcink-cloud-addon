@@ -17,6 +17,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		public static array $index_calls = array();
 		public static array $article_calls = array();
 		public static array $flush_result = array();
+		public static array $health_result = array();
 		public static $index_result = array();
 		public static $article_result = array();
 
@@ -27,6 +28,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		public static function flush_buffer(): array {
 			self::$flush_calls++;
 			return self::$flush_result;
+		}
+
+		public static function health_snapshot(): array {
+			return self::$health_result;
 		}
 
 		public static function request_manual_index_operation( string $operation ) {
@@ -55,6 +60,7 @@ function maca_reset_site_knowledge_admin_actions( bool $verified = true ): void 
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_calls = array();
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$article_calls = array();
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_result = array();
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result = array();
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_result = array();
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$article_result = array();
 }
@@ -88,6 +94,63 @@ maca_assert(
 	&& 1 === Npcink_Cloud_Site_Knowledge_Change_Bridge::$buffer_calls
 	&& 1 === Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_calls,
 	'Behavior: public refresh preserves the bridge count and administrator success copy.'
+);
+
+maca_reset_site_knowledge_admin_actions();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result = array( 'dropped_count' => 11 );
+
+maca_set_site_knowledge_delivery_enabled( false );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result['maintenance_status'] = 'queued';
+$disabled = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+maca_assert(
+	empty( $disabled['ok'] ) && 'delivery_disabled' === $disabled['code']
+	&& 0 === Npcink_Cloud_Site_Knowledge_Change_Bridge::$buffer_calls
+	&& array() === Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_calls,
+	'Behavior: a paused permission cannot report an old queued recovery as a running update.'
+);
+
+maca_reset_site_knowledge_admin_actions();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_result = array( 'last_delivery_ok' => true, 'last_sent_count' => 0 );
+$no_changes = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+maca_assert(
+	! empty( $no_changes['ok'] ) && 'refresh_no_changes' === $no_changes['code']
+	&& 0 === $no_changes['sent_count']
+	&& 'No pending public content changes were found. No content was sent to Cloud.' === $no_changes['message'],
+	'Behavior: an empty refresh describes a no-op rather than claiming content was sent.'
+);
+
+maca_reset_site_knowledge_admin_actions();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result = array( 'dropped_count' => 11 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_result = array( 'last_index_action_selected_count' => 782, 'last_index_action_batch_count' => 32 );
+$recovery = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+maca_assert(
+	maca_has_site_knowledge_admin_result_shape( $recovery )
+	&& ! empty( $recovery['ok'] ) && 'refresh_scheduled' === $recovery['code']
+	&& 'refresh' === $recovery['operation'] && 0 === $recovery['sent_count']
+	&& 782 === $recovery['selected_count'] && 32 === $recovery['batch_count']
+	&& array( 'start' ) === Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_calls
+	&& 0 === Npcink_Cloud_Site_Knowledge_Change_Bridge::$buffer_calls
+	&& 0 === Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_calls,
+	'Behavior: dropped-change recovery queues all public content without claiming it was already delivered or deleting the index.'
+);
+
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result['maintenance_status'] = 'delivering';
+$in_progress = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+maca_assert(
+	'refresh_in_progress' === $in_progress['code']
+	&& array( 'start' ) === Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_calls
+	&& 0 === Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_calls,
+	'Behavior: repeated recovery clicks neither restart delivery nor report zero items as a completed update.'
+);
+
+maca_reset_site_knowledge_admin_actions();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result = array( 'dropped_count' => 11 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_result = new WP_Error( 'cloud_site_knowledge_delivery_disabled', 'Delivery is disabled.' );
+$blocked_recovery = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+maca_assert(
+	empty( $blocked_recovery['ok'] ) && 'Delivery is disabled.' === $blocked_recovery['message']
+	&& 'cloud_site_knowledge_delivery_disabled' === $blocked_recovery['source_error_code'],
+	'Behavior: recovery scheduling failures preserve the bridge error instead of reporting success.'
 );
 
 maca_reset_site_knowledge_admin_actions();

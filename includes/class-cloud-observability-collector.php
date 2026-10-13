@@ -367,6 +367,11 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			}
 
 			$data = is_array( $result['data'] ?? null ) ? $result['data'] : array();
+			if ( ! array_key_exists( 'accepted_count', $data ) || ! is_numeric( $data['accepted_count'] ) ) {
+				$message = __( 'Cloud observability response did not include an accepted event count.', 'npcink-cloud-addon' );
+				self::record_monitoring_state_projection( false, true, $message );
+				return self::record_flush_result( false, 0, $message );
+			}
 			$accepted_total = min( count( $batch ), max( 0, absint( $data['accepted_count'] ?? count( $batch ) ) ) );
 			$accepted = min( count( $event_batch ), $accepted_total );
 			$stored = min( $accepted, max( 0, absint( $data['stored_count'] ?? $accepted ) ) );
@@ -391,6 +396,9 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		 * @return array<string,mixed>
 		 */
 		public static function project_monitoring_state( bool $enabled ): array {
+			if ( ! $enabled && ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+				self::record_monitoring_paused_result();
+			}
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
 				return self::record_monitoring_state_projection(
 					false,
@@ -415,7 +423,14 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 			}
 
 			$data = is_array( $result['data'] ?? null ) ? $result['data'] : array();
-			$accepted = min( 1, max( 0, absint( $data['accepted_count'] ?? 1 ) ) );
+			if ( ! array_key_exists( 'accepted_count', $data ) || ! is_numeric( $data['accepted_count'] ) ) {
+				return self::record_monitoring_state_projection(
+					false,
+					$enabled,
+					__( 'Cloud observability response did not include an accepted event count.', 'npcink-cloud-addon' )
+				);
+			}
+			$accepted = min( 1, max( 0, absint( $data['accepted_count'] ) ) );
 			return self::record_monitoring_state_projection(
 				1 === $accepted,
 				$enabled,

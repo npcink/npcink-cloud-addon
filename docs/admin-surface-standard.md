@@ -178,6 +178,30 @@ the default UI.
 
 ## Verification
 
+### Refresh and recovery feedback (2026-10-13)
+
+- Refresh counts, warnings, service labels and recovery actions from the same
+  escaped server projection. A successful signed read may clear an obsolete
+  connection warning; it must preserve independent local delivery failures,
+  including failures recorded only as an error code.
+- Never treat missing response state or expired cached evidence as current
+  service or indexing success. Retain the most recent valid value on a later
+  read failure, disclose the failure and offer retry only while it exists.
+- Describe accepted recovery as scheduled or updating. Describe an empty
+  delivery as no content sent. Clear historical dropped-content attention only
+  after the existing full public-content delivery completes; do not erase
+  persisted facts to make the interface appear healthy.
+- Require an explicit accepted count before removing uploaded monitoring or
+  customer-journey events from local buffers. An HTTP success envelope alone
+  does not prove Cloud accepted the metadata.
+- Verify fixed zh_CN text with a lagging site language pack as well as the
+  bundled PO/MO. Existing translated text wins; bundled fallback remains
+  addon-domain scoped and must not translate dynamic ability metadata.
+
+Regression and integration evidence for these rules is recorded in
+[the admin feedback audit](admin-feedback-audit-2026-10-13.md) and
+[the Site Knowledge recovery follow-up](site-knowledge-recovery-closeout-2026-10-13.md).
+
 Checks should confirm that the page never prints the stored secret, never
 applies WordPress writes, and remains a connector/detail surface rather than a
 second local or cloud control plane.

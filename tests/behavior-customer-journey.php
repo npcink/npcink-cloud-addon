@@ -112,6 +112,18 @@ maca_assert(
 
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ),
+);
+$malformed = Npcink_Cloud_Customer_Journey::flush_buffer();
+maca_assert(
+	empty( $malformed['ok'] )
+	&& false !== strpos( (string) ( $malformed['error'] ?? '' ), 'accepted event count' )
+	&& 3 === count( maca_customer_journey_events() ),
+	'Behavior: a journey response without an accepted count cannot report success or remove buffered events.'
+);
+
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
 	'body'     => wp_json_encode(
 		array(
 			'status' => 'ok',

@@ -17,6 +17,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 	 */
 	final class Npcink_Cloud_Addon_Localization {
 		private const TEXT_DOMAIN = 'npcink-cloud-addon';
+		private const BUNDLED_TEXT_DOMAIN = 'npcink-cloud-addon-bundled';
+		private static bool $bundled_domain_loaded = false;
 
 		/**
 		 * Registers addon-owned localization hooks.
@@ -24,6 +26,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 		 * @return void
 		 */
 		public static function register(): void {
+			self::load_bundled_domain();
 			add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
 			add_filter( 'ngettext', array( __CLASS__, 'filter_ngettext' ), 20, 5 );
 		}
@@ -48,8 +51,11 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 			}
 
 			$translations = self::translations();
+			if ( isset( $translations[ $source ] ) ) {
+				return $translations[ $source ];
+			}
 
-			return $translations[ $source ] ?? $translation;
+			return self::bundled_translation( $translation, $source );
 		}
 
 		/**
@@ -70,8 +76,39 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 			}
 
 			$translations = self::translations();
+			if ( isset( $translations[ $text ] ) ) {
+				return $translations[ $text ];
+			}
 
-			return $translations[ $text ] ?? $translation;
+			return self::bundled_translation( $translation, $text );
+		}
+
+		/** Loads the shipped complete zh_CN catalog as a last-resort domain. */
+		private static function load_bundled_domain(): void {
+			if ( self::$bundled_domain_loaded || ! function_exists( 'load_textdomain' ) || ! self::should_localize() ) {
+				return;
+			}
+			$locale = function_exists( 'determine_locale' ) ? (string) determine_locale() : '';
+			$locale = str_replace( '-', '_', $locale );
+			$path = dirname( __DIR__ ) . '/languages/npcink-cloud-addon-' . $locale . '.mo';
+			if ( is_readable( $path ) ) {
+				self::$bundled_domain_loaded = (bool) load_textdomain( self::BUNDLED_TEXT_DOMAIN, $path );
+			}
+		}
+
+		/** Returns a bundled translation only when WordPress supplied the English source. */
+		private static function bundled_translation( string $translation, string $source ): string {
+			self::load_bundled_domain();
+			if ( ! function_exists( 'get_translations_for_domain' ) ) {
+				return $translation;
+			}
+			$catalog = get_translations_for_domain( self::BUNDLED_TEXT_DOMAIN );
+			if ( ! is_object( $catalog ) || ! method_exists( $catalog, 'translate' ) ) {
+				return $translation;
+			}
+			$bundled = $catalog->translate( $source );
+
+			return '' !== $bundled && $bundled !== $source ? $bundled : $translation;
 		}
 
 		/**
@@ -127,6 +164,110 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 		 */
 		private static function translation_entries(): array {
 			return array(
+				'Saving…' => '正在保存…',
+				'Cloud connector status and access settings for this WordPress site.' => '此 WordPress 站点的 Cloud 连接器状态和访问设置。',
+				'Connect' => '连接',
+				'Cloud addon sections' => 'Cloud addon 分区',
+				'Cloud Base URL' => 'Cloud 基础 URL',
+				'Not set' => '未设置',
+				'Last verified' => '上次验证',
+				'Never' => '从未',
+				'Save' => '保存',
+				'Open Cloud sites' => '打开 Cloud 站点',
+				'Not checked' => '未检查',
+				'Temporarily unavailable' => '暂时不可用',
+				'Manual connection fallback' => '手动连接备用方式',
+				'Use only for recovery or local debugging when Cloud authorization is unavailable.' => '仅在 Cloud 授权不可用时用于恢复或本地调试。',
+				'Recovery Cloud API Key' => '恢复用 Cloud API 密钥',
+				'Paste a Cloud-issued mak1_ recovery key' => '粘贴 Cloud 签发的 mak1_ 恢复密钥',
+				'Leave blank to keep the stored connection key. Use Change Cloud account for normal account changes.' => '留空可继续使用已保存的连接密钥。如需正常更换账号，请使用“更换 Cloud 账号”。',
+				'This fallback accepts only a Cloud-issued mak1_ wrapper and never displays the stored value.' => '此恢复入口仅接受 Cloud 签发的 mak1_ 封装密钥，并且不会显示已保存的值。',
+				'Timeout' => '超时',
+				'seconds' => '秒',
+				'Save and Verify' => '保存并验证',
+				'Not available yet' => '暂不可用',
+				'Use Run readiness test to execute the liveness and signed-read checks.' => '使用“运行就绪测试”执行存活检查和签名读取检查。',
+				'Cloud entitlement did not return hosted runtime detail. Re-verify or open Cloud status detail.' => 'Cloud 权益未返回托管运行时详情。请重新验证或打开 Cloud 状态详情。',
+				'Connection' => '连接',
+				'Current site' => '当前站点',
+				'Add this site in Npcink Cloud' => '在 Npcink Cloud 添加当前站点',
+				'Cloud will create or activate this site connection and return here with a one-time authorization code.' => 'Cloud 会创建或激活此站点连接，并通过一次性授权码返回这里。',
+				'Review Cloud privacy and data retention information' => '查看 Cloud 隐私和数据保留信息',
+				'Site Knowledge delivery starts after the connector verifies successfully.' => '连接器成功验证后才会开始站点知识库投递。',
+				'Start indexing' => '开始索引',
+				'Send a public post and page manifest so existing content enters the knowledge base.' => '发送公开文章和页面清单，使现有内容进入知识库。',
+				'yes' => '是',
+				'Collection' => '收集',
+				'enabled' => '已启用',
+				'Buffered events' => '缓冲事件',
+				'Last upload status' => '上次上传状态',
+				'never' => '从未',
+				'failed' => '失败',
+				'Last upload error' => '上次上传错误',
+				'Connection status' => '连接状态',
+				'Last failure' => '上次失败',
+				'available' => '可用',
+				'not refreshed' => '尚未刷新',
+				'read failed' => '读取失败',
+				'%1$s, %2$d buffered' => '%1$s，%2$d 条待发送',
+				'You do not have permission to manage Npcink Cloud settings.' => '你没有管理 Npcink Cloud 设置的权限。',
+				'Cloud settings saved and verified.' => 'Cloud 设置已保存并验证。',
+				'The Cloud authorization request expired or is invalid. Start the connection again from WordPress.' => 'Cloud 授权请求已过期或无效。请从 WordPress 重新开始连接。',
+				'Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect.' => '无法安全存储 Cloud 凭据。现有连接未更改。请检查 WordPress 安全盐并重新连接。',
+				'Cloud connection completed and verified.' => 'Cloud 连接已完成并通过验证。',
+				'Cloud Base URL must use HTTPS unless it points to localhost or 127.0.0.1.' => 'Cloud 基础 URL 必须使用 HTTPS，除非指向 localhost 或 127.0.0.1。',
+				'Cloud connection disconnected locally. Stored credentials and addon-owned buffers were cleared.' => 'Cloud 连接已在本地断开。已清除存储的凭据和 addon 自有缓冲。',
+				'Cloud Addon settings are not verified.' => 'Cloud Addon 设置尚未验证。',
+				'The requested local permission is not supported.' => '请求的本地授权不受支持。',
+				'The local permission could not be saved securely. No permission or background delivery state was changed.' => '本地权限无法安全保存，权限和后台投递状态均未改变。',
+				'%1$s %2$s.' => '%1$s%2$s。',
+				'Cloud settings verified, but entitlement summary could not refresh: %s' => 'Cloud 设置已验证，但权益摘要无法刷新：%s',
+				'Unknown entitlement refresh result.' => '未知的权益刷新结果。',
+				'The replacement Cloud connection could not be verified, so the existing connection was kept: %s' => '新的 Cloud 连接验证失败，因此保留了现有连接：%s',
+				'Cloud authorization exchange failed: %s' => 'Cloud 授权交换失败：%s',
+				'Cloud authorization exchange did not return a valid connection key.' => 'Cloud 授权交换没有返回有效的连接密钥。',
+				'Cloud authorization exchange returned an invalid activation state.' => 'Cloud 授权交换返回了无效的激活状态。',
+				'The Cloud account has reached its active-site limit. Deactivate another active site in Npcink Cloud or upgrade the account plan, then start the connection again. (%s)' => 'Cloud 账户已达到启用站点上限。请在 Npcink Cloud 中停用另一个启用中的站点，或升级账户套餐，然后重新开始连接。（%s）',
+				'The Cloud account has reached its connected-site limit. Remove an unused site in Npcink Cloud, then start the connection again. (%s)' => 'Cloud 账户已达到已连接站点上限。请在 Npcink Cloud 中移除不再使用的站点，然后重新开始连接。（%s）',
+				'The Cloud authorization request expired or is invalid. Start the connection again from WordPress. (%s)' => 'Cloud 授权请求已过期或无效。请从 WordPress 重新开始连接。（%s）',
+				'Cloud authorization exchange failed. Start the connection again or contact support with this error code: %s' => 'Cloud 授权交换失败。请重新开始连接，或联系支持并提供此错误代码：%s',
+				'Live check failed: %s' => '存活检查失败：%s',
+				'Signed verification failed: %s' => '签名验证失败：%s',
+				'Cloud verification failed.' => 'Cloud 验证失败。',
+				'The requested Site Knowledge index action is not supported.' => '请求的站点知识库索引操作不受支持。',
+				'Type the confirmation word before running this Site Knowledge index action.' => '运行此站点知识库索引操作前，请输入确认词。',
+				'Site Knowledge indexing delivery scheduled: %1$d public content items in %2$d batches.' => 'Site Knowledge 索引投递已安排：%1$d 项公开内容，共 %2$d 个批次。',
+				'Site Knowledge rebuild delivery scheduled: %1$d public content items in %2$d batches.' => 'Site Knowledge 重建投递已安排：%1$d 项公开内容，共 %2$d 个批次。',
+				'Site Knowledge index deletion requested. WordPress content was not changed.' => '站点知识库索引删除请求已发送。WordPress 内容未被更改。',
+				'Site Knowledge index action requested.' => '站点知识库索引操作请求已发送。',
+				'Cloud settings are incomplete. Reconnect this site in Npcink Cloud to issue a new connection key.' => 'Cloud 设置不完整。请在 Npcink Cloud 中重新连接此站点以签发新的连接密钥。',
+				'Authorize this site in Npcink Cloud to create the connection.' => '在 Npcink Cloud 授权当前站点以创建连接。',
+				'Verified' => '已验证',
+				'Cloud settings are saved and verified.' => 'Cloud 设置已保存并通过验证。',
+				'Pending verification' => '等待验证',
+				'Cloud settings are saved but have not passed verification.' => 'Cloud 设置已保存，但尚未通过验证。',
+				'Cloud verification completed, but the verified state could not be stored securely.' => 'Cloud 验证已完成，但无法安全存储已验证状态。',
+				'Cloud credentials could not be stored or read securely. Reconnect this site after checking the WordPress security salts.' => '无法安全存储或读取 Cloud 凭据。请检查 WordPress 安全盐后重新连接此站点。',
+				'Cloud API Key cannot be empty.' => 'Cloud API 密钥不能为空。',
+				'Manual Cloud API Key recovery must use a Cloud-issued mak1_ wrapper. Reconnect this site in Npcink Cloud to issue a new key.' => '手动恢复 Cloud API 密钥必须使用 Cloud 签发的 mak1_ 封装密钥。请在 Npcink Cloud 中重新连接此站点以签发新密钥。',
+				'Cloud API Key could not be decoded.' => '无法解码 Cloud API 密钥。',
+				'Cloud API Key format is invalid. Use a key issued by Npcink Cloud.' => 'Cloud API 密钥格式无效。请使用 Npcink Cloud 签发的密钥。',
+				'Cloud API Key wrapper is missing required signing data.' => 'Cloud API 密钥封装缺少必需的签名数据。',
+				'Site Knowledge delivery is disabled locally.' => '站点知识库投递已在本地关闭。',
+				'Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index.' => '站点知识库投递已在本地关闭。开始索引或重建索引前，请先启用投递。',
+				'Site Knowledge delete cleanup is waiting for a local retry.' => 'Site Knowledge 删除清理正在等待本地重试。',
+				'Site Knowledge full-index delivery is blocked after bounded retries.' => 'Site Knowledge 全量索引投递已达到重试上限并暂停。',
+				'Cloud Site Knowledge run identifier is invalid.' => 'Cloud 站点知识库运行标识符无效。',
+				'Cloud Site Knowledge run did not finish within the bounded polling window.' => 'Cloud Site Knowledge 运行未能在有限轮询窗口内完成。',
+				'Cloud Site Knowledge maintenance run failed.' => 'Cloud Site Knowledge 维护运行失败。',
+				'Site Knowledge sync mode must be refresh, rebuild, or delete.' => '站点知识库同步模式必须是 refresh、rebuild 或 delete。',
+				'Cloud did not accept the monitoring state projection.' => 'Cloud 未接受监控状态投影。',
+				'Core' => '治理核心',
+				'Abilities' => '原子能力',
+				'Adapter' => '渠道适配器',
+				'No pending public content changes were found. No content was sent to Cloud.' => '未发现待投递的公开内容变更。本次未向 Cloud 发送内容。',
+				'Cloud observability response did not include an accepted event count.' => 'Cloud 监控响应未返回已接受事件数量。',
+				'Cloud customer journey response did not include an accepted event count.' => 'Cloud 客户旅程响应未返回已接受事件数量。',
 				'Text generation' => '文本生成',
 				'Image generation' => '图片生成',
 				'Image understanding' => '图片理解',
@@ -282,6 +423,13 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Last updated: %s' => '最近更新：%s',
 				'Manual update' => '手动更新',
 				'Update again' => '重新更新',
+				'Site Knowledge refresh requested. Public content items sent: %d.' => '已请求站点知识库刷新。已发送公开内容项：%d。',
+				'Site Knowledge refresh request failed.' => '站点知识库刷新请求失败。',
+				'A knowledge base update is already in progress. No new request was started.' => '知识库正在更新中，本次未重复发起请求。',
+				'Knowledge base recovery has been scheduled. The warning will clear after all public content has been delivered to Cloud.' => '已安排知识库恢复更新。全部公开内容投递到 Cloud 后，警告将自动解除。',
+				'Public content is being re-sent to Cloud. The warning will clear when delivery finishes.' => '正在向 Cloud 重新投递公开内容。投递完成后，警告将自动解除。',
+				'A Site Knowledge full-index delivery is already in progress.' => '站点知识库正在投递全部公开内容，请等待完成。',
+				'No public posts or pages were found for Site Knowledge indexing.' => '未找到可用于站点知识库的公开文章或页面。',
 				'View advanced troubleshooting' => '查看高级排查',
 				'Advanced knowledge base settings' => '高级知识库设置',
 				'View details in Cloud' => '在 Cloud 查看明细',
@@ -403,6 +551,9 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Monitoring upload state' => '监控上传状态',
 				'The Cloud connection works, but this site is not active in Cloud yet. Activate the site in Npcink Cloud, then check the activation again here.' => 'Cloud 连接可用，但本站点尚未在 Cloud 激活。请先在 Npcink Cloud 激活站点，然后回到这里再次检查激活状态。',
 				'Some content updates could not be delivered to the knowledge base. Open the Site Knowledge tab to update it again.' => '部分内容更新未能投递到站点知识库。请打开站点知识库标签页重新更新。',
+				'A recent Site Knowledge delivery could not reach or authenticate with Cloud. Re-check the connection or open Cloud for service detail.' => '最近一次站点知识库投递无法连接 Cloud 或未通过认证。请重新检查连接，或打开 Cloud 查看服务详情。',
+				'The cached Cloud read is out of date. Re-check the connection to confirm current service status.' => '缓存的 Cloud 读取已过期。请重新检查连接以确认当前服务状态。',
+				'The latest signed Cloud read did not complete. Re-check the connection or try again later.' => '最近一次签名 Cloud 读取未完成。请重新检查连接，或稍后重试。',
 				'All checks passed. No action is needed.' => '全部检查已通过，无需任何操作。',
 				'The readiness check did not pass. Next step: %1$s (handled by %2$s). Reason: %3$s' => '就绪检查未通过。下一步：%1$s（由%2$s处理）。原因：%3$s',
 				'Next step: %1$s (handled by %2$s).' => '下一步：%1$s（由%2$s处理）。',

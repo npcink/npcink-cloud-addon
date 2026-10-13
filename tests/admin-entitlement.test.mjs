@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync( new URL( '../assets/admin-entitlement.js', import.meta.url ), 'utf8' );
 
-async function refreshFixture( { failure = false, deliveryFailure = false, state = 'fresh', missingLabel = false } = {} ) {
+async function refreshFixture( { failure = false, deliveryFailure = false, state = 'fresh', missingFragments = false } = {} ) {
 	const node = ( dataset = {}, classes = [] ) => {
 		const classNames = new Set( classes );
 		return {
@@ -14,6 +14,7 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 			classList: {
 				remove( ...values ) { values.forEach( value => classNames.delete( value ) ); },
 				add( ...values ) { values.forEach( value => classNames.add( value ) ); },
+				toggle( value, enabled ) { enabled ? classNames.add( value ) : classNames.delete( value ); },
 			},
 			setAttribute() {}, remove() { this.removed = true; },
 		};
@@ -22,31 +23,39 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 	summary.textContent = 'Pro · cached';
 	const retry = node();
 	retry.addEventListener = ( event, handler ) => { retry.click = handler; };
-	const warning = node( { npcinkEntitlementHealth: 'summary' } );
-	const badge = node( { npcinkEntitlementHealth: 'badge' }, [ 'npcink-cloud-badge--warning' ] );
-	const label = node( { npcinkEntitlementHealth: 'label', npcinkEntitlementFreshLabel: '最近可连接' }, [ 'npcink-cloud-overview-service--warning', 'fixture-modifier' ] );
-	if ( missingLabel ) { delete label.dataset.npcinkEntitlementFreshLabel; }
+	const warning = node();
+	warning.innerHTML = 'Cached warning';
+	const badge = node( {}, [ 'npcink-cloud-badge--warning' ] );
+	const label = node();
+	label.className = 'npcink-cloud-overview-service npcink-cloud-overview-service--warning';
 	const container = node( { npcinkEntitlementState: 'stale' } );
 	const selectors = { '[data-npcink-entitlement-summary]': summary, '[data-npcink-entitlement-retry]': retry };
 	container.querySelector = ( selector ) => selectors[ selector ] || null;
-	const healthNodes = [ warning, badge, label ];
-	if ( deliveryFailure ) {
-		healthNodes.forEach( item => { delete item.dataset.npcinkEntitlementHealth; } );
-		label.textContent = 'Needs attention';
-	}
+	if ( deliveryFailure ) { label.textContent = 'Needs attention'; }
+	const documentNodes = {
+		'[data-npcink-entitlement-state]': container,
+		'[data-npcink-connection-summary]': warning,
+		'[data-npcink-service-connection-badge]': badge,
+		'.npcink-cloud-overview-service': label,
+	};
 	let requests = 0;
 	runInNewContext( source, {
 		URLSearchParams,
 		document: {
-			querySelector: () => container,
-			querySelectorAll: ( selector ) => selector === '[data-npcink-entitlement-health]' ? healthNodes.filter( item => item.dataset.npcinkEntitlementHealth ) : [],
+			querySelector: ( selector ) => documentNodes[ selector ] || null,
+			querySelectorAll: () => [],
 		},
 		window: {
 			npcinkCloudEntitlement: { ajaxUrl: '/ajax', action: 'refresh', nonce: 'fixture', updateFailedLabel: '更新失败' },
 			fetch: async () => {
 				requests++;
 				if ( failure ) { throw new Error( 'Network error' ); }
-				return { ok: true, json: async () => ( { success: true, data: { label: 'Pro · available', state } } ) };
+				const statusFragments = missingFragments ? undefined : {
+					connection: deliveryFailure || state !== 'fresh' ? 'Cached warning' : '',
+					service: { severity: deliveryFailure || state !== 'fresh' ? 'warning' : 'ok',
+						label: deliveryFailure ? 'Needs attention' : state !== 'fresh' ? 'Not recently checked' : '最近可连接' },
+				};
+				return { ok: true, json: async () => ( { success: true, data: { label: 'Pro · available', state, status_fragments: statusFragments } } ) };
 			},
 		},
 	} );
@@ -57,13 +66,11 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 test( 'fresh signed read clears entitlement warning and updates localized service badges', async () => {
 	const f = await refreshFixture();
 	assert.equal( f.requests, 1 );
-	assert.equal( f.warning.removed, true );
+	assert.equal( f.warning.innerHTML, '' );
 	assert.equal( f.badge.classes.has( 'npcink-cloud-badge--warning' ), false );
 	assert.equal( f.badge.classes.has( 'npcink-cloud-badge--ok' ), true );
 	assert.equal( f.label.textContent, '最近可连接' );
-	assert.equal( f.label.classes.has( 'npcink-cloud-overview-service--ok' ), true );
-	assert.equal( f.label.classes.has( 'npcink-cloud-overview-service--warning' ), false );
-	assert.equal( f.label.classes.has( 'fixture-modifier' ), true );
+	assert.equal( f.label.className, 'npcink-cloud-overview-service npcink-cloud-overview-service--ok' );
 	assert.equal( f.container.dataset.npcinkEntitlementState, 'fresh' );
 	assert.equal( f.retry.hidden, true );
 } );
@@ -71,7 +78,7 @@ test( 'fresh signed read clears entitlement warning and updates localized servic
 for ( const scenario of [ { failure: true }, { state: 'stale' }, { state: null }, { deliveryFailure: true } ] ) {
 	test( `refresh preserves warnings for ${ JSON.stringify( scenario ) }`, async () => {
 		const f = await refreshFixture( scenario );
-		assert.equal( f.warning.removed, undefined );
+		assert.equal( f.warning.innerHTML, 'Cached warning' );
 		assert.equal( f.badge.classes.has( 'npcink-cloud-badge--warning' ), true );
 		assert.equal( f.label.textContent, scenario.deliveryFailure ? 'Needs attention' : 'Not recently checked' );
 		if ( null === scenario.state ) {
@@ -84,7 +91,8 @@ for ( const scenario of [ { failure: true }, { state: 'stale' }, { state: null }
 	} );
 }
 
-test( 'missing localized healthy label never displays undefined', async () => {
-	const f = await refreshFixture( { missingLabel: true } );
-	assert.equal( f.label.textContent, '' );
+test( 'missing status fragments preserve the previous warning and service label', async () => {
+	const f = await refreshFixture( { missingFragments: true } );
+	assert.equal( f.label.textContent, 'Not recently checked' );
+	assert.equal( f.warning.innerHTML, 'Cached warning' );
 } );

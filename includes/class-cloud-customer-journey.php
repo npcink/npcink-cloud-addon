@@ -195,7 +195,15 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 			}
 
 			$data = is_array( $result['data'] ?? null ) ? $result['data'] : array();
-			$accepted = min( count( $batch ), max( 0, absint( $data['accepted_count'] ?? count( $batch ) ) ) );
+			if ( ! array_key_exists( 'accepted_count', $data ) || ! is_numeric( $data['accepted_count'] ) ) {
+				return array(
+					'ok' => false,
+					'sent_count' => 0,
+					'buffer_count' => count( $buffer ),
+					'error' => __( 'Cloud customer journey response did not include an accepted event count.', 'npcink-cloud-addon' ),
+				);
+			}
+			$accepted = min( count( $batch ), max( 0, absint( $data['accepted_count'] ) ) );
 			if ( $accepted > 0 ) {
 				$latest = self::buffer();
 				$accepted_ids = array_column( array_slice( $batch, 0, $accepted ), 'event_id' );

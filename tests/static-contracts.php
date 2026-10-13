@@ -2201,7 +2201,8 @@ maca_assert(
 	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Addon_Cleanup::delete_all( $settings )' )
 	&& false !== strpos( $settings_page, 'Change Cloud account' )
 	&& false !== strpos( $settings_page, 'Open Cloud sites' )
-	&& false !== strpos( $settings_page, 'function render_connection_actions( array $settings, bool $is_verified, bool $service_needs_attention = false )' )
+	&& false !== strpos( $settings_page, 'function render_connection_actions( array $settings, bool $is_verified, bool $service_needs_attention = false, bool $site_knowledge_needs_update = false )' )
+	&& false !== strpos( $settings_page, "render_site_knowledge_refresh_form( __( 'Update again', 'npcink-cloud-addon' ), 'button button-primary' )" )
 	&& false !== strpos( $settings_page, 'if ( $is_verified )' )
 	&& false !== strpos( $settings_page, 'Disconnect this site' )
 	&& false !== strpos( $settings_page, 'Free service and AI credits belong to the Cloud account selected during authorization' )
@@ -2249,8 +2250,8 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2232,
-	'includes/class-cloud-settings-actions.php'        => 1151,
+	'includes/class-cloud-settings-page.php'           => 2270,
+	'includes/class-cloud-settings-actions.php'        => 1154,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1024,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,

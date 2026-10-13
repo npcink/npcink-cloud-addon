@@ -140,6 +140,36 @@ maca_assert(
 	'Behavior: a verified disabled setting projects one versioned metadata-only state without enabling monitoring.'
 );
 
+update_option( Npcink_Cloud_Observability_Collector::STATUS_OPTION, array( 'last_upload_error' => 'Old upload failure', 'last_upload_ok' => false, 'total_uploaded' => 7 ), false );
+update_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array( maca_observability_event( 3 ) ), false );
+$GLOBALS['maca_http_response_queue'][] = new WP_Error( 'offline', 'Projection unavailable' );
+$paused_projection = Npcink_Cloud_Observability_Collector::project_monitoring_state( false );
+maca_assert(
+	'' === $paused_projection['last_upload_error']
+	&& false !== strpos( $paused_projection['last_projection_error'], 'Projection unavailable' )
+	&& 7 === $paused_projection['total_uploaded']
+	&& empty( $paused_projection['last_upload_ok'] )
+	&& 1 === count( get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() ) ),
+	'Behavior: deliberate monitoring opt-out clears obsolete upload attention immediately, retaining projection failures, buffered metadata and historical counts.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_monitoring_enabled( true );
+Npcink_Cloud_Observability_Collector::capture_event( maca_observability_event( 8 ) );
+Npcink_Cloud_Observability_Collector::persist_pending_events();
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ),
+);
+$malformed_flush = Npcink_Cloud_Observability_Collector::flush_buffer();
+maca_assert(
+	empty( $malformed_flush['last_upload_ok'] )
+	&& false !== strpos( (string) ( $malformed_flush['last_upload_error'] ?? '' ), 'accepted event count' )
+	&& 1 === count( get_option( Npcink_Cloud_Observability_Collector::BUFFER_OPTION, array() ) ),
+	'Behavior: an observability response without an accepted count cannot report success or drop the buffered event.'
+);
+
 maca_reset_test_state();
 maca_seed_settings( true );
 maca_set_monitoring_enabled( true );

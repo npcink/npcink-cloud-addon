@@ -416,6 +416,19 @@ maca_assert(
 	'Behavior: admin notices and local permission feedback retain a 60-second TTL and are consumed once.'
 );
 
+$set_admin_notice->invoke( null, 'info', 'Recovery scheduled.' );
+$render_admin_notice = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_admin_notice' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$render_admin_notice->setAccessible( true );
+}
+ob_start();
+$render_admin_notice->invoke( null );
+$scheduled_notice_html = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $scheduled_notice_html, 'notice-info' ) && false === strpos( $scheduled_notice_html, 'notice-error' ),
+	'Behavior: scheduled recovery renders an informational notice instead of success or failure styling.'
+);
+
 maca_assert(
 	false !== strpos( $settings_page_source, 'npcink-cloud-monitoring-consent' )
 	&& false !== strpos( $settings_page_source, 'Allow anonymous diagnostics' )
@@ -772,6 +785,23 @@ maca_assert(
 	'Behavior: dropped content changes surface one attention row with the update-knowledge-base recovery action instead of a false auto-retry promise.'
 );
 
+foreach ( array( 'queued', 'delivering', 'retrying', 'blocked' ) as $maintenance_state ) {
+	$recovering_status = $dropped_status;
+	$recovering_status['maintenance_status'] = $maintenance_state;
+	// Queuing preserves the previous failure until the first delivery runs.
+	$recovering_status['last_delivery_error'] = 'queued' === $maintenance_state ? 'Previous failure' : '';
+	ob_start();
+	$site_knowledge_renderer->invoke( null, $recovering_status, Npcink_Cloud_Addon_Settings::get_settings(), true );
+	$recovery_html = (string) ob_get_clean();
+	$is_recovering = in_array( $maintenance_state, array( 'queued', 'delivering' ), true );
+	maca_assert(
+		$is_recovering
+			? false !== strpos( $recovery_html, 'Public content is being re-sent to Cloud.' ) && false === strpos( $recovery_html, 'Update again' ) && false === strpos( $recovery_html, 'were dropped' )
+			: false !== strpos( $recovery_html, 'Needs attention' ) && false !== strpos( $recovery_html, 'Update again' ),
+		'Behavior: recovery progress replaces historical-drop warnings while retrying or blocked delivery keeps recovery visible: ' . $maintenance_state
+	);
+}
+
 $dropped_status['dropped_count'] = 0;
 $dropped_status['last_dropped_at'] = '';
 ob_start();
@@ -817,7 +847,7 @@ maca_assert(
 );
 $GLOBALS['maca_abilities'] = $previous_abilities;
 
-// Only entitlement-owned status nodes may be updated by an entitlement read.
+// Dropped-content recovery uses the existing Site Knowledge update action.
 maca_reset_test_state();
 maca_seed_settings( true );
 $render_summary = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_connection_summary' );
@@ -833,18 +863,75 @@ foreach ( array( array(), array( 'dropped_count' => 1 ), array( 'last_delivery_e
 	$http_before = count( $GLOBALS['maca_http_requests'] );
 	ob_start();
 	$render_summary->invoke( null, $settings, $state, $entitlement, $delivery );
+	$summary_html = (string) ob_get_clean();
+	ob_start();
 	$render_overview->invoke( null, $settings, $state, $entitlement, array(), $delivery, true );
-	$html = (string) ob_get_clean();
-	foreach ( array( 'summary', 'badge', 'label' ) as $marker ) {
-		maca_assert(
-			( empty( $delivery ) ? 1 : 0 ) === substr_count( $html, 'data-npcink-entitlement-health="' . $marker . '"' ),
-			'Behavior: the exact ' . $marker . ' update marker is present only for entitlement-owned health.'
-		);
-	}
+	$overview_html = (string) ob_get_clean();
+	$html = $summary_html . $overview_html;
 	maca_assert(
-		( empty( $delivery ) ? 1 : 0 ) === substr_count( $html, 'data-npcink-entitlement-fresh-label="Recently reachable"' )
-		&& false !== strpos( $html, empty( $delivery ) ? 'out of date' : 'Needs attention' )
+		false !== strpos( $html, empty( $delivery ) ? 'out of date' : 'Needs attention' )
+		&& ( 0 < absint( $delivery['dropped_count'] ?? 0 )
+			? false !== strpos( $summary_html, 'name="action" value="npcink_cloud_addon_refresh_site_knowledge"' )
+				&& false === strpos( $summary_html, 'name="action" value="npcink_cloud_addon_save"' )
+			: false !== strpos( $summary_html, 'name="action" value="npcink_cloud_addon_save"' ) )
 		&& $http_before === count( $GLOBALS['maca_http_requests'] ),
-		'Behavior: stale warning renders without Cloud reads, and real delivery failures cannot be cleared by entitlement refresh.'
+		'Behavior: stale warning renders without Cloud reads and dropped content exposes the Site Knowledge recovery action.'
 	);
 }
+
+foreach ( array( 'queued', 'delivering', 'blocked' ) as $maintenance_state ) {
+	$delivery = array( 'dropped_count' => 11, 'maintenance_status' => $maintenance_state );
+	ob_start();
+	$render_summary->invoke( null, $settings, $state, array( 'available' => true, 'stale' => false ), $delivery );
+	$summary_html = (string) ob_get_clean();
+	maca_assert(
+		'blocked' === $maintenance_state ? false !== strpos( $summary_html, 'Update again' ) : '' === $summary_html,
+		'Behavior: healthy recovery hides the page-level historical warning, and a blocked recovery restores it: ' . $maintenance_state
+	);
+}
+
+ob_start();
+$render_summary->invoke( null, $settings, $state, array( 'available' => true, 'stale' => true ), array( 'dropped_count' => 11, 'maintenance_status' => 'delivering' ) );
+$stale_recovery_summary = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $stale_recovery_summary, 'out of date' )
+	&& false !== strpos( $stale_recovery_summary, 'Check connection' )
+	&& false === strpos( $stale_recovery_summary, 'Update again' ),
+	'Behavior: independent stale-connection evidence keeps its connection action while dropped-content recovery is already running.'
+);
+
+// AJAX status refreshes must update whole projections without hiding independent failures.
+maca_reset_test_state();
+maca_seed_settings( true );
+Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'data' => array( 'package' => 'Pro' ) ), Npcink_Cloud_Addon_Settings::get_settings() );
+$GLOBALS['maca_transients'][ $status_cache_key ] = array(
+	'available' => true, 'indexed_documents' => 500, 'max_documents' => 10000,
+	'article_coverage' => array( 'not_indexed_count' => 0 ),
+	'fresh_until' => gmdate( 'Y-m-d H:i:s', time() + 1800 ) . ' UTC',
+);
+$http_before_fragments = count( $GLOBALS['maca_http_requests'] );
+$healthy_fragments = Npcink_Cloud_Settings_Page::get_admin_status_fragments( true );
+maca_assert(
+	'' === trim( $healthy_fragments['connection'] )
+	&& false !== strpos( $healthy_fragments['knowledge'], 'All public content is up to date' )
+	&& false === strpos( $healthy_fragments['knowledge'], 'Update again' )
+	&& false !== strpos( $healthy_fragments['knowledge'], 'data-npcink-site-knowledge-status-retry' )
+	&& $http_before_fragments === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: refreshed healthy fragments clear historical recovery controls and reuse escaped renderers with zero extra Cloud requests.'
+);
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array( 'dropped_count' => 3 ), false );
+$failed_fragments = Npcink_Cloud_Settings_Page::get_admin_status_fragments( true );
+maca_assert(
+	false !== strpos( $failed_fragments['connection'], 'Some content updates could not be delivered' )
+	&& false !== strpos( $failed_fragments['knowledge'], 'Update again' )
+	&& 'warning' === $failed_fragments['service']['severity'],
+	'Behavior: a fresh Cloud read does not erase an independent local dropped-delivery warning.'
+);
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array(), false );
+$GLOBALS['maca_transients'][ $status_cache_key ]['fresh_until'] = gmdate( 'Y-m-d H:i:s', time() - 10 ) . ' UTC';
+$stale_fragments = Npcink_Cloud_Settings_Page::get_admin_status_fragments( true );
+maca_assert(
+	false === strpos( $stale_fragments['knowledge'], 'All public content is up to date' )
+	&& false === strpos( $stale_fragments['knowledge'], '>Up to date<' ),
+	'Behavior: expired Cloud knowledge evidence cannot claim that all public content is current.'
+);
