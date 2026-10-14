@@ -31,6 +31,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 
 			$health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
 			if ( ! empty( $health['maintenance_active'] ) ) {
+				$scheduler_blocked = ! empty( $health['wp_cron_disabled'] ) || ! empty( $health['reconcile_overdue'] );
+				$operation = (string) ( $health['maintenance_operation'] ?? '' );
+				if ( $scheduler_blocked && in_array( $operation, array( 'start', 'rebuild' ), true ) && Npcink_Cloud_Site_Knowledge_Change_Bridge::reschedule_active_full_index_delivery() ) {
+					return self::result( true, 'refresh_scheduled', __( 'Knowledge base recovery has been scheduled. The warning will clear after all public content has been delivered to Cloud.', 'npcink-cloud-addon' ), 'refresh' );
+				}
 				return self::result( true, 'refresh_in_progress', __( 'A knowledge base update is already in progress. No new request was started.', 'npcink-cloud-addon' ), 'refresh' );
 			}
 			if ( 0 < absint( $health['dropped_count'] ?? 0 ) || 'blocked' === (string) ( $health['maintenance_status'] ?? '' ) ) {

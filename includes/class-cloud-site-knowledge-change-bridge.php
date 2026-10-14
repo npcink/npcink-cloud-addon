@@ -571,6 +571,22 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		/**
+		 * Re-schedules an active start/rebuild cursor after a scheduler warning.
+		 *
+		 * @return bool Whether an active content delivery was rescheduled.
+		 */
+		public static function reschedule_active_full_index_delivery(): bool {
+			$cursor = self::get_maintenance_cursor();
+			if ( ! self::is_active_full_index_delivery( $cursor ) || ! in_array( (string) ( $cursor['operation'] ?? '' ), array( 'start', 'rebuild' ), true ) ) {
+				return false;
+			}
+
+			self::schedule_flush( 1 );
+
+			return true;
+		}
+
+		/**
 		 * Starts or resumes a Cloud-requested full public-content delivery.
 		 *
 		 * The cursor is delivery durability only. Cloud remains the index lifecycle

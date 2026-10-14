@@ -173,7 +173,7 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 		public static function flush_buffer(): array {
 			$buffer = self::buffer();
 			if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
-				return self::remember_flush_result( array( 'ok' => false, 'sent_count' => 0, 'buffer_count' => count( $buffer ) ) );
+				return array( 'ok' => false, 'sent_count' => 0, 'buffer_count' => count( $buffer ) );
 			}
 			if ( empty( $buffer ) ) {
 				return self::remember_flush_result( array( 'ok' => true, 'sent_count' => 0, 'buffer_count' => 0 ) );

@@ -107,12 +107,16 @@
 			retry.hidden = true;
 			try {
 				updateMetrics( payload.data.metrics || {} );
+			} catch ( renderError ) {
+				// A valid signed read remains successful if a replaced DOM node cannot
+				// render its optional metrics.
+			}
+			try {
 				if ( typeof window.npcinkCloudApplyStatusFragments === 'function' ) {
 					window.npcinkCloudApplyStatusFragments( payload.data.status_fragments || {} );
 				}
-			} catch ( renderError ) {
-				// A valid signed read remains successful if a replaced DOM node cannot
-				// render its optional metrics or status fragments.
+			} catch ( fragmentError ) {
+				// Connection/service status stays as rendered server-side on initial load.
 			}
 		} catch ( error ) {
 			// Only server-provided messages are display-ready; a browser network

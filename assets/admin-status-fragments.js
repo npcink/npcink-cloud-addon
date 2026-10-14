@@ -15,10 +15,11 @@
 		if ( service && fragments.service && 'object' === typeof fragments.service ) {
 			const severity = severities.includes( fragments.service.severity ) ? fragments.service.severity : 'pending';
 			service.textContent = fragments.service.label || '';
-			service.className = 'npcink-cloud-overview-service npcink-cloud-overview-service--' + severity;
+			service.classList.remove( ...severities.map( ( value ) => 'npcink-cloud-overview-service--' + value ) );
+			service.classList.add( 'npcink-cloud-overview-service--' + severity );
 			if ( badge ) {
 				badge.classList.toggle( 'npcink-cloud-badge--warning', 'warning' === severity );
-				badge.classList.toggle( 'npcink-cloud-badge--ok', 'ok' === severity );
+				badge.classList.toggle( 'npcink-cloud-badge--ok', 'warning' !== severity );
 			}
 		}
 	};

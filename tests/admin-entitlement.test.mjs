@@ -6,12 +6,12 @@ import { runInNewContext } from 'node:vm';
 const source = readFileSync( new URL( '../assets/admin-entitlement.js', import.meta.url ), 'utf8' );
 const fragmentsSource = readFileSync( new URL( '../assets/admin-status-fragments.js', import.meta.url ), 'utf8' );
 
-async function refreshFixture( { failure = false, deliveryFailure = false, state = 'fresh', missingFragments = false, severity = null } = {} ) {
+async function refreshFixture( { failure = false, deliveryFailure = false, state = 'fresh', missingFragments = false, severity = null, renderFailure = false } = {} ) {
 	const node = ( dataset = {}, classes = [] ) => {
 		const classNames = new Set( classes );
-		return {
+		const element = {
 			dataset, textContent: 'Not recently checked', hidden: false, disabled: false,
-			classes: classNames,
+			classes: classNames, className: '',
 			classList: {
 				remove( ...values ) { values.forEach( value => classNames.delete( value ) ); },
 				add( ...values ) { values.forEach( value => classNames.add( value ) ); },
@@ -19,6 +19,18 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 			},
 			setAttribute() {}, remove() { this.removed = true; },
 		};
+		element.classList.remove = ( ...values ) => {
+			values.forEach( value => classNames.delete( value ) );
+			element.className = [ 'npcink-cloud-overview-service', ...classNames ].join( ' ' );
+		};
+		element.classList.add = ( ...values ) => {
+			values.forEach( value => classNames.add( value ) );
+			element.className = [ 'npcink-cloud-overview-service', ...classNames ].join( ' ' );
+		};
+		element.classList.toggle = ( value, enabled ) => {
+			enabled ? classNames.add( value ) : classNames.delete( value );
+		};
+		return element;
 	};
 	const summary = node();
 	summary.textContent = 'Pro · cached';
@@ -33,7 +45,6 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 	const container = node( { npcinkEntitlementState: 'stale' } );
 	const selectors = { '[data-npcink-entitlement-summary]': summary, '[data-npcink-entitlement-retry]': retry };
 	container.querySelector = ( selector ) => selectors[ selector ] || null;
-	if ( deliveryFailure ) { label.textContent = 'Needs attention'; }
 	const documentNodes = {
 		'[data-npcink-entitlement-state]': container,
 		'[data-npcink-connection-summary]': warning,
@@ -54,7 +65,7 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 				if ( failure ) { throw new Error( 'Network error' ); }
 				let fragmentSeverity = 'warning';
 				let fragmentLabel = 'Not recently checked';
-				let fragmentConnection = 'Cached warning';
+				let fragmentConnection = 'Server warning';
 				if ( deliveryFailure ) {
 					fragmentLabel = 'Needs attention';
 				}
@@ -73,6 +84,7 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 		},
 	};
 	runInNewContext( fragmentsSource, context );
+	if ( renderFailure ) { context.window.npcinkCloudApplyStatusFragments = () => { throw new Error( 'render failed' ); }; }
 	runInNewContext( source, context );
 	await new Promise( resolve => setImmediate( resolve ) );
 	return { warning, badge, label, summary, retry, container, requests };
@@ -93,7 +105,7 @@ test( 'fresh signed read clears entitlement warning and updates localized servic
 for ( const scenario of [ { failure: true }, { state: 'stale' }, { state: null }, { deliveryFailure: true } ] ) {
 	test( `refresh preserves warnings for ${ JSON.stringify( scenario ) }`, async () => {
 		const f = await refreshFixture( scenario );
-		assert.equal( f.warning.innerHTML, 'Cached warning' );
+		assert.equal( f.warning.innerHTML, scenario.failure ? 'Cached warning' : 'Server warning' );
 		assert.equal( f.badge.classes.has( 'npcink-cloud-badge--warning' ), true );
 		let expectedLabel = 'Not recently checked';
 		if ( scenario.failure ) { expectedLabel = 'Before refresh'; }
@@ -121,5 +133,12 @@ test( 'unknown service severity fails closed without showing a healthy badge', a
 	const f = await refreshFixture( { severity: 'unexpected' } );
 	assert.equal( f.label.className, 'npcink-cloud-overview-service npcink-cloud-overview-service--pending' );
 	assert.equal( f.badge.classes.has( 'npcink-cloud-badge--warning' ), false );
-	assert.equal( f.badge.classes.has( 'npcink-cloud-badge--ok' ), false );
+	assert.equal( f.badge.classes.has( 'npcink-cloud-badge--ok' ), true );
+} );
+
+test( 'fragment render failure does not invalidate a successful entitlement read', async () => {
+	const f = await refreshFixture( { renderFailure: true } );
+	assert.equal( f.summary.textContent, 'Pro · available' );
+	assert.equal( f.container.dataset.npcinkEntitlementState, 'fresh' );
+	assert.equal( f.retry.hidden, true );
 } );

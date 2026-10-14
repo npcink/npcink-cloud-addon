@@ -2008,6 +2008,8 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'data-npcink-site-knowledge-actions' )
 	&& false !== strpos( $admin_site_knowledge_js, 'actions.hidden = ! loading' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-metric-actions[hidden]' )
+	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-summary [data-npcink-site-knowledge-status-retry][hidden]' )
+	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-summary__meta[hidden]' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-progress--warning' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-progress--error' ),
 		'Site Knowledge keeps one auto-refreshed document quota on Overview without duplicating lower-frequency Cloud detail in the local knowledge-base page.'
@@ -2250,7 +2252,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2281,
+	'includes/class-cloud-settings-page.php'           => 2283,
 	'includes/class-cloud-settings-actions.php'        => 1154,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1024,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,

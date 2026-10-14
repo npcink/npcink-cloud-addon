@@ -20,6 +20,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		public static array $health_result = array();
 		public static $index_result = array();
 		public static $article_result = array();
+		public static bool $reschedule_result = false;
 
 		public static function buffer_recent_public_content(): void {
 			self::$buffer_calls++;
@@ -40,6 +41,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				$GLOBALS['maca_http_requests'][] = array( 'operation' => 'delete' );
 			}
 			return self::$index_result;
+		}
+
+		public static function reschedule_active_full_index_delivery(): bool {
+			return self::$reschedule_result;
 		}
 
 		public static function request_public_post_refresh( int $post_id ) {
@@ -63,6 +68,7 @@ function maca_reset_site_knowledge_admin_actions( bool $verified = true ): void 
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result = array();
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_result = array();
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::$article_result = array();
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::$reschedule_result = false;
 }
 
 /** Returns whether the result has the fixed public shape. */
@@ -142,6 +148,18 @@ maca_assert(
 	&& array( 'start' ) === Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_calls
 	&& 0 === Npcink_Cloud_Site_Knowledge_Change_Bridge::$flush_calls,
 	'Behavior: repeated recovery clicks neither restart delivery nor report zero items as a completed update.'
+);
+
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$health_result = array(
+	'maintenance_active' => true,
+	'maintenance_operation' => 'rebuild',
+	'wp_cron_disabled' => true,
+);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::$reschedule_result = true;
+$rescheduled = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
+maca_assert(
+	! empty( $rescheduled['ok'] ) && 'refresh_scheduled' === $rescheduled['code'],
+	'Behavior: a scheduler-blocked active recovery can be explicitly scheduled again.'
 );
 
 maca_reset_site_knowledge_admin_actions();

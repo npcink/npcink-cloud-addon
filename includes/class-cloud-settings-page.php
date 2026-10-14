@@ -656,6 +656,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				: in_array( $maintenance, array( 'queued', 'delivering', 'retrying' ), true );
 			return 0 < absint( $site_knowledge['dropped_count'] ?? 0 )
 				&& $maintenance_active
+				&& empty( $site_knowledge['wp_cron_disabled'] )
+				&& empty( $site_knowledge['reconcile_overdue'] )
 				&& in_array( $operation, array( 'start', 'rebuild' ), true );
 		}
 

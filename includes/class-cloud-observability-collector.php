@@ -396,7 +396,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		 * @return array<string,mixed>
 		 */
 		public static function project_monitoring_state( bool $enabled ): array {
-			if ( ! $enabled && ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+			if ( ! $enabled && Npcink_Cloud_Addon_Settings::is_verified() && ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
 				self::record_monitoring_paused_result();
 			}
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {

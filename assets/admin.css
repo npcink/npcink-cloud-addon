@@ -692,7 +692,8 @@
 }
 
 .npcink-cloud-metric-actions[hidden],
-[data-npcink-site-knowledge-status-retry][hidden] {
+.npcink-cloud-site-knowledge-summary [data-npcink-site-knowledge-status-retry][hidden],
+.npcink-cloud-site-knowledge-summary__meta[hidden] {
 	display: none;
 }
 

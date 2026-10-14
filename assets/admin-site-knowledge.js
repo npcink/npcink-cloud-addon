@@ -126,21 +126,26 @@
 			// Reuse the escaped server renderer so counts, warnings and recovery
 			// controls describe the same snapshot after an asynchronous refresh.
 			const fragments = payload.data.status_fragments || {};
-			if ( typeof window.npcinkCloudApplyStatusFragments === 'function' ) {
-				window.npcinkCloudApplyStatusFragments( fragments );
-			}
-			const knowledge = document.querySelector( '.npcink-cloud-site-knowledge-summary' );
-			if ( knowledge && typeof fragments.knowledge === 'string' ) {
-				const parsed = new DOMParser().parseFromString( fragments.knowledge, 'text/html' );
-				const replacement = parsed.querySelector( '.npcink-cloud-site-knowledge-summary' );
-				if ( replacement ) {
-					knowledge.replaceWith( replacement );
-					const statusRetry = replacement.querySelector( '[data-npcink-site-knowledge-status-retry]' );
-					if ( statusRetry ) {
-						retry = statusRetry;
-						statusRetry.addEventListener( 'click', refresh );
+			try {
+				if ( typeof window.npcinkCloudApplyStatusFragments === 'function' ) {
+					window.npcinkCloudApplyStatusFragments( fragments );
+				}
+				const knowledge = document.querySelector( '.npcink-cloud-site-knowledge-summary' );
+				if ( knowledge && typeof fragments.knowledge === 'string' ) {
+					const parsed = new DOMParser().parseFromString( fragments.knowledge, 'text/html' );
+					const replacement = parsed.querySelector( '.npcink-cloud-site-knowledge-summary' );
+					if ( replacement ) {
+						knowledge.replaceWith( replacement );
+						const statusRetry = replacement.querySelector( '[data-npcink-site-knowledge-status-retry]' );
+						if ( statusRetry ) {
+							retry = statusRetry;
+							statusRetry.addEventListener( 'click', refresh );
+						}
 					}
 				}
+			} catch ( renderError ) {
+				// A valid signed read stays successful if the replaced status
+				// fragment cannot render; the next refresh re-reads the summary.
 			}
 			if ( retry ) {
 				retry.hidden = true;

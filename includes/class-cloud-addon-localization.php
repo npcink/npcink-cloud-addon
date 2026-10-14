@@ -26,7 +26,6 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 		 * @return void
 		 */
 		public static function register(): void {
-			self::load_bundled_domain();
 			add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
 			add_filter( 'ngettext', array( __CLASS__, 'filter_ngettext' ), 20, 5 );
 		}
@@ -88,11 +87,12 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 			if ( self::$bundled_domain_loaded || ! function_exists( 'load_textdomain' ) || ! self::should_localize() ) {
 				return;
 			}
+			self::$bundled_domain_loaded = true;
 			$locale = function_exists( 'determine_locale' ) ? (string) determine_locale() : '';
 			$locale = str_replace( '-', '_', $locale );
 			$path = dirname( __DIR__ ) . '/languages/npcink-cloud-addon-' . $locale . '.mo';
 			if ( is_readable( $path ) ) {
-				self::$bundled_domain_loaded = (bool) load_textdomain( self::BUNDLED_TEXT_DOMAIN, $path );
+				load_textdomain( self::BUNDLED_TEXT_DOMAIN, $path );
 			}
 		}
 
@@ -428,8 +428,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'A knowledge base update is already in progress. No new request was started.' => '知识库正在更新中，本次未重复发起请求。',
 				'Knowledge base recovery has been scheduled. The warning will clear after all public content has been delivered to Cloud.' => '已安排知识库恢复更新。全部公开内容投递到 Cloud 后，警告将自动解除。',
 				'Public content is being re-sent to Cloud. The warning will clear when delivery finishes.' => '正在向 Cloud 重新投递公开内容。投递完成后，警告将自动解除。',
-				'A Site Knowledge full-index delivery is already in progress.' => '站点知识库正在投递全部公开内容，请等待完成。',
-				'No public posts or pages were found for Site Knowledge indexing.' => '未找到可用于站点知识库的公开文章或页面。',
+				'A Site Knowledge full-index delivery is already in progress.' => '已有一个 Site Knowledge 全量索引投递正在进行。',
+				'No public posts or pages were found for Site Knowledge indexing.' => '没有找到可用于站点知识库索引的公开文章或页面。',
 				'View advanced troubleshooting' => '查看高级排查',
 				'Advanced knowledge base settings' => '高级知识库设置',
 				'View details in Cloud' => '在 Cloud 查看明细',
@@ -551,9 +551,9 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Monitoring upload state' => '监控上传状态',
 				'The Cloud connection works, but this site is not active in Cloud yet. Activate the site in Npcink Cloud, then check the activation again here.' => 'Cloud 连接可用，但本站点尚未在 Cloud 激活。请先在 Npcink Cloud 激活站点，然后回到这里再次检查激活状态。',
 				'Some content updates could not be delivered to the knowledge base. Open the Site Knowledge tab to update it again.' => '部分内容更新未能投递到站点知识库。请打开站点知识库标签页重新更新。',
-				'A recent Site Knowledge delivery could not reach or authenticate with Cloud. Re-check the connection or open Cloud for service detail.' => '最近一次站点知识库投递无法连接 Cloud 或未通过认证。请重新检查连接，或打开 Cloud 查看服务详情。',
+				'A recent Site Knowledge delivery could not reach or authenticate with Cloud. Re-check the connection or open Cloud for service detail.' => '最近一次站点知识库投递无法连接或通过 Cloud 认证。请重新检查连接，或打开 Cloud 查看服务详情。',
 				'The cached Cloud read is out of date. Re-check the connection to confirm current service status.' => '缓存的 Cloud 读取已过期。请重新检查连接以确认当前服务状态。',
-				'The latest signed Cloud read did not complete. Re-check the connection or try again later.' => '最近一次签名 Cloud 读取未完成。请重新检查连接，或稍后重试。',
+				'The latest signed Cloud read did not complete. Re-check the connection or try again later.' => '最近一次 Cloud 签名读取未完成。请重新检查连接，或稍后再试。',
 				'All checks passed. No action is needed.' => '全部检查已通过，无需任何操作。',
 				'The readiness check did not pass. Next step: %1$s (handled by %2$s). Reason: %3$s' => '就绪检查未通过。下一步：%1$s（由%2$s处理）。原因：%3$s',
 				'Next step: %1$s (handled by %2$s).' => '下一步：%1$s（由%2$s处理）。',
