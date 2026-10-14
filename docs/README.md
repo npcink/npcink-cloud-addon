@@ -68,6 +68,9 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 
 ## History (dated closeouts, retrospectives, handoffs)
 
+- `041-final-release-record-2026-10-14.md` — current 0.4.1 release baseline,
+  package evidence and remaining publication gates; supersedes older snapshots.
+
 - `security-performance-closeout-2026-06-27.md`
 - `runtime-boundary-pr16-closeout-2026-07-01.md`
 - `public-cloud-readiness-closeout-2026-07-02.md`

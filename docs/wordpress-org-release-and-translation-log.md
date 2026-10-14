@@ -2,10 +2,26 @@
 
 Status: active operational handoff.
 
-Last updated: 2026-10-13.
+Last updated: 2026-10-14.
 
 This document records the WordPress.org release, assets, legal pages, and zh_CN
 translation work completed for `npcink-cloud-addon`.
+
+## 2026-10-14 Final Candidate Record
+
+The current release baseline is clean `master@6db6638` (merged PR #271),
+including the refresh/recovery closeout. Its complete 13-check GitHub rollup
+passed; a new local `composer test:all` also passed on 2026-10-14. The source
+version is 0.4.1, while the WordPress.org API still reports 0.4.0. Publication
+requires the separate operator confirmation; no SVN upload is authorized by
+this record.
+
+The [final release record](041-final-release-record-2026-10-14.md) owns the
+current package and verification evidence. Older candidate hashes below are
+historical and must not be used for an upload. The 2026-10-12 text acceptance
+report contains 14 cases, 14 passed and zero failed; the earlier 15/15 wording
+in that section was a documentation counting error, corrected against the
+retained JSON without repeating Provider calls.
 
 ## Plugin Directory State
 
@@ -238,7 +254,7 @@ One authorized default batch was run:
 composer run acceptance:wp-ai-provider
 ```
 
-Exit 0: **15/15 passed**, zero failed, `evidence_state=local_verified`,
+Exit 0: **14/14 passed**, zero failed, `evidence_state=local_verified`,
 `quality_status=passed`, and `write_detected=false`
 (`content_state_unchanged`). The quota preflight was available. Every case
 executed, returned HTTP 200, passed the output/quality checks, and retained a
@@ -264,7 +280,7 @@ Cloud provider run ID:
 The full local report is
 `build/glotpress-evidence-2026-10-12/provider-acceptance.json` (ignored by Git).
 The four optional comment analysis/reply, alt-text vision, and image-generation
-lanes were skipped by the default runner; 15/15 does not claim those lanes or
+lanes were skipped by the default runner; 14/14 does not claim those lanes or
 human editorial acceptance. No repeat batch was run. The foreground tunnel
 was temporary for this acceptance check; later runtime checks must verify
 reachability again.
