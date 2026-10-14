@@ -54,7 +54,10 @@ Verification on 2026-10-13:
   default credentials, or WordPress/PHP baseline changed. The cross-repository
   matrix is not applicable: no cross-repository contract changed.
 
-The changes remain uncommitted on `codex/041-refresh-service-status`, together
-with the preceding settings recovery-action and translation work. No PR or
-deployment was performed. Rollback is reversal of this scoped patch; do not
-discard unrelated worktree changes or clear live delivery facts to mimic success.
+At the time of the 2026-10-13 evidence collection, the changes were uncommitted
+on `codex/041-refresh-service-status` and no PR or deployment had been performed.
+The recovery and subsequent refresh fixes are now merged in PR #271 at
+`master@6db6638`; see the [2026-10-14 final release record](041-final-release-record-2026-10-14.md)
+for current release status. WordPress.org publication remains pending. Rollback
+is reversal of the scoped PR; do not discard unrelated worktree changes or clear
+live delivery facts to mimic success.
