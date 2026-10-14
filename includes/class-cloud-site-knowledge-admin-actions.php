@@ -25,6 +25,30 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
 				return self::result( false, 'not_verified', __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'refresh' );
 			}
+			if ( ! Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled() ) {
+				return self::result( false, 'delivery_disabled', __( 'Site Knowledge delivery is disabled locally.', 'npcink-cloud-addon' ), 'refresh' );
+			}
+
+			$health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+			if ( ! empty( $health['maintenance_active'] ) ) {
+				$scheduler_blocked = ! empty( $health['wp_cron_disabled'] ) || ! empty( $health['reconcile_overdue'] );
+				$operation = (string) ( $health['maintenance_operation'] ?? '' );
+				if ( $scheduler_blocked && in_array( $operation, array( 'start', 'rebuild' ), true ) && Npcink_Cloud_Site_Knowledge_Change_Bridge::reschedule_active_full_index_delivery() ) {
+					return self::result( true, 'refresh_scheduled', __( 'Knowledge base recovery has been scheduled. The warning will clear after all public content has been delivered to Cloud.', 'npcink-cloud-addon' ), 'refresh' );
+				}
+				return self::result( true, 'refresh_in_progress', __( 'A knowledge base update is already in progress. No new request was started.', 'npcink-cloud-addon' ), 'refresh' );
+			}
+			if ( 0 < absint( $health['dropped_count'] ?? 0 ) || 'blocked' === (string) ( $health['maintenance_status'] ?? '' ) ) {
+				// Recent-content refresh cannot recover dropped IDs. Reuse the
+				// existing full public-content delivery without deleting the index.
+				$result = self::request_index_operation( 'start' );
+				$result['operation'] = 'refresh';
+				if ( ! empty( $result['ok'] ) ) {
+					$result['code'] = 'refresh_scheduled';
+					$result['message'] = __( 'Knowledge base recovery has been scheduled. The warning will clear after all public content has been delivered to Cloud.', 'npcink-cloud-addon' );
+				}
+				return $result;
+			}
 
 			Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
 			$status = Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
@@ -66,6 +90,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			}
 
 			$sent_count = absint( $status['last_sent_count'] ?? 0 );
+			if ( 0 === $sent_count ) {
+				return self::result( true, 'refresh_no_changes', __( 'No pending public content changes were found. No content was sent to Cloud.', 'npcink-cloud-addon' ), 'refresh' );
+			}
 			return self::result(
 				true,
 				'refresh_requested',

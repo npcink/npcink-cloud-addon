@@ -53,6 +53,10 @@
 	margin: 0;
 }
 
+.npcink-cloud-summary__actions .npcink-cloud-site-knowledge-summary__action {
+	margin-top: 0;
+}
+
 .npcink-cloud-badge {
 	border-radius: 999px;
 	display: inline-block;
@@ -687,7 +691,9 @@
 	min-width: 64px;
 }
 
-.npcink-cloud-metric-actions[hidden] {
+.npcink-cloud-metric-actions[hidden],
+.npcink-cloud-site-knowledge-summary [data-npcink-site-knowledge-status-retry][hidden],
+.npcink-cloud-site-knowledge-summary__meta[hidden] {
 	display: none;
 }
 

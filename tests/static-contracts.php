@@ -2000,7 +2000,7 @@ maca_assert(
 		&& 1 === substr_count( $settings_page, "esc_html_e( 'Available knowledge documents'" )
 		&& false !== strpos( $admin_site_knowledge_js, "'not_refreshed' === initialState || 'stale' === initialState" )
 		&& false === strpos( $admin_site_knowledge_js, 'data-npcink-site-knowledge-detail' )
-		&& false !== strpos( $admin_site_knowledge_js, '! valueLabel && ! waitingLabel' )
+		&& false !== strpos( $admin_site_knowledge_js, '! valueLabel && ! initialWaitingLabel' )
 		&& false === strpos( $admin_site_knowledge_js, 'articleCoverageRefresh' )
 	&& false === strpos( $admin_site_knowledge_js, 'window.location.reload' )
 	&& false !== strpos( $admin_site_knowledge_js, "progress.setAttribute( 'aria-valuenow', String( percent ) )" )
@@ -2008,6 +2008,8 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'data-npcink-site-knowledge-actions' )
 	&& false !== strpos( $admin_site_knowledge_js, 'actions.hidden = ! loading' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-metric-actions[hidden]' )
+	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-summary [data-npcink-site-knowledge-status-retry][hidden]' )
+	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-summary__meta[hidden]' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-progress--warning' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-site-knowledge-progress--error' ),
 		'Site Knowledge keeps one auto-refreshed document quota on Overview without duplicating lower-frequency Cloud detail in the local knowledge-base page.'
@@ -2201,7 +2203,8 @@ maca_assert(
 	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Addon_Cleanup::delete_all( $settings )' )
 	&& false !== strpos( $settings_page, 'Change Cloud account' )
 	&& false !== strpos( $settings_page, 'Open Cloud sites' )
-	&& false !== strpos( $settings_page, 'function render_connection_actions( array $settings, bool $is_verified, bool $service_needs_attention = false )' )
+	&& false !== strpos( $settings_page, 'function render_connection_actions( array $settings, bool $is_verified, bool $service_needs_attention = false, bool $site_knowledge_needs_update = false )' )
+	&& false !== strpos( $settings_page, "render_site_knowledge_refresh_form( __( 'Update again', 'npcink-cloud-addon' ), 'button button-primary' )" )
 	&& false !== strpos( $settings_page, 'if ( $is_verified )' )
 	&& false !== strpos( $settings_page, 'Disconnect this site' )
 	&& false !== strpos( $settings_page, 'Free service and AI credits belong to the Cloud account selected during authorization' )
@@ -2249,8 +2252,8 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2232,
-	'includes/class-cloud-settings-actions.php'        => 1151,
+	'includes/class-cloud-settings-page.php'           => 2283,
+	'includes/class-cloud-settings-actions.php'        => 1154,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1024,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,

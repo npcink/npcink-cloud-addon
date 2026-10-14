@@ -4,6 +4,7 @@ uninstall.php
 assets/admin-entitlement.js
 assets/admin-permissions.js
 assets/admin-site-knowledge.js
+assets/admin-status-fragments.js
 assets/admin.css
 assets/ai-plugin-localization.js
 includes/bootstrap.php

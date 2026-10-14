@@ -112,6 +112,30 @@ maca_assert(
 
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ),
+);
+$malformed = Npcink_Cloud_Customer_Journey::flush_buffer();
+maca_assert(
+	empty( $malformed['ok'] )
+	&& false !== strpos( (string) ( $malformed['error'] ?? '' ), 'accepted event count' )
+	&& empty( get_option( Npcink_Cloud_Customer_Journey::STATUS_OPTION, array() )['last_flush_ok'] )
+	&& 3 === count( maca_customer_journey_events() ),
+	'Behavior: a journey response without an accepted count cannot report success or remove buffered events.'
+);
+
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'accepted_count' => 'many' ) ) ),
+);
+$non_numeric = Npcink_Cloud_Customer_Journey::flush_buffer();
+maca_assert(
+	empty( $non_numeric['ok'] )
+	&& 3 === count( maca_customer_journey_events() ),
+	'Behavior: a non-numeric accepted count fails closed and retains every buffered journey event.'
+);
+
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
 	'body'     => wp_json_encode(
 		array(
 			'status' => 'ok',
@@ -124,11 +148,13 @@ $GLOBALS['maca_http_response_queue'][] = array(
 	),
 );
 $successful = Npcink_Cloud_Customer_Journey::flush_buffer();
-$retry_key = (string) ( $GLOBALS['maca_http_requests'][1]['args']['headers']['Idempotency-Key'] ?? '' );
+$retry_request = end( $GLOBALS['maca_http_requests'] );
+$retry_key = (string) ( is_array( $retry_request ) ? ( $retry_request['args']['headers']['Idempotency-Key'] ?? '' ) : '' );
 maca_assert(
 	! empty( $successful['ok'] )
 	&& 2 === absint( $successful['sent_count'] ?? 0 )
 	&& 1 === count( maca_customer_journey_events() )
+	&& 4 === count( $GLOBALS['maca_http_requests'] )
 	&& '' !== $failed_key
 	&& $failed_key === $retry_key,
 	'Behavior: a journey retry is content-addressed and removes only the accepted event prefix.'

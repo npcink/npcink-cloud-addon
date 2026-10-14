@@ -67,9 +67,17 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			wp_enqueue_script(
+				'npcink-cloud-addon-admin-status-fragments',
+				plugins_url( 'assets/admin-status-fragments.js', NPCINK_CLOUD_ADDON_FILE ),
+				array(),
+				NPCINK_CLOUD_ADDON_VERSION,
+				true
+			);
+
+			wp_enqueue_script(
 				'npcink-cloud-addon-admin-entitlement',
 				plugins_url( 'assets/admin-entitlement.js', NPCINK_CLOUD_ADDON_FILE ),
-				array(),
+				array( 'npcink-cloud-addon-admin-status-fragments' ),
 				NPCINK_CLOUD_ADDON_VERSION,
 				true
 			);
@@ -88,7 +96,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			wp_enqueue_script(
 				'npcink-cloud-addon-admin-site-knowledge',
 				plugins_url( 'assets/admin-site-knowledge.js', NPCINK_CLOUD_ADDON_FILE ),
-				array(),
+				array( 'npcink-cloud-addon-admin-status-fragments' ),
 				NPCINK_CLOUD_ADDON_VERSION,
 				true
 			);
@@ -190,7 +198,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<p><?php esc_html_e( 'Cloud connector status and access settings for this WordPress site.', 'npcink-cloud-addon' ); ?></p>
 				<?php self::render_admin_notice(); ?>
 
-				<?php self::render_connection_summary( $settings, $state, $entitlement, $site_knowledge ); ?>
+				<div data-npcink-connection-summary><?php self::render_connection_summary( $settings, $state, $entitlement, $site_knowledge ); ?></div>
 				<?php self::render_tab_navigation( $active_tab, $is_verified, $state ); ?>
 
 				<?php if ( 'connect' === $active_tab ) : ?>
@@ -213,6 +221,27 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<?php endif; ?>
 			</div>
 			<?php
+		}
+
+		/**
+		 * Returns escaped status markup for authenticated admin refreshes without Cloud requests.
+		 * @return array<string,mixed>
+		 */
+		public static function get_admin_status_fragments( bool $include_knowledge = false ): array {
+			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			$state = Npcink_Cloud_Addon_Settings::get_credential_state();
+			$health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+			$entitlement = Npcink_Cloud_Entitlement_Summary::get_cached_summary();
+			ob_start();
+			self::render_connection_summary( $settings, $state, $entitlement, $health );
+			$fragments = array( 'connection' => (string) ob_get_clean() );
+			$fragments['service'] = self::get_current_service_health( ! empty( $state['verified'] ), $entitlement, $health );
+			if ( $include_knowledge ) {
+				ob_start();
+				self::render_site_knowledge_summary( $health, $settings, ! empty( $state['verified'] ) );
+				$fragments['knowledge'] = (string) ob_get_clean();
+			}
+			return $fragments;
 		}
 
 		/**
@@ -421,7 +450,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$summary_label = $service_needs_attention ? (string) $service_health['label'] : (string) $state['label'];
 			$summary_message = $service_needs_attention ? (string) $service_health['message'] : (string) $state['message'];
 			?>
-			<section class="npcink-cloud-summary"<?php echo $service_needs_attention && empty( $service_health['delivery_failure'] ) ? ' data-npcink-entitlement-health="summary"' : ''; ?>>
+			<section class="npcink-cloud-summary">
 				<div class="npcink-cloud-summary__header">
 					<div>
 						<p class="npcink-cloud-summary__state">
@@ -430,7 +459,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<p class="npcink-cloud-summary__message"><?php echo esc_html( $summary_message ); ?></p>
 					</div>
 					<?php if ( $is_configured ) : ?>
-						<?php self::render_connection_actions( $settings, $is_verified, $service_needs_attention ); ?>
+						<?php self::render_connection_actions( $settings, $is_verified, $service_needs_attention, 0 < absint( $site_knowledge['dropped_count'] ?? 0 ) && ! self::is_site_knowledge_recovery_in_progress( $site_knowledge ) ); ?>
 					<?php endif; ?>
 				</div>
 				<?php if ( $is_configured && ! $is_verified ) : ?>
@@ -544,9 +573,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param array<string,mixed> $settings Stored settings.
 		 * @param bool                $is_verified Whether the connector has verified credentials.
 		 * @param bool                $service_needs_attention Whether cached service state needs attention.
+		 * @param bool                $site_knowledge_needs_update Whether dropped Site Knowledge changes need a recovery update.
 		 * @return void
 		 */
-		private static function render_connection_actions( array $settings, bool $is_verified, bool $service_needs_attention = false ): void {
+		private static function render_connection_actions( array $settings, bool $is_verified, bool $service_needs_attention = false, bool $site_knowledge_needs_update = false ): void {
 			$activation_required = 'inactive' === sanitize_key( (string) ( $settings['activation_state'] ?? '' ) );
 			?>
 			<div class="npcink-cloud-summary__actions">
@@ -555,7 +585,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php self::render_reverify_form( $settings, __( 'Check activation again', 'npcink-cloud-addon' ) ); ?>
 				<?php elseif ( $is_verified ) : ?>
 					<?php if ( $service_needs_attention ) : ?>
-						<?php self::render_reverify_form( $settings ); ?>
+						<?php if ( $site_knowledge_needs_update ) : ?>
+							<?php self::render_site_knowledge_refresh_form( __( 'Update again', 'npcink-cloud-addon' ), 'button button-primary' ); ?>
+						<?php else : ?>
+							<?php self::render_reverify_form( $settings ); ?>
+						<?php endif; ?>
 					<?php endif; ?>
 					<a class="button button-secondary" href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud sites', 'npcink-cloud-addon' ); ?></a>
 				<?php else : ?>
@@ -571,27 +605,25 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param bool                $is_verified Whether credentials were verified.
 		 * @param array<string,mixed> $entitlement Cached entitlement summary.
 		 * @param array<string,mixed> $site_knowledge Site Knowledge delivery health.
-		 * @return array{severity:string,label:string,message:string,delivery_failure?:bool}
+		 * @return array{severity:string,label:string,message:string}
 		 */
 		private static function get_current_service_health( bool $is_verified, array $entitlement, array $site_knowledge ): array {
 			if ( ! $is_verified ) {
 				return array( 'severity' => 'inactive', 'label' => __( 'Not checked', 'npcink-cloud-addon' ), 'message' => '' );
 			}
 
-			if ( 0 < absint( $site_knowledge['dropped_count'] ?? 0 ) ) {
+			$recovery_in_progress = self::is_site_knowledge_recovery_in_progress( $site_knowledge );
+			if ( 0 < absint( $site_knowledge['dropped_count'] ?? 0 ) && ! $recovery_in_progress ) {
 				return array(
 					'severity' => 'warning',
-					'delivery_failure' => true,
 					'label' => __( 'Needs attention', 'npcink-cloud-addon' ),
 					'message' => __( 'Some content updates could not be delivered to the knowledge base. Open the Site Knowledge tab to update it again.', 'npcink-cloud-addon' ),
 				);
 			}
 
-			if ( '' !== (string) ( $site_knowledge['last_delivery_error'] ?? '' )
-				|| '' !== (string) ( $site_knowledge['last_error_code'] ?? '' ) ) {
+			if ( ! $recovery_in_progress && ( '' !== (string) ( $site_knowledge['last_delivery_error'] ?? '' ) || '' !== (string) ( $site_knowledge['last_error_code'] ?? '' ) ) ) {
 				return array(
 					'severity' => 'warning',
-					'delivery_failure' => true,
 					'label' => __( 'Needs attention', 'npcink-cloud-addon' ),
 					'message' => __( 'A recent Site Knowledge delivery could not reach or authenticate with Cloud. Re-check the connection or open Cloud for service detail.', 'npcink-cloud-addon' ),
 				);
@@ -613,6 +645,20 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			return array( 'severity' => 'pending', 'label' => __( 'Not recently checked', 'npcink-cloud-addon' ), 'message' => __( 'Run a connection check when you need current service confirmation.', 'npcink-cloud-addon' ) );
+		}
+
+		/** Keeps historical drops in diagnostics while their recovery is being delivered. */
+		private static function is_site_knowledge_recovery_in_progress( array $site_knowledge ): bool {
+			$maintenance = (string) ( $site_knowledge['maintenance_status'] ?? '' );
+			$operation = (string) ( $site_knowledge['maintenance_operation'] ?? 'rebuild' );
+			$maintenance_active = array_key_exists( 'maintenance_active', $site_knowledge )
+				? ! empty( $site_knowledge['maintenance_active'] )
+				: in_array( $maintenance, array( 'queued', 'delivering', 'retrying' ), true );
+			return 0 < absint( $site_knowledge['dropped_count'] ?? 0 )
+				&& $maintenance_active
+				&& empty( $site_knowledge['wp_cron_disabled'] )
+				&& empty( $site_knowledge['reconcile_overdue'] )
+				&& in_array( $operation, array( 'start', 'rebuild' ), true );
 		}
 
 		/**
@@ -804,13 +850,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				return;
 			}
 			$monitoring_needs_attention = ! empty( $monitoring['enabled'] ) && '' !== (string) ( $monitoring['last_upload_error'] ?? '' );
-			$site_knowledge_needs_attention = '' !== (string) ( $site_knowledge['last_delivery_error'] ?? '' )
+			$site_knowledge_needs_attention = ! self::is_site_knowledge_recovery_in_progress( $site_knowledge ) && ( '' !== (string) ( $site_knowledge['last_delivery_error'] ?? '' )
 				|| '' !== (string) ( $site_knowledge['last_error_code'] ?? '' )
-				|| 0 < absint( $site_knowledge['dropped_count'] ?? 0 );
+				|| 0 < absint( $site_knowledge['dropped_count'] ?? 0 ) );
 			$entitlement_state = sanitize_key( (string) ( $entitlement['state'] ?? '' ) );
 			$show_entitlement_retry = in_array( $entitlement_state, array( 'unavailable', 'refreshing' ), true );
 			$service_health = self::get_current_service_health( $is_verified, $entitlement, $site_knowledge );
-			$fresh_service_health = self::get_current_service_health( true, array( 'available' => true ), array() );
 			$entitlement_metrics = self::get_overview_entitlement_metrics( $entitlement );
 			$credit_metric = is_array( $entitlement_metrics['credits'] ?? null ) ? $entitlement_metrics['credits'] : array();
 			$runtime_metric = is_array( $entitlement_metrics['runtime'] ?? null ) ? $entitlement_metrics['runtime'] : array();
@@ -836,8 +881,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				</div>
 				<div class="npcink-cloud-overview-panel">
 					<div class="npcink-cloud-overview-panel__header">
-						<span<?php echo empty( $service_health['delivery_failure'] ) ? ' data-npcink-entitlement-health="badge"' : ''; ?> class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( 'warning' === (string) $service_health['severity'] ? 'warning' : 'ok' ); ?>"><?php esc_html_e( 'Connected', 'npcink-cloud-addon' ); ?></span>
-						<span<?php if ( empty( $service_health['delivery_failure'] ) ) : ?> data-npcink-entitlement-health="label" data-npcink-entitlement-fresh-label="<?php echo esc_attr( $fresh_service_health['label'] ); ?>"<?php endif; ?> class="npcink-cloud-overview-service npcink-cloud-overview-service--<?php echo esc_attr( (string) $service_health['severity'] ); ?>"><?php echo esc_html( (string) $service_health['label'] ); ?></span>
+						<span data-npcink-service-connection-badge class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( 'warning' === (string) $service_health['severity'] ? 'warning' : 'ok' ); ?>"><?php esc_html_e( 'Connected', 'npcink-cloud-addon' ); ?></span>
+						<span class="npcink-cloud-overview-service npcink-cloud-overview-service--<?php echo esc_attr( (string) $service_health['severity'] ); ?>"><?php echo esc_html( (string) $service_health['label'] ); ?></span>
 						<span class="npcink-cloud-entitlement npcink-cloud-overview-panel__plan" data-npcink-entitlement-state="<?php echo esc_attr( $entitlement_state ); ?>">
 							<span class="npcink-cloud-overview-panel__plan-label" data-npcink-entitlement-summary aria-live="polite"><?php echo esc_html( self::format_overview_entitlement( $entitlement, $is_verified ) ); ?></span>
 							<span class="spinner npcink-cloud-entitlement__spinner" aria-hidden="true"></span>
@@ -1425,6 +1470,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$delivery_enabled = ! empty( $site_knowledge['delivery_enabled'] );
 			$last_delivery_error = (string) ( $site_knowledge['last_delivery_error'] ?? '' );
 			$status_summary = $delivery_enabled ? Npcink_Cloud_Site_Knowledge_Runtime_Bridge::get_cached_status_summary() : array();
+			$cloud_status_current = ! empty( $status_summary['available'] ) && empty( $status_summary['stale'] );
 			$cloud_usage = $delivery_enabled
 				? self::get_site_knowledge_usage_projection( $status_summary )
 				: self::get_site_knowledge_usage_projection( array() );
@@ -1434,11 +1480,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$waiting_count = max( $buffer_count, absint( $coverage['not_indexed_count'] ?? 0 ) );
 			$maintenance_active = 'idle' !== (string) ( $site_knowledge['maintenance_status'] ?? 'idle' );
 			$dropped_count = absint( $site_knowledge['dropped_count'] ?? 0 );
-			$local_delivery_needs_attention = ! empty( $site_knowledge['wp_cron_disabled'] )
+			$recovery_in_progress = self::is_site_knowledge_recovery_in_progress( $site_knowledge );
+			$local_delivery_needs_attention = ! $recovery_in_progress && ( ! empty( $site_knowledge['wp_cron_disabled'] )
 				|| ! empty( $site_knowledge['reconcile_overdue'] )
 				|| 0 < $dropped_count
 				|| '' !== $last_delivery_error
-				|| '' !== (string) ( $site_knowledge['last_error_code'] ?? '' );
+				|| '' !== (string) ( $site_knowledge['last_error_code'] ?? '' ) );
 			$capacity_needs_attention = $quota_skipped_count > 0;
 			$update_in_progress = $maintenance_active || $waiting_count > 0;
 			if ( $local_delivery_needs_attention || $capacity_needs_attention ) {
@@ -1447,7 +1494,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			} elseif ( $update_in_progress ) {
 				$badge_class = 'info';
 				$badge_label = __( 'Updating', 'npcink-cloud-addon' );
-			} elseif ( ! empty( $status_summary['available'] ) ) {
+			} elseif ( $cloud_status_current ) {
 				$badge_class = 'ok';
 				$badge_label = __( 'Up to date', 'npcink-cloud-addon' );
 			} else {
@@ -1457,7 +1504,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			// The initial full-index manifest is the bootstrap for existing
 			// content; offer it once, while the index has never been built.
 			$show_start_indexing = $delivery_enabled
-				&& ! empty( $status_summary['available'] )
+				&& $cloud_status_current
 				&& ! $update_in_progress
 				&& ! $local_delivery_needs_attention
 				&& ! $capacity_needs_attention
@@ -1482,7 +1529,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 								<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Updating the knowledge base', 'npcink-cloud-addon' ); ?></p>
 							<?php elseif ( $show_start_indexing ) : ?>
 								<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Automatic updates are ready', 'npcink-cloud-addon' ); ?></p>
-							<?php elseif ( ! empty( $status_summary['available'] ) ) : ?>
+							<?php elseif ( $cloud_status_current ) : ?>
 								<p class="npcink-cloud-site-knowledge-summary__result npcink-cloud-site-knowledge-summary__result--success"><?php esc_html_e( 'All public content is up to date', 'npcink-cloud-addon' ); ?></p>
 							<?php else : ?>
 								<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Automatic updates are ready', 'npcink-cloud-addon' ); ?></p>
@@ -1508,7 +1555,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 								__( '%d public items were not included. Review the plan details in Cloud.', 'npcink-cloud-addon' ),
 								$quota_skipped_count
 							) ); ?></p>
-						<?php elseif ( ! $update_in_progress && empty( $status_summary['available'] ) ) : ?>
+						<?php elseif ( $recovery_in_progress ) : ?>
+							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php esc_html_e( 'Public content is being re-sent to Cloud. The warning will clear when delivery finishes.', 'npcink-cloud-addon' ); ?></p>
+						<?php elseif ( ! $update_in_progress && ! $cloud_status_current ) : ?>
 							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php esc_html_e( 'Updates will appear here after public content changes.', 'npcink-cloud-addon' ); ?></p>
 						<?php endif; ?>
 						<?php if ( $show_start_indexing ) : ?>
@@ -1537,6 +1586,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							<?php endif; ?>
 						</p>
 						<p class="npcink-cloud-site-knowledge-summary__meta"><a class="npcink-cloud-text-link" href="<?php echo esc_url( $cloud_site_knowledge_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View details in Cloud', 'npcink-cloud-addon' ); ?></a></p>
+						<p hidden data-npcink-site-knowledge-read-status role="status"></p>
+						<button hidden type="button" class="button button-secondary" data-npcink-site-knowledge-status-retry><?php esc_html_e( 'Retry', 'npcink-cloud-addon' ); ?></button>
 					</section>
 				<?php if ( ! $delivery_enabled ) : ?>
 					<p class="description npcink-cloud-site-knowledge-disabled-note"><?php esc_html_e( 'Delivery is off; refresh controls and routine delivery rows are hidden.', 'npcink-cloud-addon' ); ?></p>
@@ -1552,13 +1603,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		}
 
 		/** Renders the recovery-only full knowledge base update action. */
-		private static function render_site_knowledge_refresh_form( string $label ): void {
+		private static function render_site_knowledge_refresh_form( string $label, string $button_class = 'button button-secondary' ): void {
 			?>
 			<div class="npcink-cloud-site-knowledge-summary__action">
 				<form class="npcink-cloud-verify-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<?php wp_nonce_field( Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE ); ?>
 					<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE ); ?>" />
-					<button type="submit" class="button button-secondary"><?php echo esc_html( $label ); ?></button>
+					<button type="submit" class="<?php echo esc_attr( $button_class ); ?>"><?php echo esc_html( $label ); ?></button>
 				</form>
 			</div>
 			<?php
@@ -1852,7 +1903,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			$type = sanitize_key( (string) ( $notice['type'] ?? '' ) );
-			if ( ! in_array( $type, array( 'success', 'warning', 'error' ), true ) ) {
+			if ( ! in_array( $type, array( 'success', 'info', 'warning', 'error' ), true ) ) {
 				$type = 'error';
 			}
 			?>

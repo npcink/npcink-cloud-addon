@@ -88,6 +88,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 					'state' => sanitize_key( (string) ( $summary['state'] ?? 'fresh' ) ),
 					'syncedAt' => sanitize_text_field( (string) ( $summary['synced_at'] ?? '' ) ),
 					'metrics' => Npcink_Cloud_Settings_Page::get_overview_entitlement_metrics( $summary ),
+					'status_fragments' => Npcink_Cloud_Settings_Page::get_admin_status_fragments(),
 				)
 			);
 		}
@@ -129,6 +130,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
 			$waiting_count = max( absint( $health['buffer_count'] ?? 0 ), absint( $coverage['not_indexed_count'] ?? 0 ) );
 			$data['waiting_count'] = $waiting_count;
+			$data['status_fragments'] = Npcink_Cloud_Settings_Page::get_admin_status_fragments( true );
 			$data['waiting_label'] = $waiting_count > 0
 				? sprintf(
 					/* translators: %d: number of content updates waiting for automatic processing. */
@@ -412,7 +414,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			check_admin_referer( self::ACTION_REFRESH_SITE_KNOWLEDGE );
 
 			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
-			self::set_admin_notice( ! empty( $result['ok'] ) ? 'success' : 'error', (string) $result['message'] );
+			$notice_type = empty( $result['ok'] ) ? 'error' : ( 'refresh_requested' === $result['code'] ? 'success' : 'info' );
+			self::set_admin_notice( $notice_type, (string) $result['message'] );
 			self::redirect_to_page( 'site_knowledge' );
 		}
 
@@ -427,7 +430,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$operation = isset( $_POST['site_knowledge_index_action'] ) ? sanitize_key( wp_unslash( $_POST['site_knowledge_index_action'] ) ) : '';
 			$confirmation = isset( $_POST['site_knowledge_confirmation'] ) ? sanitize_text_field( wp_unslash( $_POST['site_knowledge_confirmation'] ) ) : '';
 			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_index_operation( $operation, $confirmation );
-			self::set_admin_notice( ! empty( $result['ok'] ) ? 'success' : 'error', (string) $result['message'] );
+			self::set_admin_notice( ! empty( $result['ok'] ) ? 'info' : 'error', (string) $result['message'] );
 			self::redirect_to_page( 'site_knowledge' );
 		}
 

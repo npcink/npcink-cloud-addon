@@ -13,7 +13,8 @@
 	const spinner = container.querySelector( '.npcink-cloud-entitlement__spinner' );
 	const metricRows = document.querySelectorAll( '[data-npcink-entitlement-metric]' );
 	const initialState = container.dataset.npcinkEntitlementState || '';
-	const initialLabel = summary ? summary.textContent : '';
+	let retainedLabel = summary ? summary.textContent : '';
+	let hasRetainedSummary = 'stale' === initialState && '' !== retainedLabel;
 	let requestInFlight = false;
 
 	if ( ! summary || ! retry ) {
@@ -65,26 +66,6 @@
 		} );
 	};
 
-	const updateServiceHealth = ( state ) => {
-		if ( 'fresh' !== state ) {
-			return;
-		}
-		// Only entitlement-owned warnings may be cleared by this signed read.
-		document.querySelectorAll( '[data-npcink-entitlement-health]' ).forEach( ( node ) => {
-			const kind = node.dataset.npcinkEntitlementHealth;
-			if ( 'summary' === kind ) {
-				node.remove();
-			} else if ( 'badge' === kind ) {
-				node.classList.remove( 'npcink-cloud-badge--warning' );
-				node.classList.add( 'npcink-cloud-badge--ok' );
-			} else if ( 'label' === kind ) {
-				node.classList.remove( 'npcink-cloud-overview-service--warning', 'npcink-cloud-overview-service--pending' );
-				node.classList.add( 'npcink-cloud-overview-service--ok' );
-				node.textContent = node.dataset.npcinkEntitlementFreshLabel || '';
-			}
-		} );
-	};
-
 	const refresh = async ( mode ) => {
 		if ( requestInFlight ) {
 			return;
@@ -120,18 +101,30 @@
 			}
 
 			summary.textContent = payload.data.label;
+			retainedLabel = payload.data.label;
+			hasRetainedSummary = true;
 			container.dataset.npcinkEntitlementState = payload.data.state || container.dataset.npcinkEntitlementState;
-			updateMetrics( payload.data.metrics || {} );
-			updateServiceHealth( payload.data.state || '' );
 			retry.hidden = true;
+			try {
+				updateMetrics( payload.data.metrics || {} );
+			} catch ( renderError ) {
+				// A valid signed read remains successful if a replaced DOM node cannot
+				// render its optional metrics.
+			}
+			try {
+				if ( typeof window.npcinkCloudApplyStatusFragments === 'function' ) {
+					window.npcinkCloudApplyStatusFragments( payload.data.status_fragments || {} );
+				}
+			} catch ( fragmentError ) {
+				// Connection/service status stays as rendered server-side on initial load.
+			}
 		} catch ( error ) {
-			const hasRetainedSummary = 'stale' === initialState && '' !== initialLabel;
 			// Only server-provided messages are display-ready; a browser network
 			// error text such as "Failed to fetch" must fall back to the
 			// translated config labels below.
 			const actionableMessage = error && error.fromServer && error.message && 'entitlement_refresh_failed' !== error.message ? error.message : '';
 			summary.textContent = hasRetainedSummary
-				? initialLabel + ' · ' + ( actionableMessage || config.updateFailedLabel || 'Update failed' )
+				? retainedLabel + ' · ' + ( actionableMessage || config.updateFailedLabel || 'Update failed' )
 				: ( actionableMessage || config.failedLabel || 'Plan and entitlement are temporarily unavailable.' );
 			container.dataset.npcinkEntitlementState = 'unavailable';
 			retry.hidden = false;

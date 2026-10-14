@@ -86,7 +86,7 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-runtime-media-payloads.php` — 280 lines (static
   multipart assembly and exact upload/delivery-ack response validation for
   the bounded media endpoints)
-- `includes/class-cloud-settings-page.php` — 2232 lines (was 3280 before the
+- `includes/class-cloud-settings-page.php` — 2283 lines (was 3280 before the
   2026-10-04 handler split into `class-cloud-settings-actions.php`; raised from
   2207 for the 2026-10-12 locale-aware privacy URL, no-JS disconnect confirmation,
   and removal of the retired Site Knowledge coverage renderer; raised again for
@@ -94,13 +94,18 @@ connector classes so they cannot grow unnoticed:
   behavior coverage; raised by three lines for the private delivery-failure marker
   protecting real Site Knowledge warnings, including error-code-only failures,
   during entitlement refresh; one further line reuses the private fresh-health
-  projection for the browser label instead of duplicating its copy)
-- `includes/class-cloud-settings-actions.php` — 1151 lines (settings request
+  projection for the browser label instead of duplicating its copy; raised by
+  five lines for routing dropped-content recovery to the existing Site Knowledge
+  update action; raised by thirteen lines to project active dropped-content recovery as
+  updating while retaining failures in diagnostics and restoring attention after delivery fails;
+  raised by 23 lines for shared escaped AJAX status fragments, stale-evidence gating,
+  and failure-only retry feedback)
+- `includes/class-cloud-settings-actions.php` — 1154 lines (settings request
   handlers and their transient state; the render class stays a projection;
   raised from 1106 with reason: the 2026-10-11 first-connection verify-failure
   path keeps exchanged credentials in the unverified state instead of
   discarding them; raised again for the 2026-10-12 server-side no-JS disconnect
-  confirmation guard)
+  confirmation guard; raised by one line to distinguish scheduled recovery notices from completed delivery; raised by two lines to return current admin status fragments with existing authenticated reads)
 - `includes/class-cloud-wordpress-ai-connector.php` — 1024 lines (was 2767 before the
   2026-10-06 per-class split into seven satellite files; raised from 1002 with
   reason: the 2026-10-11 in-progress run probe shares one
