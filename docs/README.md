@@ -68,6 +68,9 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 
 ## History (dated closeouts, retrospectives, handoffs)
 
+- `site-knowledge-quota-recovery-closeout-2026-10-15.md` — recovered public
+  coverage and retrieval evidence, historical-record/quota-scope diagnosis,
+  and the latest 0.4.1 package recheck.
 - `041-final-release-record-2026-10-14.md` — current 0.4.1 release baseline,
   package evidence and remaining publication gates; supersedes older snapshots.
 
