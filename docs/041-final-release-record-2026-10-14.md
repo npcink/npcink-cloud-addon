@@ -1,5 +1,45 @@
 # 0.4.1 final release record — 2026-10-14
 
+## October 15 dependency and browser follow-up
+
+The current reviewed source baseline is `master@67adbf4`, after PR #273
+(`0352ca1`) recorded quota recovery and development-only dependency PRs
+[#261](https://github.com/npcink/npcink-cloud-addon/pull/261) (`cc625c4`,
+PHPStan 2.3.1) and
+[#262](https://github.com/npcink/npcink-cloud-addon/pull/262) (`67adbf4`,
+WordPress stubs 7.1.2) merged. Both dependency PRs passed all 13 final checks;
+#262 was rebased and retested after #261. Maintainer rebases exposed missing
+PR-body sections; completing the existing template restored that check without
+changing its exemption or validation rules. Earlier failures are historical.
+
+After installing the merged lock, local `composer release:verify` and
+`composer run stan` passed. The 51-file ZIP still matches the candidate SHA256
+below; development dependencies do not enter the package. The four source
+version headers remain 0.4.1. No WordPress.org upload or Git release tag was
+created.
+
+A fresh Edge check on `magick-ai.local` (WordPress 7.1.3, `zh_CN`, Addon 0.4.1)
+confirmed the Chinese stale-cache warning, the subsequently refreshed overview,
+and the connection-management page. The Site Knowledge page initially showed
+one pending update; a read-only local snapshot at `2026-10-15T08:25:59+00:00`
+reported idle, buffer 0, dropped 0, maintenance idle and last delivery successful
+at `2026-10-15T08:04:06+00:00`, with WP-Cron enabled. This records recovered
+local delivery state, not a new Cloud indexing or retrieval-acceptance claim. No connection setting, delivery intent or optional Provider batch was
+submitted. Ignored local screenshots, accessibility snapshots and gate logs
+are retained in `build/closeout-recheck-2026-10-15/`.
+
+The read-only central matrix at `2026-10-15T08:19:52+00:00` found all seven
+default workspaces clean, with gates `not_run` and M4 acceptance
+`not_requested`. It does not replace a full matrix: Toolbox #269 and the
+shared local OCR publisher candidates remain unresolved, and Cloud is still
+on a topic branch. Wait for those owners' stable clean window before the
+full cross-repository run. GitHub OCR remains disabled; no paid OCR retry was
+made for these dependency updates. #260 remains unmerged.
+
+The following sections retain their original dated observations. This update
+supersedes their outstanding dependency and expired-login status only;
+publication still requires separate operator confirmation.
+
 ## October 15 status update
 
 The [quota recovery closeout](site-knowledge-quota-recovery-closeout-2026-10-15.md)

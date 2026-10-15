@@ -7,6 +7,30 @@ Last updated: 2026-10-15.
 This document records the WordPress.org release, assets, legal pages, and zh_CN
 translation work completed for `npcink-cloud-addon`.
 
+## 2026-10-15 Dependency and Browser Follow-up
+
+The recovery record merged in PR #273 (`0352ca1`). Development-only PRs #261
+(PHPStan 2.3.1, `cc625c4`) and #262 (WordPress stubs 7.1.2, `67adbf4`) then
+merged with 13/13 final checks each; #262 was retested on top of #261.
+Post-install local release verification and PHPStan passed, and the candidate
+ZIP retains the 51-file SHA256 in the
+[final release record](041-final-release-record-2026-10-14.md).
+
+A fresh logged-in Edge check confirmed the Chinese overview, stale-cache
+warning, Site Knowledge page and connection-management page. The local
+read-only delivery snapshot was idle with buffer 0, dropped 0 and a successful
+last delivery. It does not supersede the Cloud-owned discrepancies or establish
+automatic retrieval acceptance. No settings or manual index operation was
+submitted.
+
+The earlier follow-up CI-rollup task is complete. Remaining release work is
+separate SVN publication confirmation, followed by API/download, 0.4.1 zh_CN
+language-pack installation and directory-cache verification. The OCR publisher
+rollout and a fresh full cross-repository matrix remain pending the respective
+owners and a stable clean window. #260 remains unmerged; no paid OCR retry or
+WordPress.org publication occurred in this follow-up. Older sections retain
+their dated snapshots rather than describing the current dependency state.
+
 ## 2026-10-15 Recovery and Candidate Recheck
 
 Clean `master@122ac79` includes PR #272 (13/13 successful checks). The
