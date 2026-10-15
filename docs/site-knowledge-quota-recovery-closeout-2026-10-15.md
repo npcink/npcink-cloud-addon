@@ -1,5 +1,29 @@
 # Site Knowledge quota recovery and release recheck — 2026-10-15
 
+## Later October 15 follow-up
+
+PR #273 merged as `0352ca1` with all 13 checks successful. Subsequent
+development-only dependency PRs #261 and #262 merged with green final
+13-check rollups; the resulting source baseline is `67adbf4`. Local release
+verification and PHPStan passed after installing that lock, and the candidate
+ZIP hash below is unchanged.
+
+The operator renewed the local browser login. A new Edge inspection confirmed
+the Chinese overview, stale entitlement warning and connection-management
+page on WordPress 7.1.3 / Addon 0.4.1; the overview refreshed to recently
+reachable. The Site Knowledge page's initial pending count was 1, while the
+read-only local snapshot at `2026-10-15T08:25:59+00:00` was idle with buffer 0,
+dropped 0 and successful last delivery at `2026-10-15T08:04:06+00:00`.
+WP-Cron was enabled and maintenance was idle. This is a local delivery
+observation, not proof of additional Cloud indexing or automatic retrieval
+acceptance. No manual flush, rebuild, delete or Provider batch was initiated.
+Evidence is retained locally in ignored `build/closeout-recheck-2026-10-15/`.
+The earlier expired-login paragraph below remains a historical attempt.
+
+The Cloud-owned discrepancies, shared development quota decision, incomplete
+local OCR publisher rollout and separate WordPress.org publication confirmation
+remain open. No new full cross-repository matrix was run.
+
 ## Scope and evidence
 
 The operator restored the Cloud connection and increased quota before this
