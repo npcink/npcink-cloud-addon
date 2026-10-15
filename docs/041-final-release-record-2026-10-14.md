@@ -1,5 +1,22 @@
 # 0.4.1 final release record — 2026-10-14
 
+## October 15 status update
+
+The [quota recovery closeout](site-knowledge-quota-recovery-closeout-2026-10-15.md)
+supersedes the connection/quota failure snapshot below. On clean
+`master@122ac79` (PR #272, all 13 checks successful), public ID coverage was
+1,997/1,997 and bounded title retrieval passed 3/3. The remaining 64 historical
+post/page records are absent from the current local database and were not
+deleted. The 99,999 quota belongs to shared development Free plan `free_v1`;
+it is not an account-only override. Automatic acceptance is an absent-field
+fallback, not evidence of a running Cloud check.
+
+October 15 release verification and PHPStan passed. Two fresh package builds
+matched the 51-file SHA256 below, replacing the stale local artifact.
+WordPress.org publication is still pending separate confirmation. Dependency
+PR #262's earlier download error is resolved; #261 and #262 have green
+13-check rollups. The older failure details below remain historical evidence.
+
 ## Scope and source
 
 The runtime release baseline is `6db6638184e4dc0d762480a4933376826c40a59a`,

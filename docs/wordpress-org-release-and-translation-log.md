@@ -2,10 +2,21 @@
 
 Status: active operational handoff.
 
-Last updated: 2026-10-14.
+Last updated: 2026-10-15.
 
 This document records the WordPress.org release, assets, legal pages, and zh_CN
 translation work completed for `npcink-cloud-addon`.
+
+## 2026-10-15 Recovery and Candidate Recheck
+
+Clean `master@122ac79` includes PR #272 (13/13 successful checks). The
+[quota recovery closeout](site-knowledge-quota-recovery-closeout-2026-10-15.md)
+records 1,997/1,997 current public IDs indexed, 3/3 bounded title queries,
+the 64 historical records left untouched and the shared development Free-plan
+quota scope. Full release verification, PHPStan and two reproducible 51-file
+ZIP builds passed, matching the hash in the final release record. WordPress.org
+remains at 0.4.0; no SVN publication occurred. Older transport-failure snapshots
+below are superseded by this dated recovery evidence.
 
 ## 2026-10-14 Final Candidate Record
 
