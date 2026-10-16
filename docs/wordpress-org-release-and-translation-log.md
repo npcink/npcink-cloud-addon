@@ -30,17 +30,38 @@ The stable plugin zh_CN GlotPress page currently reports 604/604 translated,
 0 untranslated and 0 waiting. At the final observation
 (on 2026-10-16 UTC), the WordPress translations API still returned only
 the 0.4.0 zh_CN package and the expected 0.4.1 package URL returned HTTP 404.
-The official 0.4.1 language-pack generation and local installation therefore
-remain pending asynchronous WordPress.org propagation; the bundled 0.4.1 MO
-file is present in the published package but is not counted as an official
-language-pack result. Recheck the API and
+This was the pre-propagation snapshot; the bundled 0.4.1 MO file was present
+in the published package but was not counted as an official language-pack
+result. The API and
 `https://downloads.wordpress.org/translation/plugin/npcink-cloud-addon/0.4.1/zh_CN.zip`
-before closing this item.
+were rechecked after propagation as recorded below.
 
 Evidence is retained in ignored `build/wporg-postpublish-20261016/`, including
 the SVN tag info, plugin API response, downloaded ZIP, decompressed content
 comparison, GlotPress HTML, directory pages and translation API responses.
 No Git source, Cloud data or WordPress content was changed by publication.
+
+### 2026-10-16 zh_CN language-pack propagation and local installation
+
+The official translation API now returns version `0.4.1` for `zh_CN`, and the
+official package URL returns HTTP 200. The downloaded package SHA256 is
+`c3a0c1512dcc82313e84360e14f41dd045052f64e0dbcea9d6380b5a22e8bca1` and
+contains the expected `.po`, `.mo` and `.l10n.php` files. WP-CLI installed the
+pack on `https://magick-ai.local` after temporarily switching the site locale
+to `en_US`; the site was switched back to `zh_CN` after installation.
+
+Final local verification reports locale `zh_CN`, active plugin version `0.4.1`,
+the three language-pack files present with hashes matching the downloaded
+official ZIP, a loaded `npcink-cloud-addon` text domain, and the fixed string
+`Not recently checked` translating to `最近未检查`. Redacted evidence is saved
+under `build/wporg-postpublish-20261016/` in
+`zh_CN-language-pack-download-evidence.json` and
+`zh_CN-language-pack-local-verification.json`.
+
+This closes the 0.4.1 WordPress.org publication and post-publish language-pack
+verification scope. Historical OCR, cross-repository matrix and Cloud-owner
+decisions remain tracked in the session handoff and are outside this Addon
+release closeout.
 
 ## 2026-10-15 Dependency and Browser Follow-up
 
