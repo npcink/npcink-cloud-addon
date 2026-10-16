@@ -105,3 +105,4 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 - `performance-paydown-closeout-2026-10-10.md`
 - `user-facing-ux-paydown-closeout-2026-10-12.md`
 - `next-session-handoff-2026-10-13.md`
+- `next-session-handoff-2026-10-16.md` — 引用会话的历史归纳、当前落点与下一阶段交接。
