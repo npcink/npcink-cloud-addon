@@ -12,9 +12,15 @@
 - **本地 Site Knowledge 投递**：现有有界恢复已完成 10/10 批；当前公开内容分母为 1,997（另有 1 条密码保护内容被排除），Cloud 接收/索引结果为 1,997/1,997，3 条近期/中段/较旧标题检索均通过。Addon 本地缓冲为 0、丢弃为 0、维护游标为 `idle`、最近一次投递成功。
 - **Cloud 状态仍有待确认项**：Cloud 还保留 64 条当前 WordPress 已不存在的历史 post/page 记录；没有执行清理。`retrieval_acceptance` 在当前投影中缺失时由 Addon 显示为 `pending`，这不能证明 Cloud 正在运行自动验收。维护目标投影与实际使用的 Ollama embedding 之间也需要 Cloud owner 澄清；不应因此在 Addon 内发起重建。
 - **配额事实**：最初的 Free 账号级 `vector_documents=100` 曾阻塞恢复；经运营处理后，M4 开发环境的共享 `free_v1` 计划显示为 99,999。该值属于共享开发计划，不应直接当作生产配额或账号专属覆盖。
-- **0.4.1 发布状态**：候选包已完成发布验证，51 个文件的当前 SHA256 为 `7153f1d7a4eb5cea42033a6133bc205461276c643098026dd9e70f986aad82a3`。WordPress.org 仍显示 0.4.0，尚未上传 0.4.1 的 SVN `trunk`/`tags/0.4.1`，也未完成发布后的 API、下载包和 zh_CN 语言包/目录缓存核对。
+- **0.4.1 发布状态**：候选包已完成发布验证并提交到 WordPress.org SVN revision `r3749721`；API、官方下载 ZIP、英文/中文目录页和 0.4.1 changelog 均已核对。官方 0.4.1 zh_CN language pack 仍在异步生成，translation API 只列 0.4.0、0.4.1 下载地址返回 404；该事项由 heartbeat 继续监测。
 - **OCR 发布门禁**：已确定并实现“只有显式 `composer pr:publish` 才自动触发本地 OCR”的方向，配套了共享计数、冷却、并发锁、HEAD 绑定、结果复用和失败阻断等离线验证。真实完整 OCR 曾因预算、超时、网络 EOF 和 prompt 上限问题未交付；对应候选没有获得完整真实审查，因此不能写成已通过。GitHub OCR workflow 继续保持手动停用。
 - **跨仓状态**：10 月 14 日的七仓完整矩阵曾 7/7 通过，但那是依赖文档和候选合并前的历史证据。依赖 PR 与文档 PR 后尚未在新的稳定干净窗口重跑完整矩阵；Cloud、Toolbox 的相关候选和共享 OCR 门禁仍需各自收口。
+
+## 本轮收口判断
+
+Addon 0.4.1 的代码、确定性门禁、候选包、SVN 发布、API、官方下载包和目录页验证已经完成。官方 zh_CN language pack 生成与本地安装是唯一仍在传播中的发布后验证项；它不影响已发布插件包，但在 language pack 出现前不能宣称 WordPress.org 本地化交付完全闭环。
+
+整个历史项目仍有独立的未闭环事项：本地 OCR 发布门禁尚无完整真实审查证据，PR #260 仍开放且 advisory code-review 失败；最新中央跨仓矩阵只做了只读盘点、所有 gates 均为 `not_run`，Toolbox 仍有未提交文档；Cloud 的 64 条历史记录清理和状态投影语义仍由 Cloud owner 决定。这些事项不需要继续修改 Addon 运行时代码。
 
 ## 历史主线
 
@@ -60,11 +66,10 @@ PHPStan 与 WordPress stubs 的依赖 PR #261、#262 在修正 PR body contract 
    - 对 64 条历史记录做站点身份、来源键和清理范围核对；在 Cloud 侧形成可审查的清理/保留决定前，Addon 只保持只读观察。
    - 明确 `retrieval_acceptance` 缺失字段的语义，以及 Ollama 实际 embedding 与 maintenance target projection 的契约对齐方式。
 
-2. **再完成 0.4.1 WordPress.org 发布（需要单独发布确认）**
-   - 在发布前重新运行要求的发布验证，确认候选包仍与当前源码和 manifest 一致。
-   - 由授权操作者上传 `trunk` 和 `tags/0.4.1`，随后核对 WordPress.org API、下载 ZIP、稳定版本和 readme。
-   - 发布后验证四组 zh_CN GlotPress 结果、0.4.1 语言包生成与安装，以及中文目录缓存传播。
-   - 将实际发布结果回写 `docs/wordpress-org-release-and-translation-log.md`；没有发布确认前，不执行 SVN 写入。
+2. **完成 0.4.1 发布后的 language pack 收口**
+   - 等 translation API 返回 0.4.1 且官方下载地址变为 HTTP 200。
+   - 下载并校验官方 ZIP，通过 WP-CLI 安装到 `magick-ai.local`，验证 `zh_CN`、插件版本和固定中文字符串。
+   - heartbeat 已负责低频监测；状态不变时保持安静，生成并验证后自动停止。
 
 3. **然后收口本地 OCR 门禁（仅在确有发布需求时）**
    - 先把 Toolbox 共享门禁和 Addon 适配拆成可独立审查的小 PR，避免再次超过默认规模。
