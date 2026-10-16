@@ -63,6 +63,22 @@ verification scope. Historical OCR, cross-repository matrix and Cloud-owner
 decisions remain tracked in the session handoff and are outside this Addon
 release closeout.
 
+### 2026-10-16 cross-repository closeout check
+
+After the language-pack verification, the central matrix was run from
+`/Users/muze/gitee/npcink-workflow-toolbox` at
+`2026-10-16T07:32:57Z`. All seven repository gates passed; M4 runtime
+acceptance was explicitly `not_requested`. The matrix is evidence for this
+clean-window check and does not decide Cloud-owned historical-record cleanup or
+state-projection semantics.
+
+The Addon, Toolbox and Cloud auxiliary worktrees were then removed. Any
+worktree with uncommitted experimental files was stashed before removal, so
+the cleanup did not discard local work. The three primary worktrees were left
+clean. PR #260 remains open with all required checks green; its advisory
+OpenCodeReview check failed because the service was rate-limited with HTTP 429
+and produced no review comments.
+
 ## 2026-10-15 Dependency and Browser Follow-up
 
 The recovery record merged in PR #273 (`0352ca1`). Development-only PRs #261
