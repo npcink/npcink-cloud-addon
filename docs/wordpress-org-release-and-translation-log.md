@@ -67,7 +67,8 @@ release closeout.
 
 After the language-pack verification, the central matrix was run from
 `/Users/muze/gitee/npcink-workflow-toolbox` at
-`2026-10-16T07:49:15Z` against the three primary master worktrees. All seven repository gates passed; M4 runtime
+`2026-10-16T11:14:49Z` against the three primary master worktrees after PR
+#279 and #265 merged. All seven repository gates passed; M4 runtime
 acceptance was explicitly `not_requested`. The matrix is evidence for this
 clean-window check and does not decide Cloud-owned historical-record cleanup or
 state-projection semantics.
@@ -75,9 +76,9 @@ state-projection semantics.
 The Addon, Toolbox and Cloud auxiliary worktrees were then removed. Any
 worktree with uncommitted experimental files was stashed before removal, so
 the cleanup did not discard local work. The three primary worktrees were left
-clean. PR #260 remains open with all required checks green; its advisory
-OpenCodeReview check failed because the service was rate-limited with HTTP 429
-and produced no review comments.
+clean. PR #260 was superseded by merged PR #279 after its stale Dependabot
+check state was recorded; PR #265 was updated and merged. The final read-only
+matrix reports no open PRs in Addon or Toolbox.
 
 ## 2026-10-15 Dependency and Browser Follow-up
 
