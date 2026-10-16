@@ -23,20 +23,51 @@ Cloud owner 应在 `npcink-ai-cloud` 保存正式决定、受支持的执行方�
 
 ## 2. 已知事实与适用环境
 
-以下是已保存文档中的观察，不是本次重新连接 M4 的结果。
-执行前必须刷新目标环境、源 revision、站点归属和精确清单。
+最新只读采样窗口为 `2026-10-16T12:29:20Z–12:29:28Z`（北京时间
+20:29:20–20:29:28）。本次文档更新核对了保留证据的校验值，没有再次访问或修改
+Cloud/WordPress。将来执行任何操作前仍须刷新目标环境、revision、站点归属与精确清单。
+
+### 10 月 16 日只读刷新
+
+M4 开发栈采样 revision 为 `b93594fa738fc916f936946fddc4fbfcdc9cdcd6`，
+`source_branch=codex/localize-provider-errors`、`source_dirty=false`、
+`acceptance_state=candidate`、`promotion_pr=none`。采样前后运行时身份及 WordPress
+公开清单/修改时间一致。审计期间其他任务曾更新 candidate，因此此证据不升级为
+clean-master M4 acceptance 或生产验收。
 
 | 事实 | 证据与限制 |
 | --- | --- |
-| 当前公开内容恢复为 1,997/1,997，10/10 批成功 | [10 月 15 日恢复记录](site-knowledge-quota-recovery-closeout-2026-10-15.md)；不代表全站语义质量验收 |
-| 1,998 条已发布 post/page 中 1 条密码保护内容被排除 | 公开投递分母为 1,997；不得把受保护内容补进清单 |
-| Cloud 有 2,061 条 post/page，其中 64 个 ID 在当前 WordPress 数据库不存在 | 50 posts、14 pages；含历史内容和旧测试数据，不能全部归类为 fixture |
+| 当前公开覆盖为 **1,997/1,999** | 2,000 条已发布 post/page 中 1 条密码保护内容排除；另有 2 条公开内容未在 Cloud 存在，不能继续称当前全覆盖 |
+| 两条新增覆盖缺口 | `post:282639`、`page:282641`，均在 `12:17:16Z` 发布/修改；与历史 64 条分开，见状态记录的“新增公开覆盖缺口” |
+| Cloud 有 2,061 条 post/page，额外历史集合仍恰为旧 64 个 source keys | 50 posts、14 pages，关联 78 chunks；全部 ID 在当前 WordPress 任意状态下均不存在；不是只比较数量 |
 | Cloud 总计 2,130 documents、2,362 chunks | 总量另含 69 media；不能将 2,130 与 post/page 清单直接相减判缺失 |
-| 3 条标题检索命中预期文档 rank 1 | 人工有界检查 3/3；不等于自动验收或完整语义评测 |
-| 实际 chunks 使用 `ollama-m4-embedding:qwen3-embedding:0.6b`，1024 维 | [10 月 16 日 preflight](cloud-preflight-and-release-readiness-2026-10-16.md)，M4 `fe9207965f4a5049f80736019114f360186ec96b` |
-| maintenance 投影为 `not_required / none`，target 为 `siliconflow:BAAI/bge-m3` | 当时没有活动 lifecycle；不能仅因两个名称不同启动重建 |
-| Addon 读取到的 `retrieval_acceptance` 为 `pending`、`automatic=false`，无时间和 revision | 前一恢复记录说明上游字段缺失时 Addon 会回退；必须区分原始 Cloud 输出与 Addon 归一化输出 |
-| M4 共享 `free_v1` 的两个上限为 99,999 | `max_vector_documents`、`max_media_images`；3 个订阅/有效快照使用该版本，本站无账号覆盖；不是生产政策 |
+| 实际 chunks 使用 `ollama-m4-embedding:qwen3-embedding:0.6b`，1024 维 | DB-managed local-preview 配置与实际空间一致；纯配置验证器回放通过，没有调用 embedding Provider 或重新检索 |
+| maintenance 原始输出为 `not_required / none`，target 为 `siliconflow:BAAI/bge-m3` | 无活动批次或 request_id；其 automatic=true 是维护字段，不能当作检索验收证据 |
+| Cloud 原始 `status()` 顶层没有 `retrieval_acceptance` | 对捕获结果做 Addon 现有纯归一化回放才得到 pending、automatic=false、空验证时间/revision；不是 Cloud 自动验收排队 |
+| Cloud 原始状态为 ready、quota ok | coverage basis 为 `cloud_index_counts_without_whole_site_denominator`；ready 不能证明 WordPress 公开清单全覆盖 |
+| M4 共享 `free_v1` 的两个上限仍为 99,999 | 3 个活跃订阅/快照、3 个账号受用；目标账号无资源覆盖；不是生产政策 |
+
+历史 64 个 keys 按 `(source_type, source_id)` 排序，以每行 `type:id` 加换行序列化，
+SHA256 为 `c66b6c6b48fdbcbdf66fab73c9d8dc06be98e7b4afb1883beeda527fff327106`。
+其中 62 条最后索引于 8 月 22 日，2 条于 8 月 25 日；含历史内容，不能全部归类为 fixture。
+
+### 历史证据与保存位置
+
+[10 月 15 日恢复记录](site-knowledge-quota-recovery-closeout-2026-10-15.md)的
+1,997/1,997、10/10 批及人工标题 3/3 仍是当时的通过证据，不代表本次 1,999 分母的
+全覆盖或自动验收。本次没有重跑检索。旧
+[preflight](cloud-preflight-and-release-readiness-2026-10-16.md)的 pending 观察应按
+消费方投影理解；本次分层取证已确认原始 Cloud 字段缺失。
+
+刷新证据位于忽略目录 `build/cloud-owner-readonly-20261016T122409Z/`，包括
+`cloud-readonly.json`、`wordpress-before.json`、`wordpress-readonly.json`、
+`runtime-bracket-before.json`、`runtime-bracket-after.json`、`bracket-summary.json`、
+`reconciliation.json`、`historical-source-keys.txt`、`historical-64-records.json` 和
+`SHA256SUMS`。对账文件 SHA256 为
+`f6a9659bbf684a62397a884a6eea10fdb779f1288a2ef2daf19144a09c4bef3f`。
+Cloud 使用 repeatable-read/read-only 事务并 rollback；WordPress 用 SHORTINIT 和
+SQL 只读一致性事务，不加载插件/cron。原始状态直接调用部署只读方法，没有通过
+runtime execute 创建 run，没有签名 HTTP 端到端或新的 Provider 证据。
 
 已有本地证据位于忽略目录 `build/cloud-preflight-2026-10-16/` 和
 `build/quota-recovery-2026-10-15/`。这些路径是查找线索，不保证换机可得；
@@ -47,6 +78,10 @@ Cloud owner 应在 `npcink-ai-cloud` 保存正式决定、受支持的执行方�
 
 决策对象是这次审计识别的精确记录集合，不是“Cloud 比本地多出的任意 64 条”。
 本地缺失不足以证明 Cloud 记录可删，还需核对站点是否重置、迁移或恢复过数据库。
+
+**建议方向（未批准）：** owner 确认当前 WordPress 为有效权威源、排除恢复/迁移歧义后，
+准备精确有界清理方案，不建议无期限保留在活跃检索索引。确认与恢复方案完成前临时
+保留；本次证据和文档合并都不批准执行，也不把两条当前覆盖缺口并入此集合。
 
 ### 评审前准备
 
@@ -98,6 +133,11 @@ owner 应针对现有 [Cloud Site Knowledge 契约](https://github.com/npcink/np
 | maintenance target 与实际 embedding | target 表示配置目标还是当前有效空间；preview 与 production 是否有差别 | 实际存储、查询使用空间和投影样例；同为 1024 维不能证明兼容 |
 | 生命周期触发 | 在 `not_required / none` 时如何解释差异；哪些条件才进入维护 | Cloud 实现及相关测试/运行时证据；不能在 Addon 补调度逻辑 |
 
+**建议方向（待 Cloud 正式定义）：** 字段缺失表达“未提供验收证据”，不要解释成
+自动验收排队；pending/passed 应有相应的实际状态及版本证据。区分当前有效 embedding
+空间和固定维护目标，明确 preview 例外；不要为消除 pending 新建调度器或触发重建。
+这些是 owner 决策输入，不在本仓库新增枚举、验收机制或运行时政策。
+
 决策完成后的消费方处理顺序：
 
 1. Cloud owner 发布正式结论和兼容性说明；若无需改动，明确“仅解释现有契约”。
@@ -106,6 +146,18 @@ owner 应针对现有 [Cloud Site Knowledge 契约](https://github.com/npcink/np
    遵守现有后台规范及验证标准；本草案不授权修改 Addon 代码。
 
 ## 5. 待决问题 C：开发配额适用范围
+
+本次仍确认 published `free_v1` 于 `2026-10-15T03:41:52.371251Z` 更新为两个
+99,999 资源上限。目标账号快照无覆盖，继承计划；账号聚合用量为 2,061 text
+documents、69 media，另外两个受影响订阅账号当前索引用量为 0；账号聚合补充采样为
+同一 candidate revision 的 `12:28:53.527474Z`，保存在 `provider-quota-supplement.json`。
+每站实现上限
+另为 10,000 documents / 200,000 chunks，与账号额度不是同一层。
+
+**建议方向（未调整）：** 将 99,999 明确为待复核的 M4 开发例外，后续优先评估有预算的
+测试账号额度，再决定共享计划如何收回。先核对全部受影响账号，不直接恢复 Free=100：
+即使以后清理 64 条，存量仍明显超过 100，可能重新阻塞投递。零用量也不代表其他账号
+权益可被忽略；生产配额继续单独决定。
 
 - [ ] Cloud owner/运营确认 M4 的 `free_v1=99,999` 是临时开发设置还是有意保留。
 - [ ] 明确计划级与账号级的目标使用范围、受影响订阅、复核条件及后续负责人。
@@ -141,6 +193,9 @@ Cloud 正式决定/契约链接：待填写
 | F-01 | 64 条历史记录保留/清理 | 按第 3 节形成正式决定；若选清理，再独立执行与验证 |
 | F-02 | 历史 OCR 完整真实审查缺口 | 见状态记录；核对原候选/range 和真实交付，不因本包完成而改为通过 |
 | F-03 | AI Cloud 5 个 Dependabot PR | 见状态记录中的逐项链接；依 Cloud 依赖维护流程单独处理 |
+
+两条新增公开覆盖缺口是当前投递证据的另列差异，不关闭、替代或抵消 F-01/F-02/F-03。
+按现有 reconciliation 自然运行后的新证据判断；本次没有等待或触发 cron、手动 flush。
 
 本草案可交接的条件是：事实带来源和时间，问题可逐项回填，执行前置条件与
 停止/恢复要求明确，三项独立后续仍可追踪。它不以所有后续关闭作为交付前提，
