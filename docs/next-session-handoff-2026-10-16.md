@@ -4,7 +4,7 @@
 
 本记录依据引用会话“检查项目并列出后续建议”的历史消息、该会话中保存的验证结果，以及当前 Addon 仓库的已合并文档。它用于回答“已经做到哪一步”和“下一步从哪里继续”，不替代各项具体 closeout、契约或发布标准。
 
-当前 Addon 基线为干净的 `master@b31a37a`。本记录只描述状态和后续顺序，不修改运行时契约、凭据、Cloud 数据或 WordPress.org 发布状态。
+当前 Addon 基线为干净的 `master@b432b2b`。本记录只描述状态和后续顺序，不修改运行时契约、凭据、Cloud 数据或 WordPress.org 发布状态。
 
 ## 当前落点
 
@@ -12,15 +12,17 @@
 - **本地 Site Knowledge 投递**：现有有界恢复已完成 10/10 批；当前公开内容分母为 1,997（另有 1 条密码保护内容被排除），Cloud 接收/索引结果为 1,997/1,997，3 条近期/中段/较旧标题检索均通过。Addon 本地缓冲为 0、丢弃为 0、维护游标为 `idle`、最近一次投递成功。
 - **Cloud 状态仍有待确认项**：Cloud 还保留 64 条当前 WordPress 已不存在的历史 post/page 记录；没有执行清理。`retrieval_acceptance` 在当前投影中缺失时由 Addon 显示为 `pending`，这不能证明 Cloud 正在运行自动验收。维护目标投影与实际使用的 Ollama embedding 之间也需要 Cloud owner 澄清；不应因此在 Addon 内发起重建。
 - **配额事实**：最初的 Free 账号级 `vector_documents=100` 曾阻塞恢复；经运营处理后，M4 开发环境的共享 `free_v1` 计划显示为 99,999。该值属于共享开发计划，不应直接当作生产配额或账号专属覆盖。
-- **0.4.1 发布状态**：候选包已完成发布验证并提交到 WordPress.org SVN revision `r3749721`；API、官方下载 ZIP、英文/中文目录页和 0.4.1 changelog 均已核对。官方 0.4.1 zh_CN language pack 仍在异步生成，translation API 只列 0.4.0、0.4.1 下载地址返回 404；该事项由 heartbeat 继续监测。
+- **0.4.1 发布状态**：候选包已完成发布验证并提交到 WordPress.org SVN revision `r3749721`；API、官方下载 ZIP、英文/中文目录页、0.4.1 changelog 和官方 0.4.1 zh_CN language pack 均已核对。官方语言包已通过 WP-CLI 安装到本地 `magick-ai.local`，locale、插件版本、语言文件哈希和固定中文字符串均验证通过。
 - **OCR 发布门禁**：已确定并实现“只有显式 `composer pr:publish` 才自动触发本地 OCR”的方向，配套了共享计数、冷却、并发锁、HEAD 绑定、结果复用和失败阻断等离线验证。真实完整 OCR 曾因预算、超时、网络 EOF 和 prompt 上限问题未交付；对应候选没有获得完整真实审查，因此不能写成已通过。GitHub OCR workflow 继续保持手动停用。
-- **跨仓状态**：10 月 14 日的七仓完整矩阵曾 7/7 通过，但那是依赖文档和候选合并前的历史证据。依赖 PR 与文档 PR 后尚未在新的稳定干净窗口重跑完整矩阵；Cloud、Toolbox 的相关候选和共享 OCR 门禁仍需各自收口。
+- **跨仓状态**：2026-10-16T07:32:57Z 在清理后的稳定窗口重跑七仓矩阵，7/7 gates 全部通过，M4 runtime acceptance 为 `not_requested`。矩阵结果已复查；它不替代 Cloud owner 对历史记录和状态投影的决策。
 
 ## 本轮收口判断
 
-Addon 0.4.1 的代码、确定性门禁、候选包、SVN 发布、API、官方下载包和目录页验证已经完成。官方 zh_CN language pack 生成与本地安装是唯一仍在传播中的发布后验证项；它不影响已发布插件包，但在 language pack 出现前不能宣称 WordPress.org 本地化交付完全闭环。
+Addon 0.4.1 的代码、确定性门禁、候选包、SVN 发布、API、官方下载包、目录页和官方 zh_CN language pack 验证已经完成。发布后 language-pack 传播项已闭环。
 
-整个历史项目仍有独立的未闭环事项：本地 OCR 发布门禁尚无完整真实审查证据，PR #260 仍开放且 advisory code-review 失败；最新中央跨仓矩阵只做了只读盘点、所有 gates 均为 `not_run`，Toolbox 仍有未提交文档；Cloud 的 64 条历史记录清理和状态投影语义仍由 Cloud owner 决定。这些事项不需要继续修改 Addon 运行时代码。
+本轮已提交并推送 Addon/Toolbox 的既有文档；Addon、Toolbox 和 Cloud 的辅助 worktree 已移除。含未提交实验内容的 worktree 在移除前分别保存为带说明的 Git stash，未丢失内容。三仓主工作树当前均无未提交文件。
+
+整个历史项目仍有独立的未闭环事项：PR #260 仍开放，所有 required checks 通过，advisory code-review 因 OpenCodeReview 连续 HTTP 429 限流失败且没有产生代码评论；Toolbox PR #269 仍开放。Cloud 的 64 条历史记录清理和状态投影语义仍由 Cloud owner 决定。这些事项不需要继续修改 Addon 运行时代码。
 
 ## 历史主线
 
