@@ -2,10 +2,45 @@
 
 Status: active operational handoff.
 
-Last updated: 2026-10-15.
+Last updated: 2026-10-16.
 
 This document records the WordPress.org release, assets, legal pages, and zh_CN
 translation work completed for `npcink-cloud-addon`.
+
+## 2026-10-16 0.4.1 WordPress.org publication and post-publish verification
+
+After the separate publication confirmation, the exact 51-file candidate was
+committed to WordPress.org SVN from a temporary working copy. The release
+commit is `r3749721` (`Release 0.4.1`); both
+[`trunk`](https://plugins.svn.wordpress.org/npcink-cloud-addon/trunk/) and
+[`tags/0.4.1`](https://plugins.svn.wordpress.org/npcink-cloud-addon/tags/0.4.1/)
+contain the 0.4.1 candidate. The repository head observed during verification
+was `r3749723`.
+
+The plugin API returned version `0.4.1`, last updated `2026-10-16 05:35am GMT`,
+and the official download URL. The downloaded
+`npcink-cloud-addon.0.4.1.zip` unpacked to 51 files with no extra, missing, or
+content-different files compared with the local candidate. Archive-level SHA256
+values can differ because WordPress.org rebuilds the ZIP; the decompressed file
+content matched exactly. Both English and Chinese directory pages show version
+0.4.1 and the 0.4.1 changelog.
+
+The stable plugin zh_CN GlotPress page currently reports 604/604 translated,
+0 untranslated and 0 waiting. Stable readme zh_CN reports 84/84 translated,
+0 untranslated and 0 waiting. At the final observation
+(on 2026-10-16 UTC), the WordPress translations API still returned only
+the 0.4.0 zh_CN package and the expected 0.4.1 package URL returned HTTP 404.
+The official 0.4.1 language-pack generation and local installation therefore
+remain pending asynchronous WordPress.org propagation; the bundled 0.4.1 MO
+file is present in the published package but is not counted as an official
+language-pack result. Recheck the API and
+`https://downloads.wordpress.org/translation/plugin/npcink-cloud-addon/0.4.1/zh_CN.zip`
+before closing this item.
+
+Evidence is retained in ignored `build/wporg-postpublish-20261016/`, including
+the SVN tag info, plugin API response, downloaded ZIP, decompressed content
+comparison, GlotPress HTML, directory pages and translation API responses.
+No Git source, Cloud data or WordPress content was changed by publication.
 
 ## 2026-10-15 Dependency and Browser Follow-up
 
