@@ -14,7 +14,7 @@
 - **配额事实**：最初的 Free 账号级 `vector_documents=100` 曾阻塞恢复；经运营处理后，M4 开发环境的共享 `free_v1` 计划显示为 99,999。该值属于共享开发计划，不应直接当作生产配额或账号专属覆盖。
 - **0.4.1 发布状态**：候选包已完成发布验证并提交到 WordPress.org SVN revision `r3749721`；API、官方下载 ZIP、英文/中文目录页、0.4.1 changelog 和官方 0.4.1 zh_CN language pack 均已核对。官方语言包已通过 WP-CLI 安装到本地 `magick-ai.local`，locale、插件版本、语言文件哈希和固定中文字符串均验证通过。
 - **OCR 发布门禁**：已确定并实现“只有显式 `composer pr:publish` 才自动触发本地 OCR”的方向，配套了共享计数、冷却、并发锁、HEAD 绑定、结果复用和失败阻断等离线验证。真实完整 OCR 曾因预算、超时、网络 EOF 和 prompt 上限问题未交付；对应候选没有获得完整真实审查，因此不能写成已通过。GitHub OCR workflow 继续保持手动停用。
-- **跨仓状态**：2026-10-16T07:32:57Z 在清理后的稳定窗口重跑七仓矩阵，7/7 gates 全部通过，M4 runtime acceptance 为 `not_requested`。矩阵结果已复查；它不替代 Cloud owner 对历史记录和状态投影的决策。
+- **跨仓状态**：2026-10-16T07:49:15Z 在三仓主分支和稳定默认工作区重跑七仓矩阵，7/7 gates 全部通过，M4 runtime acceptance 为 `not_requested`。矩阵结果已复查；它不替代 Cloud owner 对历史记录和状态投影的决策。
 
 ## 本轮收口判断
 
@@ -22,7 +22,7 @@ Addon 0.4.1 的代码、确定性门禁、候选包、SVN 发布、API、官方�
 
 本轮已提交并推送 Addon/Toolbox 的既有文档；Addon、Toolbox 和 Cloud 的辅助 worktree 已移除。含未提交实验内容的 worktree 在移除前分别保存为带说明的 Git stash，未丢失内容。三仓主工作树当前均无未提交文件。
 
-整个历史项目仍有独立的未闭环事项：PR #260 仍开放，所有 required checks 通过，advisory code-review 因 OpenCodeReview 连续 HTTP 429 限流失败且没有产生代码评论；Toolbox PR #269 仍开放。Cloud 的 64 条历史记录清理和状态投影语义仍由 Cloud owner 决定。这些事项不需要继续修改 Addon 运行时代码。
+整个历史项目仍有独立的未闭环事项：PR #260 仍开放，所有 required checks 通过，advisory code-review 因 OpenCodeReview 连续 HTTP 429 限流失败且没有产生代码评论；Toolbox PR #269 已合并，但 PR #265 仍开放且其 advisory code-review 失败。Cloud 的 64 条历史记录清理和状态投影语义仍由 Cloud owner 决定。这些事项不需要继续修改 Addon 运行时代码。
 
 ## 历史主线
 

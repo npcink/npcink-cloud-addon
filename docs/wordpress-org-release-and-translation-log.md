@@ -67,7 +67,7 @@ release closeout.
 
 After the language-pack verification, the central matrix was run from
 `/Users/muze/gitee/npcink-workflow-toolbox` at
-`2026-10-16T07:32:57Z`. All seven repository gates passed; M4 runtime
+`2026-10-16T07:49:15Z` against the three primary master worktrees. All seven repository gates passed; M4 runtime
 acceptance was explicitly `not_requested`. The matrix is evidence for this
 clean-window check and does not decide Cloud-owned historical-record cleanup or
 state-projection semantics.
