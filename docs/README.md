@@ -68,11 +68,16 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 
 ## History (dated closeouts, retrospectives, handoffs)
 
+- [当前状态真相记录（草案）— 2026-10-16](current-state-truth-draft-2026-10-16.md) —
+  当前交接入口：分开记录历史完成证据、本次源码/工作区核对和三项独立后续；不替代 owner 契约。
+- [Cloud owner 决策包（草案）— 2026-10-16](cloud-owner-decision-package-draft-2026-10-16.md) —
+  历史记录、状态投影和开发配额待决问题，含 owner 回填、执行前置与验收要求；未批准操作。
 - `site-knowledge-quota-recovery-closeout-2026-10-15.md` — recovered public
   coverage and retrieval evidence, historical-record/quota-scope diagnosis,
   and the latest 0.4.1 package recheck.
-- `041-final-release-record-2026-10-14.md` — current 0.4.1 release baseline,
-  package evidence and remaining publication gates; supersedes older snapshots.
+- `041-final-release-record-2026-10-14.md` — 0.4.1 candidate baseline and
+  package evidence; later publication and language-pack results are in
+  `wordpress-org-release-and-translation-log.md`.
 
 - `security-performance-closeout-2026-06-27.md`
 - `runtime-boundary-pr16-closeout-2026-07-01.md`
