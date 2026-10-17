@@ -17,6 +17,35 @@ $GLOBALS['maca_posts'] = array();
 $GLOBALS['maca_scheduled_events'] = array();
 $GLOBALS['maca_post_terms'] = array();
 
+$delivery_text_method = new ReflectionMethod( Npcink_Cloud_Site_Knowledge_Change_Bridge::class, 'bounded_text' );
+$delivery_text_method->setAccessible( true );
+foreach ( array( str_repeat( 'a', 1800 ), str_repeat( 'a', 1801 ), str_repeat( '汉', 900 ), str_repeat( 'a', 1799 ) . '汉' ) as $delivery_text ) {
+	$delivery_counts = array();
+	$delivery_arguments = array( $delivery_text, 1800, &$delivery_counts );
+	$delivered_text = $delivery_text_method->invokeArgs( null, $delivery_arguments );
+	$legacy_text = $delivery_text_method->invoke( null, $delivery_text, 1800 );
+	maca_assert(
+		$delivered_text === $legacy_text
+		&& 1 === preg_match( '//u', $delivered_text )
+		&& strlen( $delivered_text ) <= 1800
+		&& strlen( $delivery_text ) === $delivery_counts['source_bytes']
+		&& preg_match_all( '/./us', $delivery_text ) === $delivery_counts['source_chars']
+		&& strlen( $delivered_text ) === $delivery_counts['delivered_bytes']
+		&& preg_match_all( '/./us', $delivered_text ) === $delivery_counts['delivered_chars']
+		&& ( strlen( $delivery_text ) > 1800 ) === $delivery_counts['truncated'],
+		'Behavior: delivery counters preserve the existing byte projection and UTF-8 boundary.'
+	);
+}
+$redacted_delivery_counts = array();
+$redacted_delivery_arguments = array( '<p>Public https://example.test/x editor@example.test text</p>', 1800, &$redacted_delivery_counts );
+$redacted_delivery_text = $delivery_text_method->invokeArgs( null, $redacted_delivery_arguments );
+maca_assert(
+	strlen( $redacted_delivery_text ) === $redacted_delivery_counts['source_bytes']
+	&& false === $redacted_delivery_counts['truncated']
+	&& false === strpos( $redacted_delivery_text, '@' ),
+	'Behavior: length evidence measures sanitized public text rather than removed private/contact markup.'
+);
+
 if ( ! function_exists( 'wp_get_post_terms' ) ) {
 	function wp_get_post_terms( int $post_id, string $taxonomy, array $args = array() ): array {
 		unset( $args );
@@ -1448,6 +1477,14 @@ maca_run_site_knowledge_flush();
 $redacted_request = $GLOBALS['maca_http_requests'][0] ?? array();
 $redacted_body = json_decode( (string) ( $redacted_request['args']['body'] ?? '' ), true );
 $redacted_document = (array) ( $redacted_body['input']['documents'][0] ?? array() );
+$legacy_fingerprint_document = $redacted_document;
+unset( $legacy_fingerprint_document['delivery_evidence'] );
+$delivery_fingerprint_method = new ReflectionMethod( Npcink_Cloud_Site_Knowledge_Change_Bridge::class, 'delivery_fingerprint' );
+$delivery_fingerprint_method->setAccessible( true );
+maca_assert(
+	hash( 'sha256', wp_json_encode( $legacy_fingerprint_document ) ) === $delivery_fingerprint_method->invoke( null, 10901 ),
+	'Behavior: observational delivery counters preserve the existing semantic delivery fingerprint.'
+);
 maca_assert(
 	false === strpos( (string) ( $redacted_document['title'] ?? '' ), '@' )
 	&& false === strpos( (string) ( $redacted_document['content_excerpt'] ?? '' ), 'https://' )
