@@ -4,7 +4,7 @@ Tags: npcink, cloud, ai, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.1
+Stable tag: 0.4.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -159,6 +159,9 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 
 == Upgrade Notice ==
 
+= 0.4.2 =
+Adds official WordPress AI setup guidance and clearer knowledge usage errors. Existing public-content delivery may resume missed historical content. Deploy the paired Cloud update and confirm indexing budgets before distribution; no database migration or credential change is required.
+
 = 0.4.1 =
 The verified overview now marks expired entitlement data as not recently checked and refreshes connection and delivery recovery feedback consistently. No settings change or migration is required.
 
@@ -172,6 +175,12 @@ Connector internals were restructured with stricter input bounds and fail-fast o
 Terminal callback delivery is removed and media recognition continuation moves to Workflow Toolbox. Re-verify the Cloud connection after upgrading from 0.1.x.
 
 == Changelog ==
+
+= 0.4.2 =
+* Added installation and activation guidance for the official WordPress AI plugin on verified connections.
+* Distinguished refreshing, unavailable and incomplete knowledge usage responses without presenting unknown usage as zero.
+* Initialized bounded public-content reconciliation without skipping older records; retained delivery buffers and failure evidence.
+* Transported bounded recommendation ranking metadata through the existing opt-in feedback path; Cloud owns acceptance and indexing.
 
 = 0.4.1 =
 * Marked expired cached Cloud entitlement reads as not recently checked in the verified overview while preserving automatic refresh and retained summary data.
