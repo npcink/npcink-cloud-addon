@@ -613,6 +613,13 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'AI task contract list fields must contain strings.' => 'AI 任务契约列表字段必须只包含字符串。',
 				'AI task contract list fields contain an unsupported value.' => 'AI 任务契约列表字段包含不受支持的值。',
 				'AI task contract context none cannot be combined with other values.' => 'AI 任务契约上下文 none 不能与其他值组合。',
+				'Cloud is connected. Install and activate the official AI plugin by the WordPress.org team to use AI writing in WordPress. Cloud Addon provides the connection; it does not provide the writing interface.' => 'Cloud 已连接。请安装并启用 WordPress.org 团队发布的官方 AI 插件，才能在 WordPress 中使用 AI 写作。Cloud Addon 负责连接服务，写作入口由官方 AI 插件提供。',
+				'Activate the WordPress AI plugin' => '启用 WordPress 官方 AI 插件',
+				'Install the WordPress AI plugin' => '安装 WordPress 官方 AI 插件',
+				'Verify the Cloud connection before reading Site Knowledge usage.' => '请先验证 Cloud 连接，再读取知识库用量。',
+				'A Site Knowledge usage refresh is already running. Wait briefly, then retry.' => '知识库用量正在刷新，请稍候再试。',
+				'Cloud did not return complete Site Knowledge usage. Check this site in Cloud and report the validation time.' => 'Cloud 未返回完整的知识库用量。请进入 Cloud 查看此站点，并反馈验证时间。',
+				'Site Knowledge usage could not be read. Check the Cloud connection and this site in Cloud before retrying.' => '无法读取知识库用量。请先检查 Cloud 连接及 Cloud 中的此站点状态，再重试。',
 			);
 		}
 	}

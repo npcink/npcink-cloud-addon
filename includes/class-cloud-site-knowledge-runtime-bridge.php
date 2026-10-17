@@ -288,8 +288,17 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				delete_option( $lock_key );
 			}
 
-			if ( is_wp_error( $result ) || ! is_array( $result ) ) {
-				return self::unavailable_status_summary( 'unavailable' );
+			if ( is_wp_error( $result ) ) {
+				$summary = self::unavailable_status_summary( 'unavailable' );
+				$data = $result->get_error_data();
+				$data = is_array( $data ) ? $data : array();
+				$code = $data['cloud_error_code'] ?? '';
+				$code = is_string( $code ) && '' !== $code ? $code : $result->get_error_code();
+				$summary['error_code'] = preg_match( '/^[a-z][a-z0-9_.-]{0,95}$/D', $code ) ? $code : 'cloud_status_read_failed';
+				return $summary;
+			}
+			if ( ! is_array( $result ) ) {
+				return self::unavailable_status_summary( 'not_returned' );
 			}
 
 			$summary = self::normalize_status_summary( $result, $post_ids, $post_id_selection['has_more'] );
