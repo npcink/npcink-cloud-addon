@@ -495,8 +495,8 @@ msgstr "衍生媒体指标不完整。"
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:118
 #: includes/class-cloud-site-knowledge-admin-actions.php:147
-#: includes/class-cloud-site-knowledge-change-bridge.php:433
-#: includes/class-cloud-site-knowledge-change-bridge.php:477
+#: includes/class-cloud-site-knowledge-change-bridge.php:447
+#: includes/class-cloud-site-knowledge-change-bridge.php:491
 msgid "Cloud Addon settings are not verified."
 msgstr "Cloud Addon 设置尚未验证。"
 
@@ -1822,7 +1822,7 @@ msgstr "是"
 msgid "Manual flush command"
 msgstr "手动刷新命令"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:494
+#: includes/class-cloud-site-knowledge-change-bridge.php:508
 msgid "Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index."
 msgstr "站点知识库投递已在本地关闭。开始索引或重建索引前，请先启用投递。"
 
@@ -2070,7 +2070,7 @@ msgid "Article refresh requested. Check its index status again after Cloud finis
 msgstr "已请求刷新文章。Cloud 处理完成后，请再次检查其索引状态。"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:150
-#: includes/class-cloud-site-knowledge-change-bridge.php:486
+#: includes/class-cloud-site-knowledge-change-bridge.php:500
 msgid "The requested Site Knowledge index action is not supported."
 msgstr "请求的站点知识库索引操作不受支持。"
 
@@ -2163,47 +2163,47 @@ msgid "Last verified: %s"
 msgstr "最近验收：%s"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:29
-#: includes/class-cloud-site-knowledge-change-bridge.php:413
-#: includes/class-cloud-site-knowledge-change-bridge.php:437
+#: includes/class-cloud-site-knowledge-change-bridge.php:427
+#: includes/class-cloud-site-knowledge-change-bridge.php:451
 msgid "Site Knowledge delivery is disabled locally."
 msgstr "站点知识库投递已在本地关闭。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:418
+#: includes/class-cloud-site-knowledge-change-bridge.php:432
 msgid "Only published posts and pages can be refreshed in Site Knowledge."
 msgstr "只有已发布的文章和页面可以在 Site Knowledge 中刷新。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:503
-#: includes/class-cloud-site-knowledge-change-bridge.php:523
-#: includes/class-cloud-site-knowledge-change-bridge.php:564
+#: includes/class-cloud-site-knowledge-change-bridge.php:517
+#: includes/class-cloud-site-knowledge-change-bridge.php:537
+#: includes/class-cloud-site-knowledge-change-bridge.php:578
 msgid "A Site Knowledge full-index delivery is already in progress."
 msgstr "已有一个 Site Knowledge 全量索引投递正在进行。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:544
+#: includes/class-cloud-site-knowledge-change-bridge.php:558
 msgid "No public posts or pages were found for Site Knowledge indexing."
 msgstr "没有找到可用于站点知识库索引的公开文章或页面。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:671
+#: includes/class-cloud-site-knowledge-change-bridge.php:685
 msgid "Site Knowledge delete cleanup is waiting for a local retry."
 msgstr "Site Knowledge 删除清理正在等待本地重试。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:679
+#: includes/class-cloud-site-knowledge-change-bridge.php:693
 msgid "Site Knowledge full-index delivery is blocked after bounded retries."
 msgstr "Site Knowledge 全量索引投递已达到重试上限并暂停。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:719
-#: includes/class-cloud-site-knowledge-change-bridge.php:788
+#: includes/class-cloud-site-knowledge-change-bridge.php:733
+#: includes/class-cloud-site-knowledge-change-bridge.php:802
 msgid "Cloud Site Knowledge run identifier is invalid."
 msgstr "Cloud 站点知识库运行标识符无效。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:734
+#: includes/class-cloud-site-knowledge-change-bridge.php:748
 msgid "Cloud Site Knowledge run did not finish within the bounded polling window."
 msgstr "Cloud Site Knowledge 运行未能在有限轮询窗口内完成。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:751
+#: includes/class-cloud-site-knowledge-change-bridge.php:765
 msgid "Cloud Site Knowledge maintenance run failed."
 msgstr "Cloud Site Knowledge 维护运行失败。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1101
+#: includes/class-cloud-site-knowledge-change-bridge.php:1127
 msgid "Site Knowledge sync mode must be refresh, rebuild, or delete."
 msgstr "站点知识库同步模式必须是 refresh、rebuild 或 delete。"
 

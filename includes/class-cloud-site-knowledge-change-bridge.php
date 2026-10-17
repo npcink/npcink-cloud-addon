@@ -376,6 +376,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 
 			$post_ids = array();
 			$last_post = array();
+			$buffered_ids = array_fill_keys( self::get_buffer()['post_ids'], true );
+			$available = max( 0, self::MAX_BUFFER_ITEMS - count( $buffered_ids ) );
 			foreach ( $posts as $post ) {
 				if ( is_scalar( $post ) && function_exists( 'get_post' ) ) {
 					$post = get_post( absint( $post ) );
@@ -388,11 +390,23 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				if ( $modified_gmt < (string) ( $cursor['modified_gmt'] ?? '' ) || ( $modified_gmt === (string) ( $cursor['modified_gmt'] ?? '' ) && $post_id <= absint( $cursor['post_id'] ?? 0 ) ) ) {
 					continue;
 				}
+				// Stop at the first unretained row so the cursor cannot skip it.
+				if ( ! isset( $buffered_ids[ $post_id ] ) ) {
+					if ( $available < 1 ) {
+						break;
+					}
+					$buffered_ids[ $post_id ] = true;
+					--$available;
+				}
 				$post_ids[] = $post_id;
 				$last_post = array( 'modified_gmt' => $modified_gmt, 'post_id' => $post_id );
 			}
 
-			if ( empty( $post_ids ) || ! self::buffer_post_ids( $post_ids ) || empty( $last_post ) ) {
+			if ( empty( $post_ids ) ) {
+				self::schedule_flush( self::DEBOUNCE_SECONDS );
+				return;
+			}
+			if ( ! self::buffer_post_ids( $post_ids, false ) || empty( $last_post ) ) {
 				return;
 			}
 
@@ -976,9 +990,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * Buffers changed post ids.
 		 *
 		 * @param array<int,int> $post_ids Post ids.
+		 * @param bool $allow_eviction Whether live changes may replace older buffered ids.
 		 * @return bool Whether every change was retained in the bounded buffer.
 		 */
-		private static function buffer_post_ids( array $post_ids ): bool {
+		private static function buffer_post_ids( array $post_ids, bool $allow_eviction = true ): bool {
 			if ( ! self::is_enabled() ) {
 				return false;
 			}
@@ -992,6 +1007,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$merged = array_values( array_unique( array_merge( $buffer['post_ids'], $clean ) ) );
 			$dropped = 0;
 			if ( count( $merged ) > self::MAX_BUFFER_ITEMS ) {
+					// Re-read capacity here too: reconciliation must never evict live changes.
+					if ( ! $allow_eviction ) {
+						self::schedule_flush( self::DEBOUNCE_SECONDS );
+						return false;
+					}
 					$dropped = count( $merged ) - self::MAX_BUFFER_ITEMS;
 					$merged = array_slice( $merged, -1 * self::MAX_BUFFER_ITEMS );
 					self::record_dropped_changes( $dropped );
@@ -1002,6 +1022,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			self::save_buffer( $merged, absint( $buffer['attempts'] ?? 0 ) );
+			if ( ! $allow_eviction && ! empty( array_diff( $merged, self::get_buffer()['post_ids'] ) ) ) {
+				return false;
+			}
 			update_option(
 				self::STATUS_OPTION,
 				array_merge(
@@ -1028,14 +1051,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$cursor = get_option( self::RECONCILIATION_OPTION, array() );
 			$cursor = is_array( $cursor ) ? $cursor : array();
 			$modified_gmt = sanitize_text_field( (string) ( $cursor['modified_gmt'] ?? '' ) );
-			if ( '' === $modified_gmt ) {
-				$legacy_delivery_at = strtotime( (string) ( self::get_status()['last_delivered_at'] ?? '' ) );
-				$modified_gmt = false !== $legacy_delivery_at ? gmdate( 'Y-m-d H:i:s', $legacy_delivery_at ) : '';
-			}
 
 			return array(
 				'modified_gmt' => $modified_gmt,
-				'post_id' => absint( $cursor['post_id'] ?? 0 ),
+				'post_id' => '' === $modified_gmt ? 0 : absint( $cursor['post_id'] ?? 0 ),
 			);
 		}
 
@@ -1057,9 +1076,16 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 
 			if ( isset( $wpdb ) && is_object( $wpdb ) && method_exists( $wpdb, 'prepare' ) && method_exists( $wpdb, 'get_results' ) && ! empty( $post_types ) ) {
 				$type_placeholders = implode( ', ', array_fill( 0, count( $post_types ), '%s' ) );
-				$sql = "SELECT ID, post_modified_gmt FROM {$wpdb->posts} WHERE post_status = %s AND post_type IN ({$type_placeholders}) AND (post_modified_gmt > %s OR (post_modified_gmt = %s AND ID > %d)) ORDER BY post_modified_gmt ASC, ID ASC LIMIT %d";
+				$sql = "SELECT ID, post_modified_gmt FROM {$wpdb->posts} WHERE post_status = %s AND post_type IN ({$type_placeholders})";
+				$params = array_merge( array( 'publish' ), $post_types );
+				if ( '' !== $modified_gmt ) {
+					$sql .= ' AND (post_modified_gmt > %s OR (post_modified_gmt = %s AND ID > %d))';
+					$params = array_merge( $params, array( $modified_gmt, $modified_gmt, $post_id ) );
+				}
+				$sql .= ' ORDER BY post_modified_gmt ASC, ID ASC LIMIT %d';
+				$params[] = self::RECONCILE_POSTS;
 				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- placeholders and values are assembled immediately above.
-				$prepared = $wpdb->prepare( $sql, array_merge( array( 'publish' ), $post_types, array( $modified_gmt, $modified_gmt, $post_id, self::RECONCILE_POSTS ) ) );
+				$prepared = $wpdb->prepare( $sql, $params );
 				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- bounded reconciliation read uses the prepared cursor query above.
 				$results = $wpdb->get_results( $prepared );
 

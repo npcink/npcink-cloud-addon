@@ -37,3 +37,20 @@ The Addon remains a transport bridge:
 Cloud continues to own queued execution, index lifecycle, vector storage,
 embedding execution, freshness, and diagnostics. Every request remains
 `suggestion_only` and cannot write WordPress content.
+
+## Automatic reconciliation cursor
+
+The hourly change scan enumerates at most 50 published candidates in ascending
+`(post_modified_gmt, ID)` order. A missing cursor starts at the oldest
+candidate; a recent successful delivery is not evidence that earlier content
+was covered. Existing cursors remain authoritative and are never reset by
+initialization. An empty scan records its execution without inventing a
+watermark from the delivery clock.
+
+Reconciliation uses only spare capacity in the existing 500-ID buffer. It
+stops before the first new ID that cannot fit, preserves pending live changes
+and retry attempts, and advances only through retained candidates. This scan
+does not establish Cloud coverage: actual document/chunk evidence is required.
+It does not recover arbitrary holes before an existing cursor or replace the
+separately authorized article/full-content refresh paths. Initial catch-up may
+re-send already covered content and require many natural hourly invocations.

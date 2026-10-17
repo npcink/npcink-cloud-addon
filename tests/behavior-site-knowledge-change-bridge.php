@@ -40,11 +40,20 @@ if ( ! function_exists( 'get_posts' ) ) {
 			if ( 'publish' !== (string) ( $post->post_status ?? '' ) ) {
 				continue;
 			}
+			if ( ! in_array( $post->post_type ?? '', (array) ( $args['post_type'] ?? array( 'post', 'page' ) ), true ) ) {
+				continue;
+			}
 			$post_modified = strtotime( (string) ( $post->post_modified_gmt ?? '' ) . ' UTC' );
-			if ( false !== $modified_after && false !== $post_modified && $post_modified <= $modified_after ) {
+			if ( false !== $modified_after && false !== $post_modified && ( $post_modified < $modified_after || ( $post_modified === $modified_after && empty( $date_query['inclusive'] ) ) ) ) {
 				continue;
 			}
 			$ids[] = absint( $post_id );
+		}
+		if ( 'modified ID' === ( $args['orderby'] ?? '' ) ) {
+			usort( $ids, static function ( int $left, int $right ): int {
+				return array( $GLOBALS['maca_posts'][ $left ]->post_modified_gmt, $left )
+					<=> array( $GLOBALS['maca_posts'][ $right ]->post_modified_gmt, $right );
+			} );
 		}
 		return array_slice( $ids, 0, max( 1, $limit ) );
 	}
@@ -437,8 +446,117 @@ update_option(
 Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
 $reconciled_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
 maca_assert(
-	array( 711 ) === array_values( $reconciled_buffer['post_ids'] ?? array() ),
-	'Behavior: hourly Site Knowledge reconciliation buffers only public content modified after the last successful delivery.'
+	array( 710, 711 ) === array_values( $reconciled_buffer['post_ids'] ?? array() ),
+	'Behavior: an uninitialized reconciliation scan includes content older than unrelated successful deliveries.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array( 'last_delivered_at' => '2026-10-16T12:26:28+00:00' ), false );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+maca_assert(
+	false === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION, false ),
+	'Behavior: an empty initial scan does not persist a delivery-clock watermark.'
+);
+foreach ( array( 282641 => 'page', 282639 => 'post' ) as $post_id => $type ) {
+	maca_add_public_post_fixture( $post_id, $type );
+	$GLOBALS['maca_posts'][ $post_id ]->post_modified_gmt = '2026-10-16 12:17:16';
+}
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+maca_assert(
+	array( 282639, 282641 ) === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION )['post_ids']
+	&& 282641 === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION )['post_id'],
+	'Behavior: the two missed post/page fixtures are retained after an empty scan despite a newer delivery timestamp.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 710 );
+$GLOBALS['maca_option_update_failures'][ Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION ] = true;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+maca_assert(
+	false === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION, false ),
+	'Behavior: a failed buffer write cannot advance the reconciliation cursor past an unretained candidate.'
+);
+unset( $GLOBALS['maca_option_update_failures'][ Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION ] );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+maca_assert(
+	array( 710 ) === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION )['post_ids'],
+	'Behavior: a later scan can retain the candidate after buffer storage recovers.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+$existing_cursor = array( 'modified_gmt' => '2026-10-16 12:17:16', 'post_id' => 282639 );
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION, $existing_cursor, false );
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array( 'last_delivered_at' => '2027-01-01T00:00:00+00:00' ), false );
+foreach ( array( 282641, 282638, 282639 ) as $post_id ) {
+	maca_add_public_post_fixture( $post_id );
+	$GLOBALS['maca_posts'][ $post_id ]->post_modified_gmt = $existing_cursor['modified_gmt'];
+}
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$advanced_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+maca_assert(
+	array( 282641 ) === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION )['post_ids']
+	&& array( 'modified_gmt' => $existing_cursor['modified_gmt'], 'post_id' => 282641 ) === $advanced_cursor
+	&& $advanced_cursor === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION ),
+	'Behavior: a valid cursor stays authoritative across newer deliveries and empty scans, including the same-second ID boundary.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+$existing_cursor = array( 'modified_gmt' => '2026-10-16 12:10:00', 'post_id' => 10 );
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION, $existing_cursor, false );
+$full_buffer = array( 'post_ids' => range( 10000, 10499 ), 'attempts' => 2 );
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, $full_buffer, false );
+foreach ( array( 282639, 282641 ) as $post_id ) {
+	maca_add_public_post_fixture( $post_id );
+	$GLOBALS['maca_posts'][ $post_id ]->post_modified_gmt = '2026-10-16 12:17:16';
+}
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+maca_assert(
+	$full_buffer === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION )
+	&& $existing_cursor === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION )
+	&& 0 === absint( get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array() )['dropped_count'] ?? 0 ),
+	'Behavior: full capacity preserves pending IDs, attempts and the valid cursor without adding dropped facts.'
+);
+$enqueue = new ReflectionMethod( 'Npcink_Cloud_Site_Knowledge_Change_Bridge', 'buffer_post_ids' );
+$enqueue->setAccessible( true );
+maca_assert(
+	false === $enqueue->invoke( null, array( 282639 ), false )
+	&& $full_buffer === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION ),
+	'Behavior: the final reconciliation enqueue independently rejects overflow without evicting pending changes.'
+);
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array( 'post_ids' => range( 10000, 10498 ), 'attempts' => 2 ), false );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$partial_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION );
+maca_assert(
+	array_merge( range( 10000, 10498 ), array( 282639 ) ) === $partial_buffer['post_ids']
+	&& 2 === $partial_buffer['attempts']
+	&& 282639 === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION )['post_id'],
+	'Behavior: one free slot accepts only the contiguous first missing candidate and advances exactly to it.'
+);
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array( 'post_ids' => array_slice( $partial_buffer['post_ids'], 2 ), 'attempts' => 2 ), false );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+maca_assert(
+	in_array( 282641, get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION )['post_ids'], true )
+	&& 282641 === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION )['post_id']
+	&& 0 === absint( get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array() )['dropped_count'] ?? 0 ),
+	'Behavior: freeing capacity resumes the next missing candidate without dropping pending changes.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 710 );
+maca_add_public_post_fixture( 711 );
+$full_buffer = array_merge( array( 710 ), range( 10000, 10498 ) );
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array( 'post_ids' => $full_buffer ), false );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+maca_assert(
+	710 === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION )['post_id']
+	&& $full_buffer === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION )['post_ids'],
+	'Behavior: already buffered candidates consume no extra slot, but a full buffer stops before the next missing ID.'
 );
 
 maca_reset_site_knowledge_bridge_state();
@@ -449,6 +567,7 @@ for ( $post_id = 800; $post_id <= 850; $post_id++ ) {
 }
 Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
 $first_reconcile_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array( 'last_delivered_at' => '2027-01-01T00:00:00+00:00' ), false );
 Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
 $second_reconcile_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
 $reconcile_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION, array() );
