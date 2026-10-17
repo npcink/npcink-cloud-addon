@@ -68,6 +68,8 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 
 ## History (dated closeouts, retrospectives, handoffs)
 
+- [Reconciliation 复盘与会话交接 — 2026-10-17](site-knowledge-reconciliation-retrospective-and-handoff-2026-10-17.md) —
+  自然运行后仍缺失的证据、游标/容量修复、开发经验和 Git 清理交接；真实恢复与三项独立后续仍开放。
 - [当前状态真相记录（草案）— 2026-10-16](current-state-truth-draft-2026-10-16.md) —
   当前交接入口：分开记录历史完成证据、本次源码/工作区核对和三项独立后续；不替代 owner 契约。
 - [Cloud owner 决策包（草案）— 2026-10-16](cloud-owner-decision-package-draft-2026-10-16.md) —

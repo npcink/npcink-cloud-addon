@@ -7,6 +7,12 @@ Cloud owner 应在 `npcink-ai-cloud` 保存正式决定、受支持的执行方�
 本仓库只引用其链接。当前证据总表见
 [当前状态真相记录草案](current-state-truth-draft-2026-10-16.md)。
 
+10 月 17 日补充：自然执行后只读核对与游标修复交付见
+[复盘与会话交接](site-knowledge-reconciliation-retrospective-and-handoff-2026-10-17.md)。
+最近一次入库核对仍为 10 月 16 日 21:12:05 的 1,997/1,999，两条缺口未恢复；
+修复已合并不代表站点已更新。以下原采样及 owner 待决项保持其历史时间和适用范围，
+本次文档收口未刷新配额、状态投影或批准 64 条历史记录处置。
+
 ## 1. 本次交付与责任
 
 本次仅整理文档；没有调用 Cloud 写接口、Provider、索引操作或 WordPress 写入，
