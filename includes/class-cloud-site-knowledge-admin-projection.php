@@ -26,9 +26,18 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Projection' ) ) {
 		 */
 		public static function build( array $summary ): array {
 			$state = sanitize_key( (string) ( $summary['state'] ?? 'not_refreshed' ) );
-			$initial_label = 'not_refreshed' === $state
-				? __( 'Loading Site Knowledge usage…', 'npcink-cloud-addon' )
-				: __( 'Site Knowledge usage is temporarily unavailable.', 'npcink-cloud-addon' );
+			$labels = array(
+				'not_refreshed' => __( 'Loading Site Knowledge usage…', 'npcink-cloud-addon' ),
+				'unverified' => __( 'Verify the Cloud connection before reading Site Knowledge usage.', 'npcink-cloud-addon' ),
+				'disabled' => __( 'Enable Site Knowledge delivery before reading Cloud index usage.', 'npcink-cloud-addon' ),
+				'refreshing' => __( 'A Site Knowledge usage refresh is already running. Wait briefly, then retry.', 'npcink-cloud-addon' ),
+				'not_returned' => __( 'Cloud did not return complete Site Knowledge usage. Check this site in Cloud and report the validation time.', 'npcink-cloud-addon' ),
+			);
+			$initial_label = $labels[ $state ] ?? __( 'Site Knowledge usage could not be read. Check the Cloud connection and this site in Cloud before retrying.', 'npcink-cloud-addon' );
+			$code = (string) ( $summary['error_code'] ?? '' );
+			if ( preg_match( '/^[a-z][a-z0-9_.-]{0,95}$/D', $code ) ) {
+				$initial_label .= ' [' . $code . ']';
+			}
 			$projection = array(
 				'available' => false,
 				'state' => $state,

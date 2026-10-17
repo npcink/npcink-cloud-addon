@@ -875,6 +875,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<section class="npcink-cloud-section npcink-cloud-tab-panel">
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
+				<?php self::render_generation_test_links( true ); ?>
 				<div class="npcink-cloud-section-heading npcink-cloud-overview-heading">
 					<h3><?php esc_html_e( 'Connection and service', 'npcink-cloud-addon' ); ?></h3>
 					<a class="button button-secondary" href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud', 'npcink-cloud-addon' ); ?></a>
@@ -1117,10 +1118,25 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 		/** Opens host-owned tests and logs without executing requests on page load. */
-		private static function render_generation_test_links(): void {
+		private static function render_generation_test_links( bool $guidance_only = false ): void {
 			$pages = $GLOBALS['_registered_pages'] ?? array();
 			$explorer_available = ! empty( $pages['tools_page_ai-abilities-explorer'] ) && function_exists( 'wp_get_ability' );
 			$logs_available = ! empty( $pages['tools_page_ai-request-logs'] );
+			$active = $explorer_available || ! empty( $pages['settings_page_ai-wp-admin'] ) || ( function_exists( 'is_plugin_active' ) && is_plugin_active( 'ai/ai.php' ) );
+			if ( ! $active ) {
+				$installed = defined( 'WP_PLUGIN_DIR' ) && is_file( WP_PLUGIN_DIR . '/ai/ai.php' );
+				$url = $installed ? admin_url( 'plugins.php?plugin_status=inactive' ) : admin_url( 'plugin-install.php?tab=plugin-information&plugin=ai' );
+				?>
+				<div class="notice notice-warning inline" data-npcink-ai-plugin-guidance>
+					<p><?php esc_html_e( 'Cloud is connected. Install and activate the official AI plugin by the WordPress.org team to use AI writing in WordPress. Cloud Addon provides the connection; it does not provide the writing interface.', 'npcink-cloud-addon' ); ?></p>
+					<p><a class="button button-secondary" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $installed ? __( 'Activate the WordPress AI plugin', 'npcink-cloud-addon' ) : __( 'Install the WordPress AI plugin', 'npcink-cloud-addon' ) ); ?></a></p>
+				</div>
+				<?php
+				return;
+			}
+			if ( $guidance_only ) {
+				return;
+			}
 			$test_count = 0;
 			?>
 			<section class="npcink-cloud-subcard">
