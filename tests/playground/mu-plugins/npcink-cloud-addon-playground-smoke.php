@@ -175,9 +175,14 @@ function npcink_cloud_addon_playground_site_knowledge_response() {
 	$result = array( 'first_page' => 0, 'second_page' => 0, 'same_second_cursor' => false );
 	try {
 		$bridge = new ReflectionClass( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' );
+		$read_cursor = $bridge->getMethod( 'get_reconciliation_cursor' );
+		$read_cursor->setAccessible( true );
 		$query = $bridge->getMethod( 'query_reconciliation_posts' );
 		$query->setAccessible( true );
-		$first_page = $query->invoke( null, array( 'modified_gmt' => $modified_gmt, 'post_id' => 0 ) );
+		$old_status = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array() );
+		update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array( 'last_delivered_at' => '2027-01-01T00:00:00+00:00' ), false );
+		$initial_cursor = $read_cursor->invoke( null );
+		$first_page = $query->invoke( null, $initial_cursor );
 		$last = end( $first_page );
 		$cursor = array(
 			'modified_gmt' => (string) ( $last->post_modified_gmt ?? '' ),
@@ -192,14 +197,18 @@ function npcink_cloud_addon_playground_site_knowledge_response() {
 			'first_fixture_page' => count( $first_fixture_ids ),
 			'second_fixture_page' => count( $second_fixture_ids ),
 			'same_second_cursor' => $cursor['modified_gmt'] === $modified_gmt && $cursor['post_id'] > 0,
+			'initial_cursor_unbounded' => array( 'modified_gmt' => '', 'post_id' => 0 ) === $initial_cursor,
 		);
 	} finally {
+		if ( isset( $old_status ) ) {
+			update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, $old_status, false );
+		}
 		foreach ( $fixture_ids as $fixture_id ) {
 			$wpdb->delete( $wpdb->posts, array( 'ID' => $fixture_id ), array( '%d' ) );
 		}
 	}
 
-	if ( 50 !== $result['first_fixture_page'] || 1 !== $result['second_fixture_page'] || ! $result['same_second_cursor'] ) {
+	if ( 50 !== $result['first_fixture_page'] || 1 !== $result['second_fixture_page'] || ! $result['same_second_cursor'] || empty( $result['initial_cursor_unbounded'] ) ) {
 		return new WP_Error( 'npcink_cloud_addon_playground_site_knowledge_failed', 'The real WordPress reconciliation page did not preserve the ordered cursor.', array( 'status' => 500, 'data' => $result ) );
 	}
 
