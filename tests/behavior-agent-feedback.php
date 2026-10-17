@@ -97,3 +97,20 @@ maca_assert(
 	&& 'GET' === (string) ( $summary_request['args']['method'] ?? '' ),
 	'Behavior: Agent feedback summary reads the explicit Cloud eval summary endpoint.'
 );
+
+$ranking_metadata = array( 'ranking_version' => 'internal_links.v1', 'candidate_rank' => 2, 'score_bucket' => 'high', 'retrieval_source' => 'cloud_vector', 'rerank_applied' => false );
+$ranked = Npcink_Cloud_Runtime_Request_Guards::normalize_agent_feedback_payload( array_merge( $valid_payload, $ranking_metadata ) );
+maca_assert( is_array( $ranked ) && array_intersect_key( $ranked, $ranking_metadata ) === $ranking_metadata, 'Behavior: Optional bounded recommendation metadata survives the connector unchanged.' );
+foreach ( array( array( 'candidate_rank' => 0 ), array( 'candidate_rank' => true ), array( 'score_bucket' => 'private title' ), array( 'rerank_applied' => 'false' ), array( 'ranking_version' => 'https://private.test' ) ) as $invalid_metadata ) {
+	$invalid = Npcink_Cloud_Runtime_Request_Guards::normalize_agent_feedback_payload( array_merge( $valid_payload, $ranking_metadata, $invalid_metadata ) );
+	maca_assert( is_wp_error( $invalid ), 'Behavior: Recommendation metadata rejects unbounded values and incorrect types.' );
+}
+
+$nullable_positions = Npcink_Cloud_Runtime_Request_Guards::normalize_agent_feedback_payload( array_merge( $valid_payload, array( 'ranking_version' => 'internal_links.v1', 'candidate_rank' => null, 'source_score' => null ) ) );
+maca_assert( is_array( $nullable_positions ) && array_key_exists( 'candidate_rank', $nullable_positions ) && null === $nullable_positions['candidate_rank'] && null === $nullable_positions['source_score'], 'Behavior: Null singular position and legacy score remain explicitly absent observations.' );
+foreach ( array( 'ranking_version', 'score_bucket', 'retrieval_source', 'rerank_applied' ) as $nonnull_field ) {
+	$invalid = Npcink_Cloud_Runtime_Request_Guards::normalize_agent_feedback_payload( array_merge( $valid_payload, $ranking_metadata, array( $nonnull_field => null ) ) );
+	maca_assert( is_wp_error( $invalid ), 'Behavior: Unknown enum and boolean observations must be omitted rather than encoded as null.' );
+}
+include dirname( __DIR__ ) . '/includes/class-cloud-agent-feedback-metadata.php';
+maca_assert( class_exists( 'Npcink_Cloud_Agent_Feedback_Metadata' ), 'Behavior: Repeated helper includes do not redeclare the class.' );

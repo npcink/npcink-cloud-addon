@@ -430,3 +430,9 @@ a real change — a new endpoint, integration, or incident — makes a seam
 necessary, never to chase line counts. The three recorded cross-file
 duplicates stay opportunistic-only. Verification work now follows
 `docs/verification-evidence-standard.md` instead of paydown campaigns.
+
+Optional recommendation observation fields reuse `cloud_agent_feedback.v1`.
+`class-cloud-agent-feedback-metadata.php` validates only bounded versions,
+positions, score buckets, retrieval sources and boolean rerank evidence, plus
+the existing source score guard. This pure transport helper keeps the runtime
+guard below its existing line cap; it adds no state, configuration or UI.
