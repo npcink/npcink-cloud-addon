@@ -77,6 +77,12 @@ $observability = maca_read( $root . '/includes/class-cloud-observability-collect
 $customer_journey = maca_read( $root . '/includes/class-cloud-customer-journey.php' );
 $natural_journey_inspector = maca_read( $root . '/scripts/inspect-natural-journey.php' );
 $site_knowledge_bridge = maca_read( $root . '/includes/class-cloud-site-knowledge-change-bridge.php' );
+maca_assert(
+	false !== strpos( $site_knowledge_bridge, "'contract_version' => 'site_knowledge_delivery_evidence.v1'" )
+	&& false !== strpos( $site_knowledge_bridge, "'length_basis' => 'sanitized_public_text_before_byte_limit'" )
+	&& false !== strpos( $site_knowledge_bridge, "'delivery_evidence' => \$delivery_evidence" ),
+	'Contract: Site Knowledge documents carry bounded delivery-length evidence without changing the text projection.'
+);
 $site_knowledge_full_index_doc = maca_read( $root . '/docs/site-knowledge-full-index-delivery.md' );
 $site_knowledge_runtime_bridge = maca_read( $root . '/includes/class-cloud-site-knowledge-runtime-bridge.php' );
 $site_knowledge_admin_projection = maca_read( $root . '/includes/class-cloud-site-knowledge-admin-projection.php' );

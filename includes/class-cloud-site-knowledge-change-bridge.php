@@ -1252,7 +1252,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return self::$post_document_memo[ $post_id ];
 			}
 
-			$content = self::bounded_text( (string) ( $post->post_content ?? '' ), self::MAX_DOCUMENT_CHARS );
+			$delivery_evidence = array();
+			$content = self::bounded_text( (string) ( $post->post_content ?? '' ), self::MAX_DOCUMENT_CHARS, $delivery_evidence );
 
 			$document = array(
 				'id' => 'wp_post_' . $post_id,
@@ -1266,6 +1267,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				'modified_gmt' => sanitize_text_field( (string) ( $post->post_modified_gmt ?? '' ) ),
 				'excerpt' => self::bounded_text( (string) ( $post->post_excerpt ?? '' ), 300 ),
 				'content_excerpt' => $content,
+				'delivery_evidence' => $delivery_evidence,
 				'taxonomies' => self::post_taxonomies( $post_id ),
 			);
 
@@ -1340,6 +1342,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		private static function delivery_fingerprint( int $post_id ): string {
 			$post = function_exists( 'get_post' ) ? get_post( $post_id ) : null;
 			$document = self::is_public_post( $post ) ? self::post_document( $post ) : array( 'post_id' => $post_id, 'missing' => true );
+			// Observational counters do not create a new semantic content revision.
+			unset( $document['delivery_evidence'] );
 			$encoded = wp_json_encode( $document );
 			if ( ! is_string( $encoded ) || '' === $encoded ) {
 				return 'unencodable_' . wp_generate_uuid4();
@@ -1839,7 +1843,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @param int    $limit Character limit.
 		 * @return string
 		 */
-		private static function bounded_text( string $value, int $limit ): string {
+		private static function bounded_text( string $value, int $limit, ?array &$delivery_evidence = null ): string {
 			if ( function_exists( 'strip_shortcodes' ) ) {
 				$value = strip_shortcodes( $value );
 			}
@@ -1851,13 +1855,26 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$value = preg_replace( '/\s+/u', ' ', is_string( $value ) ? $value : '' );
 			$value = trim( is_string( $value ) ? $value : '' );
 
-			if ( strlen( $value ) <= $limit ) {
-				return $value;
+			$source_bytes = strlen( $value );
+			$source_chars = null !== $delivery_evidence ? preg_match_all( '/./us', $value ) : 0;
+			if ( $source_bytes > $limit ) {
+				$value = substr( $value, 0, $limit );
+				while ( '' !== $value && 1 !== preg_match( '//u', $value ) ) {
+					$value = substr( $value, 0, -1 );
+				}
 			}
-
-			$value = substr( $value, 0, $limit );
-			while ( '' !== $value && 1 !== preg_match( '//u', $value ) ) {
-				$value = substr( $value, 0, -1 );
+			if ( null !== $delivery_evidence ) {
+				$delivery_evidence = array(
+					'contract_version' => 'site_knowledge_delivery_evidence.v1',
+					'projection_version' => 'wordpress_public_text_bytes.v1',
+					'length_basis' => 'sanitized_public_text_before_byte_limit',
+					'source_bytes' => $source_bytes,
+					'source_chars' => (int) $source_chars,
+					'delivered_bytes' => strlen( $value ),
+					'delivered_chars' => (int) preg_match_all( '/./us', $value ),
+					'max_bytes' => $limit,
+					'truncated' => $source_bytes > strlen( $value ),
+				);
 			}
 
 			return $value;

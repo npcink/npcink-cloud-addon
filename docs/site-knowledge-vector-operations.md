@@ -5,6 +5,21 @@ Status: active.
 Npcink Cloud Addon is the WordPress-side connector for Cloud Site Knowledge. It
 does not own vector indexing or vector database lifecycle.
 
+Public post/page documents optionally carry
+`site_knowledge_delivery_evidence.v1` under `delivery_evidence`. The unchanged
+`wordpress_public_text_bytes.v1` projection strips incidental contact/markup
+data and limits the delivered body to 1,800 **bytes**, preserving UTF-8. Counts
+record sanitized source and delivered bytes/code points, the byte limit and
+whether that limit clipped the projection. They do not contain the removed
+text. Cloud validates these counters and owns aggregate index/truncation truth;
+missing legacy evidence must remain unknown rather than implying full content.
+These fields do not expand delivery consent, body limits, indexing ownership,
+or WordPress write permissions. The text and its semantic content hash stay
+unchanged. Historical source qualification is a separate Cloud-owned operation;
+Addon does not purge retained records or become a manifest registry.
+Observational counters are excluded from the change-buffer delivery fingerprint;
+adding them alone cannot create a new semantic content revision.
+
 ## Local Permission
 
 The settings page actions that request content index work require
