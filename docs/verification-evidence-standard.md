@@ -44,8 +44,30 @@ without `translators:` comments — landed with every per-PR gate green and
 surfaced only when `release:verify` first ran at release time. The spot-run
 row exists so that class is caught at change time, not at the next release.
 
-## Evidence Freshness
+## Reconciliation And Closeout Evidence
 
+Keep execution marks, scan-cursor progress, durable buffer retention, delivery
+acceptance, and Cloud documents/chunks as separate evidence. A recent delivery
+clock is not a scan-coverage watermark. A merged fix is not proof that the
+site loaded it or that missing documents recovered.
+
+For PHP changes that move gettext source references, run
+`composer run i18n:check` before publishing even when no message was added.
+If stale, refresh the catalogs and confirm that reference-only changes preserve
+message mappings; re-verify the package when its files changed. Inspect the
+complete final-head check rollup, including relevant advisory checks, after
+any correction.
+
+Record a budget/timeout-limited OCR run as incomplete, with selected/completed
+items and its exact range. A docs-only selection skip does not fill historical
+model-review gaps. Preserve raw evidence outside disposable worktrees before
+archiving them, verify squash-merged content before branch deletion, and keep
+a site-linked checkout update separate from Git cleanup.
+
+See the [2026-10-17 reconciliation retrospective](site-knowledge-reconciliation-retrospective-and-handoff-2026-10-17.md)
+for the dated case and remaining recovery acceptance.
+
+## Evidence Freshness
 - Tier C evidence expires when the surface it covers changes, or after 30
   days, whichever comes first. A release must not cite expired evidence.
 - A release record must cite, with dates: the latest Tier B playground
