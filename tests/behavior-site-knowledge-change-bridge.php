@@ -18,6 +18,7 @@ $GLOBALS['maca_scheduled_events'] = array();
 $GLOBALS['maca_post_terms'] = array();
 
 $delivery_text_method = new ReflectionMethod( Npcink_Cloud_Site_Knowledge_Change_Bridge::class, 'bounded_text' );
+$delivery_text_method->setAccessible( true );
 foreach ( array( str_repeat( 'a', 1800 ), str_repeat( 'a', 1801 ), str_repeat( '汉', 900 ), str_repeat( 'a', 1799 ) . '汉' ) as $delivery_text ) {
 	$delivery_counts = array();
 	$delivery_arguments = array( $delivery_text, 1800, &$delivery_counts );
@@ -1479,6 +1480,7 @@ $redacted_document = (array) ( $redacted_body['input']['documents'][0] ?? array(
 $legacy_fingerprint_document = $redacted_document;
 unset( $legacy_fingerprint_document['delivery_evidence'] );
 $delivery_fingerprint_method = new ReflectionMethod( Npcink_Cloud_Site_Knowledge_Change_Bridge::class, 'delivery_fingerprint' );
+$delivery_fingerprint_method->setAccessible( true );
 maca_assert(
 	hash( 'sha256', wp_json_encode( $legacy_fingerprint_document ) ) === $delivery_fingerprint_method->invoke( null, 10901 ),
 	'Behavior: observational delivery counters preserve the existing semantic delivery fingerprint.'
