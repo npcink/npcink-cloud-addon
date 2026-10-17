@@ -844,9 +844,17 @@ $test_links->invoke( null );
 $test_links_html = (string) ob_get_clean();
 maca_assert(
 	! str_contains( $test_links_html, 'tools.php?' )
-	&& str_contains( $test_links_html, 'options-general.php?page=ai-wp-admin' ),
-	'Behavior: disabled host test and log pages lead to AI settings instead of broken tools links.'
+	&& str_contains( $test_links_html, 'plugin=ai' )
+	&& str_contains( $test_links_html, 'Install the WordPress AI plugin' )
+	&& ! str_contains( $test_links_html, 'options-general.php?page=ai-wp-admin' ),
+	'Behavior: missing host plugin leads to its official installation page, without broken settings links.'
 );
+$GLOBALS['_registered_pages'] = array( 'settings_page_ai-wp-admin' => true );
+ob_start();
+$test_links->invoke( null, true );
+$active_guidance_html = (string) ob_get_clean();
+maca_assert( '' === trim( $active_guidance_html ), 'Behavior: the overview hides missing-plugin guidance when the official AI settings page is registered.' );
+$GLOBALS['_registered_pages'] = array();
 $GLOBALS['maca_abilities'] = $previous_abilities;
 
 // Dropped-content recovery uses the existing Site Knowledge update action.

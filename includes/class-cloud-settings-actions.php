@@ -118,7 +118,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$summary = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::refresh_status_summary();
 			if ( empty( $summary['available'] ) ) {
 				wp_send_json_error(
-					array( 'message' => __( 'Site Knowledge usage is temporarily unavailable.', 'npcink-cloud-addon' ) ),
+					array( 'message' => Npcink_Cloud_Settings_Page::get_site_knowledge_usage_projection( $summary )['label'] ),
 					503
 				);
 			}

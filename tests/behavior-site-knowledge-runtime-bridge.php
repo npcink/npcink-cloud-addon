@@ -500,3 +500,27 @@ maca_assert(
 	&& 1 === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: Site Knowledge status responses retain only bounded, credential-scoped media evidence attachment IDs for Toolbox scans without caching visual evidence or issuing a read request.'
 );
+
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_http_response_queue'][] = array(
+    'response' => array( 'code' => 503 ),
+    'body' => wp_json_encode( array( 'status' => 'error', 'error_code' => 'provider.upstream_unavailable', 'message' => 'secret must never appear' ) ),
+);
+$failed_status = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::refresh_status_summary();
+$failed_projection = Npcink_Cloud_Site_Knowledge_Admin_Projection::build( $failed_status );
+maca_assert(
+    empty( $failed_status['available'] )
+    && 'provider.upstream_unavailable' === $failed_status['error_code']
+    && str_contains( $failed_projection['label'], 'provider.upstream_unavailable' )
+    && ! str_contains( wp_json_encode( $failed_projection ), 'secret must never appear' ),
+    'Behavior: failed quota reads retain only a bounded diagnostic code, never the remote message or a zero quota.'
+);
+
+foreach ( array( 'unverified', 'disabled', 'refreshing', 'not_returned' ) as $state ) {
+    $projection = Npcink_Cloud_Site_Knowledge_Admin_Projection::build( array( 'available' => false, 'state' => $state ) );
+    maca_assert( empty( $projection['available'] ) && '' !== $projection['label'] && null === $projection['percent'], 'Behavior: knowledge read state ' . $state . ' remains explicit without invented usage.' );
+}
+$unsafe_projection = Npcink_Cloud_Site_Knowledge_Admin_Projection::build( array( 'state' => 'unavailable', 'error_code' => '<script>secret</script>' ) );
+maca_assert( ! str_contains( $unsafe_projection['label'], 'secret' ), 'Behavior: malformed diagnostic codes are not displayed.' );

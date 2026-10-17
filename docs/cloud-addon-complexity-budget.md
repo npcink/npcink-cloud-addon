@@ -436,3 +436,12 @@ Optional recommendation observation fields reuse `cloud_agent_feedback.v1`.
 positions, score buckets, retrieval sources and boolean rerank evidence, plus
 the existing source score guard. This pure transport helper keeps the runtime
 guard below its existing line cap; it adds no state, configuration or UI.
+
+
+## 2026-10-17 production acceptance follow-up
+
+The settings-page ceiling moves from 2283 to 2299 lines for one bounded
+missing-official-AI-plugin notice. It reuses the generation-link renderer in
+Overview and Advanced, reads local activation/file evidence, and links to
+WordPress-owned installation/activation. No new setting, persistence, endpoint,
+automatic installation, AI request, or local runtime control is added.
