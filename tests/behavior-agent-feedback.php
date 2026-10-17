@@ -97,3 +97,11 @@ maca_assert(
 	&& 'GET' === (string) ( $summary_request['args']['method'] ?? '' ),
 	'Behavior: Agent feedback summary reads the explicit Cloud eval summary endpoint.'
 );
+
+$ranking_metadata = array( 'ranking_version' => 'internal_links.v1', 'candidate_rank' => 2, 'score_bucket' => 'high', 'retrieval_source' => 'cloud_vector', 'rerank_applied' => false );
+$ranked = Npcink_Cloud_Runtime_Request_Guards::normalize_agent_feedback_payload( array_merge( $valid_payload, $ranking_metadata ) );
+maca_assert( is_array( $ranked ) && array_intersect_key( $ranked, $ranking_metadata ) === $ranking_metadata, 'Behavior: Optional bounded recommendation metadata survives the connector unchanged.' );
+foreach ( array( array( 'candidate_rank' => 0 ), array( 'candidate_rank' => true ), array( 'score_bucket' => 'private title' ), array( 'rerank_applied' => 'false' ), array( 'ranking_version' => 'https://private.test' ) ) as $invalid_metadata ) {
+	$invalid = Npcink_Cloud_Runtime_Request_Guards::normalize_agent_feedback_payload( array_merge( $valid_payload, $ranking_metadata, $invalid_metadata ) );
+	maca_assert( is_wp_error( $invalid ), 'Behavior: Recommendation metadata rejects unbounded values and incorrect types.' );
+}

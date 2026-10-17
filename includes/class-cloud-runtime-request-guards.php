@@ -10,6 +10,7 @@ declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+require_once __DIR__ . '/class-cloud-agent-feedback-metadata.php';
 
 if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 	/**
@@ -1468,7 +1469,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				'evidence_ref_ids'    => array( 24, 191 ),
 				'source_reason_codes' => array( 12, 96 ),
 			);
-			$all_fields = array_merge( array_keys( $allowed_fields ), array_keys( $list_fields ), array( 'source_score' ) );
+			$all_fields = array_merge( array_keys( $allowed_fields ), array_keys( $list_fields ), Npcink_Cloud_Agent_Feedback_Metadata::FIELDS );
 			$required_fields = array( 'contract_version', 'agent_id', 'source_runtime', 'handoff_type', 'local_surface', 'local_outcome', 'created_at' );
 
 			$forbidden_key = self::find_forbidden_agent_feedback_key( $payload );
@@ -1578,18 +1579,8 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				}
 			}
 
-			if ( array_key_exists( 'source_score', $payload ) ) {
-				if ( null !== $payload['source_score'] && ( ! is_int( $payload['source_score'] ) || $payload['source_score'] < 0 || $payload['source_score'] > 100 ) ) {
-					return new WP_Error(
-						'cloud_agent_feedback_payload_invalid',
-						__( 'Agent feedback source_score must be an integer from 0 through 100.', 'npcink-cloud-addon' ),
-						array( 'status' => 400, 'field' => 'source_score' )
-					);
-				}
-				$normalized['source_score'] = $payload['source_score'];
-			}
-
-			return $normalized;
+			$metadata = Npcink_Cloud_Agent_Feedback_Metadata::normalize( $payload );
+			return is_wp_error( $metadata ) ? $metadata : array_merge( $normalized, $metadata );
 		}
 
 		/**
