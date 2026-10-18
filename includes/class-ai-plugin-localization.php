@@ -33,6 +33,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		public static function register(): void {
 			add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
 			add_filter( 'ngettext', array( __CLASS__, 'filter_ngettext' ), 20, 5 );
+			add_filter( 'rest_post_dispatch', array( __CLASS__, 'filter_rest_ui_error' ), 20, 3 );
 			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_script_locale_data' ), 1 );
 		}
 
@@ -90,6 +91,57 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		}
 
 		/**
+		 * Localizes two fixed UI errors returned outside wp-admin by REST.
+		 *
+		 * @param WP_HTTP_Response $response Dispatched response.
+		 * @param WP_REST_Server   $server REST server.
+		 * @param WP_REST_Request  $request Current request.
+		 * @return WP_HTTP_Response
+		 */
+		public static function filter_rest_ui_error( $response, $server, $request ) {
+			if ( ! in_array( $request->get_route(), array( '/ai/v1/settings/import', '/wp-abilities/v1/abilities/ai/slug-generation/run' ), true )
+				|| 'POST' !== $request->get_method() || $response->get_status() < 400 ) {
+				return $response;
+			}
+			$data = $response->get_data();
+			$capability = '/ai/v1/settings/import' === $request->get_route() ? 'manage_options' : 'edit_posts';
+			if ( is_array( $data ) && isset( $data['code'], $data['message'] ) && is_string( $data['code'] ) && is_string( $data['message'] ) ) {
+				$data['message'] = self::rest_ui_error_message(
+					$data['message'], (string) $data['code'], $request->get_route(), $request->get_method(),
+					get_user_locale(), current_user_can( $capability )
+				);
+				$response->set_data( $data );
+			}
+			return $response;
+		}
+
+		/**
+		 * Keeps REST compatibility bounded to exact untranslated errors and routes.
+		 *
+		 * @param string $message Existing message.
+		 * @param string $code Error code.
+		 * @param string $route REST route.
+		 * @param string $method Request method.
+		 * @param string $locale Authenticated user's locale.
+		 * @param bool   $authorized Existing user's required capability.
+		 * @return string
+		 */
+		public static function rest_ui_error_message( string $message, string $code, string $route, string $method, string $locale, bool $authorized ): string {
+			if ( ! $authorized || 'POST' !== $method || 0 !== strpos( strtolower( str_replace( '-', '_', $locale ) ), 'zh_' ) ) {
+				return $message;
+			}
+			if ( '/ai/v1/settings/import' === $route && 'unsupported_schema_version' === $code
+				&& preg_match( '/^Unsupported schema version: (-?\d+)\.$/D', $message, $matches ) ) {
+				return sprintf( self::translations()['Unsupported schema version: %d.'], (int) $matches[1] );
+			}
+			if ( '/wp-abilities/v1/abilities/ai/slug-generation/run' === $route && 'no_results' === $code
+				&& 'No slug suggestion was generated.' === $message ) {
+				return self::translations()[ $message ];
+			}
+			return $message;
+		}
+
+		/**
 		 * Adds JS locale data for AI plugin React/admin screens.
 		 *
 		 * @param string $hook Admin hook suffix from admin_enqueue_scripts.
@@ -125,19 +177,52 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 			wp_enqueue_script(
 				$handle,
 				plugins_url( 'assets/ai-plugin-localization.js', NPCINK_CLOUD_ADDON_FILE ),
-				array( 'wp-i18n' ),
+				array( 'wp-i18n', 'wp-hooks' ),
 				NPCINK_CLOUD_ADDON_VERSION,
 				false
 			);
 			wp_localize_script(
 				$handle,
 				'NpcinkCloudAiPluginLocalization',
-				array( 'localeData' => $locale_data )
+				array(
+					'localeData' => $locale_data,
+					'bundledUiFallback' => in_array( $hook, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs' ), true )
+						? self::bundled_ui_fallback() : array(),
+				)
 			);
 			// Both the admin and block editor hooks fire on post editor
 			// screens; WordPress appends a second copy of localized data on
 			// repeat calls, so the payload must ship exactly once.
 			self::$script_payload_enqueued = true;
+		}
+
+		/**
+		 * Exact default-domain DataViews exceptions, scoped to two AI screens.
+		 *
+		 * @return array<string,string>
+		 */
+		public static function bundled_ui_fallback(): array {
+			return array_intersect_key(
+				self::translations(),
+				array_flip( array(
+					'%d Item selected',
+					'%d Items selected',
+					'%d field needs attention',
+					'%d fields need attention',
+					'Sort by',
+					'Order',
+					'Density',
+					'Balanced',
+					'Compact',
+					'Items per page',
+					'Properties',
+					'Add filter',
+					'View options',
+					'No results',
+					'Comfortable',
+					'Edit %s (has errors)',
+				) )
+			);
 		}
 
 		/**
@@ -853,6 +938,29 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'Low Value Score (<40%)' => '低价值分数（<40%）',
 				'%d comment was not queued because the batch limit was reached.' => '已达到批量上限，%d 条评论未加入队列。',
 				'%d comments were not queued because the batch limit was reached.' => '已达到批量上限，%d 条评论未加入队列。',
+				'Sort by' => '排序依据',
+				'Order' => '顺序',
+				'Density' => '密度',
+				'Balanced' => '适中',
+				'Compact' => '紧凑',
+				'Items per page' => '每页条目数',
+				'Properties' => '属性',
+				'Add filter' => '添加筛选',
+				'View options' => '显示选项',
+				'No results' => '没有结果',
+				// Fixed admin/editor copy missed by length and schema-word audit heuristics.
+				'Serves your content as Markdown for AI agents and other machine readers: adds a Markdown feed at /feed/markdown/ and Markdown versions of individual posts and pages via ?output_format=markdown, with optional Accept-header negotiation.' => '以 Markdown 格式向 AI 智能体和其他机器阅读程序提供内容：在 /feed/markdown/ 添加 Markdown 订阅源，并通过 ?output_format=markdown 提供单篇文章和页面的 Markdown 版本，还可通过 Accept 请求头协商返回格式。',
+				'Abilities are a standardized way for WordPress core, plugins, and themes to expose discrete units of functionality. Each ability has a name, optional input/output schemas, and can be invoked programmatically.' => '能力是 WordPress 核心、插件和主题提供独立功能的标准方式。每项能力都有名称，可选配输入和输出结构定义，并可通过程序调用。',
+				'The Abilities Explorer lets you browse every registered ability, inspect its schemas, and test it with custom input right from the admin.' => '能力浏览器可让你直接在后台浏览所有已注册的能力、查看其结构定义，并使用自定义输入进行测试。',
+				'Content translation will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可翻译。',
+				'The post title is too short to translate. A minimum of %d characters is required.' => '文章标题太短，无法翻译，至少需要 %d 个字符。',
+				'Current Slug:' => '当前别名：',
+				'No slug suggestion was generated.' => '未生成别名建议。',
+				'Filter by Value Score' => '按价值分数筛选',
+				'The selected file could not be read. Please choose a valid JSON file.' => '无法读取所选文件。请选择有效的 JSON 文件。',
+				'The selected file is not a valid AI settings export.' => '所选文件不是有效的 AI 设置导出文件。',
+				'Unsupported schema version: %d.' => '不支持的结构版本：%d。',
+				'The summary could not be inserted because the template has no Content block.' => '无法插入内容总结：当前模板不包含内容区块。',
 				// WordPress AI plugin 1.4.0: Markdown feeds experiment.
 				'Markdown Feeds' => 'Markdown 订阅源',
 				'Serve Markdown when a request prefers it via the Accept header (may conflict with page caches that ignore the Vary header)' => '当请求通过 Accept 头表明偏好 Markdown 时返回 Markdown（可能与忽略 Vary 头的页面缓存冲突）',
