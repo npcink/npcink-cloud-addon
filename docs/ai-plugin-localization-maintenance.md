@@ -281,3 +281,15 @@ by themselves. The gate intentionally validates the selected installed AI
 version; use `AI_PLUGIN_PATH` to select the supported stable plugin tree when a
 development installation contains unrelated upstream drift. It does not grant
 an automatic bypass for fixed UI gaps. The audited baseline here is AI 1.4.0.
+
+## Release-candidate REST acceptance follow-up (2026-10-19)
+
+Browser validation of the isolated candidate found that the settings import
+version error bypassed the admin-only PHP gettext shim: REST has is_admin=false,
+and the UI displays the server message directly. A dictionary entry alone did
+not fix that path. The response fallback now handles only POST settings/import
+unsupported_schema_version and the exact ai/slug-generation/run no_results error,
+for an authenticated Chinese-locale user with the existing corresponding
+capability. Only an exact untranslated message changes; routes, codes, status,
+permissions, payloads and existing official translations remain unchanged.
+All other REST errors and all front-end gettext calls retain their source behavior.

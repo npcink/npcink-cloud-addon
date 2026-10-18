@@ -1485,3 +1485,22 @@ foreach ( array(
 ) as $paused_description ) {
     maca_assert( isset( $pause_locale_payload[ $paused_description ][0] ) && false === strpos( $pause_locale_payload[ $paused_description ][0], 'SEO' ), 'React fixed feature descriptions use the generic pause-period copy.' );
 }
+
+// REST callbacks do not run under is_admin(); exercise exact supported errors.
+$rest_message = static function ( $message = 'Unsupported schema version: 999.', $code = 'unsupported_schema_version', $route = '/ai/v1/settings/import', $method = 'POST', $locale = 'zh_CN', $authorized = true ) {
+	return Npcink_Cloud_AI_Plugin_Localization::rest_ui_error_message( $message, $code, $route, $method, $locale, $authorized );
+};
+maca_assert( '不支持的结构版本：999。' === $rest_message(), 'REST settings import localizes its exact version error.' );
+maca_assert( '未生成别名建议。' === $rest_message( 'No slug suggestion was generated.', 'no_results', '/wp-abilities/v1/abilities/ai/slug-generation/run' ), 'REST slug ability localizes its fixed no-results error.' );
+foreach ( array(
+	array( '官方译文' ),
+	array( 'Unsupported schema version: 999.', 'other_error' ),
+	array( 'Unsupported schema version: 999.', 'unsupported_schema_version', '/other/v1/settings/import' ),
+	array( 'Unsupported schema version: 999.', 'unsupported_schema_version', '/ai/v1/settings/import', 'GET' ),
+	array( 'Unsupported schema version: 999.', 'unsupported_schema_version', '/ai/v1/settings/import', 'POST', 'en_US' ),
+	array( 'Unsupported schema version: 999.', 'unsupported_schema_version', '/ai/v1/settings/import', 'POST', 'zh_CN', false ),
+	array( 'Unsupported schema version: 999. Extra text' ),
+	array( 'No slug suggestion was generated.', 'no_results', '/other/v1/run' ),
+) as $case ) {
+	maca_assert( $case[0] === $rest_message( ...$case ), 'REST UI localization preserves unsupported or already translated error: ' . implode( '|', $case ) );
+}
