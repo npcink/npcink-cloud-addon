@@ -341,6 +341,22 @@ function npcink_cloud_addon_ai_i18n_audit_file_starts_with( array $files, array 
  * @return string
  */
 function npcink_cloud_addon_ai_i18n_audit_classify_missing( string $text, array $files ): string {
+	// Known UI sources take precedence over prose length and schema vocabulary.
+	// Keep ability registration, REST schema fields, and image prompt sources out.
+	if ( npcink_cloud_addon_ai_i18n_audit_file_starts_with(
+		$files,
+		array(
+			'build/routes/ai-home/',
+			'build-scripts/experiments/',
+			'includes/Experiments/Abilities_Explorer/Admin_Page.php',
+			'includes/Experiments/Markdown_Feeds/Markdown_Feeds.php',
+			'includes/Experiments/Comment_Moderation/Comment_Moderation.php',
+			'includes/REST/Settings_IO_Controller.php',
+		)
+	) ) {
+		return 'fixed_ui_candidates';
+	}
+
 	if (
 		strlen( $text ) > 220
 		|| false !== strpos( $text, 'red marking is only an annotation' )
@@ -533,6 +549,13 @@ function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int
 	sort( $domainless_rescued );
 	sort( $literal_rescued );
 
+	$uncovered_domainless = array_values( array_diff(
+		$domainless_rescued,
+		array_keys( Npcink_Cloud_AI_Plugin_Localization::bundled_ui_fallback() )
+	) );
+	$ui_gaps = count( $groups['fixed_ui_candidates'] ) + count( $groups['ability_error_notices'] )
+		+ count( $uncovered_domainless ) + count( $literal_rescued );
+
 	echo "WordPress AI plugin localization audit\n";
 	echo 'AI plugin path: ' . $plugin_path . "\n";
 	echo 'Discovered ai-domain strings: ' . count( $found_keys ) . "\n";
@@ -541,6 +564,8 @@ function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int
 	echo 'Fixed UI review candidates: ' . count( $groups['fixed_ui_candidates'] ) . "\n";
 	echo 'Possibly stale shim strings: ' . count( $stale ) . "\n";
 	echo 'Domain-less bundle rescue: ' . count( $domainless_rescued ) . "\n";
+	echo 'Uncovered default-domain keys: ' . count( $uncovered_domainless ) . "\n";
+	echo 'UI coverage gaps: ' . $ui_gaps . "\n";
 	echo 'Build literal rescue: ' . count( $literal_rescued ) . "\n\n";
 
 	echo "Missing review groups:\n";
@@ -593,7 +618,11 @@ function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int
 	echo "\nReview notes:\n";
 	echo "- Do not add dynamic ability names, descriptions, schema labels, JSON keys, slugs, provider ids, or model ids to this addon.\n";
 	echo "- Add approved fixed UI strings to Npcink_Cloud_AI_Plugin_Localization::translations() with behavior coverage.\n";
-	echo "- Rescue groups are informational: the shim string is still alive in the plugin, but only through bundled calls without an explicit 'ai' domain or as bare build literals.\n";
+	echo "- Rescue groups show source presence, not successful runtime translation; strict UI mode rejects uncovered default-domain keys and literal-only keys. These keys occur without an explicit 'ai' domain or only as bare build literals.\n";
+
+	if ( in_array( '--strict-ui', $argv, true ) && $ui_gaps > 0 ) {
+		return 1;
+	}
 
 	$fail_on_missing = getenv( 'AI_I18N_AUDIT_FAIL_ON_MISSING' );
 

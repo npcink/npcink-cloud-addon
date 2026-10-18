@@ -125,19 +125,52 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 			wp_enqueue_script(
 				$handle,
 				plugins_url( 'assets/ai-plugin-localization.js', NPCINK_CLOUD_ADDON_FILE ),
-				array( 'wp-i18n' ),
+				array( 'wp-i18n', 'wp-hooks' ),
 				NPCINK_CLOUD_ADDON_VERSION,
 				false
 			);
 			wp_localize_script(
 				$handle,
 				'NpcinkCloudAiPluginLocalization',
-				array( 'localeData' => $locale_data )
+				array(
+					'localeData' => $locale_data,
+					'bundledUiFallback' => in_array( $hook, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs' ), true )
+						? self::bundled_ui_fallback() : array(),
+				)
 			);
 			// Both the admin and block editor hooks fire on post editor
 			// screens; WordPress appends a second copy of localized data on
 			// repeat calls, so the payload must ship exactly once.
 			self::$script_payload_enqueued = true;
+		}
+
+		/**
+		 * Exact default-domain DataViews exceptions, scoped to two AI screens.
+		 *
+		 * @return array<string,string>
+		 */
+		public static function bundled_ui_fallback(): array {
+			return array_intersect_key(
+				self::translations(),
+				array_flip( array(
+					'%d Item selected',
+					'%d Items selected',
+					'%d field needs attention',
+					'%d fields need attention',
+					'Sort by',
+					'Order',
+					'Density',
+					'Balanced',
+					'Compact',
+					'Items per page',
+					'Properties',
+					'Add filter',
+					'View options',
+					'No results',
+					'Comfortable',
+					'Edit %s (has errors)',
+				) )
+			);
 		}
 
 		/**
@@ -853,6 +886,29 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'Low Value Score (<40%)' => '低价值分数（<40%）',
 				'%d comment was not queued because the batch limit was reached.' => '已达到批量上限，%d 条评论未加入队列。',
 				'%d comments were not queued because the batch limit was reached.' => '已达到批量上限，%d 条评论未加入队列。',
+				'Sort by' => '排序依据',
+				'Order' => '顺序',
+				'Density' => '密度',
+				'Balanced' => '适中',
+				'Compact' => '紧凑',
+				'Items per page' => '每页条目数',
+				'Properties' => '属性',
+				'Add filter' => '添加筛选',
+				'View options' => '显示选项',
+				'No results' => '没有结果',
+				// Fixed admin/editor copy missed by length and schema-word audit heuristics.
+				'Serves your content as Markdown for AI agents and other machine readers: adds a Markdown feed at /feed/markdown/ and Markdown versions of individual posts and pages via ?output_format=markdown, with optional Accept-header negotiation.' => '以 Markdown 格式向 AI 智能体和其他机器阅读程序提供内容：在 /feed/markdown/ 添加 Markdown 订阅源，并通过 ?output_format=markdown 提供单篇文章和页面的 Markdown 版本，还可通过 Accept 请求头协商返回格式。',
+				'Abilities are a standardized way for WordPress core, plugins, and themes to expose discrete units of functionality. Each ability has a name, optional input/output schemas, and can be invoked programmatically.' => '能力是 WordPress 核心、插件和主题提供独立功能的标准方式。每项能力都有名称，可选配输入和输出结构定义，并可通过程序调用。',
+				'The Abilities Explorer lets you browse every registered ability, inspect its schemas, and test it with custom input right from the admin.' => '能力浏览器可让你直接在后台浏览所有已注册的能力、查看其结构定义，并使用自定义输入进行测试。',
+				'Content translation will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可翻译。',
+				'The post title is too short to translate. A minimum of %d characters is required.' => '文章标题太短，无法翻译，至少需要 %d 个字符。',
+				'Current Slug:' => '当前别名：',
+				'No slug suggestion was generated.' => '未生成别名建议。',
+				'Filter by Value Score' => '按价值分数筛选',
+				'The selected file could not be read. Please choose a valid JSON file.' => '无法读取所选文件。请选择有效的 JSON 文件。',
+				'The selected file is not a valid AI settings export.' => '所选文件不是有效的 AI 设置导出文件。',
+				'Unsupported schema version: %d.' => '不支持的结构版本：%d。',
+				'The summary could not be inserted because the template has no Content block.' => '无法插入内容总结：当前模板不包含内容区块。',
 				// WordPress AI plugin 1.4.0: Markdown feeds experiment.
 				'Markdown Feeds' => 'Markdown 订阅源',
 				'Serve Markdown when a request prefers it via the Accept header (may conflict with page caches that ignore the Vary header)' => '当请求通过 Accept 头表明偏好 Markdown 时返回 Markdown（可能与忽略 Vary 头的页面缓存冲突）',

@@ -46,7 +46,7 @@ The implementation is intentionally static:
 
 - It only runs in `wp-admin`.
 - It only runs for Chinese locales (`zh_*`).
-- It only targets text domain `ai`.
+- It targets text domain `ai`, with the sixteen-key bundled component exception below.
 - Its inline JS locale payload enqueues only on surfaces that render
   `ai`-domain JS — the AI plugin's own admin screens (hook suffix containing
   `_page_ai-`), its Connectors screen (`options-connectors`), the core
@@ -71,16 +71,22 @@ fills only the gaps. The JS asset prunes entries that
 data. If official coverage keeps growing, retire shim entries once the audit
 shows them fully covered upstream.
 
-Runtime domain caveat (verified 2026-10-10 against AI plugin 1.4.0): some
-bundled `wp.i18n` calls drop the explicit `ai` domain literal, so at runtime
-they resolve against the `default` domain, where neither the core zh_CN pack
-nor this shim translates them (probed: all six audited strings render
-English). The shim entries stay — they become effective if upstream restores
-the domain — but this addon must never feed the `default` domain to cover
-them: its map contains short generic words whose global default-domain
-translation would mistranslate other plugins. The correct fix is upstream
-(the plugin build keeping its text domain); the audit's `domainless_rescue`
-group lists the affected strings.
+Bundled component exception (verified 2026-10-18 against AI plugin 1.4.0):
+its bundles embed `@wordpress/dataviews` components whose calls use the default
+text domain. Source presence alone does not prove that the AI locale dictionary
+can translate those calls. The earlier description of these calls as a build
+that "dropped" the `ai` domain was unproven; the shipped bundle identifies them
+as WordPress component code.
+
+At the user's explicit request to fix these remaining gaps, sixteen source keys
+(two plural pairs, five contextual strings, and seven plain labels) have a bounded compatibility
+exception: `bundled_ui_fallback()` supplies only those keys on
+`settings_page_ai-wp-admin` and `tools_page_ai-request-logs`. The JS hooks check
+the exact source, plural pair or context, accept only the default domain, and stand down
+when an existing translation is present. Never register the full AI dictionary
+in the default domain. Do not expand this exception to other keys or screens
+without evidence and review. Retire it when the bundled component translations
+work without the fallback.
 
 ## Maintenance Problem
 
@@ -142,16 +148,34 @@ The command should output:
 - Shim strings kept alive only by `_n`/`_x`/`__` calls without an explicit
   `ai` domain literal in scanned JS files (bundled output and build-scripts
   sources; vendor trees excluded), reported as `domainless_rescue`. These
-  discoveries never join the missing review groups because the runtime domain
-  cannot be confirmed from the call alone.
+  discoveries are source-presence evidence, not proof of working localization.
+  Strict UI mode fails for these keys unless the bounded exception covers them.
 - Shim strings kept alive only as bare quoted literals inside `build/`
   output, reported as `literal_only_rescue`.
 - Near matches for likely changed English copy.
 - A count by surface when it can infer one, such as settings, editor, image
   generation, request logs, or abilities explorer.
 
-It should exit non-zero only when a CI gate explicitly opts in. For local
-developer use, plain reporting is enough.
+Plain audit remains informational. Before localization handoff and after an
+AI plugin update, run the opt-in UI gate:
+
+```sh
+composer run ai:i18n:check
+```
+
+It fails for fixed UI candidates, admin-facing failure notices, unsupported
+keys found only through domain-less calls, or literal-only rescues. It does
+not fail for dynamic ability metadata or schema documentation. This is a
+heuristic review gate, not proof of complete translation coverage: inspect
+all review groups for misclassified UI copy and verify the changed UI in a
+browser. Keys used in both `ai` and default domains need runtime review; their
+mere presence in a shared bundle is not proof of an untranslated UI.
+
+Known fixed UI source files take precedence over the length and schema-word
+heuristics: settings import/export, experiment editor bundles, Abilities Explorer
+help, Markdown Feeds settings, and comment moderation controls. Long help text
+and UI notices mentioning JSON or schemas must remain review candidates; ability
+registration metadata and image prompt templates remain excluded.
 
 ## Optional Draft Command
 
@@ -211,6 +235,39 @@ When the user reports untranslated WordPress AI plugin text:
 3. Search the installed AI plugin for the exact source string.
 4. Add the exact source string to `translations()`.
 5. Add behavior coverage for PHP gettext and, when relevant, JS locale data.
-6. Run the required verification commands.
+6. Run `composer run ai:i18n:check`, the required verification commands, and
+   `composer run check:js` (which executes the shipped localization asset).
+   Confirm the mounted plugin path and verify the changed UI in a browser.
 7. Tell the user which strings are covered and which are intentionally left to
    the source plugin.
+
+## 2026-10-18 Omission Analysis
+
+- The 220-character heuristic classified Markdown settings help as prompt copy.
+  Schema/JSON vocabulary and sentence prefixes also hid fixed UI notices.
+  Known UI sources now take precedence; regression tests cover these cases.
+- Dictionary coverage tests showed that Chinese entries existed but did not
+  execute the JS translation path. The bundled DataViews keys used a
+  different domain and, for two keys, a context. Node tests now execute the
+  shipped asset and verify plurals, contexts, language-pack precedence, and
+  rejection of unrelated domains/screens.
+- Rescue groups were informational and were read as coverage. The opt-in UI
+  gate now treats unsupported rescues as failures. CI's existing `check:js`
+  step runs the new JS tests; the installed-plugin UI audit is a separate
+  required local check because CI does not have that local plugin tree.
+  `release:verify` now runs the strict UI gate, and `AGENTS.md` records the
+  audit + JS execution + browser acceptance requirement.
+- Local deterministic checks and UI acceptance do not publish a fix. Record
+  commit/package/site separately; do not describe local success as an online
+  deployment.
+
+Verification on 2026-10-18: the local `magick-ai.local` mount resolves to this
+repository. Browser acceptance confirmed the Markdown description and the
+request-log display menu (sort, order, all density options, items per page,
+properties), plus filter/view buttons and the empty state in Chinese. The two
+plural pairs and error-field context were also exercised with the site's actual
+WordPress `hooks.js` and `i18n.js` in an isolated JS runtime; no site data changed.
+All sixteen component exception keys have shipped-asset execution tests.
+Playground is not applicable: bootstrap, connector APIs, default credentials,
+and the supported compatibility baseline did not change. No online deployment
+or PR publication is claimed by this local verification record.

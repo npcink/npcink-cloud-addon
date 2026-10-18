@@ -221,4 +221,50 @@ maca_assert(
 	'AI plugin localization audit rescues shim strings that only survive as bundled domain-less calls or bare build literals instead of reporting them stale.'
 );
 
+// UI copy can mention JSON/schemas or exceed the prompt length heuristic.
+$ui_audit_cases = array(
+	array( str_repeat( 'Long fixed Markdown description. ', 9 ), 'includes/Experiments/Markdown_Feeds/Markdown_Feeds.php' ),
+	array( 'The selected file is not valid JSON.', 'build/routes/ai-home/content.js' ),
+	array( 'Current Slug:', 'build-scripts/experiments/slug-generation.js' ),
+	array( 'The ability schemas can be inspected here.', 'includes/Experiments/Abilities_Explorer/Admin_Page.php' ),
+	array( 'Filter by Value Score', 'includes/Experiments/Comment_Moderation/Comment_Moderation.php' ),
+	array( 'Unsupported schema version: %d.', 'includes/REST/Settings_IO_Controller.php' ),
+);
+foreach ( $ui_audit_cases as $case ) {
+	maca_assert(
+		'fixed_ui_candidates' === npcink_cloud_addon_ai_i18n_audit_classify_missing( $case[0], array( $case[1] ) ),
+		'AI localization audit surfaces fixed UI despite length or schema vocabulary: ' . $case[1]
+	);
+}
+maca_assert(
+	'schema_or_json_fields' === npcink_cloud_addon_ai_i18n_audit_classify_missing( 'The ID of the post.', array( 'includes/Abilities/Content/Content.php' ) )
+	&& 'dynamic_ability_metadata' === npcink_cloud_addon_ai_i18n_audit_classify_missing( 'Query readable users', array( 'includes/Abilities/Users/Users.php' ) )
+	&& 'long_prompt_copy' === npcink_cloud_addon_ai_i18n_audit_classify_missing( str_repeat( 'Image generation prompt. ', 12 ), array( 'build-scripts/features/image-generation.js' ) ),
+	'AI localization audit keeps dynamic metadata, schema fields, and image prompts separate from fixed UI.'
+);
+
+ob_start();
+$strict_status = npcink_cloud_addon_ai_i18n_audit_main(
+	array( 'audit', '--path=' . $fixture_root, '--strict-ui' ), MACA_TEST_ROOT
+);
+ob_end_clean();
+maca_assert( 1 === $strict_status, 'Strict UI audit fails on fixed UI gaps and uncovered runtime domains.' );
+
+$strict_root = $fixture_root . '/strict';
+mkdir( $strict_root );
+file_put_contents( $strict_root . '/page.js', '(0,t._n)("%d Item selected","%d Items selected",d);(0,t._x)("Comfortable","Density option for DataView layout");' );
+ob_start();
+$strict_status = npcink_cloud_addon_ai_i18n_audit_main(
+	array( 'audit', '--path=' . $strict_root, '--strict-ui' ), MACA_TEST_ROOT
+);
+ob_end_clean();
+maca_assert( 0 === $strict_status, 'Strict UI audit accepts the reviewed bounded DataViews compatibility exceptions.' );
+file_put_contents( $strict_root . '/page.js', '(0,t.__)("Loading suggestions");' );
+ob_start();
+$strict_status = npcink_cloud_addon_ai_i18n_audit_main(
+	array( 'audit', '--path=' . $strict_root, '--strict-ui' ), MACA_TEST_ROOT
+);
+ob_end_clean();
+maca_assert( 1 === $strict_status, 'Strict UI audit rejects new domain-less strings even when the translation map contains them.' );
+
 npcink_cloud_addon_ai_i18n_audit_test_rm_dir( $fixture_root );

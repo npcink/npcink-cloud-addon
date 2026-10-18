@@ -377,7 +377,8 @@ maca_assert(
 	&& false !== strpos( $boundary_guard, '--glob "*.php"' )
 	&& false !== strpos( $boundary_guard, '--glob "!build/**"' )
 	&& false !== strpos( $composer, '"@check:boundary"' )
-	&& false !== strpos( $composer, '"@ai:i18n:audit"' ),
+	&& false !== strpos( $composer, '"@ai:i18n:check"' )
+	&& false !== strpos( $composer, '"ai:i18n:check": "@php scripts/audit-ai-plugin-localization.php --strict-ui"' ),
 	'Cloud Addon release scripts enforce the retired workflow-route and all forbidden WordPress write API boundaries across PHP source.'
 );
 maca_assert(
