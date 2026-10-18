@@ -90,3 +90,38 @@ review is not releasable, even when every automated gate is green.
 - `cloud-addon-complexity-budget.md` keeps the tier definitions, including
   the rule that a passing playground run is never a substitute for a higher
   tier.
+
+## Reversible-Pause and Localization Release Evidence
+
+For a feature pause, verify both the host entry-point filter and every affected
+transport path, including registered aliases and legacy calls. Assert refusal
+before signing/outbound HTTP and retain positive generic-task coverage. Preserve
+the host enable option and historical data; verify hidden configuration survives
+an ordinary settings save. Do not classify a task by words in its content.
+
+Fixed UI localization requires actual runtime coverage: inspect the installed
+host/addon versions, mounted addon path, PHP strings, the loaded minified editor
+asset and any bounded REST error projection. A dictionary mapping alone is not
+proof that the browser or REST response uses it. Keep dynamic ability metadata
+outside addon localization ownership. Audit, package and browser evidence must
+refer to the same shipping bytes; a changed package invalidates that identity
+claim. Keep unrelated localization repairs independently reviewed and backport
+release-only fixes to master so the next ordinary build retains them.
+
+A published-baseline release candidate and master can intentionally differ.
+Record both identities and their scope; do not retarget an old candidate tree
+into master to close a PR. A fixture downgrade/restore proves preservation in
+that fixture only, not every production site's backup or recovery readiness.
+Before distribution, refresh the evidence required above, identify target sites
+and their backups, retain an original rollback ZIP and satisfy the non-AI anchor.
+Never uninstall the plugin or erase options/history as a rollback shortcut.
+
+The 2026-10-19 pause/localization closeout merged master PRs
+[#289](https://github.com/npcink/npcink-cloud-addon/pull/289),
+[#290](https://github.com/npcink/npcink-cloud-addon/pull/290) and
+[#293](https://github.com/npcink/npcink-cloud-addon/pull/293).
+[#292](https://github.com/npcink/npcink-cloud-addon/pull/292) separately merged
+into the isolated combination candidate, not master. Fixed-UI auditing reached
+zero gaps and the exact combined ZIP was browser-checked in a disposable
+WordPress fixture. Plugin distribution and production-site acceptance remain
+separate; source merge and CI do not grant either permission.
