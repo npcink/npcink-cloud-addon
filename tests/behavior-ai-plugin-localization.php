@@ -826,6 +826,27 @@ maca_assert(
 	'AI plugin localization translates the 1.4.0 comment moderation value score surface.'
 );
 
+$audit_gap_translations = array(
+	'Serves your content as Markdown for AI agents and other machine readers: adds a Markdown feed at /feed/markdown/ and Markdown versions of individual posts and pages via ?output_format=markdown, with optional Accept-header negotiation.' => '以 Markdown 格式向 AI 智能体和其他机器阅读程序提供内容：在 /feed/markdown/ 添加 Markdown 订阅源，并通过 ?output_format=markdown 提供单篇文章和页面的 Markdown 版本，还可通过 Accept 请求头协商返回格式。',
+	'Abilities are a standardized way for WordPress core, plugins, and themes to expose discrete units of functionality. Each ability has a name, optional input/output schemas, and can be invoked programmatically.' => '能力是 WordPress 核心、插件和主题提供独立功能的标准方式。每项能力都有名称，可选配输入和输出结构定义，并可通过程序调用。',
+	'The Abilities Explorer lets you browse every registered ability, inspect its schemas, and test it with custom input right from the admin.' => '能力浏览器可让你直接在后台浏览所有已注册的能力、查看其结构定义，并使用自定义输入进行测试。',
+	'Content translation will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可翻译。',
+	'The post title is too short to translate. A minimum of %d characters is required.' => '文章标题太短，无法翻译，至少需要 %d 个字符。',
+	'Current Slug:' => '当前别名：',
+	'No slug suggestion was generated.' => '未生成别名建议。',
+	'Filter by Value Score' => '按价值分数筛选',
+	'The selected file could not be read. Please choose a valid JSON file.' => '无法读取所选文件。请选择有效的 JSON 文件。',
+	'The selected file is not a valid AI settings export.' => '所选文件不是有效的 AI 设置导出文件。',
+	'Unsupported schema version: %d.' => '不支持的结构版本：%d。',
+	'The summary could not be inserted because the template has no Content block.' => '无法插入内容总结：当前模板不包含内容区块。',
+);
+foreach ( $audit_gap_translations as $source => $expected ) {
+	maca_assert(
+		$expected === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( $source, $source, 'ai' ),
+		'AI localization covers audited fixed UI copy: ' . $source
+	);
+}
+
 maca_assert(
 	'Markdown 订阅源' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( 'Markdown Feeds', 'Markdown Feeds', 'ai' )
 	&& '当请求通过 Accept 头表明偏好 Markdown 时返回 Markdown（可能与忽略 Vary 头的页面缓存冲突）' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
@@ -1349,6 +1370,13 @@ $localized_script = $GLOBALS['maca_localized_scripts'][0] ?? array();
 $locale_data = isset( $localized_script['data']['localeData'] ) && is_array( $localized_script['data']['localeData'] )
 	? $localized_script['data']['localeData']
 	: array();
+foreach ( $audit_gap_translations as $source => $expected ) {
+	maca_assert(
+		$expected === ( $locale_data[ $source ][0] ?? '' ),
+		'AI localization includes audited UI copy in the JS locale payload: ' . $source
+	);
+}
+
 maca_assert(
 	'npcink-cloud-addon-ai-plugin-localization' === ( $enqueued_script['handle'] ?? '' )
 	&& in_array( 'wp-i18n', $enqueued_script['deps'] ?? array(), true )
@@ -1426,6 +1454,12 @@ foreach ( $payload_hook_cases as $payload_hook_case => $payload_hook_allowed ) {
 	$GLOBALS['maca_enqueued_scripts'] = array();
 	$GLOBALS['maca_localized_scripts'] = array();
 	Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data( $payload_hook_case );
+	$bundled_payload = $GLOBALS['maca_localized_scripts'][0]['data']['bundledUiFallback'] ?? array();
+	maca_assert(
+		in_array( $payload_hook_case, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs' ), true )
+			? count( $bundled_payload ) === 16 : empty( $bundled_payload ),
+		'DataViews exceptions only ship on the two verified AI screens: ' . $payload_hook_case
+	);
 	maca_assert(
 		( $payload_hook_allowed ? 1 : 0 ) === count( $GLOBALS['maca_enqueued_scripts'] )
 		&& ( $payload_hook_allowed ? 1 : 0 ) === count( $GLOBALS['maca_localized_scripts'] ),

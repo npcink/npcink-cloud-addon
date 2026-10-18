@@ -370,8 +370,7 @@ maca_assert(
 	&& false !== strpos( $ci_workflow, 'run: composer run check:boundary' )
 	&& false !== strpos( $boundary_guard, '--glob "*.php"' )
 	&& false !== strpos( $boundary_guard, '--glob "!build/**"' )
-	&& false !== strpos( $composer, '"@check:boundary"' )
-	&& false !== strpos( $composer, '"@ai:i18n:audit"' ),
+	&& false !== strpos( $composer, '"@check:boundary"' ),
 	'Cloud Addon release scripts enforce the retired workflow-route and all forbidden WordPress write API boundaries across PHP source.'
 );
 maca_assert(
@@ -534,6 +533,8 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $composer, '"ai:i18n:audit": "@php scripts/audit-ai-plugin-localization.php"' )
+	&& false !== strpos( $composer, '"@ai:i18n:check"' )
+	&& false !== strpos( $composer, '"ai:i18n:check": "@php scripts/audit-ai-plugin-localization.php --strict-ui"' )
 	&& false !== strpos( $ai_i18n_audit, 'AI_PLUGIN_PATH' )
 	&& false !== strpos( $ai_i18n_audit, 'Npcink_Cloud_AI_Plugin_Localization::translations()' )
 	&& false !== strpos( $ai_i18n_audit, 'Missing review groups' )
