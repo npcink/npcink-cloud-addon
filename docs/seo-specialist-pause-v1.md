@@ -30,3 +30,5 @@ host and Cloud versions rather than relying on old cached results.
 Toolbox owns product composition and Cloud owns runtime availability. Toolkit,
 Core, Adapter and Eval remain outside this task. The source and verification
 receipt is in the [three-repository implementation record](../../npcink-workflow-toolbox/docs/seo-specialist-pause-implementation-2026-10-18.md).
+
+旧 `execute_runtime()` 对包含任何专项编辑类型的请求整体拒绝（包括混合及大小写变体）；调用方须重新提交通用类型。当前 connector 路径保留通用类型并移除专项类型。固定界面说明同时覆盖 PHP 和 zh_CN React locale payload；动态 Ability metadata 不改写。

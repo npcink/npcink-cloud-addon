@@ -47,12 +47,19 @@ final class Npcink_Cloud_Discoverability_Pause {
 		return self::is_active() && in_array( strtolower( trim( $task ) ), array( 'meta_description', 'seo_title', 'seo_description', 'seo_metadata', 'aeo_summary', 'answer_summary', 'geo_summary', 'structured_data_hints', 'content_discoverability' ), true );
 	}
 
+	/** Keeps generic review types while matching specialist names case-insensitively. */
+	public static function without_specialist_reviews( array $types ): array {
+		return array_values( array_filter( $types, static function ( $type ): bool {
+			return ! in_array( strtolower( trim( (string) $type ) ), array( 'seo', 'aeo', 'geo' ), true );
+		} ) );
+	}
+
 	/** Rejects legacy runtime requests before HTTP or signing. */
 	public static function runtime_error( array $payload ) {
 		$operation = is_array( $payload['input']['operation_contract'] ?? null ) ? $payload['input']['operation_contract'] : array();
-		$task = (string) ( $operation['task'] ?? '' );
+		$task = strtolower( trim( (string) ( $operation['task'] ?? '' ) ) );
 		$types = $operation['request']['review_types'] ?? array();
-		if ( self::is_task_paused( $task ) || ( self::is_active() && 'editorial_notes' === $task && is_array( $types ) && ! empty( $types ) && array() === array_diff( $types, array( 'seo', 'aeo', 'geo' ) ) ) ) {
+		if ( self::is_task_paused( $task ) || ( self::is_active() && 'editorial_notes' === $task && is_array( $types ) && ! empty( $types ) && count( $types ) !== count( self::without_specialist_reviews( $types ) ) ) ) {
 			return new WP_Error( 'cloud_feature_paused', __( 'SEO/AEO/GEO specialist assistance is paused.', 'npcink-cloud-addon' ), array( 'status' => 409 ) );
 		}
 		return null;

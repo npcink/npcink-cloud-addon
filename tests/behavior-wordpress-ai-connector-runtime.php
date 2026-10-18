@@ -1297,7 +1297,13 @@ foreach ( array( false, true ) as $with_contract ) {
 $pause_result = $client->execute_runtime( array( 'input' => array( 'operation_contract' => array( 'task' => 'meta_description' ) ) ) );
 maca_assert( is_wp_error( $pause_result ) && 'cloud_feature_paused' === $pause_result->get_error_code() && $pause_http_count === count( $GLOBALS['maca_http_requests'] ), 'Legacy runtime callers cannot bypass the pause or send HTTP.' );
 
-foreach ( array( 'seo', 'aeo', 'geo' ) as $pause_review_type ) {
+foreach ( array( 'seo', 'aeo', 'geo', ' SEO ' ) as $pause_review_type ) {
     $pause_result = $client->execute_wordpress_ai_connector_runtime( maca_wordpress_operation_request( 'editorial_notes', array( 'prompt' => 'Review one paragraph', 'review_types' => array( $pause_review_type ) ) ) );
     maca_assert( is_wp_error( $pause_result ) && 'cloud_feature_paused' === $pause_result->get_error_code() && $pause_http_count === count( $GLOBALS['maca_http_requests'] ), 'Specialist-only editorial review is rejected without HTTP: ' . $pause_review_type );
 }
+
+foreach ( array( array( 'readability', 'seo' ), array( 'SEO' ), array( 'grammar', ' GEO ' ) ) as $legacy_review_types ) {
+    $legacy_result = $client->execute_runtime( array( 'input' => array( 'operation_contract' => array( 'task' => 'editorial_notes', 'request' => array( 'review_types' => $legacy_review_types ) ) ) ) );
+    maca_assert( is_wp_error( $legacy_result ) && 'cloud_feature_paused' === $legacy_result->get_error_code() && $pause_http_count === count( $GLOBALS['maca_http_requests'] ), 'Legacy mixed or uppercase specialist review is rejected before HTTP.' );
+}
+maca_assert( array( 'readability', 'grammar' ) === Npcink_Cloud_Discoverability_Pause::without_specialist_reviews( array( 'readability', ' SEO ', 'aeo', 'grammar', 'GEO' ) ), 'Mixed connector reviews preserve generic types and remove normalized specialist types.' );
