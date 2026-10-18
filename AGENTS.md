@@ -111,6 +111,14 @@ composer run test:all
 git diff --check
 ```
 
+For AI-plugin localization changes or an installed AI-plugin update, run
+`composer run ai:i18n:check` and `composer run check:js`, inspect every audit
+review group for misclassified UI copy, and verify the affected browser UI.
+A dictionary entry or a domain-less/literal rescue is not runtime coverage.
+Resolve the site's mounted addon path before claiming browser acceptance.
+`release:verify` includes the strict UI audit; dynamic ability metadata stays
+outside its fixed-UI gate and outside this addon's translation ownership.
+
 Evidence tier requirements per change type, evidence freshness limits, and
 the per-release non-AI evidence anchor are defined in
 `docs/verification-evidence-standard.md`.
