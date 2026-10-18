@@ -134,8 +134,8 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			if ( '' === $idempotency_key ) {
 				$idempotency_key = 'runtime_' . wp_generate_uuid4();
 			}
-
-			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+			$paused = Npcink_Cloud_Discoverability_Pause::runtime_error( $payload );
+			return is_wp_error( $paused ) ? $paused : $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
 		}
 
 		/**

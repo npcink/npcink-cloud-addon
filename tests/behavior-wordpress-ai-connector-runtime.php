@@ -277,7 +277,7 @@ foreach ( array( 'excerpt_generation', 'meta_description', 'content_classificati
 	);
 	maca_assert(
 		is_wp_error( $unsupported_task_reference )
-		&& 'cloud_wp_ai_connector_site_knowledge_reference_task_not_allowed' === $unsupported_task_reference->get_error_code(),
+		&& ( 'meta_description' === $unsupported_reference_task ? 'cloud_feature_paused' : 'cloud_wp_ai_connector_site_knowledge_reference_task_not_allowed' ) === $unsupported_task_reference->get_error_code(),
 		'Behavior: WordPress AI generation reference stays disabled for ' . $unsupported_reference_task . ' until quality evidence exists.'
 	);
 }
@@ -1284,3 +1284,20 @@ maca_assert(
 	is_wp_error( $image_source_chat_shape ) && 'cloud_toolbox_image_source_shape_not_allowed' === $image_source_chat_shape->get_error_code(),
 	'Behavior: Toolbox image-source runtime rejects generic chat message shapes.'
 );
+
+$pause_http_count = count( $GLOBALS['maca_http_requests'] );
+foreach ( array( false, true ) as $with_contract ) {
+    $pause_request = maca_wordpress_operation_request( 'meta_description', array( 'source_text' => 'Source content' ) );
+    if ( $with_contract ) {
+        $pause_request['operation_contract']['request']['task_contract'] = array( 'task' => 'meta_description' );
+    }
+    $pause_result = $client->execute_wordpress_ai_connector_runtime( $pause_request );
+    maca_assert( is_wp_error( $pause_result ) && 'cloud_feature_paused' === $pause_result->get_error_code(), 'Paused metadata task is refused before transport, with or without a local contract.' );
+}
+$pause_result = $client->execute_runtime( array( 'input' => array( 'operation_contract' => array( 'task' => 'meta_description' ) ) ) );
+maca_assert( is_wp_error( $pause_result ) && 'cloud_feature_paused' === $pause_result->get_error_code() && $pause_http_count === count( $GLOBALS['maca_http_requests'] ), 'Legacy runtime callers cannot bypass the pause or send HTTP.' );
+
+foreach ( array( 'seo', 'aeo', 'geo' ) as $pause_review_type ) {
+    $pause_result = $client->execute_wordpress_ai_connector_runtime( maca_wordpress_operation_request( 'editorial_notes', array( 'prompt' => 'Review one paragraph', 'review_types' => array( $pause_review_type ) ) ) );
+    maca_assert( is_wp_error( $pause_result ) && 'cloud_feature_paused' === $pause_result->get_error_code() && $pause_http_count === count( $GLOBALS['maca_http_requests'] ), 'Specialist-only editorial review is rejected without HTTP: ' . $pause_review_type );
+}

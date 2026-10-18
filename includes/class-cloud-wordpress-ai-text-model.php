@@ -116,8 +116,8 @@ if (
 			}
 			if ( 'editorial_notes' === $task ) {
 				$block_content = trim( (string) ( $context_input['block_content'] ?? '' ) );
-				$review_types = is_array( $context_input['review_types'] ?? null ) ? $context_input['review_types'] : array();
-				$scene_input['prompt'] = trim( $text . ( '' !== $block_content ? "\n\nBlock content:\n" . $block_content : '' ) . ( ! empty( $review_types ) ? "\nReview types: " . implode( ', ', array_map( 'sanitize_key', $review_types ) ) : '' ) );
+				$scene_input['review_types'] = is_array( $context_input['review_types'] ?? null ) ? $context_input['review_types'] : array();
+				$scene_input['prompt'] = trim( $text . ( '' !== $block_content ? "\n\nBlock content:\n" . $block_content : '' ) . ( ! empty( $scene_input['review_types'] ) ? "\nReview types: " . implode( ', ', array_map( 'sanitize_key', $scene_input['review_types'] ) ) : '' ) );
 			}
 			if ( 'title_generation' === $task ) {
 				$context_input = is_array( $ability_context['input'] ?? null ) ? $ability_context['input'] : array();
