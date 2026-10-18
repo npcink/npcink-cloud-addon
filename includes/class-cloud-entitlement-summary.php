@@ -500,6 +500,8 @@ if ( ! class_exists( 'Npcink_Cloud_Entitlement_Summary' ) ) {
 				'reported' => $reported,
 				'contract_version' => sanitize_text_field( (string) ( $runtime['contract_version'] ?? 'pro-cloud-runtime-entitlement-v1' ) ),
 				'feature_id' => sanitize_key( (string) ( $runtime['feature_id'] ?? 'nightly_site_inspection' ) ),
+				'available' => ! is_wp_error( Npcink_Cloud_Discoverability_Pause::feature_error( 'cloud_inspection' ) ) && ! empty( $runtime['available'] ),
+				'availability_state' => is_wp_error( Npcink_Cloud_Discoverability_Pause::feature_error( 'cloud_inspection' ) ) ? 'paused' : sanitize_key( (string) ( $runtime['availability_state'] ?? 'unknown' ) ),
 				'execution_pattern' => sanitize_key( (string) ( $runtime['execution_pattern'] ?? 'whole_run_offload' ) ),
 				'meter_key' => sanitize_key( (string) ( $runtime['meter_key'] ?? 'nightly_site_inspection_runs' ) ),
 				'limit_enforced' => ! empty( $runtime['limit_enforced'] ),

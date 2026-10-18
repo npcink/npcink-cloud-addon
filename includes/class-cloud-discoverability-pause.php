@@ -12,6 +12,23 @@ defined( 'ABSPATH' ) || exit;
 final class Npcink_Cloud_Discoverability_Pause {
 	public const ACTIVE = true;
 
+	/** Source-controlled availability only; configuration and historical data stay intact. */
+	private static array $paused_runtime_features = array(
+		'cloud_inspection' => array(
+			'npcink-toolbox/analyze-nightly-content-batch', 'npcink-cloud/analyze-nightly-content-batch',
+			'nightly_site_inspection', 'cloud-batch-runtime.managed', 'cloud_batch_runtime_request.v1',
+			'npcink-toolbox/analyze-site-ops', 'npcink-cloud/analyze-site-ops',
+			'site_ops_cloud_analysis', 'site-ops-analysis.managed', 'site_ops_cloud_analysis_request.v1',
+		),
+	);
+
+	public static function feature_error( string $feature ) {
+		return isset( self::$paused_runtime_features[ $feature ] )
+			? new WP_Error( 'cloud_feature_paused', __( 'This Cloud feature is temporarily paused.', 'npcink-cloud-addon' ), array( 'status' => 409, 'feature' => $feature, 'retryable' => false ) )
+			: null;
+	}
+
+
 	/** Release policy access point shared by hooks and transport guards. */
 	public static function is_active(): bool {
 		return self::ACTIVE;
@@ -56,6 +73,16 @@ final class Npcink_Cloud_Discoverability_Pause {
 
 	/** Rejects legacy runtime requests before HTTP or signing. */
 	public static function runtime_error( array $payload ) {
+		$markers = array();
+		foreach ( array( 'ability_name', 'execution_kind', 'contract_version', 'profile_id' ) as $key ) {
+			$markers[] = strtolower( trim( (string) ( $payload[ $key ] ?? '' ) ) );
+		}
+		foreach ( self::$paused_runtime_features as $feature => $paused_markers ) {
+			if ( array_intersect( $markers, $paused_markers ) ) {
+				return self::feature_error( $feature );
+			}
+		}
+
 		$operation = is_array( $payload['input']['operation_contract'] ?? null ) ? $payload['input']['operation_contract'] : array();
 		$task = strtolower( trim( (string) ( $operation['task'] ?? '' ) ) );
 		$types = $operation['request']['review_types'] ?? array();

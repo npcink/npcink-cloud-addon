@@ -71,7 +71,7 @@ Is this transport/detail, or is it control/write truth?
 `tests/static-contracts.php` enforces a line-count ratchet on the four widest
 connector classes so they cannot grow unnoticed:
 
-- `includes/class-cloud-runtime-client.php` — 1714 lines (was 4314 before the
+- `includes/class-cloud-runtime-client.php` — 1723 lines (was 4314 before the
   2026-10-06 payload-guard split, then 2324 before the same-day diagnostics
   split, then 1968 before the same-day media-payload split into
   `class-cloud-runtime-request-guards.php`,
@@ -445,3 +445,7 @@ missing-official-AI-plugin notice. It reuses the generation-link renderer in
 Overview and Advanced, reads local activation/file evidence, and links to
 WordPress-owned installation/activation. No new setting, persistence, endpoint,
 automatic installation, AI request, or local runtime control is added.
+
+2026-10-19: the runtime-client ceiling increases by nine lines for the shared
+pre-signing availability guard on runtime execution and nightly retry. This
+adds no settings, registry, state, HTTP request, or scheduler ownership.
