@@ -14,6 +14,7 @@ final class Npcink_Cloud_Discoverability_Pause {
 
 	/** Source-controlled availability only; configuration and historical data stay intact. */
 	private static array $paused_runtime_features = array(
+		'audio_generation' => array( 'npcink-cloud/generate-audio', 'npcink-toolbox/generate-audio', 'audio_generation_request.v1', 'audio_generation', 'audio.narration.default' ),
 		'cloud_inspection' => array(
 			'npcink-toolbox/analyze-nightly-content-batch', 'npcink-cloud/analyze-nightly-content-batch',
 			'nightly_site_inspection', 'cloud-batch-runtime.managed', 'cloud_batch_runtime_request.v1',
