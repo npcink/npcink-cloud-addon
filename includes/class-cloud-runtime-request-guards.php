@@ -210,10 +210,10 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 
 			$task          = sanitize_key( (string) ( $operation_contract['task'] ?? '' ) );
 			$scene_request = $operation_contract['request'];
-			if ( Npcink_Cloud_Discoverability_Pause::is_task_paused( $task ) || ( Npcink_Cloud_Discoverability_Pause::ACTIVE && 'editorial_notes' === $task && ! empty( $scene_request['review_types'] ) && array() === array_diff( (array) $scene_request['review_types'], array( 'seo', 'aeo', 'geo' ) ) ) ) {
+			if ( Npcink_Cloud_Discoverability_Pause::is_task_paused( $task ) || ( Npcink_Cloud_Discoverability_Pause::is_active() && 'editorial_notes' === $task && ! empty( $scene_request['review_types'] ) && array() === array_diff( (array) $scene_request['review_types'], array( 'seo', 'aeo', 'geo' ) ) ) ) {
 				return new WP_Error( 'cloud_feature_paused', __( 'SEO/AEO/GEO specialist assistance is paused.', 'npcink-cloud-addon' ), array( 'status' => 409 ) );
 			}
-			if ( Npcink_Cloud_Discoverability_Pause::ACTIVE && 'editorial_notes' === $task && isset( $scene_request['review_types'] ) && is_array( $scene_request['review_types'] ) ) {
+			if ( Npcink_Cloud_Discoverability_Pause::is_active() && 'editorial_notes' === $task && isset( $scene_request['review_types'] ) && is_array( $scene_request['review_types'] ) ) {
 				$scene_request['review_types'] = array_values( array_diff( $scene_request['review_types'], array( 'seo', 'aeo', 'geo' ) ) );
 			}
 			$task_contract = null;
