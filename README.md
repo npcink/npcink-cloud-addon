@@ -1,5 +1,11 @@
 # Npcink Cloud Addon
 
+SEO/AEO/GEO specialist assistance is temporarily paused. The host Meta
+Description feature entry is filtered out without changing its saved option;
+specialist transport requests return `cloud_feature_paused` before HTTP.
+General title, excerpt, summary, translation, slug, ALT and media transport
+remain supported. See [the pause contract](docs/seo-specialist-pause-v1.md).
+
 WordPress AI acceptance evidence, image-feature limitations, and release gates:
 [2026-09-08 acceptance handoff](docs/wordpress-ai-acceptance-and-release-handoff-2026-09-08.md).
 Follow the [WordPress AI acceptance standard](docs/wordpress-ai-acceptance-standard-v1.md)

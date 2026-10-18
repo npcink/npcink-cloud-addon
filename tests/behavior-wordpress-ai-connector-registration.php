@@ -8,7 +8,11 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
+if ( ! defined( 'NPCINK_CLOUD_ADDON_FILE' ) ) {
+    define( 'NPCINK_CLOUD_ADDON_FILE', MACA_TEST_ROOT . '/npcink-cloud-addon.php' );
+}
 require_once MACA_TEST_ROOT . '/includes/class-cloud-credential-store.php';
+require_once MACA_TEST_ROOT . '/includes/class-cloud-discoverability-pause.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-settings.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-entitlement-summary.php';
 require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
@@ -391,3 +395,13 @@ maca_assert(
 	&& $fallback_image_models === Npcink_Cloud_WordPress_AI_Connector::filter_preferred_image_models( $fallback_image_models ),
 	'Disabled WordPress AI connector exposure does not change preferred AI model lists.'
 );
+
+if ( ! function_exists( '__return_false' ) ) {
+    function __return_false() { return false; }
+}
+Npcink_Cloud_Discoverability_Pause::register_hooks();
+$GLOBALS['maca_options']['wpai_feature_meta-description_enabled'] = '1';
+maca_assert( false === apply_filters( 'wpai_feature_meta-description_enabled', true ) && '1' === get_option( 'wpai_feature_meta-description_enabled' ), 'Official feature filter disables the entry while retaining the saved preference.' );
+
+$pause_features = apply_filters( 'wpai_default_feature_classes', array( 'meta-description' => 'Meta_Class', 'title-generation' => 'Title_Class', 'slug-generation' => 'Slug_Class' ) );
+maca_assert( array( 'title-generation' => 'Title_Class', 'slug-generation' => 'Slug_Class' ) === $pause_features, 'Only the dedicated metadata feature entry is removed from the host feature list.' );

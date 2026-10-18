@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Npcink Cloud Addon 0.4.1\n"
+"Project-Id-Version: Npcink Cloud Addon 0.4.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/npcink-cloud-addon\n"
 "Last-Translator: Npcink Project\n"
 "Language-Team: Chinese (China)\n"
@@ -15,7 +15,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:962
+#: includes/bootstrap.php:964
 #: includes/class-cloud-settings-page.php:141
 #: includes/class-cloud-settings-page.php:152
 #: includes/class-cloud-settings-page.php:153
@@ -33,59 +33,59 @@ msgstr "用于 Npcink 托管运行时访问、签名、健康检查和权益摘�
 msgid "Npcink"
 msgstr "Npcink"
 
-#: includes/bootstrap.php:152
-#: includes/bootstrap.php:207
-#: includes/bootstrap.php:237
-#: includes/bootstrap.php:328
-#: includes/bootstrap.php:359
-#: includes/bootstrap.php:390
-#: includes/bootstrap.php:421
-#: includes/bootstrap.php:448
-#: includes/bootstrap.php:475
-#: includes/bootstrap.php:498
-#: includes/bootstrap.php:520
-#: includes/bootstrap.php:607
-#: includes/bootstrap.php:631
-#: includes/bootstrap.php:655
-#: includes/bootstrap.php:663
-#: includes/bootstrap.php:671
-#: includes/bootstrap.php:679
-#: includes/bootstrap.php:687
-#: includes/bootstrap.php:695
-#: includes/bootstrap.php:703
-#: includes/bootstrap.php:719
-#: includes/bootstrap.php:727
+#: includes/bootstrap.php:153
+#: includes/bootstrap.php:208
+#: includes/bootstrap.php:238
+#: includes/bootstrap.php:329
+#: includes/bootstrap.php:360
+#: includes/bootstrap.php:391
+#: includes/bootstrap.php:422
+#: includes/bootstrap.php:449
+#: includes/bootstrap.php:476
+#: includes/bootstrap.php:499
+#: includes/bootstrap.php:521
+#: includes/bootstrap.php:608
+#: includes/bootstrap.php:632
+#: includes/bootstrap.php:656
+#: includes/bootstrap.php:664
+#: includes/bootstrap.php:672
+#: includes/bootstrap.php:680
+#: includes/bootstrap.php:688
+#: includes/bootstrap.php:696
+#: includes/bootstrap.php:704
+#: includes/bootstrap.php:720
+#: includes/bootstrap.php:728
 #: includes/class-cloud-runtime-client.php:1052
 #: includes/class-cloud-runtime-client.php:1158
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr "Npcink Cloud 尚未配置。"
 
-#: includes/bootstrap.php:559
+#: includes/bootstrap.php:560
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr "Toolbox 运行请求超过固定大小限制。"
 
-#: includes/bootstrap.php:573
+#: includes/bootstrap.php:574
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr "Toolbox 运行请求包含固定合同之外的字段。"
 
-#: includes/bootstrap.php:581
+#: includes/bootstrap.php:582
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr "Toolbox 运行限制超出连接器固定策略。"
 
-#: includes/bootstrap.php:603
+#: includes/bootstrap.php:604
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr "Toolbox 内容支持需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:627
+#: includes/bootstrap.php:628
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr "Toolbox 站点助手需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:651
+#: includes/bootstrap.php:652
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr "夜间检查需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:992
+#: includes/bootstrap.php:994
 msgid "Settings"
 msgstr "设置"
 
@@ -712,7 +712,7 @@ msgstr "Cloud 返回了无效的媒体投递确认。"
 msgid "Cloud returned an invalid WordPress AI alt-text source artifact."
 msgstr "Cloud 返回了无效的 WordPress AI 替代文本源工件。"
 
-#: includes/class-cloud-runtime-request-guards.php:190
+#: includes/class-cloud-runtime-request-guards.php:191
 msgid "WordPress AI connector requests require the cloud_connector_runtime.v1 contract."
 msgstr "WordPress AI 连接器请求需要 cloud_connector_runtime.v1 合同。"
 
@@ -720,15 +720,15 @@ msgstr "WordPress AI 连接器请求需要 cloud_connector_runtime.v1 合同。"
 msgid "WordPress AI connector requests require one wordpress_operation.v1 operation contract."
 msgstr "WordPress AI 连接器请求需要一个 wordpress_operation.v1 操作合同。"
 
-#: includes/class-cloud-runtime-request-guards.php:220
+#: includes/class-cloud-runtime-request-guards.php:222
 msgid "The AI task contract does not match the requested task."
 msgstr "AI 任务合同与请求的任务不匹配。"
 
-#: includes/class-cloud-runtime-request-guards.php:228
+#: includes/class-cloud-runtime-request-guards.php:230
 msgid "WordPress AI connector requests require a supported site-task surface."
 msgstr "WordPress AI 连接器请求需要受支持的站点任务场景。"
 
-#: includes/class-cloud-runtime-request-guards.php:237
+#: includes/class-cloud-runtime-request-guards.php:238
 msgid "WordPress AI connector requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr "WordPress AI 连接器请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
@@ -1208,7 +1208,7 @@ msgstr "手动就绪测试已完成。连接器已就绪。"
 msgid "Cloud connector status and access settings for this WordPress site."
 msgstr "此 WordPress 站点的 Cloud 连接器状态和访问设置。"
 
-#: includes/bootstrap.php:964
+#: includes/bootstrap.php:966
 #: includes/class-cloud-settings-page.php:206
 msgid "Connect this site"
 msgstr "连接此站点"
@@ -2474,11 +2474,11 @@ msgstr "Npcink Cloud 无法投影替代文本 Ability 合同。"
 msgid "https://cloud.npc.ink/"
 msgstr "https://cloud.npc.ink/"
 
-#: includes/bootstrap.php:963
+#: includes/bootstrap.php:965
 msgid "The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features."
 msgstr "插件已启用，但本站点尚未连接 Npcink Cloud。连接站点后即可启用其 AI 功能。"
 
-#: includes/bootstrap.php:966
+#: includes/bootstrap.php:968
 msgid "Do not show again"
 msgstr "不再显示"
 
@@ -2714,44 +2714,44 @@ msgstr "Toolkit 审批要求与已注册 WordPress 能力不匹配。"
 msgid "AI task contracts require ai_task_contract.v1."
 msgstr "AI 任务契约必须使用 ai_task_contract.v1。"
 
-#: includes/class-cloud-ai-task-contract.php:253
+#: includes/class-cloud-ai-task-contract.php:256
 msgid "AI task contracts require a registered ability, task, and supported task family."
 msgstr "AI 任务契约必须包含已注册能力、任务和受支持的任务类型。"
 
-#: includes/class-cloud-ai-task-contract.php:256
+#: includes/class-cloud-ai-task-contract.php:259
 msgid "AI task contract verification must be mapping_current before Cloud execution."
 msgstr "Cloud 执行前，AI 任务契约验证状态必须为 mapping_current。"
 
-#: includes/class-cloud-ai-task-contract.php:262
+#: includes/class-cloud-ai-task-contract.php:265
 msgid "AI task contracts contain an unsupported context requirement or constraint."
 msgstr "AI 任务契约包含不受支持的上下文要求或约束。"
 
-#: includes/class-cloud-ai-task-contract.php:269
+#: includes/class-cloud-ai-task-contract.php:272
 msgid "AI task contracts require a stable sha256 schema hash."
 msgstr "AI 任务契约必须包含稳定的 sha256 架构哈希。"
 
-#: includes/class-cloud-ai-task-contract.php:273
+#: includes/class-cloud-ai-task-contract.php:276
 msgid "The Ability output schema is too large for runtime projection."
 msgstr "能力输出架构过大，无法投影到运行时请求。"
 
-#: includes/class-cloud-ai-task-contract.php:278
+#: includes/class-cloud-ai-task-contract.php:281
 msgid "The AI task contract schema hash does not match its input and output schemas."
 msgstr "AI 任务契约架构哈希与输入、输出架构不匹配。"
 
-#: includes/class-cloud-ai-task-contract.php:304
-#: includes/class-cloud-ai-task-contract.php:308
+#: includes/class-cloud-ai-task-contract.php:307
+#: includes/class-cloud-ai-task-contract.php:311
 msgid "AI task contract list fields must be arrays."
 msgstr "AI 任务契约列表字段必须是数组。"
 
-#: includes/class-cloud-ai-task-contract.php:312
+#: includes/class-cloud-ai-task-contract.php:315
 msgid "AI task contract list fields must contain strings."
 msgstr "AI 任务契约列表字段必须只包含字符串。"
 
-#: includes/class-cloud-ai-task-contract.php:318
+#: includes/class-cloud-ai-task-contract.php:321
 msgid "AI task contract list fields contain an unsupported value."
 msgstr "AI 任务契约列表字段包含不受支持的值。"
 
-#: includes/class-cloud-ai-task-contract.php:322
+#: includes/class-cloud-ai-task-contract.php:325
 msgid "AI task contract context none cannot be combined with other values."
 msgstr "AI 任务契约上下文 none 不能与其他值组合。"
 
@@ -2800,3 +2800,17 @@ msgstr "Cloud 客户旅程响应未返回已接受事件数量。"
 #: includes/class-cloud-observability-collector.php:430
 msgid "Cloud observability response did not include an accepted event count."
 msgstr "Cloud 监控响应未返回已接受事件数量。"
+
+#: includes/class-cloud-ai-task-contract.php:250
+#: includes/class-cloud-discoverability-pause.php:61
+#: includes/class-cloud-discoverability-pause.php:75
+msgid "SEO/AEO/GEO specialist assistance is paused."
+msgstr "SEO/AEO/GEO 专项辅助功能已暂停。"
+
+#: includes/class-cloud-discoverability-pause.php:38
+msgid "Suggests short, readable permalink slugs from post title or content. Requires an AI connector that includes support for text generation models."
+msgstr "根据文章标题或内容生成简短、易读的永久链接别名建议。需要支持文本生成模型的 AI 连接器。"
+
+#: includes/class-cloud-discoverability-pause.php:41
+msgid "Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, and Grammar. Requires an AI connector that includes support for text generation models."
+msgstr "按区块为文章添加编辑建议，覆盖无障碍、可读性和语法。需要支持文本生成模型的 AI 连接器。"

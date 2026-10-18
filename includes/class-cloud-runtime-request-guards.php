@@ -10,6 +10,7 @@ declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+require_once __DIR__ . '/class-cloud-discoverability-pause.php';
 
 if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 	/**
@@ -191,7 +192,6 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 					array( 'status' => 400 )
 				);
 			}
-
 			$operation_contract = is_array( $request['operation_contract'] ?? null ) ? $request['operation_contract'] : array();
 			if (
 				self::WORDPRESS_OPERATION_CONTRACT !== (string) ( $operation_contract['contract_version'] ?? '' )
@@ -205,9 +205,11 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 					array( 'status' => 400 )
 				);
 			}
-
 			$task          = sanitize_key( (string) ( $operation_contract['task'] ?? '' ) );
-			$scene_request = $operation_contract['request'];
+			$scene_request = Npcink_Cloud_Discoverability_Pause::normalize_scene_request( $task, $operation_contract['request'] );
+			if ( is_wp_error( $scene_request ) ) {
+				return $scene_request;
+			}
 			$task_contract = null;
 			if ( is_array( $scene_request['task_contract'] ?? null ) ) {
 				$task_contract = Npcink_Cloud_AI_Task_Contract::normalize( $scene_request['task_contract'] );
@@ -229,7 +231,6 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 					array( 'status' => 400 )
 				);
 			}
-
 			$forbidden_key = self::find_forbidden_wordpress_ai_connector_key( $request );
 			if ( '' !== $forbidden_key ) {
 				return new WP_Error(
@@ -241,7 +242,6 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 					)
 				);
 			}
-
 			$encoded_request = wp_json_encode( $request );
 			if ( ! is_string( $encoded_request ) || '' === $encoded_request ) {
 				return new WP_Error(

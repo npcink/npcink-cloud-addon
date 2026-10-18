@@ -4,7 +4,7 @@ Tags: npcink, cloud, ai, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.1
+Stable tag: 0.4.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -172,6 +172,14 @@ Connector internals were restructured with stricter input bounds and fail-fast o
 Terminal callback delivery is removed and media recognition continuation moves to Workflow Toolbox. Re-verify the Cloud connection after upgrading from 0.1.x.
 
 == Changelog ==
+
+= 0.4.3 =
+
+* Temporarily pause specialist SEO/AEO/GEO assistance before outbound Cloud calls, including registered SEO headline projections and legacy requests.
+* Hide the official Meta Description feature while retaining ordinary content assistance, saved settings and history.
+* Keep generic editorial and readable-slug descriptions consistent in PHP and Chinese admin screens.
+* This isolated candidate starts from published 0.4.1; unpublished 0.4.2 reconciliation and ranking-feedback changes are not included.
+
 
 = 0.4.1 =
 * Marked expired cached Cloud entitlement reads as not recently checked in the verified overview while preserving automatic refresh and retained summary data.

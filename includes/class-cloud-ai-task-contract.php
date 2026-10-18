@@ -246,6 +246,9 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			$contract_source = trim( (string) ( $projection['contract_source'] ?? self::CONTRACT_SOURCE_WORDPRESS ) );
 			$verification_state = trim( (string) ( $projection['verification_state'] ?? 'mapping_current' ) );
 			$raw_task     = (string) ( $projection['task'] ?? '' );
+			if ( Npcink_Cloud_Discoverability_Pause::is_task_paused( $raw_task ) ) {
+				return self::error( 'cloud_feature_paused', __( 'SEO/AEO/GEO specialist assistance is paused.', 'npcink-cloud-addon' ) );
+			}
 			$task         = sanitize_key( $raw_task );
 			$family       = sanitize_key( (string) ( $projection['task_family'] ?? '' ) );
 			$valid_ability_name = 1 === preg_match( '/^[a-z0-9_-]+\/[a-z0-9_-]+$/', $ability_name );

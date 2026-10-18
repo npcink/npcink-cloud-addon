@@ -543,7 +543,7 @@ maca_assert(
 		'Slug Generation',
 		'ai'
 	)
-	&& '根据文章标题或内容生成利于 SEO 的永久链接别名建议。需要支持文本生成模型的 AI 连接器。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+	&& '根据文章标题或内容生成简短、易读的永久链接别名建议。需要支持文本生成模型的 AI 连接器。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Suggests SEO-friendly permalink slugs from post title or content. Requires an AI connector that includes support for text generation models.',
 		'Suggests SEO-friendly permalink slugs from post title or content. Requires an AI connector that includes support for text generation models.',
 		'ai'
@@ -1443,3 +1443,11 @@ maca_assert(
 	&& 1 === count( $GLOBALS['maca_localized_scripts'] ),
 	'AI plugin localization prints the inline payload once per request; the no-argument block editor hook adds nothing beyond the post editor suffix.'
 );
+
+$pause_locale_payload = $GLOBALS['maca_localized_scripts'][0]['data']['localeData'] ?? array();
+foreach ( array(
+    'Suggests SEO-friendly permalink slugs from post title or content. Requires an AI connector that includes support for text generation models.',
+    'Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, Grammar, and SEO. Requires an AI connector that includes support for text generation models.',
+) as $paused_description ) {
+    maca_assert( isset( $pause_locale_payload[ $paused_description ][0] ) && false === strpos( $pause_locale_payload[ $paused_description ][0], 'SEO' ), 'React fixed feature descriptions use the generic pause-period copy.' );
+}

@@ -172,11 +172,11 @@ maca_assert(
 	'Behavior: editorial notes preserves the structured Ability result instead of falling back to summary text.'
 );
 
-$GLOBALS['maca_abilities']['example/seo-headline'] = new Maca_AI_Task_Test_Ability(
-	'example/seo-headline',
+$GLOBALS['maca_abilities']['example/article-headline'] = new Maca_AI_Task_Test_Ability(
+	'example/article-headline',
 	array(
 		'npcink_ai_task_contract' => array(
-			'task'                 => 'seo_headline',
+			'task'                 => 'article_headline',
 			'task_family'          => 'generation',
 			'context_requirements' => array( 'current_content', 'site_style_profile' ),
 			'constraints'          => array( 'single_value', 'source_grounded', 'no_new_numbers' ),
@@ -184,10 +184,10 @@ $GLOBALS['maca_abilities']['example/seo-headline'] = new Maca_AI_Task_Test_Abili
 	),
 	array( 'type' => 'string' )
 );
-$custom_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( 'example/seo-headline' );
+$custom_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( 'example/article-headline' );
 maca_assert(
 	is_array( $custom_contract )
-	&& 'seo_headline' === (string) ( $custom_contract['task'] ?? '' )
+	&& 'article_headline' === (string) ( $custom_contract['task'] ?? '' )
 	&& array( 'type' => 'string' ) === ( $custom_contract['output_schema'] ?? null ),
 	'Behavior: a second plugin can publish a task through Ability metadata without an addon task registration.'
 );
@@ -276,7 +276,7 @@ $result = $client->execute_wordpress_ai_connector_runtime(
 		'contract_version'  => 'cloud_connector_runtime.v1',
 		'operation_contract' => array(
 			'contract_version' => 'wordpress_operation.v1',
-			'task'             => 'seo_headline',
+			'task'             => 'article_headline',
 			'request'          => array(
 				'task_contract' => $custom_contract,
 				'prompt'        => 'Write one accurate headline.',
@@ -290,8 +290,8 @@ maca_assert(
 	is_array( $result )
 	&& 'cloud_connector_runtime.v1' === (string) ( $request_body['contract_version'] ?? '' )
 	&& 'wordpress_operation.v1' === (string) ( $request_body['input']['operation_contract']['contract_version'] ?? '' )
-	&& 'seo_headline' === (string) ( $request_body['input']['operation_contract']['task'] ?? '' )
-	&& 'example/seo-headline' === (string) ( $request_body['input']['operation_contract']['request']['task_contract']['ability_name'] ?? '' )
+	&& 'article_headline' === (string) ( $request_body['input']['operation_contract']['task'] ?? '' )
+	&& 'example/article-headline' === (string) ( $request_body['input']['operation_contract']['request']['task_contract']['ability_name'] ?? '' )
 	&& ! isset( $request_body['input']['operation_contract']['request']['site_knowledge_reference'] ),
 	'Behavior: the generic connector transports a registered task projection without adding unproven generation reference context.'
 );
