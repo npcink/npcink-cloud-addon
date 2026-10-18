@@ -71,7 +71,7 @@ Is this transport/detail, or is it control/write truth?
 `tests/static-contracts.php` enforces a line-count ratchet on the four widest
 connector classes so they cannot grow unnoticed:
 
-- `includes/class-cloud-runtime-client.php` — 1723 lines (was 4314 before the
+- `includes/class-cloud-runtime-client.php` — 1727 lines (was 4314 before the
   2026-10-06 payload-guard split, then 2324 before the same-day diagnostics
   split, then 1968 before the same-day media-payload split into
   `class-cloud-runtime-request-guards.php`,
@@ -123,7 +123,7 @@ connector classes so they cannot grow unnoticed:
   metadata/config plumbing, prompt/result projection helpers, and the
   single plain-text exception sink `throw_user_facing()` required by the
   strict Plugin Check gate)
-- `includes/class-cloud-media-derivative-transport.php` — 713 lines (was 2542 before
+- `includes/class-cloud-media-derivative-transport.php` — 715 lines (was 2542 before
   the 2026-10-06 source-validation and artifact-verification split into
   `class-cloud-media-source-validation.php` and
   `class-cloud-media-artifact-verification.php`; lowered from 714 with reason:
@@ -142,7 +142,7 @@ connector classes so they cannot grow unnoticed:
   governance-canary result validation and bounded projection; raised from 281
   with reason: the public `AUTO_SAFE_PROFILE` constant single-sources the
   auto-safe policy version shared with the transport)
-- `includes/class-cloud-media-plan-projection.php` — 707 lines (local proposal and
+- `includes/class-cloud-media-plan-projection.php` — 709 lines (local proposal and
   optimization-plan projection with the request-contract validation)
 
 The ratchet is a ceiling, not a target. Raise a limit only together with a
@@ -449,3 +449,8 @@ automatic installation, AI request, or local runtime control is added.
 2026-10-19: the runtime-client ceiling increases by nine lines for the shared
 pre-signing availability guard on runtime execution and nightly retry. This
 adds no settings, registry, state, HTTP request, or scheduler ownership.
+
+2026-10-19 advanced-media pause: four additional runtime-client lines reject
+media-job POST before signing; two transport lines reject before source uploads;
+two projection lines reject new optimization plans. These bounded guards preserve
+shared artifact delivery, historical results, configuration and all implementations.

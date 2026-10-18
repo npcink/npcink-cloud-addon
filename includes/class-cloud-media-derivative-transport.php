@@ -33,6 +33,8 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		public static function dispatch_from_ability_response( array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '', array $watermark_artifact = array() ) {
+			$paused = Npcink_Cloud_Discoverability_Pause::feature_error( 'advanced_media' );
+			if ( is_wp_error( $paused ) ) { return $paused; }
 			$client = self::verified_client();
 			if ( is_wp_error( $client ) ) {
 				return $client;

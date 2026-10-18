@@ -14,6 +14,7 @@ final class Npcink_Cloud_Discoverability_Pause {
 
 	/** Source-controlled availability only; configuration and historical data stay intact. */
 	private static array $paused_runtime_features = array(
+		'advanced_media' => array( 'npcink-cloud/plan-media-derivative-batch', 'npcink-toolbox/plan-media-derivative-batch', 'media_derivative_batch_plan_request.v1', 'media_derivative_batch_plan', 'media-derivative-batch-plan.managed', 'npcink-cloud/audit-media-governance', 'npcink-toolbox/audit-media-governance', 'media_governance_audit_request.v1', 'media_governance_audit', 'media-governance-audit.managed', 'media_derivative' ),
 		'audio_generation' => array( 'npcink-cloud/generate-audio', 'npcink-toolbox/generate-audio', 'audio_generation_request.v1', 'audio_generation', 'audio.narration.default' ),
 		'cloud_inspection' => array(
 			'npcink-toolbox/analyze-nightly-content-batch', 'npcink-cloud/analyze-nightly-content-batch',
@@ -76,7 +77,8 @@ final class Npcink_Cloud_Discoverability_Pause {
 	public static function runtime_error( array $payload ) {
 		$markers = array();
 		foreach ( array( 'ability_name', 'execution_kind', 'contract_version', 'profile_id' ) as $key ) {
-			$markers[] = strtolower( trim( (string) ( $payload[ $key ] ?? '' ) ) );
+			$value = $payload[ $key ] ?? '';
+			$markers[] = is_string( $value ) ? strtolower( trim( $value ) ) : '';
 		}
 		foreach ( self::$paused_runtime_features as $feature => $paused_markers ) {
 			if ( array_intersect( $markers, $paused_markers ) ) {

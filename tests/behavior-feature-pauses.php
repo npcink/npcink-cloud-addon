@@ -17,6 +17,10 @@ foreach ( $release_policy as $feature => $markers ) {
 		}
 	}
 }
+$paused_dispatch = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response( array(), array() );
+maca_assert( is_wp_error( $paused_dispatch ) && 'cloud_feature_paused' === $paused_dispatch->get_error_code(), 'Media derivatives pause before source uploads.' );
+$paused_plan = Npcink_Cloud_Media_Plan_Projection::build_media_optimization_payload( array(), array(), array(), array() );
+maca_assert( is_wp_error( $paused_plan ) && 'cloud_feature_paused' === $paused_plan->get_error_code(), 'New media optimization plans are paused.' );
 $retry = $pause_client->retry_run( 'run_retained', array() );
 maca_assert( is_wp_error( $retry ) && 'cloud_feature_paused' === $retry->get_error_code(), 'Old inspection retries remain paused.' );
 maca_assert( array() === $GLOBALS['maca_http_requests'], 'Paused executions and retries make zero HTTP requests.' );

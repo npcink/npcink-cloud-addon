@@ -1055,6 +1055,10 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			}
 
 			$method = strtoupper( trim( $method ) );
+			if ( 'POST' === $method && '/v1/runtime/media/jobs' === $path ) {
+				$paused = Npcink_Cloud_Discoverability_Pause::feature_error( 'advanced_media' );
+				if ( is_wp_error( $paused ) ) { return $paused; }
+			}
 			if ( 'POST' === $method && '/v1/runtime/execute' === $path ) {
 				$paused = Npcink_Cloud_Discoverability_Pause::runtime_error( $payload ?? array() );
 				if ( is_wp_error( $paused ) ) { return $paused; }
