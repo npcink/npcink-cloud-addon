@@ -32,3 +32,5 @@ Core, Adapter and Eval remain outside this task. The source and verification
 receipt is in the [three-repository implementation record](../../npcink-workflow-toolbox/docs/seo-specialist-pause-implementation-2026-10-18.md).
 
 旧 `execute_runtime()` 对包含任何专项编辑类型的请求整体拒绝（包括混合及大小写变体）；调用方须重新提交通用类型。当前 connector 路径保留通用类型并移除专项类型。固定界面说明同时覆盖 PHP 和 zh_CN React locale payload；动态 Ability metadata 不改写。
+
+已注册任务投影中的 `seo_headline` 同样属于暂停任务；通用自定义任务投影仍可传输。回归使用通用 article_headline 正向样例和 SEO 别名零调用负向样例，避免依靠旧的 SEO 成功样例证明暂停完整。

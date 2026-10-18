@@ -1307,3 +1307,13 @@ foreach ( array( array( 'readability', 'seo' ), array( 'SEO' ), array( 'grammar'
     maca_assert( is_wp_error( $legacy_result ) && 'cloud_feature_paused' === $legacy_result->get_error_code() && $pause_http_count === count( $GLOBALS['maca_http_requests'] ), 'Legacy mixed or uppercase specialist review is rejected before HTTP.' );
 }
 maca_assert( array( 'readability', 'grammar' ) === Npcink_Cloud_Discoverability_Pause::without_specialist_reviews( array( 'readability', ' SEO ', 'aeo', 'grammar', 'GEO' ) ), 'Mixed connector reviews preserve generic types and remove normalized specialist types.' );
+
+$alias_http_count = count( $GLOBALS['maca_http_requests'] );
+foreach ( array( false, true ) as $alias_with_contract ) {
+    $alias_request = maca_wordpress_operation_request( 'seo_headline', array( 'prompt' => 'One headline' ) );
+    if ( $alias_with_contract ) {
+        $alias_request['operation_contract']['request']['task_contract'] = array( 'contract_version' => 'ai_task_contract.v1', 'task' => 'seo_headline' );
+    }
+    $alias_result = $client->execute_wordpress_ai_connector_runtime( $alias_request );
+    maca_assert( is_wp_error( $alias_result ) && 'cloud_feature_paused' === $alias_result->get_error_code() && $alias_http_count === count( $GLOBALS['maca_http_requests'] ), 'Registered SEO headline alias cannot bypass the pause with a task projection.' );
+}

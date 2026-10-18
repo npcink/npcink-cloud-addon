@@ -44,7 +44,7 @@ final class Npcink_Cloud_Discoverability_Pause {
 	}
 
 	public static function is_task_paused( string $task ): bool {
-		return self::is_active() && in_array( strtolower( trim( $task ) ), array( 'meta_description', 'seo_title', 'seo_description', 'seo_metadata', 'aeo_summary', 'answer_summary', 'geo_summary', 'structured_data_hints', 'content_discoverability' ), true );
+		return self::is_active() && in_array( strtolower( trim( $task ) ), array( 'meta_description', 'seo_title', 'seo_headline', 'seo_description', 'seo_metadata', 'aeo_summary', 'answer_summary', 'geo_summary', 'structured_data_hints', 'content_discoverability' ), true );
 	}
 
 	/** Keeps generic review types while matching specialist names case-insensitively. */
