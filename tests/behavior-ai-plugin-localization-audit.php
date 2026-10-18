@@ -251,20 +251,61 @@ ob_end_clean();
 maca_assert( 1 === $strict_status, 'Strict UI audit fails on fixed UI gaps and uncovered runtime domains.' );
 
 $strict_root = $fixture_root . '/strict';
-mkdir( $strict_root );
-file_put_contents( $strict_root . '/page.js', '(0,t._n)("%d Item selected","%d Items selected",d);(0,t._x)("Comfortable","Density option for DataView layout");' );
+mkdir( $strict_root . '/build/routes/ai-home', 0777, true );
+$strict_file = $strict_root . '/build/routes/ai-home/content.js';
+file_put_contents( $strict_file, '(0,t._n)("%d Item selected","%d Items selected",d);(0,t._x)("Comfortable","Density option for DataView layout");' );
 ob_start();
 $strict_status = npcink_cloud_addon_ai_i18n_audit_main(
 	array( 'audit', '--path=' . $strict_root, '--strict-ui' ), MACA_TEST_ROOT
 );
 ob_end_clean();
 maca_assert( 0 === $strict_status, 'Strict UI audit accepts the reviewed bounded DataViews compatibility exceptions.' );
-file_put_contents( $strict_root . '/page.js', '(0,t.__)("Loading suggestions");' );
+file_put_contents( $strict_file, '(0,t.__)("Loading suggestions");' );
 ob_start();
 $strict_status = npcink_cloud_addon_ai_i18n_audit_main(
 	array( 'audit', '--path=' . $strict_root, '--strict-ui' ), MACA_TEST_ROOT
 );
 ob_end_clean();
 maca_assert( 1 === $strict_status, 'Strict UI audit rejects new domain-less strings even when the translation map contains them.' );
+
+foreach ( array(
+	'(0,t._x)("Comfortable","wrong context");',
+	'(0,t.__)("Comfortable");',
+	'(0,t._n)("%d Item selected","Unexpected plural",d);',
+) as $wrong_call ) {
+	file_put_contents( $strict_file, $wrong_call );
+	ob_start();
+	$strict_status = npcink_cloud_addon_ai_i18n_audit_main(
+		array( 'audit', '--path=' . $strict_root, '--strict-ui' ), MACA_TEST_ROOT
+	);
+	ob_end_clean();
+	maca_assert( 1 === $strict_status, 'Strict UI audit rejects unsupported call forms, plural pairs, and contexts: ' . $wrong_call );
+}
+unlink( $strict_file );
+file_put_contents( $strict_root . '/editor.js', '(0,t._x)("Comfortable","Density option for DataView layout");' );
+ob_start();
+$strict_status = npcink_cloud_addon_ai_i18n_audit_main(
+	array( 'audit', '--path=' . $strict_root, '--strict-ui' ), MACA_TEST_ROOT
+);
+ob_end_clean();
+maca_assert( 1 === $strict_status, 'Strict UI audit rejects a supported key on an unsupported bundle/screen.' );
+unlink( $strict_root . '/editor.js' );
+file_put_contents( $strict_file, 'var density = [["Comfortable", "comfortable"]];' );
+file_put_contents( $strict_root . '/ai.php', "<?php\n/**\n * Version: 1.4.0\n */" );
+ob_start();
+$strict_status = npcink_cloud_addon_ai_i18n_audit_main(
+	array( 'audit', '--path=' . $strict_root, '--strict-ui' ), MACA_TEST_ROOT
+);
+$strict_report = (string) ob_get_clean();
+maca_assert(
+	0 === $strict_status && false !== strpos( $strict_report, 'Build literal rescue: 1' )
+	&& false !== strpos( $strict_report, 'AI plugin version: 1.4.0' ),
+	'Strict UI audit records the scanned plugin version and keeps unproven bare data literals informational.'
+);
+maca_assert(
+	'schema_or_json_fields' === npcink_cloud_addon_ai_i18n_audit_classify_missing( 'The ID of the setting.', array( 'includes/REST/Settings_IO_Controller.php' ) )
+	&& 'long_prompt_copy' === npcink_cloud_addon_ai_i18n_audit_classify_missing( str_repeat( 'Image prompt. ', 20 ), array( 'build-scripts/experiments/new-prompt.js' ) ),
+	'UI source overrides leave REST schemas and unreviewed experiment prompt files classified separately.'
+);
 
 npcink_cloud_addon_ai_i18n_audit_test_rm_dir( $fixture_root );

@@ -127,7 +127,7 @@ least these forms:
 - `wp.i18n.__( 'Text', 'ai' )`
 - Minified bundle forms that still contain `__("Text","ai")`
 
-The command should output:
+The command should output the scan root and installed AI plugin version, plus:
 
 - Missing strings grouped for review:
   - `fixed_ui_candidates` for likely fixed admin/editor UI copy that may belong
@@ -164,7 +164,9 @@ composer run ai:i18n:check
 ```
 
 It fails for fixed UI candidates, admin-facing failure notices, unsupported
-keys found only through domain-less calls, or literal-only rescues. It does
+keys found only through domain-less calls with an unsupported source file,
+call form, plural pair, or context. Literal-only rescues stay informational: a
+bare data literal is not proof of a translatable UI call. It does
 not fail for dynamic ability metadata or schema documentation. This is a
 heuristic review gate, not proof of complete translation coverage: inspect
 all review groups for misclassified UI copy and verify the changed UI in a
@@ -172,7 +174,7 @@ browser. Keys used in both `ai` and default domains need runtime review; their
 mere presence in a shared bundle is not proof of an untranslated UI.
 
 Known fixed UI source files take precedence over the length and schema-word
-heuristics: settings import/export, experiment editor bundles, Abilities Explorer
+heuristics: the reviewed settings import error, translation/slug/summary editor bundles, Abilities Explorer
 help, Markdown Feeds settings, and comment moderation controls. Long help text
 and UI notices mentioning JSON or schemas must remain review candidates; ability
 registration metadata and image prompt templates remain excluded.
@@ -252,7 +254,7 @@ When the user reports untranslated WordPress AI plugin text:
   shipped asset and verify plurals, contexts, language-pack precedence, and
   rejection of unrelated domains/screens.
 - Rescue groups were informational and were read as coverage. The opt-in UI
-  gate now treats unsupported rescues as failures. CI's existing `check:js`
+  gate now treats unsupported domain-less calls as failures. CI's existing `check:js`
   step runs the new JS tests; the installed-plugin UI audit is a separate
   required local check because CI does not have that local plugin tree.
   `release:verify` now runs the strict UI gate, and `AGENTS.md` records the
@@ -271,3 +273,11 @@ All sixteen component exception keys have shipped-asset execution tests.
 Playground is not applicable: bootstrap, connector APIs, default credentials,
 and the supported compatibility baseline did not change. No online deployment
 or PR publication is claimed by this local verification record.
+
+PR review follow-up: strict UI coverage now matches each discovered call's source
+file, form, context, and plural pair against the two supported admin bundles.
+Bare data literals remain manual-review evidence and cannot block the release
+by themselves. The gate intentionally validates the selected installed AI
+version; use `AI_PLUGIN_PATH` to select the supported stable plugin tree when a
+development installation contains unrelated upstream drift. It does not grant
+an automatic bypass for fixed UI gaps. The audited baseline here is AI 1.4.0.
