@@ -17,6 +17,7 @@ require_once __DIR__ . '/class-cloud-runtime-endpoint-policy.php';
 require_once __DIR__ . '/class-cloud-addon-settings.php';
 require_once __DIR__ . '/class-cloud-addon-cleanup.php';
 require_once __DIR__ . '/class-cloud-ai-task-contract.php';
+require_once __DIR__ . '/class-cloud-discoverability-pause.php';
 require_once __DIR__ . '/class-cloud-runtime-request-guards.php';
 require_once __DIR__ . '/class-cloud-runtime-diagnostics.php';
 require_once __DIR__ . '/class-cloud-runtime-media-payloads.php';
@@ -885,6 +886,7 @@ if ( ! function_exists( 'npcink_cloud_addon_bootstrap' ) ) {
 		Npcink_Cloud_Site_Knowledge_Runtime_Bridge::register();
 		Npcink_Cloud_Addon_Localization::register();
 		Npcink_Cloud_AI_Plugin_Localization::register();
+		Npcink_Cloud_Discoverability_Pause::register_hooks();
 		Npcink_Cloud_WordPress_AI_Connector::register();
 		Npcink_Cloud_Settings_Page::register();
 	}

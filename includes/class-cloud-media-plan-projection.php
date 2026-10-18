@@ -261,7 +261,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Plan_Projection' ) ) {
 			}
 
 			$write_actions = array(
-				self::plan_action( 'update_media_details_' . $attachment_id, 'npcink-abilities-toolkit/update-media-details', $metadata_input, 'medium', 'Apply reviewed media SEO and source metadata as part of one media optimization approval.' ),
+				self::plan_action( 'update_media_details_' . $attachment_id, 'npcink-abilities-toolkit/update-media-details', $metadata_input, 'medium', 'Apply reviewed image descriptions and source metadata as part of one media optimization approval.' ),
 				self::plan_action( 'adopt_cloud_media_derivative_' . $attachment_id, 'npcink-abilities-toolkit/adopt-cloud-media-derivative', $derivative_input, 'medium', 'Adopt the reviewed Cloud derivative artifact as the attachment main file after Core approval.' ),
 			);
 			$action_ids = array_values(

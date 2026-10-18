@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 require_once __DIR__ . '/class-cloud-agent-feedback-metadata.php';
+require_once __DIR__ . '/class-cloud-discoverability-pause.php';
 
 if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 	/**
@@ -209,6 +210,12 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 
 			$task          = sanitize_key( (string) ( $operation_contract['task'] ?? '' ) );
 			$scene_request = $operation_contract['request'];
+			if ( Npcink_Cloud_Discoverability_Pause::is_task_paused( $task ) || ( Npcink_Cloud_Discoverability_Pause::is_active() && 'editorial_notes' === $task && ! empty( $scene_request['review_types'] ) && array() === Npcink_Cloud_Discoverability_Pause::without_specialist_reviews( (array) $scene_request['review_types'] ) ) ) {
+				return new WP_Error( 'cloud_feature_paused', __( 'SEO/AEO/GEO specialist assistance is paused.', 'npcink-cloud-addon' ), array( 'status' => 409 ) );
+			}
+			if ( Npcink_Cloud_Discoverability_Pause::is_active() && 'editorial_notes' === $task && isset( $scene_request['review_types'] ) && is_array( $scene_request['review_types'] ) ) {
+				$scene_request['review_types'] = Npcink_Cloud_Discoverability_Pause::without_specialist_reviews( $scene_request['review_types'] );
+			}
 			$task_contract = null;
 			if ( is_array( $scene_request['task_contract'] ?? null ) ) {
 				$task_contract = Npcink_Cloud_AI_Task_Contract::normalize( $scene_request['task_contract'] );
