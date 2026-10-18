@@ -33,6 +33,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		public static function register(): void {
 			add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
 			add_filter( 'ngettext', array( __CLASS__, 'filter_ngettext' ), 20, 5 );
+			add_filter( 'rest_post_dispatch', array( __CLASS__, 'filter_rest_ui_error' ), 20, 3 );
 			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_script_locale_data' ), 1 );
 		}
 
@@ -87,6 +88,57 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 			}
 
 			return $translation;
+		}
+
+		/**
+		 * Localizes two fixed UI errors returned outside wp-admin by REST.
+		 *
+		 * @param WP_HTTP_Response $response Dispatched response.
+		 * @param WP_REST_Server   $server REST server.
+		 * @param WP_REST_Request  $request Current request.
+		 * @return WP_HTTP_Response
+		 */
+		public static function filter_rest_ui_error( $response, $server, $request ) {
+			if ( ! in_array( $request->get_route(), array( '/ai/v1/settings/import', '/wp-abilities/v1/abilities/ai/slug-generation/run' ), true )
+				|| 'POST' !== $request->get_method() || $response->get_status() < 400 ) {
+				return $response;
+			}
+			$data = $response->get_data();
+			$capability = '/ai/v1/settings/import' === $request->get_route() ? 'manage_options' : 'edit_posts';
+			if ( is_array( $data ) && isset( $data['code'], $data['message'] ) && is_string( $data['code'] ) && is_string( $data['message'] ) ) {
+				$data['message'] = self::rest_ui_error_message(
+					$data['message'], (string) $data['code'], $request->get_route(), $request->get_method(),
+					get_user_locale(), current_user_can( $capability )
+				);
+				$response->set_data( $data );
+			}
+			return $response;
+		}
+
+		/**
+		 * Keeps REST compatibility bounded to exact untranslated errors and routes.
+		 *
+		 * @param string $message Existing message.
+		 * @param string $code Error code.
+		 * @param string $route REST route.
+		 * @param string $method Request method.
+		 * @param string $locale Authenticated user's locale.
+		 * @param bool   $authorized Existing user's required capability.
+		 * @return string
+		 */
+		public static function rest_ui_error_message( string $message, string $code, string $route, string $method, string $locale, bool $authorized ): string {
+			if ( ! $authorized || 'POST' !== $method || 0 !== strpos( strtolower( str_replace( '-', '_', $locale ) ), 'zh_' ) ) {
+				return $message;
+			}
+			if ( '/ai/v1/settings/import' === $route && 'unsupported_schema_version' === $code
+				&& preg_match( '/^Unsupported schema version: (-?\d+)\.$/D', $message, $matches ) ) {
+				return sprintf( self::translations()['Unsupported schema version: %d.'], (int) $matches[1] );
+			}
+			if ( '/wp-abilities/v1/abilities/ai/slug-generation/run' === $route && 'no_results' === $code
+				&& 'No slug suggestion was generated.' === $message ) {
+				return self::translations()[ $message ];
+			}
+			return $message;
 		}
 
 		/**
