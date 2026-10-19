@@ -77,7 +77,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @return void
 		 */
 		public static function enqueue_admin_assets( string $hook_suffix ): void {
-			$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( (string) $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin page detection.
+			$page = self::request_query_arg( 'page' );
 			// Only this addon's screen — not every Npcink AI submenu (avoids dual admin.css with Core).
 			$is_cloud_page = self::PAGE_SLUG === $page || false !== strpos( $hook_suffix, self::PAGE_SLUG );
 			if ( ! $is_cloud_page ) {
@@ -282,6 +282,25 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			return $fragments;
 		}
 
+
+		/**
+		 * Reads one sanitized admin query argument.
+		 *
+		 * Uses the request query bag rather than filter_input() so CLI/behavior
+		 * tests that mutate the query array stay consistent with browser deep links.
+		 *
+		 * @param string $key Query key.
+		 * @return string
+		 */
+		private static function request_query_arg( string $key ): string {
+			$query = isset( $GLOBALS['_GET'] ) && is_array( $GLOBALS['_GET'] ) ? $GLOBALS['_GET'] : array();
+			if ( ! isset( $query[ $key ] ) ) {
+				return '';
+			}
+
+			return sanitize_key( wp_unslash( (string) $query[ $key ] ) );
+		}
+
 		/**
 		 * Returns the active settings tab.
 		 *
@@ -292,12 +311,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private static function get_active_tab( bool $is_verified, array $state ): string {
 			$tabs = self::get_tab_labels( $is_verified, $state );
 			$default = $is_verified ? 'permissions' : 'connect';
-			// Prefer $_GET so admin deep links and tests that set the query var both work
-			// (filter_input() ignores runtime $_GET mutations in CLI).
-			$requested = '';
-			if ( isset( $_GET['tab'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only tab routing.
-				$requested = sanitize_key( wp_unslash( (string) $_GET['tab'] ) );
-			}
+			$requested = self::request_query_arg( 'tab' );
 			$requested = self::normalize_legacy_tab_request( $requested, $is_verified );
 
 			return isset( $tabs[ $requested ] ) ? $requested : $default;
@@ -434,12 +448,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @return string
 		 */
 		private static function diagnostics_view_from_request(): string {
-			// Prefer $_GET so admin deep links and tests that set the query var both work
-			// (filter_input() ignores runtime $_GET mutations in CLI).
-			$raw = '';
-			if ( isset( $_GET['view'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only view routing.
-				$raw = sanitize_key( wp_unslash( (string) $_GET['view'] ) );
-			}
+			$raw = self::request_query_arg( 'view' );
 
 			return in_array( $raw, array( 'service', 'checks', 'connection' ), true ) ? $raw : 'service';
 		}

@@ -667,7 +667,7 @@ maca_assert(
 maca_assert(
 	false !== strpos( $zh_cn_po, 'msgstr "Cloud 基础 URL"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "托管运行时"' )
-	&& false !== strpos( $zh_cn_po, 'msgstr "高级与排查"' )
+	&& false === strpos( $zh_cn_po, 'msgstr "高级与排查"' )
 		&& false !== strpos( $zh_cn_po, 'msgstr "重新更新"' )
 		&& false !== strpos( $zh_cn_po, 'msgstr "查看检查"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "启用站点知识库"' )
@@ -1750,6 +1750,8 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'function render_connection_page' )
 	&& false === strpos( $settings_page, 'function render_advanced_page' )
 		&& false === strpos( $settings_page, 'function render_runtime_runs' )
+	&& false !== strpos( $settings_page, 'function request_query_arg' )
+	&& false === strpos( $settings_page, '\$_GET[' )
 	&& false !== strpos( $settings_page, 'function diagnostics_view_from_request' )
 	&& false === strpos( $settings_page, 'function status_view_from_request' )
 	&& false === strpos( $settings_page, 'function connection_view_from_request' )
