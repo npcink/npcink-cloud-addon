@@ -10,6 +10,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/helpers.php';
 
 maca_load_addon_classes();
+// Retained implementation coverage; default release policy is tested separately.
+$retained_pause_policy = new ReflectionProperty( Npcink_Cloud_Discoverability_Pause::class, 'paused_runtime_features' );
+$retained_pause_policy->setAccessible( true );
+$retained_pause_snapshot = $retained_pause_policy->getValue();
+$retained_pause_policy->setValue( null, array() );
+
 
 maca_seed_settings( true );
 $client = new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() );
@@ -1317,3 +1323,5 @@ foreach ( array( false, true ) as $alias_with_contract ) {
     $alias_result = $client->execute_wordpress_ai_connector_runtime( $alias_request );
     maca_assert( is_wp_error( $alias_result ) && 'cloud_feature_paused' === $alias_result->get_error_code() && $alias_http_count === count( $GLOBALS['maca_http_requests'] ), 'Registered SEO headline alias cannot bypass the pause with a task projection.' );
 }
+
+$retained_pause_policy->setValue( null, $retained_pause_snapshot );

@@ -68,3 +68,5 @@ require __DIR__ . '/behavior-site-knowledge-change-bridge.php';
 require __DIR__ . '/behavior-site-knowledge-runtime-bridge.php';
 
 require __DIR__ . '/behavior-wordpress-ai-provider-acceptance.php';
+
+require __DIR__ . '/behavior-feature-pauses.php';

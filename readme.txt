@@ -18,13 +18,11 @@ It stores the Cloud Base URL and Cloud API Key, parses Cloud-issued keys, signs 
 
 It does not execute WordPress writes, approve proposals, own billing truth, or manage prompts, routers, presets, workflow/task queues, scheduler truth, or workflow engines. Its observability buffer is only a bounded delivery buffer for monitoring metadata and is not Core audit, proposal, execution, billing, or workflow truth.
 
-For media derivative jobs, local host code may pass the read-only
-`npcink-abilities-toolkit/build-media-derivative-cloud-request` ability output and a short TTL
-source artifact descriptor to the addon for signed Cloud dispatch. The addon
-requires verified Cloud settings, rejects credential-bearing ability payloads,
-and returns proposal-ready data with `final_write_owner=local_wordpress_host`.
-Final review, recording, replacement, rollback, and WordPress writes remain in
-the local host/Core approval path.
+Cloud inspection, site analysis, article audio generation, media derivative
+jobs, optimization planning and media governance audit are temporarily paused.
+Their helper contracts remain implemented, but new requests are rejected before
+Cloud transport and source uploads. Historical reads, shared image artifact
+delivery and ordinary text/image/ALT service remain available.
 
 For plugin monitoring, the addon may upload operational metadata such as plugin
 slug/version, event kind, status, timing, error code, route, proposal id,

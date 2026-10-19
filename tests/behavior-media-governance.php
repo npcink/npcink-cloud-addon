@@ -10,6 +10,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/helpers.php';
 
 maca_load_addon_classes();
+// Retained implementation coverage; default release policy is tested separately.
+$retained_pause_policy = new ReflectionProperty( Npcink_Cloud_Discoverability_Pause::class, 'paused_runtime_features' );
+$retained_pause_policy->setAccessible( true );
+$retained_pause_snapshot = $retained_pause_policy->getValue();
+$retained_pause_policy->setValue( null, array() );
+
 
 /**
  * Returns one exact audit request fixture.
@@ -101,3 +107,5 @@ foreach ( array( 'unknown', 'replace_file', 'too_many_items' ) as $invalid_case 
 		'Behavior: invalid media governance audit ' . $invalid_case . ' fails before outbound HTTP.'
 	);
 }
+
+$retained_pause_policy->setValue( null, $retained_pause_snapshot );
