@@ -114,3 +114,8 @@ foreach ( array( 'ranking_version', 'score_bucket', 'retrieval_source', 'rerank_
 }
 include dirname( __DIR__ ) . '/includes/class-cloud-agent-feedback-metadata.php';
 maca_assert( class_exists( 'Npcink_Cloud_Agent_Feedback_Metadata' ), 'Behavior: Repeated helper includes do not redeclare the class.' );
+
+foreach ( array( 'internal_links.v2', 'related_content.v2' ) as $version ) {
+ $empty_v2 = Npcink_Cloud_Runtime_Request_Guards::normalize_agent_feedback_payload( array_merge( $valid_payload, array( 'ranking_version' => $version, 'retrieval_source' => 'no_evidence' ) ) );
+ maca_assert( is_array( $empty_v2 ) && $empty_v2['ranking_version'] === $version && ! isset( $empty_v2['candidate_rank'] ), 'Behavior: v2 abstention impression preserves version without inventing candidate position.' );
+}

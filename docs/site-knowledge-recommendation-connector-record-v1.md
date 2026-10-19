@@ -52,3 +52,13 @@ The coverage surface is accepted only when the browser confirms:
 
 See [Site Knowledge Vector Operations](site-knowledge-vector-operations.md)
 for the active connector contract and ownership rules.
+
+## Reading-task abstention v2 compatibility
+
+The existing metadata-only feedback transport accepts `internal_links.v2` and
+`related_content.v2` alongside the frozen v1 values. A healthy empty Cloud
+recommendation is not an unavailable index or a connector failure. Its
+impression may carry `retrieval_source=no_evidence` and omit candidate rank.
+Addon does not choose thresholds, judge tasks, backfill results or send raw
+query, title, URL, anchor or score in feedback. Cloud owns the rule; Toolbox
+projects the returned version and respects an explicit healthy abstention.

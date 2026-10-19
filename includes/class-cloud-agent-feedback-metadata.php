@@ -14,7 +14,7 @@ if ( ! class_exists( 'Npcink_Cloud_Agent_Feedback_Metadata' ) ) {
 		public static function normalize( array $payload ) {
 			$metadata = array_intersect_key( $payload, array_flip( self::FIELDS ) );
 			$enums = array(
-				'ranking_version' => array( 'internal_links.v1', 'related_content.v1' ),
+				'ranking_version' => array( 'internal_links.v1', 'related_content.v1', 'internal_links.v2', 'related_content.v2' ),
 				'score_bucket' => array( 'low', 'medium', 'high', 'unknown' ),
 				'retrieval_source' => array( 'cloud_vector', 'cloud_vector_rerank', 'local_fallback', 'no_evidence', 'unavailable', 'unknown' ),
 			);
