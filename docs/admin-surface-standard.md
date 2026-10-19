@@ -71,13 +71,16 @@ console.
 Verified admin navigation should stay at four top-level entries:
 
 - `Overview`: usage metrics, compact entitlement / monitoring detail, one Site
-  Knowledge feature switch, and folded privacy consent. Routine Site Knowledge
-  delivery buffering remains silent; only a recorded delivery error creates an
-  attention row.
-- `Site Knowledge`: compact automatic-update status and last delivery. Healthy
-  state has no manual refresh action; recovery update appears only after a
-  delivery failure. Local error or WP-Cron facts remain on Checks.
-- `Checks`: bounded Cloud connection and service checks.
+  Knowledge feature switch, and folded privacy consent. Entitlement keeps Renews
+  and AI credit period visible; remaining limits fold under More limits. Routine
+  Site Knowledge delivery buffering remains silent; only a recorded delivery
+  error creates an attention row.
+- `Site Knowledge`: compact automatic-update status and last delivery. The
+  Knowledge base status title stays screen-reader-only beside the tab name.
+  Healthy state has no manual refresh action; recovery update appears only after
+  a delivery failure. Local error or WP-Cron facts remain on Checks.
+- `Checks`: Run checks plus Credentials and Cloud connection rows stay visible;
+  Hosted Runtime, capability rows, and readiness history fold under Check details.
 - `Connection`: account change, disconnect, and collapsed manual recovery.
 
 Do not reintroduce separate `Status`, `Troubleshooting`, `Advanced and

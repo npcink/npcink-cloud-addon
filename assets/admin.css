@@ -662,6 +662,30 @@ button.npcink-cloud-icon-button.button-link:focus {
 	padding: 2px 0 0 0;
 }
 
+.npcink-cloud-entitlement-more,
+.npcink-cloud-checks-detail {
+	margin-top: 12px;
+	max-width: 720px;
+}
+
+.npcink-cloud-entitlement-more > summary,
+.npcink-cloud-checks-detail > summary {
+	color: #646970;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.npcink-cloud-entitlement-more > summary:hover,
+.npcink-cloud-entitlement-more > summary:focus,
+.npcink-cloud-checks-detail > summary:hover,
+.npcink-cloud-checks-detail > summary:focus {
+	color: #1d35b4;
+}
+
+.npcink-cloud-checks-detail .npcink-cloud-checks-table {
+	margin-top: 0;
+}
+
 .npcink-cloud-manual-fallback {
 	border-top: 0;
 	margin-top: 28px;

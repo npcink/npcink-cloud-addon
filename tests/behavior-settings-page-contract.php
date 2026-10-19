@@ -630,11 +630,20 @@ $checks_renderer->invoke(
 $checks_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $checks_rendered, 'npcink-cloud-checks-table' )
+	&& false !== strpos( $checks_rendered, 'Credentials' )
+	&& false !== strpos( $checks_rendered, 'Cloud connection' )
+	&& false !== strpos( $checks_rendered, 'npcink-cloud-checks-detail' )
+	&& false !== strpos( $checks_rendered, 'Check details' )
+	&& false === strpos( $checks_rendered, 'npcink-cloud-checks-detail" open' )
+	&& false === strpos( $checks_rendered, 'npcink-cloud-checks-detail open' )
+	&& strpos( $checks_rendered, 'Credentials' ) < strpos( $checks_rendered, '<summary>' )
+	&& strpos( $checks_rendered, '<summary>' ) < strpos( $checks_rendered, 'Hosted Runtime' )
 	&& false === strpos( $checks_rendered, 'Change Cloud account' )
 	&& false === strpos( $checks_rendered, '<h3>Checks</h3>' )
 	&& false !== strpos( $checks_rendered, 'screen-reader-text' )
+	&& false === strpos( $checks_rendered, 'WordPress AI generation tests' )
 	&& false === strpos( $checks_rendered, 'npcink-cloud-secondary-tabs' ),
-	'Behavior: Checks tab renders checks only without secondary tabs or connection management.'
+	'Behavior: Checks keeps credentials visible, folds Hosted Runtime into Check details, and hides generation tests.'
 );
 
 ob_start();
@@ -665,14 +674,21 @@ ob_start();
 Npcink_Cloud_Settings_Page::render();
 $overview_with_entitlement = (string) ob_get_clean();
 maca_assert(
-	(
-		false !== strpos( $overview_with_entitlement, 'npcink-cloud-entitlement-grid' )
-		|| false !== strpos( $overview_with_entitlement, 'No additional entitlement parameters were returned by Cloud.' )
+	false === strpos( $overview_with_entitlement, 'No additional entitlement parameters were returned by Cloud.' )
+	&& false === strpos( $overview_with_entitlement, 'View AI credit details in Cloud' )
+	&& (
+		false === strpos( $overview_with_entitlement, 'npcink-cloud-entitlement-block' )
 		|| false !== strpos( $overview_with_entitlement, 'Entitlement details' )
 	)
-	&& false === strpos( $overview_with_entitlement, 'More limits' )
-	&& false === strpos( $overview_with_entitlement, 'View AI credit details in Cloud' ),
-	'Behavior: Overview hosts flat two-column entitlement detail without More limits or Cloud credit link.'
+	&& (
+		false === strpos( $overview_with_entitlement, 'npcink-cloud-entitlement-more' )
+		|| (
+			false !== strpos( $overview_with_entitlement, 'More limits' )
+			&& false === strpos( $overview_with_entitlement, 'npcink-cloud-entitlement-more" open' )
+			&& false === strpos( $overview_with_entitlement, 'npcink-cloud-entitlement-more open' )
+		)
+	),
+	'Behavior: Overview skips empty entitlement copy; extra limits fold under More limits when present.'
 );
 
 $connection_management_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_connection_management' );
@@ -781,6 +797,9 @@ maca_assert(
 	false === strpos( $site_knowledge_rendered, 'Available knowledge documents' )
 	&& false !== strpos( $site_knowledge_rendered, 'data-npcink-site-knowledge-refresh' )
 		&& false !== strpos( $site_knowledge_rendered, 'Knowledge base status' )
+		&& false !== strpos( $site_knowledge_rendered, 'screen-reader-text' )
+		&& false === strpos( $site_knowledge_rendered, '<h3 id="npcink-cloud-site-knowledge-status-title">Knowledge base status' )
+		&& false === strpos( $site_knowledge_rendered, 'Updates will appear here after public content changes.' )
 		&& false === strpos( $site_knowledge_rendered, 'Manual update' )
 		&& false === strpos( $site_knowledge_rendered, '<summary>Technical details</summary>' )
 		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-site-knowledge-quota-detail' )

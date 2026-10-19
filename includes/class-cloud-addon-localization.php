@@ -439,6 +439,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Advanced knowledge base settings' => '高级知识库设置',
 				'Needs update' => '需要更新',
 				'More limits' => '更多限额',
+				'Check details' => '检查明细',
 				'Ready to index' => '可以开始索引',
 				'%d outside limit' => '%d 项超出限额',
 				'Updating · %d waiting' => '更新中 · 等待 %d',

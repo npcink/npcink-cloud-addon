@@ -476,3 +476,4 @@ actions, options, or public APIs are removed.
 
 2026-10-19 UI densify pass (figs 1–5): settings-page ceiling → 2500; Overview icon Portal + compact plan chip; Features short switches + flat privacy; Site Knowledge badge/short status + Cloud icon; Advanced entitlement untitled + More limits; panels max-width 720px.
 2026-10-19 four-tab alignment: settings-page ceiling 2500→2450 after removing unused secondary-tab renderer and tab_view_url; copy and 720px column alignment do not add lines.
+2026-10-19 tiered discoverability: settings-page ceiling stays 2450; Overview entitlement keeps Renews / AI credit period visible and folds remaining limits into More limits; Checks folds Hosted Runtime, capability rows, and readiness history into Check details; Knowledge base status title uses screen-reader-text; empty entitlement and healthy Updates-will-appear copy stay unrendered.
