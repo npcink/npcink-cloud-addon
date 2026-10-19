@@ -10,10 +10,10 @@
 }
 
 .npcink-cloud-summary {
-	background: #fff;
-	border: 1px solid #c3c4c7;
+	background: transparent;
+	border: 0;
 	margin: 16px 0 18px;
-	padding: 16px;
+	padding: 0;
 }
 
 .npcink-cloud-summary__header {
@@ -95,7 +95,7 @@
 }
 
 .npcink-cloud-summary__grid {
-	border-top: 1px solid #dcdcde;
+	border-top: 0;
 	display: grid;
 	gap: 0;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -103,7 +103,7 @@
 }
 
 .npcink-cloud-summary__item {
-	border-bottom: 1px solid #f0f0f1;
+	border-bottom: 0;
 	padding: 10px 12px 10px 0;
 }
 
@@ -121,12 +121,13 @@
 }
 
 .npcink-cloud-local-permissions {
-	background: #fff;
-	border: 1px solid #dcdcde;
+	background: transparent;
+	border: 0;
 	box-sizing: border-box;
 	margin: 16px 0;
-	max-width: 1040px;
-	padding: 16px;
+	max-width: 720px;
+	padding: 0;
+	width: 100%;
 }
 
 .npcink-cloud-monitoring-consent {
@@ -175,8 +176,88 @@
 	margin: 0;
 }
 
+.npcink-cloud-local-permissions__privacy {
+	border-top: 0;
+	margin-top: 14px;
+	padding-top: 0;
+}
+
+.npcink-cloud-local-permissions__subtitle {
+	color: #646970;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	margin: 0 0 6px;
+	text-transform: uppercase;
+}
+
+.npcink-cloud-local-permission__description {
+	/* Long copy moved to info-hint title; keep rule for older markup safety. */
+	display: none;
+}
+
+
+
+.npcink-cloud-site-knowledge-summary {
+	background: transparent;
+	border: 0;
+	box-sizing: border-box;
+	max-width: 720px;
+	padding: 0;
+}
+
+.npcink-cloud-site-knowledge-heading h3 {
+	align-items: center;
+	display: inline-flex;
+	gap: 6px;
+	margin: 0;
+}
+
+
+/* Overview: one padded-free column so connection + Features cards share the same width. */
+.npcink-cloud-overview.npcink-cloud-tab-panel {
+	background: transparent;
+	border: 0;
+	box-sizing: border-box;
+	max-width: 720px;
+	padding: 0;
+	width: 100%;
+}
+
+.npcink-cloud-overview .npcink-cloud-overview-panel,
+.npcink-cloud-overview .npcink-cloud-local-permissions {
+	background: transparent;
+	border: 0;
+	box-sizing: border-box;
+	margin-left: 0;
+	margin-right: 0;
+	max-width: none;
+	padding-left: 0;
+	padding-right: 0;
+	width: 100%;
+}
+
+.npcink-cloud-overview .npcink-cloud-overview-panel {
+	margin-bottom: 0;
+}
+
+.npcink-cloud-overview .npcink-cloud-local-permissions {
+	margin-top: 10px;
+	margin-bottom: 0;
+}
+
+.npcink-cloud-overview-panel {
+	background: transparent;
+	border: 0;
+	box-sizing: border-box;
+	margin: 0 0 16px;
+	max-width: 720px;
+	padding: 0;
+	width: 100%;
+}
+
 .npcink-cloud-local-permission {
-	border-bottom: 1px solid #f0f0f1;
+	border-bottom: 0;
 	margin: 0;
 }
 
@@ -185,7 +266,7 @@
 }
 
 .npcink-cloud-local-permissions__more {
-	border-top: 1px solid #f0f0f1;
+	border-top: 0;
 	padding-top: 12px;
 }
 
@@ -200,8 +281,8 @@
 	display: grid;
 	gap: 16px;
 	grid-template-columns: 54px minmax(0, 1fr);
-	min-height: 64px;
-	padding: 14px 0;
+	min-height: 0;
+	padding: 10px 0;
 }
 
 .npcink-cloud-local-permission__copy {
@@ -365,10 +446,10 @@
 }
 
 .npcink-cloud-connection-danger {
-	max-width: 760px;
+	max-width: 720px;
 	margin-top: 28px;
-	padding-top: 20px;
-	border-top: 1px solid #dcdcde;
+	padding-top: 0;
+	border-top: 0;
 }
 
 .npcink-cloud-connection-danger h4 {
@@ -385,6 +466,48 @@
 .npcink-cloud-button-danger:focus {
 	border-color: #8a2424;
 	color: #8a2424;
+}
+
+
+.npcink-cloud-icon-button {
+	align-items: center;
+	display: inline-flex;
+	justify-content: center;
+	line-height: 1;
+	min-height: 30px;
+	min-width: 30px;
+	padding: 0 6px;
+}
+
+.npcink-cloud-icon-button .dashicons {
+	font-size: 18px;
+	height: 18px;
+	margin: 0;
+	width: 18px;
+}
+
+a.npcink-cloud-icon-button {
+	text-decoration: none;
+}
+
+button.npcink-cloud-icon-button.button-link {
+	border: 0;
+	box-shadow: none;
+	color: #2271b1;
+	cursor: pointer;
+	min-height: 0;
+	min-width: 0;
+	padding: 2px;
+}
+
+button.npcink-cloud-icon-button.button-link:hover,
+button.npcink-cloud-icon-button.button-link:focus {
+	color: #135e96;
+}
+
+.npcink-cloud-entitlement__retry.npcink-cloud-icon-button[hidden],
+.npcink-cloud-site-knowledge-usage__retry.npcink-cloud-icon-button[hidden] {
+	display: none;
 }
 
 .npcink-cloud-overview-service {
@@ -404,19 +527,20 @@
 }
 
 .npcink-cloud-connect-context {
-	background: #f6f7f7;
-	border: 1px solid #dcdcde;
+	background: transparent;
+	border: 0;
 	box-sizing: border-box;
 	display: grid;
 	grid-template-columns: minmax(120px, 0.75fr) minmax(180px, 1fr) minmax(220px, 1.25fr);
+	gap: 8px 16px;
 	margin-top: 10px;
-	max-width: 860px;
+	max-width: 720px;
 }
 
 .npcink-cloud-connect-context__item {
-	border-right: 1px solid #dcdcde;
+	border-right: 0;
 	min-width: 0;
-	padding: 10px 12px;
+	padding: 0;
 }
 
 .npcink-cloud-connect-context__item:last-child {
@@ -444,7 +568,7 @@
 	flex-wrap: wrap;
 	gap: 10px 14px;
 	margin-top: 14px;
-	max-width: 860px;
+	max-width: 720px;
 }
 
 .npcink-cloud-connect-actions .description {
@@ -453,7 +577,7 @@
 }
 
 .npcink-cloud-endpoint-advanced {
-	border-top: 1px solid #dcdcde;
+	border-top: 0;
 	margin-top: 14px;
 	max-width: 720px;
 	padding-top: 10px;
@@ -481,11 +605,12 @@
 }
 
 .npcink-cloud-endpoint-advanced__body {
-	border-left: 3px solid #dcdcde;
+	border-left: 0;
 	box-sizing: border-box;
-	margin-top: 8px;
-	padding: 6px 0 0 12px;
+	margin-top: 10px;
+	padding: 2px 0 0 0;
 }
+
 
 .npcink-cloud-endpoint-advanced__body label {
 	display: block;
@@ -512,10 +637,10 @@
 }
 
 .npcink-cloud-advanced-detail {
-	border-top: 1px solid #dcdcde;
-	margin-top: 18px;
-	max-width: 980px;
-	padding-top: 12px;
+	border-top: 0;
+	margin-top: 14px;
+	max-width: 720px;
+	padding-top: 0;
 }
 
 .npcink-cloud-advanced-detail > summary {
@@ -531,49 +656,49 @@
 }
 
 .npcink-cloud-advanced-detail__body {
-	border-left: 3px solid #dcdcde;
+	border-left: 0;
 	box-sizing: border-box;
 	margin-top: 10px;
-	padding: 2px 0 0 14px;
+	padding: 2px 0 0 0;
 }
 
-.npcink-cloud-overview-panel__header {
-	align-items: center;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 4px 12px;
-	padding: 2px 0 14px;
+.npcink-cloud-manual-fallback {
+	border-top: 0;
+	margin-top: 28px;
+	max-width: 720px;
+	opacity: 0.92;
 }
 
-.npcink-cloud-overview-heading {
-	max-width: none;
+.npcink-cloud-manual-fallback > summary {
+	color: #646970;
+	font-size: 13px;
+	font-weight: 500;
 }
 
-.npcink-cloud-overview-panel__plan {
-	color: #50575e;
-	margin-left: auto;
+.npcink-cloud-manual-fallback > summary:hover,
+.npcink-cloud-manual-fallback > summary:focus {
+	color: #1d2327;
 }
 
-.npcink-cloud-overview-panel__plan-label {
-	overflow-wrap: anywhere;
-}
 
 .npcink-cloud-overview-panel__metrics {
-	border-top: 1px solid #f0f0f1;
+	border-top: 0;
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0 8px;
+	margin-top: 0;
 }
 
 .npcink-cloud-stat {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 4px;
 	min-width: 0;
-	padding: 14px 16px 16px;
+	padding: 8px 12px 10px;
 }
 
 .npcink-cloud-stat + .npcink-cloud-stat {
-	border-left: 1px solid #f0f0f1;
+	border-left: 0;
 }
 
 .npcink-cloud-stat:first-child {
@@ -602,8 +727,8 @@
 }
 
 .npcink-cloud-overview-panel__notices {
-	border-top: 1px solid #f0f0f1;
-	padding: 12px 0 2px;
+	border-top: 0;
+	padding: 8px 0 2px;
 }
 
 .npcink-cloud-overview-notice {
@@ -718,10 +843,12 @@
 .npcink-cloud-section-heading {
 	align-items: center;
 	display: flex;
-	gap: 16px;
+	flex-wrap: wrap;
+	gap: 8px 16px;
 	justify-content: space-between;
-	margin: 0 0 12px;
-	max-width: 860px;
+	margin: 0 0 10px;
+	max-width: 720px;
+	width: 100%;
 }
 
 .npcink-cloud-text-link {
@@ -741,14 +868,81 @@
 	flex: 0 0 auto;
 }
 
+.npcink-cloud-entitlement-heading {
+	max-width: 720px;
+	width: 100%;
+}
+
+.npcink-cloud-entitlement-heading h3 {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.npcink-cloud-entitlement-heading__action {
+	align-items: center;
+	display: inline-flex;
+	flex: 0 0 auto;
+	gap: 4px;
+	margin-left: auto;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.npcink-cloud-entitlement-heading__action .dashicons {
+	font-size: 16px;
+	height: 16px;
+	width: 16px;
+}
+
+.npcink-cloud-entitlement-table {
+	margin-top: 0;
+	max-width: 720px;
+}
+
+.npcink-cloud-entitlement-block {
+	margin: 8px 0 6px;
+	max-width: 720px;
+}
+
+.npcink-cloud-entitlement-grid {
+	display: grid;
+	gap: 10px 28px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.npcink-cloud-entitlement-grid__item {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.npcink-cloud-entitlement-grid__label {
+	color: #646970;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.npcink-cloud-entitlement-grid__value {
+	color: #1d2327;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.4;
+	overflow-wrap: anywhere;
+}
+
+@media (max-width: 782px) {
+	.npcink-cloud-entitlement-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+
+
 .npcink-cloud-tabs {
 	margin-top: 14px;
 }
 
-.npcink-cloud-secondary-tabs {
-	gap: 16px;
-	margin: 12px 0 16px;
-}
 
 .npcink-ai-tabs {
 	display: flex;
@@ -793,16 +987,15 @@
 	color: #3858e9;
 }
 
-.npcink-cloud-secondary-tabs .npcink-ai-tab {
-	font-size: 13px;
-	min-height: 36px;
-}
 
 .npcink-cloud-tab-panel {
-	background: #fff;
-	border: 1px solid #dcdcde;
-	margin: 16px 0;
-	padding: 16px;
+	background: transparent;
+	border: 0;
+	box-sizing: border-box;
+	margin: 12px 0;
+	max-width: 720px;
+	padding: 0;
+	width: 100%;
 }
 
 .npcink-cloud-tab-panel > h2:first-child {
@@ -821,7 +1014,7 @@
 }
 
 .npcink-cloud-error-summary {
-	max-width: 760px;
+	max-width: 720px;
 	overflow-wrap: anywhere;
 }
 
@@ -836,7 +1029,7 @@
 
 .npcink-cloud-site-knowledge-status {
 	margin: 0 0 12px;
-	max-width: 860px;
+	max-width: 720px;
 }
 
 .npcink-cloud-site-knowledge-status th {
@@ -849,6 +1042,7 @@
 }
 
 .npcink-cloud-site-knowledge-summary {
+	/* panel chrome set with Features-aligned max-width above */
 	margin: 0;
 }
 
@@ -856,19 +1050,15 @@
 	max-width: none;
 }
 
-.npcink-cloud-site-knowledge-summary__scope {
-	color: #646970;
-	margin: 0;
-}
 
 .npcink-cloud-site-knowledge-summary__status {
 	align-items: center;
-	border-top: 1px solid #f0f0f1;
+	border-top: 0;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
 	margin: 12px 0 0;
-	padding-top: 14px;
+	padding-top: 0;
 }
 
 .npcink-cloud-site-knowledge-summary__result {
@@ -909,11 +1099,16 @@
 }
 
 .npcink-cloud-checks-heading {
-	max-width: none;
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	justify-content: flex-end;
+	margin: 0 0 8px;
 }
 
 .npcink-cloud-checks-table {
-	max-width: none;
+	max-width: 720px;
 }
 
 .npcink-cloud-checks-table .npcink-cloud-mono-detail {
@@ -927,12 +1122,12 @@
 
 .npcink-cloud-subcard {
 	align-items: start;
-	border-top: 1px solid #f0f0f1;
+	border-top: 0;
 	display: grid;
 	gap: 12px 24px;
 	grid-template-columns: minmax(0, 1fr) auto;
 	margin-top: 16px;
-	padding-top: 16px;
+	padding-top: 0;
 }
 
 .npcink-cloud-subcard__copy h4 {
@@ -963,11 +1158,12 @@
 }
 
 .npcink-cloud-empty {
-	background: #fff;
-	border-left: 4px solid #dba617;
+	background: transparent;
+	border-left: 0;
+	color: #996800;
 	margin: 0;
-	max-width: 820px;
-	padding: 10px 12px;
+	max-width: 720px;
+	padding: 0;
 }
 
 .connector-item--npcink-cloud-addon button.components-button {
@@ -990,7 +1186,7 @@
 	}
 
 	.npcink-cloud-connect-context__item {
-		border-bottom: 1px solid #dcdcde;
+		border-bottom: 0;
 		border-right: 0;
 	}
 
@@ -1036,6 +1232,7 @@
 		gap: 10px;
 	}
 
+
 	.npcink-cloud-overview-panel__metrics {
 		grid-template-columns: 1fr;
 	}
@@ -1048,12 +1245,9 @@
 
 	.npcink-cloud-stat + .npcink-cloud-stat {
 		border-left: 0;
-		border-top: 1px solid #f0f0f1;
+		border-top: 0;
 	}
 
-	.npcink-cloud-overview-panel__plan {
-		margin-left: 0;
-	}
 
 	.npcink-cloud-local-permission__control {
 		grid-template-columns: 54px minmax(0, 1fr);
@@ -1111,7 +1305,7 @@
 	}
 
 	.npcink-cloud-site-knowledge-status tr {
-		border-bottom: 1px solid #dcdcde;
+		border-bottom: 0;
 		padding: 10px 0;
 	}
 
@@ -1127,4 +1321,49 @@
 	.npcink-cloud-local-permission__feedback {
 		margin-left: 0;
 	}
+}
+
+
+/* Keep metric column rules on visible cells when a paused quota is hidden. */
+.npcink-cloud-overview-panel__metrics {
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.npcink-cloud-stat[hidden] + .npcink-cloud-stat {
+	border-left: 0;
+}
+
+
+/* Flat admin surfaces: no card chrome or table hairlines on grey wp-admin. */
+.npcink-cloud-addon .widefat,
+.npcink-cloud-addon .widefat thead td,
+.npcink-cloud-addon .widefat thead th,
+.npcink-cloud-addon .widefat td,
+.npcink-cloud-addon .widefat th {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+}
+
+.npcink-cloud-addon .widefat {
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+
+.npcink-cloud-addon .widefat.striped > tbody > :nth-child(odd) {
+	background: transparent;
+}
+
+.npcink-cloud-addon .form-table th,
+.npcink-cloud-addon .form-table td {
+	border: 0;
+	padding-left: 0;
+}
+
+.npcink-cloud-addon .npcink-cloud-entitlement-table,
+.npcink-cloud-addon .npcink-cloud-checks-table,
+.npcink-cloud-addon .npcink-cloud-site-knowledge-status {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
 }

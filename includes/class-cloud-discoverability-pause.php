@@ -24,16 +24,25 @@ final class Npcink_Cloud_Discoverability_Pause {
 		),
 	);
 
+	/** Admin surfaces hidden while ACTIVE; implementation and options stay intact. */
+	private static array $paused_admin_surfaces = array(
+		'wordpress_ai_generation_tests' => true,
+	);
+
 	public static function feature_error( string $feature ) {
 		return isset( self::$paused_runtime_features[ $feature ] )
 			? new WP_Error( 'cloud_feature_paused', __( 'This Cloud feature is temporarily paused.', 'npcink-cloud-addon' ), array( 'status' => 409, 'feature' => $feature, 'retryable' => false ) )
 			: null;
 	}
 
-
 	/** Release policy access point shared by hooks and transport guards. */
 	public static function is_active(): bool {
 		return self::ACTIVE;
+	}
+
+	/** Settings-page entry points only; does not delete classes, actions, or options. */
+	public static function is_admin_surface_paused( string $surface ): bool {
+		return self::is_active() && ! empty( self::$paused_admin_surfaces[ $surface ] );
 	}
 
 	public static function register_hooks(): void {

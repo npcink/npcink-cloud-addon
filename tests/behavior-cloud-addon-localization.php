@@ -351,9 +351,9 @@ maca_assert(
 			'Update again',
 			'npcink-cloud-addon'
 		)
-		&& '查看高级排查' === Npcink_Cloud_Addon_Localization::filter_gettext(
-			'View advanced troubleshooting',
-			'View advanced troubleshooting',
+		&& '查看检查' === Npcink_Cloud_Addon_Localization::filter_gettext(
+			'View checks',
+			'View checks',
 			'npcink-cloud-addon'
 		)
 	&& '%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。' === Npcink_Cloud_Addon_Localization::filter_gettext(

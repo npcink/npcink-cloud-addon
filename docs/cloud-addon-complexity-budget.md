@@ -86,7 +86,7 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-runtime-media-payloads.php` — 280 lines (static
   multipart assembly and exact upload/delivery-ack response validation for
   the bounded media endpoints)
-- `includes/class-cloud-settings-page.php` — 2283 lines (was 3280 before the
+- `includes/class-cloud-settings-page.php` — 2450 lines (was 3280 before the
   2026-10-04 handler split into `class-cloud-settings-actions.php`; raised from
   2207 for the 2026-10-12 locale-aware privacy URL, no-JS disconnect confirmation,
   and removal of the retired Site Knowledge coverage renderer; raised again for
@@ -100,7 +100,7 @@ connector classes so they cannot grow unnoticed:
   updating while retaining failures in diagnostics and restoring attention after delivery fails;
   raised by 23 lines for shared escaped AJAX status fragments, stale-evidence gating,
   and failure-only retry feedback)
-- `includes/class-cloud-settings-actions.php` — 1154 lines (settings request
+- `includes/class-cloud-settings-actions.php` — 1170 lines (settings request
   handlers and their transient state; the render class stays a projection;
   raised from 1106 with reason: the 2026-10-11 first-connection verify-failure
   path keeps exchanged credentials in the unverified state instead of
@@ -454,3 +454,25 @@ adds no settings, registry, state, HTTP request, or scheduler ownership.
 media-job POST before signing; two transport lines reject before source uploads;
 two projection lines reject new optimization plans. These bounded guards preserve
 shared artifact delivery, historical results, configuration and all implementations.
+
+2026-10-19 admin simplification / reversible pauses: settings-page ceiling moves
+from 2299 to 2337 lines. Overview hides Runtime allowance when inspection is
+paused; Advanced collapses secondary tabs into one page, folds entitlement
+limits, and hides WordPress AI generation-test entry points through
+`Npcink_Cloud_Discoverability_Pause::is_admin_surface_paused`. No classes,
+actions, options, or public APIs are removed.
+
+2026-10-19 admin CSS continuity: settings-page ceiling moves from 2337 to 2350 for Advanced single-page stack wrappers and enqueue hardening (page query detection + admin.css filemtime cache-bust). Adds scoped stack CSS; does not remove secondary-tab helpers or public APIs.
+
+2026-10-19 admin CSS dual-enqueue fix: settings-page ceiling moves from 2350 to 2375 for symlink-safe `plugin_file_for_asset_url()`, cloud-page-only CSS enqueue (no PARENT_MENU_SLUG match), and skip-enqueue-when-unreadable. Paired with governance-core Admin_Page enqueue narrowed to MENU_SLUG so Cloud no longer loads Core `admin.css?ver=0.3.0`.
+
+2026-10-19 plugins_url worktree 404: settings-page ceiling 2375→2385 for `plugins_dir_slug()` + `asset_url()` (single-arg plugins_url; never pass realpath/__FILE__). Local symlink must stay `npcink-cloud-addon` → `/Users/muze/gitee/npcink-cloud-addon`, not a git worktree folder.
+
+2026-10-19 P0 settings declutter: settings-page ceiling → 2450 for portal_url/render_portal_link, summary vs Overview notice split (drops off banner), Connected without synonym health label, dashicons Retry/Portal icon buttons + CSS.
+
+2026-10-19 restore Advanced secondary tabs: settings-page ceiling → 2430; `render_advanced_page` again uses `render_secondary_tab_navigation` + `?view=` (service|checks|connection) instead of single-page stack.
+
+2026-10-19 entitlement details layout: settings-page ceiling → 2440; remove Usage limits `<details>` disclosure; heading row aligns Cloud credit link right; ownership copy moves to link title / screen-reader text.
+
+2026-10-19 UI densify pass (figs 1–5): settings-page ceiling → 2500; Overview icon Portal + compact plan chip; Features short switches + flat privacy; Site Knowledge badge/short status + Cloud icon; Advanced entitlement untitled + More limits; panels max-width 720px.
+2026-10-19 four-tab alignment: settings-page ceiling 2500→2450 after removing unused secondary-tab renderer and tab_view_url; copy and 720px column alignment do not add lines.

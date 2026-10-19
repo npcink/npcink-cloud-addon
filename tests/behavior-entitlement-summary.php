@@ -224,10 +224,10 @@ maca_assert(
 		),
 		true
 	)
-	&& 'Pro plan · available' === $format_overview_entitlement->invoke( null, $read_summary, true )
-	&& 'Free plan · available' === $format_overview_entitlement->invoke( null, array( 'available' => true, 'package_label' => 'Free' ), true )
-	&& 'Enterprise · available' === $format_overview_entitlement->invoke( null, array( 'available' => true, 'package_label' => 'Enterprise' ), true )
-	&& 'Enterprise · available' === $format_overview_entitlement->invoke( null, array( 'available' => true, 'package_label' => 'Enterprise', 'package_tier' => 'pro' ), true )
+	&& 'Pro plan' === $format_overview_entitlement->invoke( null, $read_summary, true )
+	&& 'Free plan' === $format_overview_entitlement->invoke( null, array( 'available' => true, 'package_label' => 'Free' ), true )
+	&& 'Enterprise' === $format_overview_entitlement->invoke( null, array( 'available' => true, 'package_label' => 'Enterprise' ), true )
+	&& 'Enterprise' === $format_overview_entitlement->invoke( null, array( 'available' => true, 'package_label' => 'Enterprise', 'package_tier' => 'pro' ), true )
 	&& ! empty( $overview_metrics['credits']['available'] )
 	&& 88 === (int) ( $overview_metrics['credits']['percent'] ?? -1 )
 	&& '87.5 / 100' === (string) ( $overview_metrics['credits']['value_label'] ?? '' )
@@ -244,11 +244,28 @@ maca_assert(
 	&& 'Passed automatically' === (string) ( $site_knowledge_direct['retrieval_acceptance']['label'] ?? '' )
 	&& 'Last verified: 2026-07-15 01:30:00' === (string) ( $site_knowledge_direct['retrieval_acceptance']['verified_label'] ?? '' )
 	&& $site_knowledge_direct === $site_knowledge_usage
-	&& ! empty( $overview_metrics['runtime']['available'] )
-	&& '8 of 10 runs remaining' === (string) ( $overview_metrics['runtime']['label'] ?? '' )
+	&& empty( $overview_metrics['runtime']['available'] )
 	&& empty( $missing_overview_metrics['credits']['available'] )
 	&& empty( $missing_overview_metrics['runtime']['available'] ),
 	'Behavior: direct Site Knowledge projection matches the settings facade while overview copy avoids duplicate fallbacks.'
+);
+
+$unpaused_runtime_overview = $overview_metrics_method->invoke(
+	null,
+	array(
+		'pro_cloud_runtime' => array(
+			'reported' => true,
+			'available' => true,
+			'availability_state' => 'available',
+			'max_nightly_inspection_runs_per_period' => 10,
+			'remaining_nightly_inspection_runs' => 8,
+		),
+	)
+);
+maca_assert(
+	! empty( $unpaused_runtime_overview['runtime']['available'] )
+	&& '8 of 10 runs remaining' === (string) ( $unpaused_runtime_overview['runtime']['label'] ?? '' ),
+	'Behavior: Overview Runtime allowance appears only when entitlement marks nightly inspection available.'
 );
 
 $legacy_contract_data = $entitlement_response['data'];

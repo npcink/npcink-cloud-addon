@@ -16,6 +16,12 @@ rewritten. Historical run/result reads, existing artifact downloads/ACK and
 ordinary WordPress AI text, image, ALT, Site Knowledge, search and opt-in
 monitoring remain supported. The entitlement projection marks inspection
 unavailable even when a retained cached entitlement describes the old service.
+Overview therefore omits Runtime allowance while inspection is paused. The
+Advanced Checks page also hides WordPress AI generation-test entry points via
+`is_admin_surface_paused( 'wordpress_ai_generation_tests' )`; the helper and
+host tooling remain installed. SEO/AEO/GEO and article-audio pauses continue to
+use the existing host feature filter and runtime marker guards without Addon
+settings-page entrances.
 
 Implementation and public method signatures are retained. They do not grant
 availability. Restoration requires a reviewed source change across Cloud,

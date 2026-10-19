@@ -30,3 +30,12 @@ maca_assert( 1 === count( $GLOBALS['maca_http_requests'] ), 'Historical run read
 $GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ) );
 $pause_client->execute_runtime( array( 'ability_name' => 'ordinary-title' ) );
 maca_assert( 2 === count( $GLOBALS['maca_http_requests'] ), 'Ordinary runtime transport remains available.' );
+
+maca_assert(
+	Npcink_Cloud_Discoverability_Pause::is_admin_surface_paused( 'wordpress_ai_generation_tests' ),
+	'Default release policy hides WordPress AI generation-test entry points.'
+);
+maca_assert(
+	! Npcink_Cloud_Discoverability_Pause::is_admin_surface_paused( 'unknown_surface' ),
+	'Unknown admin surfaces are not treated as paused.'
+);
