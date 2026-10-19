@@ -54,40 +54,37 @@ When verified, the default page should prioritize:
   content refresh transport, explicit administrator delivery intents, and
   shallow bridge state while Cloud owns index execution, rebuild/delete
   handling, lifecycle, and freshness policy;
-- one `Advanced and troubleshooting` entry for compact account/usage
-  projections, local monitoring upload state, connection checks, and
-  connection management;
+- top-level `Checks` and `Connection` entries for connection checks and
+  connection management; compact entitlement / monitoring detail stays on
+  Overview;
 - a clear path to update/re-verify settings.
 
 Toolbox no longer owns Cloud Checks or Troubleshooting Checks for basic AI
 connection, Hosted Runtime, Cloud search, Cloud image/source, quota,
-entitlement, or service health. `Advanced and troubleshooting` is the local
-entry for those Cloud connection and service-status details, but it must remain
-a summary/detail surface rather than a Toolbox product workflow or operations
+entitlement, or service health. Local `Checks` and Overview entitlement detail
+cover those Cloud connection and service-status summaries, but must remain
+summary/detail surfaces rather than a Toolbox product workflow or operations
 console.
 
 ## Tab Model
 
-Verified admin navigation should stay at three top-level entries:
+Verified admin navigation should stay at four top-level entries:
 
-- `Overview`: compact healthy connection/service state plus plan, followed by
-  attention-only connector rows, one Site Knowledge feature switch, and folded
-  privacy consent. Routine Site Knowledge delivery buffering remains silent;
-  only a recorded delivery error creates an attention row. The Cloud entry
-  appears here once.
+- `Overview`: usage metrics, compact entitlement / monitoring detail, one Site
+  Knowledge feature switch, and folded privacy consent. Routine Site Knowledge
+  delivery buffering remains silent; only a recorded delivery error creates an
+  attention row.
 - `Site Knowledge`: compact automatic-update status and last delivery. Healthy
   state has no manual refresh action; recovery update appears only after a
-  delivery failure. Settings, maintenance, and Cloud detail use explicit links,
-  while local error or WP-Cron facts remain in advanced checks.
-- `Advanced and troubleshooting`: service detail, checks, and
-  connection management as secondary tabs. Manual credentials stay inside a
-  collapsed recovery disclosure.
+  delivery failure. Local error or WP-Cron facts remain on Checks.
+- `Checks`: bounded Cloud connection and service checks.
+- `Connection`: account change, disconnect, and collapsed manual recovery.
 
-Do not reintroduce separate `Status`, `Troubleshooting`, `Connection
-Management`, `Details`, or `Runtime Runs` top-level tabs when the content fits
-one of the three entries above. Old `details`, `status`, `diagnostics`, and
-`runtime_runs` URLs may normalize to `Advanced and troubleshooting > Service
-details` for compatibility, but they must not render a local run surface.
+Do not reintroduce separate `Status`, `Troubleshooting`, `Advanced and
+troubleshooting`, `Details`, or `Runtime Runs` top-level tabs when the content
+fits one of the four entries above. Old `advanced&view=`, `details`, `status`,
+`diagnostics`, and `runtime_runs` URLs normalize onto Overview / Checks /
+Connection for compatibility, but they must not render a local run surface.
 
 ## Advanced / Low-Frequency Details
 
@@ -104,8 +101,9 @@ Low-frequency details may include:
 - metadata-only monitoring buffer/error status only when action is needed;
 - last verification failure text.
 
-These details should move into `Advanced and troubleshooting` or an explicit
-collapsed technical-detail entry unless they are blocking the current task.
+These details should move into Overview entitlement, `Checks`, `Connection`,
+or an explicit collapsed technical-detail entry unless they are blocking the
+current task.
 Do not surface internal enum fields such as credit policy or runtime local truth in the default admin UI;
 keep those in tests and boundary documentation.
 Do not copy Cloud observability aggregates, Agent quality breakdowns, contract

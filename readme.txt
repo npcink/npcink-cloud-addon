@@ -4,7 +4,7 @@ Tags: npcink, cloud, ai, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.2
+Stable tag: 0.4.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -153,9 +153,12 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 1. Verified connector overview with compact plan, points, and Site Knowledge article capacity.
 2. Local permissions for WordPress AI and Site Knowledge delivery.
 3. Site Knowledge delivery status and bounded Cloud-owned index actions.
-4. Advanced troubleshooting with service detail, runtime runs, and connection recovery.
+4. Checks and Connection for connection health, service detail, and recovery.
 
 == Upgrade Notice ==
+
+= 0.4.3 =
+Verified admin navigation is Overview, Site Knowledge, Checks, and Connection. Legacy Advanced deep links still work. No database migration or credential change is required.
 
 = 0.4.2 =
 Adds official WordPress AI setup guidance and clearer knowledge usage errors. Existing public-content delivery may resume missed historical content. Deploy the paired Cloud update and confirm indexing budgets before distribution; no database migration or credential change is required.
@@ -173,6 +176,12 @@ Connector internals were restructured with stricter input bounds and fail-fast o
 Terminal callback delivery is removed and media recognition continuation moves to Workflow Toolbox. Re-verify the Cloud connection after upgrading from 0.1.x.
 
 == Changelog ==
+
+= 0.4.3 =
+* Replaced the verified Advanced tab with top-level Checks and Connection; Overview hosts entitlement and Features.
+* Flattened admin chrome (no card borders), densified Overview and Site Knowledge copy, and aligned the four tabs to a 720px content column.
+* Normalized legacy Advanced and diagnostics deep links onto the new tabs; kept reversible pause coverage for inspection and related admin surfaces.
+* Trimmed stale secondary-tab helpers and copy; refreshed zh_CN strings for the new Checks links.
 
 = 0.4.2 =
 * Added installation and activation guidance for the official WordPress AI plugin on verified connections.

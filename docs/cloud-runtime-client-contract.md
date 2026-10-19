@@ -114,7 +114,7 @@ It returns a `WP_Error` until the addon settings have passed Save and Verify.
 
 ## Diagnostics Surface
 
-The Cloud Addon `Advanced and troubleshooting > Checks` section reuses the existing connection state,
+The Cloud Addon `Checks` section reuses the existing connection state,
 `probe_connectivity()` result cache, entitlement summary, and Cloud Portal
 links. Liveness and signed-read state share one compact connection row. It does not expose the private `request()` helper,
 register a Developer diagnostics route, or add ad hoc Cloud service endpoints.

@@ -457,7 +457,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				self::set_admin_notice( 'warning', Npcink_Cloud_Settings_Page::format_readiness_detail( $result ) );
 			}
 
-			self::redirect_to_page( 'advanced', 'checks' );
+			self::redirect_to_page( 'checks' );
 		}
 
 		/**
@@ -885,6 +885,16 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 * @return void
 		 */
 		private static function redirect_to_page( string $tab = '', string $view = '' ): void {
+			if ( 'advanced' === $tab ) {
+				if ( 'checks' === $view ) {
+					$tab = 'checks';
+				} elseif ( 'connection' === $view ) {
+					$tab = 'connection';
+				} else {
+					$tab = 'permissions';
+				}
+				$view = '';
+			}
 			$url = self::page_url();
 			if ( '' !== $tab ) {
 				$url = add_query_arg( 'tab', sanitize_key( $tab ), $url );

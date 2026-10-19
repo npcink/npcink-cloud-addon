@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Npcink Cloud Addon 0.4.2\n"
+"Project-Id-Version: Npcink Cloud Addon 0.4.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/npcink-cloud-addon\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1824,7 +1824,7 @@ msgid "Last checked: %1$s · Signed read: %2$s"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1092
-msgid "Run the bounded connection checks, or"
+msgid "Run checks, or"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1093
@@ -2175,7 +2175,7 @@ msgid "%d content updates could not be delivered and were dropped. Update the kn
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1562
-msgid "Automatic updates are delayed. Check the site scheduler in advanced troubleshooting."
+msgid "Automatic updates are delayed. Check the site scheduler in Checks."
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1564
@@ -2184,7 +2184,7 @@ msgstr ""
 
 #: includes/class-cloud-settings-page.php:1566
 #: includes/class-cloud-settings-page.php:1611
-msgid "View advanced troubleshooting"
+msgid "View checks"
 msgstr ""
 
 #. translators: %d: content count skipped by Cloud quota.
@@ -2851,4 +2851,13 @@ msgstr ""
 
 #: includes/class-cloud-wordpress-ai-provider.php:57
 msgid "Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Nightly site inspection is temporarily paused."
+msgstr ""
+
+msgid "Usage limits and quotas"
 msgstr ""

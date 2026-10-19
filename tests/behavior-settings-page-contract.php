@@ -57,9 +57,15 @@ if ( ! function_exists( 'esc_html_e' ) ) {
 	}
 }
 
+if ( ! function_exists( 'esc_attr__' ) ) {
+	function esc_attr__( string $text, string $domain = '' ): string {
+		return esc_attr( __( $text, $domain ) );
+	}
+}
+
 if ( ! function_exists( 'esc_attr_e' ) ) {
 	function esc_attr_e( string $text, string $domain = '' ): void {
-		echo esc_attr( __( $text, $domain ) );
+		echo esc_attr__( $text, $domain );
 	}
 }
 
@@ -120,6 +126,14 @@ if ( ! function_exists( 'wp_generate_password' ) ) {
 if ( ! function_exists( 'wp_nonce_field' ) ) {
 	function wp_nonce_field( string $action = '-1', string $name = '_wpnonce' ): void {
 		echo '<input type="hidden" name="' . esc_attr( $name ) . '" value="nonce-' . esc_attr( $action ) . '" />';
+	}
+}
+
+if ( ! function_exists( 'submit_button' ) ) {
+	function submit_button( string $text = 'Save Changes', string $type = 'primary', string $name = 'submit', bool $wrap = true, $other_attributes = null ): void {
+		unset( $type, $name, $other_attributes );
+		$html = '<button type="submit" class="button button-primary">' . esc_html( $text ) . '</button>';
+		echo $wrap ? '<p class="submit">' . $html . '</p>' : $html;
 	}
 }
 
@@ -491,10 +505,15 @@ Npcink_Cloud_Settings_Page::render();
 $overview_rendered = (string) ob_get_clean();
 
 maca_assert(
-	false !== strpos( $overview_rendered, 'Connection and service' )
-	&& false !== strpos( $overview_rendered, 'Connected' )
-	&& false !== strpos( $overview_rendered, 'npcink-cloud-overview-service' )
-	&& false !== strpos( $overview_rendered, 'Open Cloud' )
+	false === strpos( $overview_rendered, 'Connection and service' )
+	&& false === strpos( $overview_rendered, '>Connected<' )
+	&& false === strpos( $overview_rendered, 'npcink-cloud-overview-heading' )
+	&& false === strpos( $overview_rendered, 'npcink-cloud-overview-panel__header' )
+	&& false === strpos( $overview_rendered, 'npcink-cloud-overview-panel__plan' )
+	&& false !== strpos( $overview_rendered, 'data-npcink-entitlement-state' )
+	&& false !== strpos( $overview_rendered, 'data-npcink-entitlement-summary' )
+	&& false === strpos( $overview_rendered, 'Recently reachable' )
+	&& false === strpos( $overview_rendered, ' · available' )
 	&& false === strpos( $overview_rendered, '<section class="npcink-cloud-summary">' )
 	&& false === strpos( $overview_rendered, 'Last verification succeeded' )
 	&& false === strpos( $overview_rendered, 'Current service' )
@@ -507,7 +526,7 @@ maca_assert(
 	&& false !== strpos( $overview_rendered, 'Send anonymous diagnostics' )
 	&& false === strpos( $overview_rendered, '>WordPress AI connector<' )
 	&& false === strpos( $overview_rendered, '>Reference site content during generation<' )
-	&& false === strpos( $overview_rendered, 'AI credits shown here belong to the connected Cloud account' )
+	&& false !== strpos( $overview_rendered, 'screen-reader-text' )
 	&& false === strpos( $overview_rendered, 'Monitoring needs attention' )
 	&& $http_before_overview === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: the verified Overview owns the compact healthy connection summary and usage without a duplicate global card or Cloud HTTP.'
@@ -530,9 +549,12 @@ $tabs_with_site_knowledge = $tab_labels_renderer->invoke(
 	Npcink_Cloud_Addon_Settings::get_credential_state()
 );
 maca_assert(
-	! isset( $tabs_without_site_knowledge['site_knowledge'] )
-	&& isset( $tabs_with_site_knowledge['site_knowledge'] ),
-	'Behavior: the Site Knowledge menu appears only while automatic Site Knowledge delivery is enabled.'
+	isset( $tabs_without_site_knowledge['site_knowledge'] )
+	&& isset( $tabs_with_site_knowledge['site_knowledge'] )
+	&& isset( $tabs_with_site_knowledge['checks'] )
+	&& isset( $tabs_with_site_knowledge['connection'] )
+	&& ! isset( $tabs_with_site_knowledge['advanced'] ),
+	'Behavior: verified navigation always includes Site Knowledge, Checks, and Connection without Advanced.'
 );
 
 update_option(
@@ -553,32 +575,104 @@ maca_assert(
 );
 delete_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION );
 
-$advanced_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_advanced_page' );
+$get_tab_labels = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'get_tab_labels' );
+$get_active_tab = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'get_active_tab' );
+$checks_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_diagnostic_checks' );
+$connection_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_connection_page' );
 if ( PHP_VERSION_ID < 80100 ) {
-	$advanced_renderer->setAccessible( true );
+	$get_tab_labels->setAccessible( true );
+	$get_active_tab->setAccessible( true );
+	$checks_renderer->setAccessible( true );
+	$connection_renderer->setAccessible( true );
 }
+$verified_tabs = $get_tab_labels->invoke( null, true, array() );
+maca_assert(
+	array( 'permissions', 'site_knowledge', 'checks', 'connection' ) === array_keys( $verified_tabs )
+	&& 'Overview' === $verified_tabs['permissions']
+	&& 'Site Knowledge' === $verified_tabs['site_knowledge']
+	&& 'Checks' === $verified_tabs['checks']
+	&& 'Connection' === $verified_tabs['connection']
+	&& false === array_key_exists( 'advanced', $verified_tabs ),
+	'Behavior: verified navigation is Overview, Site Knowledge, Checks, and Connection without Advanced.'
+);
+
+$_GET = array();
+maca_assert(
+	'permissions' === $get_active_tab->invoke( null, true, array( 'verified' => true ) ),
+	'Behavior: default verified tab is Overview.'
+);
+$_GET['tab'] = 'advanced';
+$_GET['view'] = 'service';
+maca_assert(
+	'permissions' === $get_active_tab->invoke( null, true, array( 'verified' => true ) ),
+	'Behavior: legacy advanced&view=service deep-links to Overview.'
+);
+$_GET['view'] = 'checks';
+maca_assert(
+	'checks' === $get_active_tab->invoke( null, true, array( 'verified' => true ) ),
+	'Behavior: legacy advanced&view=checks deep-links to Checks.'
+);
+$_GET['view'] = 'connection';
+maca_assert(
+	'connection' === $get_active_tab->invoke( null, true, array( 'verified' => true ) ),
+	'Behavior: legacy advanced&view=connection deep-links to Connection.'
+);
+unset( $_GET['view'], $_GET['tab'] );
+
 ob_start();
-$advanced_renderer->invoke(
+$checks_renderer->invoke(
 	null,
 	Npcink_Cloud_Addon_Settings::get_settings(),
 	Npcink_Cloud_Addon_Settings::get_credential_state(),
 	array( 'available' => false ),
-	Npcink_Cloud_Observability_Collector::get_status(),
 	true
 );
-$advanced_rendered = (string) ob_get_clean();
+$checks_rendered = (string) ob_get_clean();
 maca_assert(
-	false !== strpos( $advanced_rendered, 'Service details' )
-	&& false !== strpos( $advanced_rendered, 'Checks' )
-	&& false !== strpos( $advanced_rendered, 'Connection management' )
-	&& false === strpos( $advanced_rendered, 'Runtime runs' )
-	&& false === strpos( $advanced_rendered, 'Cloud runtime runs' )
-	&& false === strpos( $advanced_rendered, 'Inspect by run ID' )
-	&& false === strpos( $advanced_rendered, 'Load recent runs' )
-	&& false === strpos( $advanced_rendered, 'Read status' )
-	&& false === strpos( $advanced_rendered, 'Read result' )
-	&& false === strpos( $advanced_rendered, 'Request Cloud retry' ),
-	'Behavior: Advanced keeps service, checks, and connection management while runtime run operations remain Cloud-only.'
+	false !== strpos( $checks_rendered, 'npcink-cloud-checks-table' )
+	&& false === strpos( $checks_rendered, 'Change Cloud account' )
+	&& false === strpos( $checks_rendered, '<h3>Checks</h3>' )
+	&& false !== strpos( $checks_rendered, 'screen-reader-text' )
+	&& false === strpos( $checks_rendered, 'npcink-cloud-secondary-tabs' ),
+	'Behavior: Checks tab renders checks only without secondary tabs or connection management.'
+);
+
+ob_start();
+$connection_renderer->invoke(
+	null,
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	Npcink_Cloud_Addon_Settings::get_credential_state(),
+	true
+);
+$connection_rendered = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $connection_rendered, 'Change Cloud account' )
+	&& false === strpos( $connection_rendered, 'npcink-cloud-checks-table' )
+	&& false !== strpos( $connection_rendered, 'screen-reader-text' )
+	&& false !== strpos( $connection_rendered, 'Connection management' )
+	&& false === strpos( $connection_rendered, '<h3>Connection management</h3>' )
+	&& false !== strpos( $connection_rendered, 'npcink-cloud-manual-fallback' )
+	&& false === strpos( $connection_rendered, 'npcink-cloud-manual-fallback" open' )
+	&& false === strpos( $connection_rendered, 'npcink-cloud-manual-fallback open' )
+	&& false !== strpos( $connection_rendered, 'Only when Cloud authorization is unavailable.' )
+	&& strpos( $connection_rendered, '<summary>' ) < strpos( $connection_rendered, 'Cloud Base URL' )
+	&& false === strpos( $connection_rendered, 'npcink-cloud-secondary-tabs' ),
+	'Behavior: Connection tab renders connection management only without secondary tabs or checks.'
+);
+
+// Overview includes entitlement details after the merge.
+ob_start();
+Npcink_Cloud_Settings_Page::render();
+$overview_with_entitlement = (string) ob_get_clean();
+maca_assert(
+	(
+		false !== strpos( $overview_with_entitlement, 'npcink-cloud-entitlement-grid' )
+		|| false !== strpos( $overview_with_entitlement, 'No additional entitlement parameters were returned by Cloud.' )
+		|| false !== strpos( $overview_with_entitlement, 'Entitlement details' )
+	)
+	&& false === strpos( $overview_with_entitlement, 'More limits' )
+	&& false === strpos( $overview_with_entitlement, 'View AI credit details in Cloud' ),
+	'Behavior: Overview hosts flat two-column entitlement detail without More limits or Cloud credit link.'
 );
 
 $connection_management_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_connection_management' );
@@ -760,7 +854,8 @@ $site_knowledge_renderer->invoke(
 $built_index_rendered = (string) ob_get_clean();
 maca_assert(
 	false === strpos( $built_index_rendered, 'Start indexing' )
-	&& false !== strpos( $built_index_rendered, 'All public content is up to date' ),
+	&& false !== strpos( $built_index_rendered, 'Up to date' )
+	&& false === strpos( $built_index_rendered, 'Ready to index' ),
 	'Behavior: the initial indexing bootstrap disappears once the knowledge base has been built.'
 );
 
@@ -817,7 +912,8 @@ $dropped_cleared_rendered = (string) ob_get_clean();
 maca_assert(
 	false === strpos( $dropped_cleared_rendered, 'were dropped' )
 	&& false === strpos( $dropped_cleared_rendered, 'Update again' )
-	&& false !== strpos( $dropped_cleared_rendered, 'All public content is up to date' ),
+	&& false !== strpos( $dropped_cleared_rendered, 'Up to date' )
+	&& false === strpos( $dropped_cleared_rendered, 'All public content is up to date' ),
 	'Behavior: the dropped-change recovery entry hides again once the dropped fact is cleared.'
 );
 
@@ -829,6 +925,19 @@ $GLOBALS['maca_abilities'] = array( 'ai/title-generation' => new stdClass() );
 $http_before = count( $GLOBALS['maca_http_requests'] );
 ob_start();
 $test_links->invoke( null );
+$paused_test_links_html = (string) ob_get_clean();
+maca_assert(
+	'' === trim( $paused_test_links_html )
+	&& $http_before === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: WordPress AI generation tests stay hidden while the admin surface pause is active.'
+);
+
+$admin_surfaces = new ReflectionProperty( Npcink_Cloud_Discoverability_Pause::class, 'paused_admin_surfaces' );
+$admin_surfaces->setAccessible( true );
+$previous_admin_surfaces = $admin_surfaces->getValue();
+$admin_surfaces->setValue( null, array() );
+ob_start();
+$test_links->invoke( null );
 $test_links_html = (string) ob_get_clean();
 maca_assert(
 	str_contains( $test_links_html, 'ability=ai/title-generation' )
@@ -838,15 +947,24 @@ maca_assert(
 	&& $http_before === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: generation entry links expose registered host tests only, disclose cost, and perform zero requests.'
 );
+$admin_surfaces->setValue( null, $previous_admin_surfaces );
 $GLOBALS['_registered_pages'] = array();
 ob_start();
 $test_links->invoke( null );
 $test_links_html = (string) ob_get_clean();
 maca_assert(
-	! str_contains( $test_links_html, 'tools.php?' )
-	&& str_contains( $test_links_html, 'plugin=ai' )
-	&& str_contains( $test_links_html, 'Install the WordPress AI plugin' )
-	&& ! str_contains( $test_links_html, 'options-general.php?page=ai-wp-admin' ),
+	'' === trim( $test_links_html ),
+	'Behavior: paused generation-test surface does not render missing-plugin guidance outside guidance-only mode.'
+);
+$GLOBALS['_registered_pages'] = array();
+ob_start();
+$test_links->invoke( null, true );
+$missing_plugin_guidance = (string) ob_get_clean();
+maca_assert(
+	! str_contains( $missing_plugin_guidance, 'tools.php?' )
+	&& str_contains( $missing_plugin_guidance, 'plugin=ai' )
+	&& str_contains( $missing_plugin_guidance, 'Install the WordPress AI plugin' )
+	&& ! str_contains( $missing_plugin_guidance, 'options-general.php?page=ai-wp-admin' ),
 	'Behavior: missing host plugin leads to its official installation page, without broken settings links.'
 );
 $GLOBALS['_registered_pages'] = array( 'settings_page_ai-wp-admin' => true );
@@ -877,16 +995,38 @@ foreach ( array( array(), array( 'dropped_count' => 1 ), array( 'last_delivery_e
 	ob_start();
 	$render_overview->invoke( null, $settings, $state, $entitlement, array(), $delivery, true );
 	$overview_html = (string) ob_get_clean();
-	$html = $summary_html . $overview_html;
-	maca_assert(
-		false !== strpos( $html, empty( $delivery ) ? 'out of date' : 'Needs attention' )
-		&& ( 0 < absint( $delivery['dropped_count'] ?? 0 )
-			? false !== strpos( $summary_html, 'name="action" value="npcink_cloud_addon_refresh_site_knowledge"' )
-				&& false === strpos( $summary_html, 'name="action" value="npcink_cloud_addon_save"' )
-			: false !== strpos( $summary_html, 'name="action" value="npcink_cloud_addon_save"' ) )
-		&& $http_before === count( $GLOBALS['maca_http_requests'] ),
-		'Behavior: stale warning renders without Cloud reads and dropped content exposes the Site Knowledge recovery action.'
-	);
+	$dropped = 0 < absint( $delivery['dropped_count'] ?? 0 );
+	$sk_auth = '' !== (string) ( $delivery['last_delivery_error'] ?? '' ) || '' !== (string) ( $delivery['last_error_code'] ?? '' );
+	if ( empty( $delivery ) ) {
+		maca_assert(
+			false !== strpos( $summary_html, 'out of date' )
+			&& false !== strpos( $summary_html, 'name="action" value="npcink_cloud_addon_save"' )
+			&& false === strpos( $overview_html, 'Site Knowledge needs attention' )
+			&& $http_before === count( $GLOBALS['maca_http_requests'] ),
+			'Behavior: stale warning renders without Cloud reads and dropped content exposes the Site Knowledge recovery action.'
+		);
+	} elseif ( $dropped ) {
+		// Product drops: Overview notice only; summary still shows independent stale connection.
+		maca_assert(
+			false !== strpos( $summary_html, 'out of date' )
+			&& false !== strpos( $summary_html, 'name="action" value="npcink_cloud_addon_save"' )
+			&& false === strpos( $summary_html, 'name="action" value="npcink_cloud_addon_refresh_site_knowledge"' )
+			&& false !== strpos( $overview_html, 'Site Knowledge needs attention' )
+			&& false !== strpos( $overview_html, 'View Site Knowledge status' )
+			&& $http_before === count( $GLOBALS['maca_http_requests'] ),
+			'Behavior: stale warning renders without Cloud reads and dropped content exposes the Site Knowledge recovery action.'
+		);
+	} else {
+		// Connection/auth SK failure: top summary only (not duplicated as Overview notice).
+		maca_assert(
+			false !== strpos( $summary_html, 'Needs attention' )
+			&& false !== strpos( $summary_html, 'name="action" value="npcink_cloud_addon_save"' )
+			&& false === strpos( $overview_html, 'Site Knowledge needs attention' )
+			&& false !== strpos( $summary_html, 'dashicons-external' )
+			&& $http_before === count( $GLOBALS['maca_http_requests'] ),
+			'Behavior: stale warning renders without Cloud reads and dropped content exposes the Site Knowledge recovery action.'
+		);
+	}
 }
 
 foreach ( array( 'queued', 'delivering', 'blocked' ) as $maintenance_state ) {
@@ -894,8 +1034,15 @@ foreach ( array( 'queued', 'delivering', 'blocked' ) as $maintenance_state ) {
 	ob_start();
 	$render_summary->invoke( null, $settings, $state, array( 'available' => true, 'stale' => false ), $delivery );
 	$summary_html = (string) ob_get_clean();
+	ob_start();
+	$render_overview->invoke( null, $settings, $state, array( 'available' => true, 'stale' => false ), array(), $delivery, true );
+	$overview_html = (string) ob_get_clean();
+	// Dropped-content attention lives on Overview / Site Knowledge, not the connection summary.
 	maca_assert(
-		'blocked' === $maintenance_state ? false !== strpos( $summary_html, 'Update again' ) : '' === $summary_html,
+		'' === $summary_html
+		&& ( 'blocked' === $maintenance_state
+			? false !== strpos( $overview_html, 'Site Knowledge needs attention' )
+			: false === strpos( $overview_html, 'Site Knowledge needs attention' ) ),
 		'Behavior: healthy recovery hides the page-level historical warning, and a blocked recovery restores it: ' . $maintenance_state
 	);
 }
@@ -923,7 +1070,8 @@ $http_before_fragments = count( $GLOBALS['maca_http_requests'] );
 $healthy_fragments = Npcink_Cloud_Settings_Page::get_admin_status_fragments( true );
 maca_assert(
 	'' === trim( $healthy_fragments['connection'] )
-	&& false !== strpos( $healthy_fragments['knowledge'], 'All public content is up to date' )
+	&& false !== strpos( $healthy_fragments['knowledge'], 'Up to date' )
+	&& false === strpos( $healthy_fragments['knowledge'], 'All public content is up to date' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'Update again' )
 	&& false !== strpos( $healthy_fragments['knowledge'], 'data-npcink-site-knowledge-status-retry' )
 	&& $http_before_fragments === count( $GLOBALS['maca_http_requests'] ),
@@ -932,9 +1080,10 @@ maca_assert(
 update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array( 'dropped_count' => 3 ), false );
 $failed_fragments = Npcink_Cloud_Settings_Page::get_admin_status_fragments( true );
 maca_assert(
-	false !== strpos( $failed_fragments['connection'], 'Some content updates could not be delivered' )
+	'' === trim( $failed_fragments['connection'] )
 	&& false !== strpos( $failed_fragments['knowledge'], 'Update again' )
-	&& 'warning' === $failed_fragments['service']['severity'],
+	&& 'ok' === $failed_fragments['service']['severity']
+	&& false !== strpos( $failed_fragments['knowledge'], 'were dropped' ),
 	'Behavior: a fresh Cloud read does not erase an independent local dropped-delivery warning.'
 );
 update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array(), false );
@@ -942,6 +1091,6 @@ $GLOBALS['maca_transients'][ $status_cache_key ]['fresh_until'] = gmdate( 'Y-m-d
 $stale_fragments = Npcink_Cloud_Settings_Page::get_admin_status_fragments( true );
 maca_assert(
 	false === strpos( $stale_fragments['knowledge'], 'All public content is up to date' )
-	&& false === strpos( $stale_fragments['knowledge'], '>Up to date<' ),
+	&& false === strpos( $stale_fragments['knowledge'], 'npcink-cloud-badge--ok' ),
 	'Behavior: expired Cloud knowledge evidence cannot claim that all public content is current.'
 );

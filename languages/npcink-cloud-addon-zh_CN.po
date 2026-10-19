@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Npcink Cloud Addon 0.4.2\n"
+"Project-Id-Version: Npcink Cloud Addon 0.4.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/npcink-cloud-addon\n"
 "Last-Translator: Npcink Project\n"
 "Language-Team: Chinese (China)\n"
@@ -1732,8 +1732,8 @@ msgid "Knowledge base update needs attention"
 msgstr "知识库更新暂时出现问题"
 
 #: includes/class-cloud-settings-page.php:1562
-msgid "Automatic updates are delayed. Check the site scheduler in advanced troubleshooting."
-msgstr "自动更新已延迟，请在高级排查中检查站点计划任务。"
+msgid "Automatic updates are delayed. Check the site scheduler in Checks."
+msgstr "自动更新已延迟，请在「检查」中查看站点计划任务。"
 
 #: includes/class-cloud-settings-page.php:1564
 msgid "The system will keep trying automatically."
@@ -1741,8 +1741,8 @@ msgstr "系统会继续自动尝试。"
 
 #: includes/class-cloud-settings-page.php:1566
 #: includes/class-cloud-settings-page.php:1611
-msgid "View advanced troubleshooting"
-msgstr "查看高级排查"
+msgid "View checks"
+msgstr "查看检查"
 
 #: includes/class-cloud-settings-page.php:589
 #: includes/class-cloud-settings-page.php:1567
@@ -2441,9 +2441,12 @@ msgstr "未验证"
 msgid "Not provided"
 msgstr "未提供"
 
+msgid "Paused"
+msgstr "已暂停"
+
 #: includes/class-cloud-settings-page.php:1092
-msgid "Run the bounded connection checks, or"
-msgstr "运行有限的连接检查，或"
+msgid "Run checks, or"
+msgstr "运行检查，或"
 
 #: includes/class-cloud-settings-page.php:1182
 #: includes/class-cloud-settings-page.php:1202
@@ -2851,3 +2854,9 @@ msgstr "按区块为文章添加编辑建议，覆盖无障碍、可读性和语
 #: includes/class-cloud-discoverability-pause.php:29
 msgid "This Cloud feature is temporarily paused."
 msgstr "此 Cloud 功能已暂时停用。"
+
+msgid "Nightly site inspection is temporarily paused."
+msgstr "夜间站点巡检已暂时暂停。"
+
+msgid "Usage limits and quotas"
+msgstr "用量限额与配额"
