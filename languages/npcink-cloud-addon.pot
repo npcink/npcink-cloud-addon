@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-18T09:53:28+00:00\n"
+"POT-Creation-Date: 2026-10-19T01:09:53+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -62,7 +62,7 @@ msgstr ""
 #: includes/bootstrap.php:720
 #: includes/bootstrap.php:728
 #: includes/class-cloud-runtime-client.php:1052
-#: includes/class-cloud-runtime-client.php:1158
+#: includes/class-cloud-runtime-client.php:1171
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr ""
@@ -245,7 +245,7 @@ msgid "AI task contracts require ai_task_contract.v1."
 msgstr ""
 
 #: includes/class-cloud-ai-task-contract.php:250
-#: includes/class-cloud-discoverability-pause.php:63
+#: includes/class-cloud-discoverability-pause.php:93
 #: includes/class-cloud-runtime-request-guards.php:214
 msgid "SEO/AEO/GEO specialist assistance is paused."
 msgstr ""
@@ -295,11 +295,15 @@ msgstr ""
 msgid "Cloud customer journey response did not include an accepted event count."
 msgstr ""
 
-#: includes/class-cloud-discoverability-pause.php:38
+#: includes/class-cloud-discoverability-pause.php:29
+msgid "This Cloud feature is temporarily paused."
+msgstr ""
+
+#: includes/class-cloud-discoverability-pause.php:57
 msgid "Suggests short, readable permalink slugs from post title or content. Requires an AI connector that includes support for text generation models."
 msgstr ""
 
-#: includes/class-cloud-discoverability-pause.php:41
+#: includes/class-cloud-discoverability-pause.php:60
 msgid "Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, and Grammar. Requires an AI connector that includes support for text generation models."
 msgstr ""
 
@@ -430,87 +434,87 @@ msgstr ""
 msgid "Local media derivative processing warnings are invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:55
+#: includes/class-cloud-media-derivative-transport.php:57
 msgid "Source upload and source artifact id cannot be sent together."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:83
+#: includes/class-cloud-media-derivative-transport.php:85
 msgid "Watermark upload and watermark artifact id cannot be sent together."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:262
+#: includes/class-cloud-media-derivative-transport.php:264
 msgid "Cloud media derivative statuses require a data envelope."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:273
+#: includes/class-cloud-media-derivative-transport.php:275
 msgid "Cloud media derivative statuses require a run id and canonical lifecycle status."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:341
+#: includes/class-cloud-media-derivative-transport.php:343
 msgid "Npcink Cloud credentials must verify before dispatching media derivative jobs."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:363
+#: includes/class-cloud-media-derivative-transport.php:365
 msgid "Media derivative optimization mode is invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:368
+#: includes/class-cloud-media-derivative-transport.php:370
 msgid "Automatic safe optimization requires the current fixed policy version."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:377
+#: includes/class-cloud-media-derivative-transport.php:379
 msgid "Watermark artifact transport requires a watermark plan in the ability response."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:384
+#: includes/class-cloud-media-derivative-transport.php:386
 msgid "Text watermark plans must not include a watermark upload or artifact id."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:391
+#: includes/class-cloud-media-derivative-transport.php:393
 msgid "Watermark plans require a watermark upload or artifact id before Cloud dispatch."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:398
+#: includes/class-cloud-media-derivative-transport.php:400
 msgid "Automatic safe optimization requires WebP output."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:403
+#: includes/class-cloud-media-derivative-transport.php:405
 msgid "Media derivative request must include a bounded target format from the ability response."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:412
+#: includes/class-cloud-media-derivative-transport.php:414
 msgid "Media derivative request must include max_width from the ability response."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:421
+#: includes/class-cloud-media-derivative-transport.php:423
 msgid "Media derivative request must include quality from the ability response."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:434
+#: includes/class-cloud-media-derivative-transport.php:436
 msgid "Media derivative resize mode is invalid."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:439
+#: includes/class-cloud-media-derivative-transport.php:441
 msgid "Automatic safe optimization does not accept quality, crop, watermark, or custom width parameters."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:453
+#: includes/class-cloud-media-derivative-transport.php:455
 msgid "Media derivative source media type must be a supported image type."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:491
+#: includes/class-cloud-media-derivative-transport.php:493
 msgid "Media governance canaries require exact governance and batch context fields."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:531
+#: includes/class-cloud-media-derivative-transport.php:533
 msgid "Media governance canaries require WebP preserve previews, no crop or watermark, and at most ten items."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:570
+#: includes/class-cloud-media-derivative-transport.php:572
 msgid "Media derivative jobs require a canonical source artifact id."
 msgstr ""
 
-#: includes/class-cloud-media-derivative-transport.php:585
+#: includes/class-cloud-media-derivative-transport.php:587
 msgid "Media derivative image watermarks require a canonical artifact id."
 msgstr ""
 
@@ -526,51 +530,51 @@ msgstr ""
 msgid "Cloud media governance canary evidence failed strict validation."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:416
+#: includes/class-cloud-media-plan-projection.php:418
 msgid "Local media derivative proposal building requires the exact Addon run-result projection."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:462
+#: includes/class-cloud-media-plan-projection.php:464
 msgid "Derivative artifact facts do not match the Cloud result."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:470
+#: includes/class-cloud-media-plan-projection.php:472
 msgid "Derivative artifact checksum does not match the Cloud result."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:488
+#: includes/class-cloud-media-plan-projection.php:490
 msgid "Original media metrics are incomplete."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:491
+#: includes/class-cloud-media-plan-projection.php:493
 msgid "Derivative media metrics are incomplete."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:617
+#: includes/class-cloud-media-plan-projection.php:619
 msgid "Media derivative request contract version is invalid."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:624
+#: includes/class-cloud-media-plan-projection.php:626
 msgid "Media derivative request must be read-only and proposal-only."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:631
+#: includes/class-cloud-media-plan-projection.php:633
 msgid "Media derivative final write owner must remain the local WordPress host."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:638
+#: includes/class-cloud-media-plan-projection.php:640
 msgid "Media derivative request must not include WordPress writes."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:645
+#: includes/class-cloud-media-plan-projection.php:647
 msgid "Media derivative ability payload must not include credentials or signed headers."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:654
+#: includes/class-cloud-media-plan-projection.php:656
 msgid "Cloud media derivative job type is invalid."
 msgstr ""
 
-#: includes/class-cloud-media-plan-projection.php:661
+#: includes/class-cloud-media-plan-projection.php:663
 msgid "Media derivative jobs must not request original file replacement."
 msgstr ""
 
@@ -789,66 +793,66 @@ msgstr ""
 msgid "Customer journey cohort id is invalid."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1061
-#: includes/class-cloud-runtime-client.php:1167
+#: includes/class-cloud-runtime-client.php:1074
+#: includes/class-cloud-runtime-client.php:1180
 msgid "This Cloud endpoint is not allowed by the Cloud Addon runtime contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1086
+#: includes/class-cloud-runtime-client.php:1099
 msgid "Cloud runtime request payload could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1123
-#: includes/class-cloud-runtime-client.php:1290
-#: includes/class-cloud-runtime-client.php:1301
+#: includes/class-cloud-runtime-client.php:1136
+#: includes/class-cloud-runtime-client.php:1303
+#: includes/class-cloud-runtime-client.php:1314
 msgid "Cloud runtime response exceeds the local size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1130
-#: includes/class-cloud-runtime-client.php:1302
+#: includes/class-cloud-runtime-client.php:1143
+#: includes/class-cloud-runtime-client.php:1315
 msgid "Cloud runtime response was not valid JSON."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1201
-#: includes/class-cloud-runtime-client.php:1404
+#: includes/class-cloud-runtime-client.php:1214
+#: includes/class-cloud-runtime-client.php:1417
 msgid "Cloud artifact download exceeds the local preview size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1225
+#: includes/class-cloud-runtime-client.php:1238
 msgid "Cloud Base URL is required."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1255
+#: includes/class-cloud-runtime-client.php:1268
 msgid "Cloud liveness response exceeds the local size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1265
+#: includes/class-cloud-runtime-client.php:1278
 msgid "Cloud liveness check failed."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1271
+#: includes/class-cloud-runtime-client.php:1284
 msgid "Cloud service is live."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1315
-#: includes/class-cloud-runtime-client.php:1353
+#: includes/class-cloud-runtime-client.php:1328
+#: includes/class-cloud-runtime-client.php:1366
 msgid "Cloud runtime request failed."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1387
+#: includes/class-cloud-runtime-client.php:1400
 msgid "Cloud runtime artifact download failed."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1671
+#: includes/class-cloud-runtime-client.php:1684
 msgid "Cloud request identifiers must use only letters, numbers, dot, underscore, colon, or hyphen and contain at most 128 characters."
 msgstr ""
 
-#: includes/class-cloud-runtime-client.php:1703
+#: includes/class-cloud-runtime-client.php:1716
 msgid "Cannot connect to Npcink Cloud. Check the Cloud Base URL."
 msgstr ""
 
 #. translators: 1: Cloud base URL, 2: transport error.
-#: includes/class-cloud-runtime-client.php:1708
+#: includes/class-cloud-runtime-client.php:1721
 #, php-format
 msgid "Cannot connect to %1$s. Original error: %2$s"
 msgstr ""

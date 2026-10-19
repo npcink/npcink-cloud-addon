@@ -25,6 +25,15 @@ Cross-project platform coordination starts from
 repository remains authoritative only for Cloud Addon connector contracts and
 bounded signed transport.
 
+## Temporarily Paused Features
+
+New Cloud inspection/site analysis, article audio, media derivatives,
+optimization plans, batch planning and media governance audit are paused before
+signing/HTTP (and derivative source uploads). Historical reads and shared image
+artifact delivery remain supported. Public helper methods and configuration
+are retained for reviewed restoration; their presence does not imply execution
+availability. See [reversible pauses](docs/reversible-feature-pauses-v1.md).
+
 ## Engineering Decisions and Standards
 
 - [Editor native feedback](docs/editor-native-feedback-v1.md) defines exact-save

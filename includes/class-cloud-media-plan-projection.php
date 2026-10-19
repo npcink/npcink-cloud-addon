@@ -106,6 +106,8 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Plan_Projection' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		public static function build_media_optimization_payload( array $ability_response, array $cloud_result, array $derivative_artifact, array $media_details_input ) {
+			$paused = Npcink_Cloud_Discoverability_Pause::feature_error( 'advanced_media' );
+			if ( is_wp_error( $paused ) ) { return $paused; }
 			if ( empty( $derivative_artifact ) ) {
 				$derivative_artifact = Npcink_Cloud_Media_Artifact_Verification::artifact_from_cloud_result( $cloud_result );
 			}

@@ -56,7 +56,7 @@ msgstr "Npcink"
 #: includes/bootstrap.php:720
 #: includes/bootstrap.php:728
 #: includes/class-cloud-runtime-client.php:1052
-#: includes/class-cloud-runtime-client.php:1158
+#: includes/class-cloud-runtime-client.php:1171
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr "Npcink Cloud 尚未配置。"
@@ -198,19 +198,19 @@ msgstr "正在刷新套餐与权益。"
 msgid "Entitlement summary synced."
 msgstr "权益摘要已同步。"
 
-#: includes/class-cloud-media-derivative-transport.php:55
+#: includes/class-cloud-media-derivative-transport.php:57
 msgid "Source upload and source artifact id cannot be sent together."
 msgstr "不能同时发送源文件上传和源 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:83
+#: includes/class-cloud-media-derivative-transport.php:85
 msgid "Watermark upload and watermark artifact id cannot be sent together."
 msgstr "不能同时发送水印上传和水印 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:262
+#: includes/class-cloud-media-derivative-transport.php:264
 msgid "Cloud media derivative statuses require a data envelope."
 msgstr "Cloud 媒体衍生状态需要 data 信封。"
 
-#: includes/class-cloud-media-derivative-transport.php:273
+#: includes/class-cloud-media-derivative-transport.php:275
 msgid "Cloud media derivative statuses require a run id and canonical lifecycle status."
 msgstr "Cloud 媒体衍生状态需要运行 ID 和规范的生命周期状态。"
 
@@ -266,103 +266,103 @@ msgstr "衍生工件的解码信息与 Cloud 描述符不一致。"
 msgid "Cloud media delivery acknowledgement does not bind to the verified transfer."
 msgstr "Cloud 媒体投递确认未绑定到已验证的传输。"
 
-#: includes/class-cloud-media-derivative-transport.php:341
+#: includes/class-cloud-media-derivative-transport.php:343
 msgid "Npcink Cloud credentials must verify before dispatching media derivative jobs."
 msgstr "派发媒体衍生任务前，Npcink Cloud 凭据必须先通过验证。"
 
-#: includes/class-cloud-media-plan-projection.php:416
+#: includes/class-cloud-media-plan-projection.php:418
 msgid "Local media derivative proposal building requires the exact Addon run-result projection."
 msgstr "构建本地媒体衍生提案需要精确的 Addon 运行结果投影。"
 
-#: includes/class-cloud-media-plan-projection.php:617
+#: includes/class-cloud-media-plan-projection.php:619
 msgid "Media derivative request contract version is invalid."
 msgstr "媒体衍生请求的合同版本无效。"
 
-#: includes/class-cloud-media-plan-projection.php:624
+#: includes/class-cloud-media-plan-projection.php:626
 msgid "Media derivative request must be read-only and proposal-only."
 msgstr "媒体衍生请求必须是只读且仅生成提案。"
 
-#: includes/class-cloud-media-plan-projection.php:631
+#: includes/class-cloud-media-plan-projection.php:633
 msgid "Media derivative final write owner must remain the local WordPress host."
 msgstr "媒体衍生的最终写入所有者必须保留为本地 WordPress 主机。"
 
-#: includes/class-cloud-media-plan-projection.php:638
+#: includes/class-cloud-media-plan-projection.php:640
 msgid "Media derivative request must not include WordPress writes."
 msgstr "媒体衍生请求不得包含 WordPress 写入。"
 
-#: includes/class-cloud-media-plan-projection.php:645
+#: includes/class-cloud-media-plan-projection.php:647
 msgid "Media derivative ability payload must not include credentials or signed headers."
 msgstr "媒体衍生 ability payload 不得包含凭据或签名请求头。"
 
-#: includes/class-cloud-media-plan-projection.php:654
+#: includes/class-cloud-media-plan-projection.php:656
 msgid "Cloud media derivative job type is invalid."
 msgstr "Cloud 媒体衍生任务类型无效。"
 
-#: includes/class-cloud-media-plan-projection.php:661
+#: includes/class-cloud-media-plan-projection.php:663
 msgid "Media derivative jobs must not request original file replacement."
 msgstr "媒体衍生任务不得请求替换原始文件。"
 
-#: includes/class-cloud-media-derivative-transport.php:363
+#: includes/class-cloud-media-derivative-transport.php:365
 msgid "Media derivative optimization mode is invalid."
 msgstr "媒体衍生优化模式无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:368
+#: includes/class-cloud-media-derivative-transport.php:370
 msgid "Automatic safe optimization requires the current fixed policy version."
 msgstr "自动安全优化需要使用当前固定策略版本。"
 
-#: includes/class-cloud-media-derivative-transport.php:377
+#: includes/class-cloud-media-derivative-transport.php:379
 msgid "Watermark artifact transport requires a watermark plan in the ability response."
 msgstr "水印 artifact 传输要求 ability response 中包含水印计划。"
 
-#: includes/class-cloud-media-derivative-transport.php:384
+#: includes/class-cloud-media-derivative-transport.php:386
 msgid "Text watermark plans must not include a watermark upload or artifact id."
 msgstr "文本水印计划不得包含水印上传或 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:391
+#: includes/class-cloud-media-derivative-transport.php:393
 msgid "Watermark plans require a watermark upload or artifact id before Cloud dispatch."
 msgstr "派发到 Cloud 前，水印计划需要水印上传或 artifact id。"
 
-#: includes/class-cloud-media-derivative-transport.php:398
+#: includes/class-cloud-media-derivative-transport.php:400
 msgid "Automatic safe optimization requires WebP output."
 msgstr "自动安全优化需要输出 WebP。"
 
-#: includes/class-cloud-media-derivative-transport.php:403
+#: includes/class-cloud-media-derivative-transport.php:405
 msgid "Media derivative request must include a bounded target format from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 提供的受限目标格式。"
 
-#: includes/class-cloud-media-derivative-transport.php:412
+#: includes/class-cloud-media-derivative-transport.php:414
 msgid "Media derivative request must include max_width from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 中的 max_width。"
 
-#: includes/class-cloud-media-derivative-transport.php:421
+#: includes/class-cloud-media-derivative-transport.php:423
 msgid "Media derivative request must include quality from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 中的 quality。"
 
-#: includes/class-cloud-media-derivative-transport.php:434
+#: includes/class-cloud-media-derivative-transport.php:436
 msgid "Media derivative resize mode is invalid."
 msgstr "媒体衍生缩放模式无效。"
 
-#: includes/class-cloud-media-derivative-transport.php:439
+#: includes/class-cloud-media-derivative-transport.php:441
 msgid "Automatic safe optimization does not accept quality, crop, watermark, or custom width parameters."
 msgstr "自动安全优化不接受质量、裁剪、水印或自定义宽度参数。"
 
-#: includes/class-cloud-media-derivative-transport.php:453
+#: includes/class-cloud-media-derivative-transport.php:455
 msgid "Media derivative source media type must be a supported image type."
 msgstr "媒体衍生源媒体类型必须是受支持的图片类型。"
 
-#: includes/class-cloud-media-derivative-transport.php:491
+#: includes/class-cloud-media-derivative-transport.php:493
 msgid "Media governance canaries require exact governance and batch context fields."
 msgstr "媒体治理金丝雀测试需要准确的治理和批次上下文字段。"
 
-#: includes/class-cloud-media-derivative-transport.php:531
+#: includes/class-cloud-media-derivative-transport.php:533
 msgid "Media governance canaries require WebP preserve previews, no crop or watermark, and at most ten items."
 msgstr "媒体治理金丝雀测试要求生成保留原尺寸的 WebP 预览，不得裁剪或添加水印，且最多包含十项。"
 
-#: includes/class-cloud-media-derivative-transport.php:570
+#: includes/class-cloud-media-derivative-transport.php:572
 msgid "Media derivative jobs require a canonical source artifact id."
 msgstr "媒体衍生任务需要规范的源工件 ID。"
 
-#: includes/class-cloud-media-derivative-transport.php:585
+#: includes/class-cloud-media-derivative-transport.php:587
 msgid "Media derivative image watermarks require a canonical artifact id."
 msgstr "媒体衍生图像水印需要规范的工件 ID。"
 
@@ -472,19 +472,19 @@ msgstr "本地媒体衍生工件元数据无效。"
 msgid "Local media derivative processing warnings are invalid."
 msgstr "本地媒体衍生处理警告无效。"
 
-#: includes/class-cloud-media-plan-projection.php:462
+#: includes/class-cloud-media-plan-projection.php:464
 msgid "Derivative artifact facts do not match the Cloud result."
 msgstr "衍生工件信息与 Cloud 结果不一致。"
 
-#: includes/class-cloud-media-plan-projection.php:470
+#: includes/class-cloud-media-plan-projection.php:472
 msgid "Derivative artifact checksum does not match the Cloud result."
 msgstr "衍生 artifact 校验和与 Cloud 结果不匹配。"
 
-#: includes/class-cloud-media-plan-projection.php:488
+#: includes/class-cloud-media-plan-projection.php:490
 msgid "Original media metrics are incomplete."
 msgstr "原始媒体指标不完整。"
 
-#: includes/class-cloud-media-plan-projection.php:491
+#: includes/class-cloud-media-plan-projection.php:493
 msgid "Derivative media metrics are incomplete."
 msgstr "衍生媒体指标不完整。"
 
@@ -636,44 +636,44 @@ msgstr "Agent 反馈需要有效的 cloud_agent_feedback.v1 载荷。"
 msgid "Customer journey cohort id is invalid."
 msgstr "客户旅程分组 ID 无效。"
 
-#: includes/class-cloud-runtime-client.php:1061
-#: includes/class-cloud-runtime-client.php:1167
+#: includes/class-cloud-runtime-client.php:1074
+#: includes/class-cloud-runtime-client.php:1180
 msgid "This Cloud endpoint is not allowed by the Cloud Addon runtime contract."
 msgstr "Cloud Addon 运行时合同不允许此 Cloud 端点。"
 
-#: includes/class-cloud-runtime-client.php:1086
+#: includes/class-cloud-runtime-client.php:1099
 msgid "Cloud runtime request payload could not be encoded."
 msgstr "无法编码 Cloud runtime 请求 payload。"
 
-#: includes/class-cloud-runtime-client.php:1123
-#: includes/class-cloud-runtime-client.php:1290
-#: includes/class-cloud-runtime-client.php:1301
+#: includes/class-cloud-runtime-client.php:1136
+#: includes/class-cloud-runtime-client.php:1303
+#: includes/class-cloud-runtime-client.php:1314
 msgid "Cloud runtime response exceeds the local size limit."
 msgstr "Cloud runtime 响应超过本地大小限制。"
 
-#: includes/class-cloud-runtime-client.php:1130
-#: includes/class-cloud-runtime-client.php:1302
+#: includes/class-cloud-runtime-client.php:1143
+#: includes/class-cloud-runtime-client.php:1315
 msgid "Cloud runtime response was not valid JSON."
 msgstr "Cloud runtime 响应不是有效 JSON。"
 
-#: includes/class-cloud-runtime-client.php:1201
-#: includes/class-cloud-runtime-client.php:1404
+#: includes/class-cloud-runtime-client.php:1214
+#: includes/class-cloud-runtime-client.php:1417
 msgid "Cloud artifact download exceeds the local preview size limit."
 msgstr "Cloud artifact 下载超过本地预览大小限制。"
 
-#: includes/class-cloud-runtime-client.php:1225
+#: includes/class-cloud-runtime-client.php:1238
 msgid "Cloud Base URL is required."
 msgstr "Cloud 基础 URL 为必填项。"
 
-#: includes/class-cloud-runtime-client.php:1255
+#: includes/class-cloud-runtime-client.php:1268
 msgid "Cloud liveness response exceeds the local size limit."
 msgstr "Cloud 存活检查响应超过本地大小限制。"
 
-#: includes/class-cloud-runtime-client.php:1265
+#: includes/class-cloud-runtime-client.php:1278
 msgid "Cloud liveness check failed."
 msgstr "Cloud 存活检查失败。"
 
-#: includes/class-cloud-runtime-client.php:1271
+#: includes/class-cloud-runtime-client.php:1284
 msgid "Cloud service is live."
 msgstr "Cloud 服务在线。"
 
@@ -687,12 +687,12 @@ msgstr "Cloud 设置不完整。"
 msgid "Connector readiness could not be verified."
 msgstr "无法验证连接器就绪状态。"
 
-#: includes/class-cloud-runtime-client.php:1315
-#: includes/class-cloud-runtime-client.php:1353
+#: includes/class-cloud-runtime-client.php:1328
+#: includes/class-cloud-runtime-client.php:1366
 msgid "Cloud runtime request failed."
 msgstr "Cloud runtime 请求失败。"
 
-#: includes/class-cloud-runtime-client.php:1387
+#: includes/class-cloud-runtime-client.php:1400
 msgid "Cloud runtime artifact download failed."
 msgstr "Cloud runtime artifact 下载失败。"
 
@@ -1070,16 +1070,16 @@ msgstr "图像上下文证据至少需要一个受限的源工件或媒体 URL�
 msgid "Cloud did not return usable image context evidence."
 msgstr "Cloud 未返回可用的图片上下文证据。"
 
-#: includes/class-cloud-runtime-client.php:1671
+#: includes/class-cloud-runtime-client.php:1684
 msgid "Cloud request identifiers must use only letters, numbers, dot, underscore, colon, or hyphen and contain at most 128 characters."
 msgstr "Cloud 请求标识符只能使用字母、数字、点、下划线、冒号或连字符，且最多 128 个字符。"
 
-#: includes/class-cloud-runtime-client.php:1703
+#: includes/class-cloud-runtime-client.php:1716
 msgid "Cannot connect to Npcink Cloud. Check the Cloud Base URL."
 msgstr "无法连接到 Npcink Cloud。请检查 Cloud 基础 URL。"
 
 #. translators: 1: Cloud base URL, 2: transport error.
-#: includes/class-cloud-runtime-client.php:1708
+#: includes/class-cloud-runtime-client.php:1721
 #, php-format
 msgid "Cannot connect to %1$s. Original error: %2$s"
 msgstr "无法连接到 %1$s。原始错误：%2$s"
@@ -2835,15 +2835,19 @@ msgid "Site Knowledge usage could not be read. Check the Cloud connection and th
 msgstr "无法读取知识库用量。请先检查 Cloud 连接及 Cloud 中的此站点状态，再重试。"
 
 #: includes/class-cloud-ai-task-contract.php:250
-#: includes/class-cloud-discoverability-pause.php:63
+#: includes/class-cloud-discoverability-pause.php:93
 #: includes/class-cloud-runtime-request-guards.php:214
 msgid "SEO/AEO/GEO specialist assistance is paused."
 msgstr "SEO/AEO/GEO 专项辅助功能已暂停。"
 
-#: includes/class-cloud-discoverability-pause.php:38
+#: includes/class-cloud-discoverability-pause.php:57
 msgid "Suggests short, readable permalink slugs from post title or content. Requires an AI connector that includes support for text generation models."
 msgstr "根据文章标题或内容生成简短、易读的永久链接别名建议。需要支持文本生成模型的 AI 连接器。"
 
-#: includes/class-cloud-discoverability-pause.php:41
+#: includes/class-cloud-discoverability-pause.php:60
 msgid "Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, and Grammar. Requires an AI connector that includes support for text generation models."
 msgstr "按区块为文章添加编辑建议，覆盖无障碍、可读性和语法。需要支持文本生成模型的 AI 连接器。"
+
+#: includes/class-cloud-discoverability-pause.php:29
+msgid "This Cloud feature is temporarily paused."
+msgstr "此 Cloud 功能已暂时停用。"

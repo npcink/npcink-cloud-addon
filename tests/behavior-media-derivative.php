@@ -10,6 +10,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/helpers.php';
 
 maca_load_addon_classes();
+// Retained implementation; the release pause is tested independently.
+$retained_media_pause_policy = new ReflectionProperty( Npcink_Cloud_Discoverability_Pause::class, 'paused_runtime_features' );
+$retained_media_pause_policy->setAccessible( true );
+$retained_media_pause_snapshot = $retained_media_pause_policy->getValue();
+$retained_media_pause_policy->setValue( null, array() );
+
 
 /**
  * Returns one exact Cloud 13-field media derivative descriptor.
@@ -1364,3 +1370,5 @@ maca_assert(
 	is_wp_error( $legacy_result ) && 'cloud_media_derivative_result_contract_invalid' === $legacy_result->get_error_code(),
 	'Behavior: legacy derivative result keys are not consumed.'
 );
+
+$retained_media_pause_policy->setValue( null, $retained_media_pause_snapshot );
