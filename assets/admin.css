@@ -162,6 +162,7 @@
 	margin-top: 20px;
 }
 
+.npcink-cloud-section-title,
 .npcink-cloud-local-permissions__header {
 	align-items: baseline;
 	display: flex;
@@ -170,10 +171,25 @@
 	padding-bottom: 2px;
 }
 
+.npcink-cloud-section-title h2,
 .npcink-cloud-local-permissions__header h2 {
 	font-size: 16px;
 	line-height: 1.4;
 	margin: 0;
+}
+
+.npcink-cloud-overview-entitlements {
+	margin: 0 0 8px;
+	max-width: 720px;
+	width: 100%;
+}
+
+.npcink-cloud-overview-entitlements .npcink-cloud-section-title {
+	margin-bottom: 8px;
+}
+
+.npcink-cloud-overview .npcink-cloud-site-knowledge-summary > .npcink-cloud-section-title {
+	margin-bottom: 0;
 }
 
 .npcink-cloud-local-permissions__privacy {
@@ -206,11 +222,71 @@
 	padding: 0;
 }
 
-.npcink-cloud-site-knowledge-heading h3 {
+.npcink-cloud-site-knowledge-heading {
+	align-items: center;
+	gap: 8px 12px;
+	margin: 0;
+}
+
+.npcink-cloud-site-knowledge-heading__title {
 	align-items: center;
 	display: inline-flex;
-	gap: 6px;
+	flex: 1 1 auto;
+	flex-wrap: wrap;
+	gap: 8px;
+	min-width: 0;
+}
+
+.npcink-cloud-site-knowledge-heading__title h2 {
+	flex: 0 1 auto;
 	margin: 0;
+}
+
+.npcink-cloud-site-knowledge-heading .npcink-cloud-summary__actions {
+	align-items: center;
+	display: inline-flex;
+	flex: 0 0 auto;
+	gap: 10px;
+	justify-content: flex-end;
+}
+
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	color: #1d2327;
+	font-weight: 600;
+	min-height: auto;
+	padding: 0;
+}
+
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action:hover,
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action:focus {
+	background: transparent;
+	color: #2271b1;
+}
+
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action:disabled,
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action[disabled] {
+	color: #646970;
+	cursor: default;
+	opacity: 1;
+}
+
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-secondary-action {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	color: #2271b1;
+	min-height: auto;
+	padding: 0;
+	text-decoration: underline;
+}
+
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-secondary-action:hover,
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-secondary-action:focus {
+	background: transparent;
+	color: #135e96;
 }
 
 
@@ -224,7 +300,9 @@
 	width: 100%;
 }
 
+.npcink-cloud-overview .npcink-cloud-overview-entitlements,
 .npcink-cloud-overview .npcink-cloud-overview-panel,
+.npcink-cloud-overview .npcink-cloud-site-knowledge-summary,
 .npcink-cloud-overview .npcink-cloud-local-permissions {
 	background: transparent;
 	border: 0;
@@ -238,6 +316,11 @@
 }
 
 .npcink-cloud-overview .npcink-cloud-overview-panel {
+	margin-bottom: 0;
+}
+
+.npcink-cloud-overview .npcink-cloud-site-knowledge-summary {
+	margin-top: 12px;
 	margin-bottom: 0;
 }
 
@@ -662,6 +745,30 @@ button.npcink-cloud-icon-button.button-link:focus {
 	padding: 2px 0 0 0;
 }
 
+.npcink-cloud-entitlement-more,
+.npcink-cloud-checks-detail {
+	margin-top: 12px;
+	max-width: 720px;
+}
+
+.npcink-cloud-entitlement-more > summary,
+.npcink-cloud-checks-detail > summary {
+	color: #646970;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.npcink-cloud-entitlement-more > summary:hover,
+.npcink-cloud-entitlement-more > summary:focus,
+.npcink-cloud-checks-detail > summary:hover,
+.npcink-cloud-checks-detail > summary:focus {
+	color: #1d35b4;
+}
+
+.npcink-cloud-checks-detail .npcink-cloud-checks-table {
+	margin-top: 0;
+}
+
 .npcink-cloud-manual-fallback {
 	border-top: 0;
 	margin-top: 28px;
@@ -1051,14 +1158,9 @@ button.npcink-cloud-icon-button.button-link:focus {
 }
 
 
-.npcink-cloud-site-knowledge-summary__status {
-	align-items: center;
-	border-top: 0;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 10px;
-	margin: 12px 0 0;
-	padding-top: 0;
+.npcink-cloud-site-knowledge-heading__title .npcink-cloud-badge {
+	flex: 0 0 auto;
+	line-height: 1.2;
 }
 
 .npcink-cloud-site-knowledge-summary__result {
@@ -1076,17 +1178,24 @@ button.npcink-cloud-icon-button.button-link:focus {
 }
 
 .npcink-cloud-site-knowledge-summary__detail {
-	margin: 10px 0 0;
+	margin: 6px 0 0;
 	max-width: 60ch;
 }
 
 .npcink-cloud-site-knowledge-summary__meta {
+	align-items: baseline;
 	color: #646970;
 	display: flex;
 	flex-wrap: wrap;
 	font-size: 12px;
-	gap: 4px 20px;
-	margin: 14px 0 0;
+	gap: 0;
+	justify-content: flex-start;
+	margin: 6px 0 0;
+}
+
+.npcink-cloud-site-knowledge-summary__meta-sep[hidden],
+.npcink-cloud-site-knowledge-summary__meta [hidden] {
+	display: none;
 }
 
 .npcink-cloud-site-knowledge-summary__support {
@@ -1095,7 +1204,7 @@ button.npcink-cloud-icon-button.button-link:focus {
 }
 
 .npcink-cloud-site-knowledge-summary__action {
-	margin-top: 12px;
+	margin-top: 8px;
 }
 
 .npcink-cloud-checks-heading {
@@ -1103,8 +1212,16 @@ button.npcink-cloud-icon-button.button-link:focus {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px 12px;
-	justify-content: flex-end;
+	justify-content: space-between;
 	margin: 0 0 8px;
+	max-width: 720px;
+	width: 100%;
+}
+
+.npcink-cloud-checks-heading__hint {
+	flex: 1 1 auto;
+	margin: 0;
+	min-width: 12rem;
 }
 
 .npcink-cloud-checks-table {

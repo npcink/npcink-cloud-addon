@@ -80,9 +80,19 @@
 		waitingLabel.hidden = '' === label;
 		const metaRow = waitingLabel.closest( '.npcink-cloud-site-knowledge-summary__meta' );
 		if ( metaRow ) {
-			// The waiting label itself is a span in this row, so one check
-			// covers it together with any server-rendered siblings.
-			const hasVisibleContent = Array.from( metaRow.querySelectorAll( 'span' ) ).some( ( span ) => ! span.hidden && '' !== span.textContent.trim() );
+			const lastUpdated = metaRow.querySelector( '[data-npcink-site-knowledge-last-updated]' );
+			const metaSep = metaRow.querySelector( '[data-npcink-site-knowledge-meta-sep]' );
+			const hasLastUpdated = !!( lastUpdated && ! lastUpdated.hidden && '' !== lastUpdated.textContent.trim() );
+			if ( metaSep ) {
+				metaSep.hidden = waitingLabel.hidden || ! hasLastUpdated;
+			}
+			// Ignore the separator when deciding whether the row has visible copy.
+			const hasVisibleContent = Array.from( metaRow.querySelectorAll( 'span' ) ).some( ( span ) => {
+				if ( span.hasAttribute( 'data-npcink-site-knowledge-meta-sep' ) ) {
+					return false;
+				}
+				return ! span.hidden && '' !== span.textContent.trim();
+			} );
 			metaRow.hidden = ! hasVisibleContent;
 		}
 	};

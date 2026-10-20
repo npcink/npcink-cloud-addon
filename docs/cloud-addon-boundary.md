@@ -180,7 +180,7 @@ The bridge must send only public content manifests, affected post ids, and
 perform re-index policy decisions, own stale-index detection, become a workflow
 engine, become scheduler truth, or perform WordPress writes.
 
-The settings page may expose a dedicated Site Knowledge tab, show delivery,
+The settings page may embed Site Knowledge status on Overview, show delivery,
 bounded buffered public changes, and the last local delivery outcome, update local delivery consent, and
 send bounded public refresh plus explicit administrator delivery intents for
 Cloud-owned index operations. Cloud remains responsible for index execution,

@@ -416,7 +416,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_public_refresh();
 			$notice_type = empty( $result['ok'] ) ? 'error' : ( 'refresh_requested' === $result['code'] ? 'success' : 'info' );
 			self::set_admin_notice( $notice_type, (string) $result['message'] );
-			self::redirect_to_page( 'site_knowledge' );
+			self::redirect_to_page( 'permissions' );
 		}
 
 		/** Handles a bounded Cloud-owned Site Knowledge index operation. */
@@ -431,7 +431,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$confirmation = isset( $_POST['site_knowledge_confirmation'] ) ? sanitize_text_field( wp_unslash( $_POST['site_knowledge_confirmation'] ) ) : '';
 			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_index_operation( $operation, $confirmation );
 			self::set_admin_notice( ! empty( $result['ok'] ) ? 'info' : 'error', (string) $result['message'] );
-			self::redirect_to_page( 'site_knowledge' );
+			self::redirect_to_page( 'permissions' );
 		}
 
 		/**
