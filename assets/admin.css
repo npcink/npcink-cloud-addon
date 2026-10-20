@@ -856,6 +856,29 @@ button.npcink-cloud-icon-button.button-link:focus {
 	gap: 8px;
 }
 
+.npcink-cloud-entitlement--attention {
+	background: #fcf9e8;
+	border: 1px solid #dba617;
+	border-radius: 4px;
+	color: #1d2327;
+	margin: 0 0 8px;
+	padding: 8px 10px;
+}
+
+.npcink-cloud-entitlement__fix-link {
+	font-weight: 600;
+	margin-left: 4px;
+}
+
+.npcink-cloud-sk-delivery-actions {
+	margin-top: 8px;
+}
+
+.npcink-cloud-sk-delivery-actions .npcink-cloud-site-knowledge-summary__action {
+	display: inline-block;
+	margin: 0 8px 6px 0;
+}
+
 .npcink-cloud-entitlement__spinner.spinner {
 	float: none;
 	margin: 0;

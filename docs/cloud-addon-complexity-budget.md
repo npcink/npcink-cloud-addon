@@ -86,7 +86,7 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-runtime-media-payloads.php` — 280 lines (static
   multipart assembly and exact upload/delivery-ack response validation for
   the bounded media endpoints)
-- `includes/class-cloud-settings-page.php` — 2450 lines (was 3280 before the
+- `includes/class-cloud-settings-page.php` — 2600 lines (was 3280 before the
   2026-10-04 handler split into `class-cloud-settings-actions.php`; raised from
   2207 for the 2026-10-12 locale-aware privacy URL, no-JS disconnect confirmation,
   and removal of the retired Site Knowledge coverage renderer; raised again for
@@ -477,3 +477,4 @@ actions, options, or public APIs are removed.
 2026-10-19 UI densify pass (figs 1–5): settings-page ceiling → 2500; Overview icon Portal + compact plan chip; Features short switches + flat privacy; Site Knowledge badge/short status + Cloud icon; Advanced entitlement untitled + More limits; panels max-width 720px.
 2026-10-19 four-tab alignment: settings-page ceiling 2500→2450 after removing unused secondary-tab renderer and tab_view_url; copy and 720px column alignment do not add lines.
 2026-10-19 tiered discoverability: settings-page ceiling stays 2450; Overview entitlement keeps Renews / AI credit period visible and folds remaining limits into More limits; Checks folds Hosted Runtime, capability rows, and readiness history into Check details; Knowledge base status title uses screen-reader-text; empty entitlement and healthy Updates-will-appear copy stay unrendered.
+2026-10-20 failure-alert CTAs: settings-page ceiling 2450→2600 for cause-specific Knowledge base repair links, readiness next-action markup, visible entitlement Retry, Checks delivery actions, and Connection-tab Check connection when service needs attention.

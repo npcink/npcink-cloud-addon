@@ -194,6 +194,21 @@ if ( ! function_exists( 'is_wp_error' ) ) {
 	}
 }
 
+
+if ( ! function_exists( 'wp_kses' ) ) {
+	/**
+	 * Minimal kses for connector admin markup in pure-PHP behavior tests.
+	 *
+	 * @param string               $content Content to filter.
+	 * @param array<string,mixed>  $allowed_html Allowed tags.
+	 * @return string
+	 */
+	function wp_kses( $content, $allowed_html = array() ): string {
+		unset( $allowed_html );
+		return (string) $content;
+	}
+}
+
 if ( ! function_exists( 'sanitize_text_field' ) ) {
 	function sanitize_text_field( $value ): string {
 		return trim( preg_replace( '/[\x00-\x1F\x7F]/', '', wp_strip_all_tags( (string) $value ) ) );
