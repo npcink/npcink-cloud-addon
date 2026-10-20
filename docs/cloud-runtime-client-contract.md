@@ -473,6 +473,13 @@ Text and alt-text consumers accept one result shape only:
 matches the current request. Only then is output read from
 `response.data.result.output.output_text`. Legacy result layouts are not read.
 
+When Cloud projects provider-call metering onto the same envelope, optional
+`response.data.result.usage` may appear beside `output` with integer
+`tokens_in`, `tokens_out`, and `total_tokens` (sum of all provider calls for the
+run; cost is omitted). The WordPress AI request-log bridge maps `tokens_in` →
+`tokens_input` and `tokens_out` → `tokens_output` when that object is present,
+and leaves TOKEN empty when Cloud omits `usage`.
+
 For quality-accepted editor tasks, the scene request may carry the optional
 bounded shape `site_knowledge_reference={enabled:boolean,mode:string}`. The
 task-bound modes are currently `site_title_style` and `site_summary_style` for

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T03:30:41+00:00\n"
+"POT-Creation-Date: 2026-10-20T06:21:24+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -2932,71 +2932,71 @@ msgstr ""
 msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:757
+#: includes/class-cloud-wordpress-ai-connector.php:767
 msgid "This request is not supported by the Npcink Cloud AI connection yet."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:758
+#: includes/class-cloud-wordpress-ai-connector.php:768
 msgid "The Npcink Cloud AI connection does not support conversation history for this request."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:759
+#: includes/class-cloud-wordpress-ai-connector.php:769
 msgid "The Npcink Cloud AI connection does not support tool calls or web search."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:760
+#: includes/class-cloud-wordpress-ai-connector.php:770
 msgid "The Npcink Cloud AI connection needs text input for this request."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:761
+#: includes/class-cloud-wordpress-ai-connector.php:771
 msgid "Image-to-image refinement is not supported by the Npcink Cloud AI connection yet."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:762
+#: includes/class-cloud-wordpress-ai-connector.php:772
 msgid "This AI feature is not currently available through the Npcink Cloud connection."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:763
+#: includes/class-cloud-wordpress-ai-connector.php:773
 msgid "Npcink Cloud did not return usable output for this request. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:764
+#: includes/class-cloud-wordpress-ai-connector.php:774
 msgid "Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:765
+#: includes/class-cloud-wordpress-ai-connector.php:775
 msgid "Npcink Cloud returned an unexpected image result. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:766
+#: includes/class-cloud-wordpress-ai-connector.php:776
 msgid "The generated image previews are too large to show. Try generating fewer images at once."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:767
+#: includes/class-cloud-wordpress-ai-connector.php:777
 msgid "The generated image could not be verified for safe delivery. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:768
+#: includes/class-cloud-wordpress-ai-connector.php:778
 msgid "Npcink Cloud could not confirm delivery of the generated image. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:769
+#: includes/class-cloud-wordpress-ai-connector.php:779
 msgid "The generated image is no longer available. Please generate it again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:770
+#: includes/class-cloud-wordpress-ai-connector.php:780
 msgid "Npcink Cloud could not complete this AI request. Please try again in a moment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:771
+#: includes/class-cloud-wordpress-ai-connector.php:781
 msgid "Npcink Cloud could not be reached from this site. Please try again in a moment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:772
+#: includes/class-cloud-wordpress-ai-connector.php:782
 msgid "The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:773
+#: includes/class-cloud-wordpress-ai-connector.php:783
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr ""
 
