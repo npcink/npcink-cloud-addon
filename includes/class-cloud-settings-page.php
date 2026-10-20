@@ -1616,7 +1616,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<section id="npcink-cloud-site-knowledge" class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title">
 						<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-heading npcink-cloud-section-title">
-							<h2 id="npcink-cloud-site-knowledge-status-title"><?php esc_html_e( 'Knowledge base', 'npcink-cloud-addon' ); ?></h2>
+							<div class="npcink-cloud-site-knowledge-heading__title">
+								<h2 id="npcink-cloud-site-knowledge-status-title"><?php esc_html_e( 'Knowledge base', 'npcink-cloud-addon' ); ?></h2>
+								<span class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( $badge_class ); ?>"><?php echo esc_html( $badge_label ); ?></span>
+							</div>
 							<div class="npcink-cloud-summary__actions">
 								<?php if ( $show_sync_action ) : ?>
 									<?php if ( $sync_busy ) : ?>
@@ -1637,9 +1640,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 									title="<?php echo esc_attr( $scope_hint ); ?>"
 								><?php esc_html_e( 'Open in Cloud', 'npcink-cloud-addon' ); ?></a>
 							</div>
-						</div>
-						<div class="npcink-cloud-site-knowledge-summary__status">
-							<span class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( $badge_class ); ?>"><?php echo esc_html( $badge_label ); ?></span>
 						</div>
 						<?php if ( $local_delivery_needs_attention ) : ?>
 							<?php if ( 0 < $dropped_count ) : ?>
@@ -1674,17 +1674,22 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							<p class="description"><?php esc_html_e( 'Send a public post and page manifest so existing content enters the knowledge base.', 'npcink-cloud-addon' ); ?></p>
 						</div>
 						<?php endif; ?>
-						<p class="npcink-cloud-site-knowledge-summary__meta"<?php echo ( $waiting_count > 0 || '' !== (string) ( $site_knowledge['last_delivery_at'] ?? '' ) ) ? '' : ' hidden'; ?>>
-							<span data-npcink-site-knowledge-waiting<?php echo $waiting_count > 0 ? '' : ' hidden'; ?>><?php echo esc_html( sprintf(
+						<?php
+						$has_waiting_meta = $waiting_count > 0;
+						$has_last_updated_meta = '' !== (string) ( $site_knowledge['last_delivery_at'] ?? '' );
+						?>
+						<p class="npcink-cloud-site-knowledge-summary__meta"<?php echo ( $has_waiting_meta || $has_last_updated_meta ) ? '' : ' hidden'; ?>>
+							<span data-npcink-site-knowledge-waiting<?php echo $has_waiting_meta ? '' : ' hidden'; ?>><?php echo esc_html( sprintf(
 								/* translators: %d: number of content updates waiting for automatic processing. */
 								__( 'Updates waiting: %d', 'npcink-cloud-addon' ),
 								$waiting_count
 							) ); ?></span>
-							<?php if ( '' !== (string) ( $site_knowledge['last_delivery_at'] ?? '' ) ) : ?>
-								<span><?php echo esc_html( sprintf(
+							<span class="npcink-cloud-site-knowledge-summary__meta-sep" data-npcink-site-knowledge-meta-sep<?php echo ( $has_waiting_meta && $has_last_updated_meta ) ? '' : ' hidden'; ?> aria-hidden="true"> · </span>
+							<?php if ( $has_last_updated_meta ) : ?>
+								<span data-npcink-site-knowledge-last-updated><?php echo esc_html( sprintf(
 									/* translators: %s: date and time of the most recent knowledge base update. */
 									__( 'Last updated: %s', 'npcink-cloud-addon' ),
-										self::format_compact_datetime_value( (string) $site_knowledge['last_delivery_at'] )
+									self::format_compact_datetime_value( (string) $site_knowledge['last_delivery_at'] )
 								) ); ?></span>
 							<?php endif; ?>
 						</p>

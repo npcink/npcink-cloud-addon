@@ -222,18 +222,32 @@
 	padding: 0;
 }
 
-.npcink-cloud-site-knowledge-heading h2 {
+.npcink-cloud-site-knowledge-heading {
+	align-items: center;
+	gap: 8px 12px;
+	margin: 0;
+}
+
+.npcink-cloud-site-knowledge-heading__title {
 	align-items: center;
 	display: inline-flex;
 	flex: 1 1 auto;
-	gap: 6px;
-	margin: 0;
+	flex-wrap: wrap;
+	gap: 8px;
 	min-width: 0;
+}
+
+.npcink-cloud-site-knowledge-heading__title h2 {
+	flex: 0 1 auto;
+	margin: 0;
 }
 
 .npcink-cloud-site-knowledge-heading .npcink-cloud-summary__actions {
 	align-items: center;
+	display: inline-flex;
+	flex: 0 0 auto;
 	gap: 10px;
+	justify-content: flex-end;
 }
 
 .npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action {
@@ -306,7 +320,7 @@
 }
 
 .npcink-cloud-overview .npcink-cloud-site-knowledge-summary {
-	margin-top: 16px;
+	margin-top: 12px;
 	margin-bottom: 0;
 }
 
@@ -1144,14 +1158,9 @@ button.npcink-cloud-icon-button.button-link:focus {
 }
 
 
-.npcink-cloud-site-knowledge-summary__status {
-	align-items: center;
-	border-top: 0;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 10px;
-	margin: 12px 0 0;
-	padding-top: 0;
+.npcink-cloud-site-knowledge-heading__title .npcink-cloud-badge {
+	flex: 0 0 auto;
+	line-height: 1.2;
 }
 
 .npcink-cloud-site-knowledge-summary__result {
@@ -1169,17 +1178,24 @@ button.npcink-cloud-icon-button.button-link:focus {
 }
 
 .npcink-cloud-site-knowledge-summary__detail {
-	margin: 10px 0 0;
+	margin: 6px 0 0;
 	max-width: 60ch;
 }
 
 .npcink-cloud-site-knowledge-summary__meta {
+	align-items: baseline;
 	color: #646970;
 	display: flex;
 	flex-wrap: wrap;
 	font-size: 12px;
-	gap: 4px 20px;
-	margin: 14px 0 0;
+	gap: 0;
+	justify-content: flex-start;
+	margin: 6px 0 0;
+}
+
+.npcink-cloud-site-knowledge-summary__meta-sep[hidden],
+.npcink-cloud-site-knowledge-summary__meta [hidden] {
+	display: none;
 }
 
 .npcink-cloud-site-knowledge-summary__support {
@@ -1188,7 +1204,7 @@ button.npcink-cloud-icon-button.button-link:focus {
 }
 
 .npcink-cloud-site-knowledge-summary__action {
-	margin-top: 12px;
+	margin-top: 8px;
 }
 
 .npcink-cloud-checks-heading {

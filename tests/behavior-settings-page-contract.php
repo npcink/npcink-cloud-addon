@@ -821,6 +821,8 @@ maca_assert(
 		&& false !== strpos( $site_knowledge_rendered, '<h2 id="npcink-cloud-site-knowledge-status-title">Knowledge base' )
 		&& false !== strpos( $site_knowledge_rendered, 'Open in Cloud' )
 		&& false !== strpos( $site_knowledge_rendered, '>Sync<' )
+		&& false !== strpos( $site_knowledge_rendered, 'npcink-cloud-site-knowledge-heading__title' )
+		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-site-knowledge-summary__status' )
 		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-info-hint' )
 		&& false === strpos( $site_knowledge_rendered, 'Updating ·' )
 		&& false === strpos( $site_knowledge_rendered, 'screen-reader-text">Knowledge base' )
