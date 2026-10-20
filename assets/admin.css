@@ -1447,6 +1447,36 @@ button.npcink-cloud-text-action:focus {
 	font-weight: 500;
 }
 
+.npcink-cloud-gen-test-dialog__readable {
+	margin: 0 0 8px;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.npcink-cloud-gen-test-dialog__raw {
+	margin-top: 8px;
+}
+
+.npcink-cloud-gen-test-dialog__raw > summary {
+	color: #646970;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.npcink-cloud-gen-test-dialog__raw pre {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	margin: 8px 0 0;
+	max-height: 220px;
+	overflow: auto;
+	padding: 8px;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+
 
 .npcink-cloud-subcard {
 	align-items: start;

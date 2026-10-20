@@ -133,24 +133,103 @@
 		return input;
 	}
 
-	function formatResult( payload ) {
-		var data = payload && Object.prototype.hasOwnProperty.call( payload, 'data' ) ? payload.data : payload;
-		var html = '';
-		if ( data && data.image && data.image.data ) {
+	function extractResultData( payload ) {
+		if ( ! payload || 'object' !== typeof payload ) {
+			return payload;
+		}
+		if ( Object.prototype.hasOwnProperty.call( payload, 'data' ) ) {
+			return payload.data;
+		}
+		return payload;
+	}
+
+	function readableParts( data ) {
+		var parts = [];
+		if ( ! data || 'object' !== typeof data ) {
+			return parts;
+		}
+		if ( data.image && data.image.data ) {
 			var src = String( data.image.data );
 			if ( 0 !== src.indexOf( 'data:' ) ) {
 				src = 'data:image/png;base64,' + src;
 			}
-			html += '<p class="npcink-cloud-gen-test-dialog__preview"><img alt="" src="' + escapeHtml( src ) + '" /></p>';
+			parts.push( '<p class="npcink-cloud-gen-test-dialog__preview"><img alt="" src="' + escapeHtml( src ) + '" /></p>' );
 		}
-		if ( data && typeof data.title === 'string' ) {
-			html += '<p><strong>' + escapeHtml( data.title ) + '</strong></p>';
+		if ( typeof data.title === 'string' && data.title ) {
+			parts.push( '<p class="npcink-cloud-gen-test-dialog__readable"><strong>' + escapeHtml( data.title ) + '</strong></p>' );
 		}
-		if ( data && typeof data.alt_text === 'string' ) {
-			html += '<p>' + escapeHtml( data.alt_text ) + '</p>';
+		if ( typeof data.alt_text === 'string' && data.alt_text ) {
+			parts.push( '<p class="npcink-cloud-gen-test-dialog__readable">' + escapeHtml( data.alt_text ) + '</p>' );
 		}
-		html += '<pre>' + escapeHtml( JSON.stringify( payload, null, 2 ) ) + '</pre>';
-		return html;
+		if ( typeof data.text === 'string' && data.text ) {
+			parts.push( '<p class="npcink-cloud-gen-test-dialog__readable">' + escapeHtml( data.text ) + '</p>' );
+		}
+		if ( typeof data.summary === 'string' && data.summary ) {
+			parts.push( '<p class="npcink-cloud-gen-test-dialog__readable">' + escapeHtml( data.summary ) + '</p>' );
+		}
+		return parts;
+	}
+
+	function foldRaw( payload ) {
+		return (
+			'<details class="npcink-cloud-gen-test-dialog__raw">' +
+			'<summary>' +
+			escapeHtml( s.viewRaw || 'View raw response' ) +
+			'</summary>' +
+			'<pre>' +
+			escapeHtml( JSON.stringify( payload, null, 2 ) ) +
+			'</pre>' +
+			'</details>'
+		);
+	}
+
+	function formatSuccess( payload ) {
+		var data = extractResultData( payload );
+		var parts = readableParts( data );
+		if ( ! parts.length && data != null && data !== '' ) {
+			if ( 'string' === typeof data || 'number' === typeof data || 'boolean' === typeof data ) {
+				parts.push( '<p class="npcink-cloud-gen-test-dialog__readable">' + escapeHtml( String( data ) ) + '</p>' );
+			}
+		}
+		if ( ! parts.length ) {
+			parts.push( '<p class="npcink-cloud-gen-test-dialog__readable">' + escapeHtml( s.noReadable || 'Generated, but no plain text result was returned.' ) + '</p>' );
+		}
+		parts.push( foldRaw( payload ) );
+		return parts.join( '' );
+	}
+
+	function plainError( json ) {
+		var data = json && json.data;
+		var message = '';
+		if ( data && typeof data.message === 'string' ) {
+			message = data.message;
+		} else if ( data && data.errors && data.errors.length ) {
+			message = data.errors.join( '; ' );
+		}
+		var lower = String( message ).toLowerCase();
+		if ( ! message ) {
+			return s.error || 'Generation failed.';
+		}
+		if ( lower.indexOf( 'insufficient permissions' ) >= 0 ) {
+			return s.errorPermission || 'You need administrator access to run this test.';
+		}
+		if ( lower.indexOf( 'ability not found' ) >= 0 ) {
+			return s.errorMissingAbility || 'This generation ability is not available. Open Ability Explorer or check the WordPress AI plugin.';
+		}
+		if ( lower.indexOf( 'input validation failed' ) >= 0 || lower.indexOf( 'required field' ) >= 0 ) {
+			return s.errorValidation || 'Check the form fields and try again.';
+		}
+		if ( lower.indexOf( 'invalid json' ) >= 0 ) {
+			return s.errorValidation || 'Check the form fields and try again.';
+		}
+		if ( lower.indexOf( 'nonce' ) >= 0 || lower.indexOf( 'expired' ) >= 0 ) {
+			return s.errorSession || 'This page expired. Refresh and try again.';
+		}
+		// Prefer host message when it already reads as a short sentence; otherwise fallback.
+		if ( message.length <= 180 && message.indexOf( '{' ) < 0 ) {
+			return message;
+		}
+		return s.error || 'Generation failed.';
 	}
 
 	function setBusy( busy ) {
@@ -237,30 +316,32 @@
 				if ( json && json.success ) {
 					if ( statusEl ) {
 						statusEl.className = 'npcink-cloud-gen-test-dialog__status is-ok';
-						statusEl.textContent = ( json.data && json.data.message ) || cfg.strings.success;
+						statusEl.textContent = s.generated || s.success || 'Generated';
 					}
 					if ( resultEl ) {
 						resultEl.hidden = false;
-						resultEl.innerHTML = formatResult( json.data || {} );
+						resultEl.innerHTML = formatSuccess( json.data || {} );
 					}
 					return;
 				}
-				var message =
-					( json && json.data && ( json.data.message || ( json.data.errors && json.data.errors.join( '; ' ) ) ) ) ||
-					cfg.strings.error;
+				var message = plainError( json );
 				if ( statusEl ) {
 					statusEl.className = 'npcink-cloud-gen-test-dialog__status is-error';
 					statusEl.textContent = message;
 				}
 				if ( resultEl && json && json.data ) {
 					resultEl.hidden = false;
-					resultEl.innerHTML = '<pre>' + escapeHtml( JSON.stringify( json.data, null, 2 ) ) + '</pre>';
+					resultEl.innerHTML = foldRaw( json.data );
 				}
 			} )
 			.catch( function () {
 				if ( statusEl ) {
 					statusEl.className = 'npcink-cloud-gen-test-dialog__status is-error';
-					statusEl.textContent = cfg.strings.error;
+					statusEl.textContent = s.errorNetwork || s.error || 'Generation failed.';
+				}
+				if ( resultEl ) {
+					resultEl.hidden = true;
+					resultEl.innerHTML = '';
 				}
 			} )
 			.finally( function () {

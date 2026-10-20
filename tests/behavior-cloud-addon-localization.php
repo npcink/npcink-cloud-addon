@@ -252,6 +252,16 @@ maca_assert(
 		'Advanced: Open Ability Explorer',
 		'Advanced: Open Ability Explorer',
 		'npcink-cloud-addon'
+	)
+	&& '已生成' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Generated',
+		'Generated',
+		'npcink-cloud-addon'
+	)
+	&& '查看原始响应' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'View raw response',
+		'View raw response',
+		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers the connected summary, troubleshooting, readiness, monitoring-consent, and hosted model ownership surfaces.'
 );
