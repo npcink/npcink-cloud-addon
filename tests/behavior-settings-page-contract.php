@@ -994,12 +994,20 @@ $test_links->invoke( null );
 $test_links_html = (string) ob_get_clean();
 maca_assert(
 	str_contains( $test_links_html, 'WordPress AI generation tests' )
+	&& str_contains( $test_links_html, 'npcink-cloud-generation-tests' )
+	&& str_contains( $test_links_html, '<details' )
+	&& ! str_contains( $test_links_html, 'npcink-cloud-generation-tests" open' )
+	&& ! str_contains( $test_links_html, 'npcink-cloud-generation-tests open' )
 	&& str_contains( $test_links_html, 'ability=ai/title-generation' )
 	&& ! str_contains( $test_links_html, 'ability=ai/image-generation' )
 	&& str_contains( $test_links_html, 'ai-request-logs' )
-	&& str_contains( $test_links_html, 'may consume credits' )
+	&& str_contains( $test_links_html, 'May use credits' )
+	&& str_contains( $test_links_html, 'Text test' )
+	&& str_contains( $test_links_html, 'npcink-cloud-text-action' )
+	&& ! str_contains( $test_links_html, 'button button-secondary' )
+	&& ! str_contains( $test_links_html, 'target="_blank"' )
 	&& $http_before === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: generation entry links expose registered host tests only, disclose cost, and perform zero requests.'
+	'Behavior: generation tests fold by default, use short copy and text actions, expose registered host tests only, disclose cost, stay same-window, and perform zero requests.'
 );
 
 // Re-pause only this surface to prove the guard path still works without ACTIVE=false.

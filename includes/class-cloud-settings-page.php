@@ -1231,40 +1231,38 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				$installed = defined( 'WP_PLUGIN_DIR' ) && is_file( WP_PLUGIN_DIR . '/ai/ai.php' );
 				$url = $installed ? admin_url( 'plugins.php?plugin_status=inactive' ) : admin_url( 'plugin-install.php?tab=plugin-information&plugin=ai' );
 				?>
-				<div class="notice notice-warning inline" data-npcink-ai-plugin-guidance>
-					<p><?php esc_html_e( 'Cloud is connected. Install and activate the official AI plugin by the WordPress.org team to use AI writing in WordPress. Cloud Addon provides the connection; it does not provide the writing interface.', 'npcink-cloud-addon' ); ?></p>
-					<p><a class="button button-secondary" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $installed ? __( 'Activate the WordPress AI plugin', 'npcink-cloud-addon' ) : __( 'Install the WordPress AI plugin', 'npcink-cloud-addon' ) ); ?></a></p>
-				</div>
+				<p class="description npcink-cloud-generation-tests-guidance" data-npcink-ai-plugin-guidance>
+					<?php esc_html_e( 'Install the official WordPress AI plugin to use generation tests.', 'npcink-cloud-addon' ); ?>
+					<a class="npcink-cloud-text-action" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $installed ? __( 'Activate the WordPress AI plugin', 'npcink-cloud-addon' ) : __( 'Install the WordPress AI plugin', 'npcink-cloud-addon' ) ); ?></a>
+				</p>
 				<?php
 				return;
 			}
 			if ( $guidance_only ) {
 				return;
 			}
-			$test_count = 0;
+			$actions = array();
+			if ( $explorer_available ) {
+				foreach ( array( 'ai/title-generation' => __( 'Text test', 'npcink-cloud-addon' ), 'ai/image-generation' => __( 'Image test', 'npcink-cloud-addon' ), 'ai/alt-text-generation' => __( 'Vision test', 'npcink-cloud-addon' ) ) as $ability => $label ) {
+					if ( wp_get_ability( $ability ) ) {
+						$actions[] = array( 'href' => add_query_arg( array( 'page' => 'ai-abilities-explorer', 'action' => 'test', 'ability' => $ability ), admin_url( 'tools.php' ) ), 'label' => $label );
+					}
+				}
+			}
+			if ( $logs_available ) {
+				$actions[] = array( 'href' => admin_url( 'tools.php?page=ai-request-logs' ), 'label' => __( 'Request log', 'npcink-cloud-addon' ) );
+			}
+			if ( count( $actions ) < 4 || ! $logs_available ) {
+				$actions[] = array( 'href' => admin_url( 'options-general.php?page=ai-wp-admin' ), 'label' => __( 'AI settings', 'npcink-cloud-addon' ) );
+			}
 			?>
-			<section class="npcink-cloud-subcard">
-				<div class="npcink-cloud-subcard__copy">
-					<h4><?php esc_html_e( 'WordPress AI generation tests', 'npcink-cloud-addon' ); ?></h4>
-					<p class="description"><?php esc_html_e( 'Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here.', 'npcink-cloud-addon' ); ?></p>
+			<details class="npcink-cloud-advanced-detail npcink-cloud-generation-tests">
+				<summary><?php esc_html_e( 'WordPress AI generation tests', 'npcink-cloud-addon' ); ?></summary>
+				<div class="npcink-cloud-advanced-detail__body">
+					<p class="description"><?php esc_html_e( 'May use credits. Cloud picks the model.', 'npcink-cloud-addon' ); ?></p>
+					<p class="npcink-cloud-generation-tests__actions"><?php foreach ( $actions as $index => $action ) : ?><?php if ( $index > 0 ) : ?><span class="npcink-cloud-generation-tests__sep" aria-hidden="true"> · </span><?php endif; ?><a class="npcink-cloud-text-action" href="<?php echo esc_url( (string) $action['href'] ); ?>"><?php echo esc_html( (string) $action['label'] ); ?></a><?php endforeach; ?></p>
 				</div>
-				<div class="npcink-cloud-subcard__actions">
-					<?php if ( $explorer_available ) : ?>
-						<?php foreach ( array( 'ai/title-generation' => __( 'Open text generation test', 'npcink-cloud-addon' ), 'ai/image-generation' => __( 'Open image generation test', 'npcink-cloud-addon' ), 'ai/alt-text-generation' => __( 'Open image understanding test', 'npcink-cloud-addon' ) ) as $ability => $label ) : ?>
-							<?php if ( wp_get_ability( $ability ) ) : ?>
-								<?php ++$test_count; ?>
-								<a class="button button-secondary" href="<?php echo esc_url( add_query_arg( array( 'page' => 'ai-abilities-explorer', 'action' => 'test', 'ability' => $ability ), admin_url( 'tools.php' ) ) ); ?>"><?php echo esc_html( $label ); ?></a>
-							<?php endif; ?>
-						<?php endforeach; ?>
-					<?php endif; ?>
-					<?php if ( $logs_available ) : ?>
-						<a class="button button-secondary" href="<?php echo esc_url( admin_url( 'tools.php?page=ai-request-logs' ) ); ?>"><?php esc_html_e( 'View recent AI requests', 'npcink-cloud-addon' ); ?></a>
-					<?php endif; ?>
-					<?php if ( $test_count < 3 || ! $logs_available ) : ?>
-						<a class="button button-secondary" href="<?php echo esc_url( admin_url( 'options-general.php?page=ai-wp-admin' ) ); ?>"><?php esc_html_e( 'Open WordPress AI settings for tests and request logging', 'npcink-cloud-addon' ); ?></a>
-					<?php endif; ?>
-				</div>
-			</section>
+			</details>
 			<?php
 		}
 
