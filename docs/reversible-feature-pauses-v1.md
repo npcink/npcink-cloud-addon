@@ -142,6 +142,16 @@ media backup restore.
 每步交付：源码 PR（Addon ± Cloud ± Toolbox）+ `composer test:contracts`（含
 `tests/behavior-feature-pauses.php`）+ 对应宿主版本冒烟。禁止只靠清缓存或重连。
 
+## Three-repo version compatibility (docs only)
+
+三仓版本兼容采用最低配：**以 Cloud 仓一张 Markdown 表为准**，本仓与 Toolbox 只链到该表。
+
+- Cloud 权威表：[`docs/compatibility-matrix.md`](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/compatibility-matrix.md)（若尚未落盘，以该约定路径为准；表落地后由 Cloud 维护推荐下限）
+- **本仓发版后，应请 Cloud 更新表中对本 Addon 的推荐下限**
+- **不做**运行时 `version_compare` / 硬拒；不在本仓维护第二份版本矩阵
+
+与上方 Cross-repo对照（pause 开关）互补：pause 表管「能力是否暂停」；compatibility 表管「推荐版本组合」。二者均不替代各自仓内的 pause 源码开关。
+
 ## Verification (Addon)
 
 - Default policy：暂停 marker 零出站 HTTP；普通 runtime 仍可出站（见
