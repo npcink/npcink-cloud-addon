@@ -1383,6 +1383,48 @@ button.npcink-cloud-text-action:focus {
 	margin: 0 0 10px;
 }
 
+.npcink-cloud-gen-test-dialog__field-head {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 8px;
+	justify-content: space-between;
+	margin-bottom: 4px;
+}
+
+.npcink-cloud-gen-test-dialog__field-head label {
+	margin: 0;
+}
+
+.npcink-cloud-gen-test-dialog__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 8px;
+	justify-content: flex-end;
+}
+
+.npcink-cloud-gen-test-dialog__chip,
+.npcink-cloud-gen-test-dialog__chip:hover,
+.npcink-cloud-gen-test-dialog__chip:focus {
+	background: #f0f0f1;
+	border: 1px solid #c3c4c7;
+	border-radius: 999px;
+	color: #1d2327;
+	cursor: pointer;
+	font-size: 12px;
+	line-height: 1.4;
+	padding: 2px 10px;
+	text-decoration: none !important;
+}
+
+.npcink-cloud-gen-test-dialog__chip:hover,
+.npcink-cloud-gen-test-dialog__chip:focus {
+	background: #fff;
+	border-color: #2271b1;
+	color: #135e96;
+}
+
+
 .npcink-cloud-gen-test-dialog__media {
 	margin: 0 0 10px;
 }

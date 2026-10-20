@@ -28,7 +28,19 @@
 			explorerUrl: explorerTestUrl( 'ai/image-generation' ),
 			mediaPicker: true,
 			fields: [
-				{ key: 'prompt', type: 'textarea', rows: 4, required: true, label: s.prompt || 'Prompt', default: s.defaultPrompt || '' },
+				{
+					key: 'prompt',
+					type: 'textarea',
+					rows: 4,
+					required: true,
+					label: s.prompt || 'Prompt',
+					default: s.defaultPrompt || '',
+					chips: [
+						{ label: s.chipImageSimpleLabel || 'Simple scene', value: s.chipImageSimpleValue || 'A simple, clean illustration with a plain background.' },
+						{ label: s.chipImagePhotoLabel || 'Photo style', value: s.chipImagePhotoValue || 'A realistic photograph with natural lighting.' },
+						{ label: s.chipImageNoTextLabel || 'No text', value: s.chipImageNoTextValue || 'Do not include any text or logos in the image.' }
+					]
+				},
 				{ key: 'image_url', type: 'url', label: s.imageUrl || 'Image URL', help: s.imageUrlHelp || '' }
 			]
 		},
@@ -38,7 +50,18 @@
 			mediaPicker: true,
 			fields: [
 				{ key: 'image_url', type: 'url', label: s.imageUrl || 'Image URL', help: s.imageUrlHelp || '' },
-				{ key: 'context', type: 'textarea', rows: 3, label: s.context || 'Context' }
+				{
+					key: 'context',
+					type: 'textarea',
+					rows: 3,
+					label: s.context || 'Context',
+					chips: [
+						{ label: s.chipAltConciseLabel || 'Concise', value: s.chipAltConciseValue || 'Keep the alt text concise and specific.' },
+						{ label: s.chipAltSubjectLabel || 'Main subject', value: s.chipAltSubjectValue || 'Focus on the main subject and skip minor background details.' },
+						{ label: s.chipAltScreenReaderLabel || 'Screen reader', value: s.chipAltScreenReaderValue || 'Write the alt text for screen reader users.' },
+						{ label: s.chipAltNoDecorLabel || 'Not decorative', value: s.chipAltNoDecorValue || 'Treat this as informative, not decorative.' }
+					]
+				}
 			]
 		}
 	};
@@ -72,6 +95,26 @@
 		return ( cfg.abilities && cfg.abilities[ slug ] ) || null;
 	}
 
+	function renderChips( field ) {
+		var chips = field.chips || [];
+		if ( ! chips.length ) {
+			return '';
+		}
+		var html = '<span class="npcink-cloud-gen-test-dialog__chips" role="group" aria-label="' + escapeHtml( field.label || field.key ) + '">';
+		chips.forEach( function ( chip, index ) {
+			html +=
+				'<button type="button" class="button-link npcink-cloud-gen-test-dialog__chip" data-npcink-gen-chip-field="' +
+				escapeHtml( field.key ) +
+				'" data-npcink-gen-chip-index="' +
+				String( index ) +
+				'">' +
+				escapeHtml( chip.label || chip.value || '' ) +
+				'</button>';
+		} );
+		html += '</span>';
+		return html;
+	}
+
 	function renderFields( ability ) {
 		var fields = ability.fields || [];
 		var html = '';
@@ -80,8 +123,13 @@
 			var label = field.label || field.key;
 			var aria = ' aria-label="' + escapeHtml( label ) + '"';
 			html += '<p class="npcink-cloud-gen-test-dialog__field">';
-			if ( ! field.hideLabel ) {
-				html += '<label for="' + escapeHtml( id ) + '">' + escapeHtml( label ) + '</label>';
+			if ( ! field.hideLabel || ( field.chips && field.chips.length ) ) {
+				html += '<span class="npcink-cloud-gen-test-dialog__field-head">';
+				if ( ! field.hideLabel ) {
+					html += '<label for="' + escapeHtml( id ) + '">' + escapeHtml( label ) + '</label>';
+				}
+				html += renderChips( field );
+				html += '</span>';
 			}
 			if ( 'textarea' === field.type ) {
 				html +=
@@ -118,6 +166,35 @@
 			html += '</p>';
 		} );
 		fieldsEl.innerHTML = html;
+		bindPromptChips( ability );
+	}
+
+	function bindPromptChips( ability ) {
+		var chipMap = {};
+		( ability.fields || [] ).forEach( function ( field ) {
+			if ( field.chips && field.chips.length ) {
+				chipMap[ field.key ] = field.chips;
+			}
+		} );
+		if ( ! fieldsEl || typeof fieldsEl.querySelectorAll !== 'function' ) {
+			return;
+		}
+		fieldsEl.querySelectorAll( '[data-npcink-gen-chip-field]' ).forEach( function ( button ) {
+			button.addEventListener( 'click', function () {
+				var fieldKey = button.getAttribute( 'data-npcink-gen-chip-field' ) || '';
+				var index = parseInt( button.getAttribute( 'data-npcink-gen-chip-index' ) || '-1', 10 );
+				var chips = chipMap[ fieldKey ] || [];
+				var chip = chips[ index ];
+				if ( ! chip ) {
+					return;
+				}
+				setFieldValue( fieldKey, chip.value || '' );
+				var el = fieldsEl.querySelector( '[name="' + fieldKey + '"]' );
+				if ( el && typeof el.focus === 'function' ) {
+					el.focus();
+				}
+			} );
+		} );
 	}
 
 	function setFieldValue( name, value ) {
