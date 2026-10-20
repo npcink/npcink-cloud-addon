@@ -225,6 +225,7 @@
 }
 
 .npcink-cloud-overview .npcink-cloud-overview-panel,
+.npcink-cloud-overview .npcink-cloud-site-knowledge-summary,
 .npcink-cloud-overview .npcink-cloud-local-permissions {
 	background: transparent;
 	border: 0;
@@ -238,6 +239,11 @@
 }
 
 .npcink-cloud-overview .npcink-cloud-overview-panel {
+	margin-bottom: 0;
+}
+
+.npcink-cloud-overview .npcink-cloud-site-knowledge-summary {
+	margin-top: 16px;
 	margin-bottom: 0;
 }
 
@@ -1127,8 +1133,16 @@ button.npcink-cloud-icon-button.button-link:focus {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px 12px;
-	justify-content: flex-end;
+	justify-content: space-between;
 	margin: 0 0 8px;
+	max-width: 720px;
+	width: 100%;
+}
+
+.npcink-cloud-checks-heading__hint {
+	flex: 1 1 auto;
+	margin: 0;
+	min-width: 12rem;
 }
 
 .npcink-cloud-checks-table {

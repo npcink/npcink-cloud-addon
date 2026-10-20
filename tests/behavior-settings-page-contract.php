@@ -385,7 +385,7 @@ $page_form_action_builder = new ReflectionMethod( Npcink_Cloud_Settings_Page::cl
 $tab_url_builder->setAccessible( true );
 $page_form_action_builder->setAccessible( true );
 maca_assert(
-	'https://wordpress.example.test/wp-admin/options-general.php?page=npcink-cloud-addon&tab=site_knowledge' === $tab_url_builder->invoke( null, 'site_knowledge' )
+	'https://wordpress.example.test/wp-admin/options-general.php?page=npcink-cloud-addon&tab=checks' === $tab_url_builder->invoke( null, 'checks' )
 	&& 'https://wordpress.example.test/wp-admin/options-general.php' === $page_form_action_builder->invoke( null ),
 	'Behavior: standalone settings links and GET forms stay on the registered options-general.php page.'
 );
@@ -520,6 +520,9 @@ maca_assert(
 	&& false === strpos( $overview_rendered, 'A cached signed Cloud read is available.' )
 	&& false !== strpos( $overview_rendered, 'Available knowledge documents' )
 	&& false !== strpos( $overview_rendered, 'data-npcink-site-knowledge-usage' )
+	&& false !== strpos( $overview_rendered, 'npcink-cloud-site-knowledge-summary' )
+	&& false !== strpos( $overview_rendered, 'id="npcink-cloud-site-knowledge"' )
+	&& false !== strpos( $overview_rendered, 'Knowledge base status' )
 	&& false !== strpos( $overview_rendered, 'Features' )
 	&& false !== strpos( $overview_rendered, 'Enable Site Knowledge' )
 	&& false !== strpos( $overview_rendered, 'Privacy settings' )
@@ -528,8 +531,9 @@ maca_assert(
 	&& false === strpos( $overview_rendered, '>Reference site content during generation<' )
 	&& false !== strpos( $overview_rendered, 'screen-reader-text' )
 	&& false === strpos( $overview_rendered, 'Monitoring needs attention' )
+	&& false === strpos( $overview_rendered, 'tab=site_knowledge' )
 	&& $http_before_overview === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: the verified Overview owns the compact healthy connection summary and usage without a duplicate global card or Cloud HTTP.'
+	'Behavior: the verified Overview owns usage, embedded Site Knowledge status, and Features without a duplicate global card or Cloud HTTP.'
 );
 
 $tab_labels_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'get_tab_labels' );
@@ -549,12 +553,13 @@ $tabs_with_site_knowledge = $tab_labels_renderer->invoke(
 	Npcink_Cloud_Addon_Settings::get_credential_state()
 );
 maca_assert(
-	isset( $tabs_without_site_knowledge['site_knowledge'] )
-	&& isset( $tabs_with_site_knowledge['site_knowledge'] )
+	! isset( $tabs_without_site_knowledge['site_knowledge'] )
+	&& ! isset( $tabs_with_site_knowledge['site_knowledge'] )
+	&& isset( $tabs_with_site_knowledge['permissions'] )
 	&& isset( $tabs_with_site_knowledge['checks'] )
 	&& isset( $tabs_with_site_knowledge['connection'] )
 	&& ! isset( $tabs_with_site_knowledge['advanced'] ),
-	'Behavior: verified navigation always includes Site Knowledge, Checks, and Connection without Advanced.'
+	'Behavior: verified navigation is Overview, Checks, and Connection without a Site Knowledge or Advanced tab.'
 );
 
 update_option(
@@ -587,13 +592,13 @@ if ( PHP_VERSION_ID < 80100 ) {
 }
 $verified_tabs = $get_tab_labels->invoke( null, true, array() );
 maca_assert(
-	array( 'permissions', 'site_knowledge', 'checks', 'connection' ) === array_keys( $verified_tabs )
+	array( 'permissions', 'checks', 'connection' ) === array_keys( $verified_tabs )
 	&& 'Overview' === $verified_tabs['permissions']
-	&& 'Site Knowledge' === $verified_tabs['site_knowledge']
 	&& 'Checks' === $verified_tabs['checks']
 	&& 'Connection' === $verified_tabs['connection']
+	&& false === array_key_exists( 'site_knowledge', $verified_tabs )
 	&& false === array_key_exists( 'advanced', $verified_tabs ),
-	'Behavior: verified navigation is Overview, Site Knowledge, Checks, and Connection without Advanced.'
+	'Behavior: verified navigation is Overview, Checks, and Connection without Advanced.'
 );
 
 $_GET = array();
@@ -617,7 +622,13 @@ maca_assert(
 	'connection' === $get_active_tab->invoke( null, true, array( 'verified' => true ) ),
 	'Behavior: legacy advanced&view=connection deep-links to Connection.'
 );
-unset( $_GET['view'], $_GET['tab'] );
+unset( $_GET['view'] );
+$_GET['tab'] = 'site_knowledge';
+maca_assert(
+	'permissions' === $get_active_tab->invoke( null, true, array( 'verified' => true ) ),
+	'Behavior: legacy tab=site_knowledge deep-links to Overview.'
+);
+unset( $_GET['tab'] );
 
 ob_start();
 $checks_renderer->invoke(
@@ -641,9 +652,13 @@ maca_assert(
 	&& false === strpos( $checks_rendered, 'Change Cloud account' )
 	&& false === strpos( $checks_rendered, '<h3>Checks</h3>' )
 	&& false !== strpos( $checks_rendered, 'screen-reader-text' )
+	&& false !== strpos( $checks_rendered, 'npcink-cloud-checks-heading__hint' )
+	&& false !== strpos( $checks_rendered, 'Run checks, or' )
+	&& false !== strpos( $checks_rendered, 'Run readiness test' )
+	&& strpos( $checks_rendered, 'npcink-cloud-checks-heading__hint' ) < strpos( $checks_rendered, 'Run readiness test' )
 	&& false === strpos( $checks_rendered, 'WordPress AI generation tests' )
 	&& false === strpos( $checks_rendered, 'npcink-cloud-secondary-tabs' ),
-	'Behavior: Checks keeps credentials visible, folds Hosted Runtime into Check details, and hides generation tests.'
+	'Behavior: Checks keeps credentials visible, pairs readiness hint with the run button, folds Hosted Runtime into Check details, and hides generation tests.'
 );
 
 ob_start();
@@ -796,6 +811,7 @@ $site_knowledge_rendered = (string) ob_get_clean();
 maca_assert(
 	false === strpos( $site_knowledge_rendered, 'Available knowledge documents' )
 	&& false !== strpos( $site_knowledge_rendered, 'data-npcink-site-knowledge-refresh' )
+		&& false !== strpos( $site_knowledge_rendered, 'id="npcink-cloud-site-knowledge"' )
 		&& false !== strpos( $site_knowledge_rendered, 'Knowledge base status' )
 		&& false !== strpos( $site_knowledge_rendered, 'screen-reader-text' )
 		&& false === strpos( $site_knowledge_rendered, '<h3 id="npcink-cloud-site-knowledge-status-title">Knowledge base status' )

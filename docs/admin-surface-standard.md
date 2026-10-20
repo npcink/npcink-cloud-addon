@@ -45,15 +45,11 @@ behavior, and zh_CN fixed-string maintenance boundary.
 When verified, the default page should prioritize:
 
 - `Overview` as the first working tab, showing plan/entitlement plus
-  attention-only monitoring or Site Knowledge rows. It also contains the
-  single immediate-save `Enable Site Knowledge` feature choice. Public-content
-  delivery and supported generation reference move together; connector state
-  is not presented as another permission. Metadata-only monitoring consent
-  stays folded under `Privacy settings`;
-- a dedicated Site Knowledge tab for local delivery consent, bounded public
-  content refresh transport, explicit administrator delivery intents, and
-  shallow bridge state while Cloud owns index execution, rebuild/delete
-  handling, lifecycle, and freshness policy;
+  attention-only monitoring rows, embedded Site Knowledge status (sync /
+  recovery actions), and the single immediate-save `Enable Site Knowledge`
+  feature choice. Public-content delivery and supported generation reference
+  move together; connector state is not presented as another permission.
+  Metadata-only monitoring consent stays folded under `Privacy settings`;
 - top-level `Checks` and `Connection` entries for connection checks and
   connection management; compact entitlement / monitoring detail stays on
   Overview;
@@ -68,26 +64,26 @@ console.
 
 ## Tab Model
 
-Verified admin navigation should stay at four top-level entries:
+Verified admin navigation should stay at three top-level entries:
 
-- `Overview`: usage metrics, compact entitlement / monitoring detail, one Site
-  Knowledge feature switch, and folded privacy consent. Entitlement keeps Renews
-  and AI credit period visible; remaining limits fold under More limits. Routine
-  Site Knowledge delivery buffering remains silent; only a recorded delivery
-  error creates an attention row.
-- `Site Knowledge`: compact automatic-update status and last delivery. The
-  Knowledge base status title stays screen-reader-only beside the tab name.
-  Healthy state has no manual refresh action; recovery update appears only after
-  a delivery failure. Local error or WP-Cron facts remain on Checks.
-- `Checks`: Run checks plus Credentials and Cloud connection rows stay visible;
-  Hosted Runtime, capability rows, and readiness history fold under Check details.
+- `Overview`: usage metrics, compact entitlement / monitoring detail, embedded
+  Site Knowledge status (sr-only Knowledge base status title, sync / configure /
+  recovery), one Site Knowledge feature switch, and folded privacy consent.
+  Entitlement keeps Renews and AI credit period visible; remaining limits fold
+  under More limits. Routine Site Knowledge delivery buffering remains silent;
+  only a recorded delivery error creates an attention row. Healthy Site Knowledge
+  has no manual refresh action; recovery update appears only after a delivery
+  failure. Local error or WP-Cron facts remain on Checks.
+- `Checks`: Run checks hint and Run readiness test share one heading row;
+  Credentials and Cloud connection rows stay visible; Hosted Runtime, capability
+  rows, and readiness history fold under Check details.
 - `Connection`: account change, disconnect, and collapsed manual recovery.
 
 Do not reintroduce separate `Status`, `Troubleshooting`, `Advanced and
-troubleshooting`, `Details`, or `Runtime Runs` top-level tabs when the content
-fits one of the four entries above. Old `advanced&view=`, `details`, `status`,
-`diagnostics`, and `runtime_runs` URLs normalize onto Overview / Checks /
-Connection for compatibility, but they must not render a local run surface.
+troubleshooting`, `Details`, `Site Knowledge`, or `Runtime Runs` top-level tabs
+when the content fits one of the three entries above. Old `advanced&view=`,
+`details`, `status`, `site_knowledge`, `diagnostics`, and `runtime_runs` URLs
+normalize onto Overview / Checks / Connection for compatibility, but they must not render a local run surface.
 
 ## Advanced / Low-Frequency Details
 

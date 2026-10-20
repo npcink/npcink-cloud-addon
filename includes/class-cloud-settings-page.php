@@ -241,11 +241,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					</section>
 				<?php elseif ( 'permissions' === $active_tab ) : ?>
 					<?php self::render_overview_page( $settings, $state, $entitlement, $monitoring, $site_knowledge, $is_verified ); ?>
-				<?php elseif ( 'site_knowledge' === $active_tab ) : ?>
-					<section class="npcink-cloud-section npcink-cloud-tab-panel">
-						<h2 class="screen-reader-text"><?php esc_html_e( 'Site Knowledge', 'npcink-cloud-addon' ); ?></h2>
-						<?php self::render_site_knowledge_summary( $site_knowledge, $settings, $is_verified ); ?>
-					</section>
 				<?php elseif ( 'checks' === $active_tab ) : ?>
 					<section class="npcink-cloud-section npcink-cloud-tab-panel">
 						<h2 class="screen-reader-text"><?php esc_html_e( 'Checks', 'npcink-cloud-addon' ); ?></h2>
@@ -318,7 +313,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		}
 
 		/**
-		 * Maps retired tab / advanced&view= deep links onto the current top-level tabs.
+		 * Maps retired tab / advanced&view= / site_knowledge deep links onto the current top-level tabs.
 		 *
 		 * @param string $requested Raw tab slug.
 		 * @param bool   $is_verified Whether the connector has verified credentials.
@@ -328,7 +323,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			if ( '' === $requested ) {
 				return '';
 			}
-			if ( in_array( $requested, array( 'details', 'status' ), true ) ) {
+			if ( in_array( $requested, array( 'details', 'status', 'site_knowledge' ), true ) ) {
 				return 'permissions';
 			}
 			if ( in_array( $requested, array( 'runtime_runs', 'diagnostics' ), true ) ) {
@@ -362,10 +357,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private static function get_tab_labels( bool $is_verified, array $state = array() ): array {
 			if ( $is_verified ) {
 				return array(
-					'permissions'    => __( 'Overview', 'npcink-cloud-addon' ),
-					'site_knowledge' => __( 'Site Knowledge', 'npcink-cloud-addon' ),
-					'checks'         => __( 'Checks', 'npcink-cloud-addon' ),
-					'connection'     => __( 'Connection', 'npcink-cloud-addon' ),
+					'permissions' => __( 'Overview', 'npcink-cloud-addon' ),
+					'checks'      => __( 'Checks', 'npcink-cloud-addon' ),
+					'connection'  => __( 'Connection', 'npcink-cloud-addon' ),
 				);
 			}
 
@@ -651,7 +645,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		/**
 		 * Renders connection-level actions for the top summary banner.
 		 *
-		 * Product Site Knowledge recovery stays on Overview / Site Knowledge;
+		 * Product Site Knowledge recovery stays on Overview;
 		 * this surface keeps connection CTAs only.
 		 *
 		 * @param array<string,mixed> $settings Stored settings.
@@ -692,7 +686,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 
 			$recovery_in_progress = self::is_site_knowledge_recovery_in_progress( $site_knowledge );
-			// Dropped content is an Overview / Site Knowledge notice — keep this banner for connection/auth only.
+			// Dropped content is an Overview notice — keep this banner for connection/auth only.
 			if ( ! $recovery_in_progress && ( '' !== (string) ( $site_knowledge['last_delivery_error'] ?? '' ) || '' !== (string) ( $site_knowledge['last_error_code'] ?? '' ) ) ) {
 				return array(
 					'severity' => 'warning',
@@ -1037,13 +1031,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							<p class="npcink-cloud-overview-notice npcink-cloud-overview-notice--warning"><strong><?php esc_html_e( 'Monitoring needs attention', 'npcink-cloud-addon' ); ?></strong> <?php echo esc_html( self::format_monitoring_overview( $monitoring ) ); ?> <a href="#npcink-cloud-monitoring-state"><?php esc_html_e( 'View upload detail', 'npcink-cloud-addon' ); ?></a></p>
 						<?php endif; ?>
 						<?php if ( $site_knowledge_needs_attention ) : ?>
-							<p class="npcink-cloud-overview-notice npcink-cloud-overview-notice--warning"><strong><?php esc_html_e( 'Site Knowledge needs attention', 'npcink-cloud-addon' ); ?></strong> <?php echo esc_html( self::format_site_knowledge_overview( $site_knowledge ) ); ?> <a href="<?php echo esc_url( add_query_arg( array( 'tab' => 'site_knowledge' ), Npcink_Cloud_Settings_Actions::page_url() ) ); ?>"><?php esc_html_e( 'View Site Knowledge status', 'npcink-cloud-addon' ); ?></a></p>
+							<p class="npcink-cloud-overview-notice npcink-cloud-overview-notice--warning"><strong><?php esc_html_e( 'Site Knowledge needs attention', 'npcink-cloud-addon' ); ?></strong> <?php echo esc_html( self::format_site_knowledge_overview( $site_knowledge ) ); ?> <a href="#npcink-cloud-site-knowledge"><?php esc_html_e( 'View Site Knowledge status', 'npcink-cloud-addon' ); ?></a></p>
 						<?php endif; ?>
 					</div>
 					<?php endif; ?>
 				</div>
 				<?php self::render_status_account_usage( $entitlement ); ?>
 				<?php self::render_status_monitoring_quality( $monitoring ); ?>
+				<?php self::render_site_knowledge_summary( $site_knowledge, $settings, $is_verified ); ?>
 				<?php self::render_local_permissions( $settings, $is_verified ); ?>
 			</section>
 			<?php self::render_monitoring_consent_prompt( $settings, $is_verified ); ?>
@@ -1126,14 +1121,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<div class="npcink-cloud-section-heading npcink-cloud-checks-heading">
 				<h3 class="screen-reader-text"><?php esc_html_e( 'Checks', 'npcink-cloud-addon' ); ?></h3>
+				<p class="description npcink-cloud-checks-heading__hint">
+					<?php esc_html_e( 'Run checks, or', 'npcink-cloud-addon' ); ?>
+					<a href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud status detail', 'npcink-cloud-addon' ); ?></a>.
+				</p>
 				<div class="npcink-cloud-summary__actions">
 					<?php self::render_manual_readiness_test_form(); ?>
 				</div>
 			</div>
-			<p class="description">
-				<?php esc_html_e( 'Run checks, or', 'npcink-cloud-addon' ); ?>
-				<a href="<?php echo esc_url( untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Cloud status detail', 'npcink-cloud-addon' ); ?></a>.
-			</p>
 			<table class="widefat striped npcink-cloud-checks-table">
 				<thead>
 					<tr>
@@ -1611,7 +1606,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$scope_hint = __( 'AI can reference your public posts and pages. WordPress content and search engine settings are not changed.', 'npcink-cloud-addon' );
 			$cloud_details_label = __( 'View details in Cloud', 'npcink-cloud-addon' );
 			?>
-			<section class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title">
+			<section id="npcink-cloud-site-knowledge" class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title">
 						<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-heading">
 							<h3 id="npcink-cloud-site-knowledge-status-title" class="screen-reader-text"><?php esc_html_e( 'Knowledge base status', 'npcink-cloud-addon' ); ?></h3>
 							<span class="npcink-cloud-info-hint" tabindex="0" title="<?php echo esc_attr( $scope_hint ); ?>" aria-label="<?php echo esc_attr( $scope_hint ); ?>"><?php esc_html_e( 'i', 'npcink-cloud-addon' ); ?></span>
