@@ -74,6 +74,8 @@ runtime truth rules here beyond addon-owned connector contracts.
 
 ## Current Cloud Runtime Contract
 
+联调排障优先保留/查找 Cloud 回包中的 `run_id`；本地可读 trace 与 Cloud hex 可能不一致。
+
 Allowed runtime/read endpoints:
 
 - `POST /v1/runtime/execute`
