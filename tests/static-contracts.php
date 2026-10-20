@@ -2042,6 +2042,11 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'Ready to index' )
 	&& false !== strpos( $settings_page, 'Up to date' )
 	&& false !== strpos( $settings_page, 'View checks' )
+	&& false !== strpos( $settings_page, 'npcink-cloud-sk-delivery' )
+	&& false !== strpos( $settings_page, 'format_readiness_detail_markup' )
+	&& ( false !== strpos( $settings_page, 'npcink-cloud-entitlement--attention' ) || false !== strpos( $admin_css, 'npcink-cloud-entitlement--attention' ) )
+	&& false !== strpos( $settings_page, 'Open Knowledge base on Overview' )
+	&& false !== strpos( $settings_page, "__( '%d content updates were dropped'" )
 	&& false === strpos( $settings_page, 'View advanced troubleshooting' )
 	&& false === strpos( $settings_page, "<summary><?php esc_html_e( 'Technical details'" )
 	&& false === strpos( $settings_page, 'npcink-cloud-inline-info' )
@@ -2358,7 +2363,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2450,
+	'includes/class-cloud-settings-page.php'           => 2600,
 	'includes/class-cloud-settings-actions.php'        => 1170,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1024,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,

@@ -739,6 +739,19 @@ maca_assert(
 	'Behavior: Connection Management presents one Cloud account action and separates the local destructive action without Cloud HTTP.'
 );
 
+ob_start();
+$connection_management_renderer->invoke(
+	null,
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	true
+);
+$connection_management_attention = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $connection_management_attention, 'Check connection' )
+	&& false !== strpos( $connection_management_attention, 'Change Cloud account' ),
+	'Behavior: Connection Management reuses Check connection when service needs attention.'
+);
+
 $settings_page_source = (string) file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-settings-page.php' );
 maca_assert(
 	false === strpos( $settings_page_source, 'render_site_knowledge_article_coverage' )
@@ -920,8 +933,9 @@ $site_knowledge_renderer->invoke(
 $dropped_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $dropped_rendered, 'Needs attention' )
-	&& false !== strpos( $dropped_rendered, '3 content updates could not be delivered and were dropped. Update the knowledge base to include them again.' )
+	&& false !== strpos( $dropped_rendered, '3 content updates could not be delivered and were dropped. Use Sync to include them again.' )
 	&& false !== strpos( $dropped_rendered, '>Sync<' )
+	&& false !== strpos( $dropped_rendered, 'Sync above' )
 	&& false === strpos( $dropped_rendered, 'Update again' )
 	&& false === strpos( $dropped_rendered, 'Updating ·' )
 	&& false === strpos( $dropped_rendered, 'The system will keep trying automatically.' ),
