@@ -4,7 +4,7 @@ Tags: npcink, cloud, ai, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.3
+Stable tag: 0.4.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -157,6 +157,9 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 
 == Upgrade Notice ==
 
+= 0.4.4 =
+Verified admin is Overview, Checks, and Connection after Site Knowledge moved onto Overview. Generation tests and AI request-log TOKEN columns are available when Cloud returns usage. Disconnect keeps the configured Cloud Base URL. No database migration or credential change is required.
+
 = 0.4.3 =
 Verified admin navigation is Overview, Site Knowledge, Checks, and Connection. Legacy Advanced deep links still work. No database migration or credential change is required.
 
@@ -176,6 +179,13 @@ Connector internals were restructured with stricter input bounds and fail-fast o
 Terminal callback delivery is removed and media recognition continuation moves to Workflow Toolbox. Re-verify the Cloud connection after upgrading from 0.1.x.
 
 == Changelog ==
+
+= 0.4.4 =
+* Merged Site Knowledge into Overview so verified admin is Overview, Checks, and Connection.
+* Mapped Cloud connector `result.usage` token fields into the AI request-log TOKEN columns.
+* Restored WordPress AI generation tests on Checks (P0).
+* Remembered the configured Cloud Base URL across local disconnect so reconnect no longer falls back to the default port.
+* Removed duplicate Generating… copy under the generation-test button and tightened failure-state alert CTAs to one-step repair.
 
 = 0.4.3 =
 * Replaced the verified Advanced tab with top-level Checks and Connection; Overview hosts entitlement and Features.
