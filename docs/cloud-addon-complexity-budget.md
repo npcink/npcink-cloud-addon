@@ -100,12 +100,12 @@ connector classes so they cannot grow unnoticed:
   updating while retaining failures in diagnostics and restoring attention after delivery fails;
   raised by 23 lines for shared escaped AJAX status fragments, stale-evidence gating,
   and failure-only retry feedback)
-- `includes/class-cloud-settings-actions.php` — 1170 lines (settings request
+- `includes/class-cloud-settings-actions.php` — 1175 lines (settings request
   handlers and their transient state; the render class stays a projection;
   raised from 1106 with reason: the 2026-10-11 first-connection verify-failure
   path keeps exchanged credentials in the unverified state instead of
   discarding them; raised again for the 2026-10-12 server-side no-JS disconnect
-  confirmation guard; raised by one line to distinguish scheduled recovery notices from completed delivery; raised by two lines to return current admin status fragments with existing authenticated reads)
+  confirmation guard; raised by one line to distinguish scheduled recovery notices from completed delivery; raised by two lines to return current admin status fragments with existing authenticated reads; raised from 1170 with reason: the 2026-10-20 local disconnect remembers Cloud Base URL so reconnect does not fall back to localhost:8010)
 - `includes/class-cloud-wordpress-ai-connector.php` — 1090 lines (was 2767 before the
   2026-10-06 per-class split into seven satellite files; raised from 1002 with
   reason: the 2026-10-11 in-progress run probe shares one

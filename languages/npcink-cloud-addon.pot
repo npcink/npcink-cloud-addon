@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T06:21:24+00:00\n"
+"POT-Creation-Date: 2026-10-20T06:37:30+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -153,7 +153,7 @@ msgstr ""
 
 #: includes/class-cloud-addon-settings.php:333
 #: includes/class-cloud-settings-actions.php:296
-#: includes/class-cloud-settings-actions.php:473
+#: includes/class-cloud-settings-actions.php:484
 msgid "Cloud Base URL must use HTTPS unless it points to localhost or 127.0.0.1."
 msgstr ""
 
@@ -644,7 +644,7 @@ msgstr ""
 #: includes/class-cloud-observability-collector.php:406
 #: includes/class-cloud-observability-collector.php:487
 #: includes/class-cloud-observability-collector.php:521
-#: includes/class-cloud-settings-actions.php:346
+#: includes/class-cloud-settings-actions.php:357
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:118
 #: includes/class-cloud-site-knowledge-admin-actions.php:147
@@ -1268,11 +1268,11 @@ msgstr ""
 #: includes/class-cloud-settings-actions.php:256
 #: includes/class-cloud-settings-actions.php:271
 #: includes/class-cloud-settings-actions.php:310
-#: includes/class-cloud-settings-actions.php:340
-#: includes/class-cloud-settings-actions.php:396
-#: includes/class-cloud-settings-actions.php:411
-#: includes/class-cloud-settings-actions.php:425
-#: includes/class-cloud-settings-actions.php:444
+#: includes/class-cloud-settings-actions.php:351
+#: includes/class-cloud-settings-actions.php:407
+#: includes/class-cloud-settings-actions.php:422
+#: includes/class-cloud-settings-actions.php:436
+#: includes/class-cloud-settings-actions.php:455
 msgid "You do not have permission to manage Npcink Cloud settings."
 msgstr ""
 
@@ -1285,9 +1285,9 @@ msgid "The Cloud authorization request expired or is invalid. Start the connecti
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:232
-#: includes/class-cloud-settings-actions.php:503
-#: includes/class-cloud-settings-actions.php:519
-#: includes/class-cloud-settings-actions.php:559
+#: includes/class-cloud-settings-actions.php:514
+#: includes/class-cloud-settings-actions.php:530
+#: includes/class-cloud-settings-actions.php:570
 msgid "Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect."
 msgstr ""
 
@@ -1307,163 +1307,163 @@ msgstr ""
 msgid "Confirm the local disconnect before submitting this action."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:328
+#: includes/class-cloud-settings-actions.php:339
 msgid "Cloud connection disconnected locally. Stored credentials and addon-owned buffers were cleared."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:353
+#: includes/class-cloud-settings-actions.php:364
 msgid "The requested local permission is not supported."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:369
+#: includes/class-cloud-settings-actions.php:380
 msgid "The local permission could not be saved securely. No permission or background delivery state was changed."
 msgstr ""
 
 #. translators: 1: local permission label, 2: enabled or disabled state.
-#: includes/class-cloud-settings-actions.php:380
+#: includes/class-cloud-settings-actions.php:391
 #, php-format
 msgid "%1$s %2$s."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:382
+#: includes/class-cloud-settings-actions.php:393
 #: includes/class-cloud-settings-page.php:2137
 #: includes/class-cloud-settings-page.php:2437
 msgid "enabled"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:382
+#: includes/class-cloud-settings-actions.php:393
 #: includes/class-cloud-settings-page.php:2137
 #: includes/class-cloud-settings-page.php:2438
 #: includes/class-cloud-settings-page.php:2512
 msgid "disabled"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:455
+#: includes/class-cloud-settings-actions.php:466
 msgid "Manual readiness test completed. Connector is ready."
 msgstr ""
 
 #. translators: %s: entitlement refresh message.
-#: includes/class-cloud-settings-actions.php:535
+#: includes/class-cloud-settings-actions.php:546
 #, php-format
 msgid "Cloud settings verified, but entitlement summary could not refresh: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:536
+#: includes/class-cloud-settings-actions.php:547
 msgid "Unknown entitlement refresh result."
 msgstr ""
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:567
+#: includes/class-cloud-settings-actions.php:578
 #, php-format
 msgid "The new Cloud connection could not be verified: %s. The connection details were saved, so use Check connection on this page to verify again."
 msgstr ""
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:577
+#: includes/class-cloud-settings-actions.php:588
 #, php-format
 msgid "The replacement Cloud connection could not be verified, so the existing connection was kept: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:591
+#: includes/class-cloud-settings-actions.php:602
 msgid "Cloud verification completed, but the activation state could not be stored securely."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:596
+#: includes/class-cloud-settings-actions.php:607
 msgid "The Cloud connection works, but this site is not active in Cloud yet. Activate the site in Npcink Cloud, then check the activation again here."
 msgstr ""
 
 #. translators: %s: request error message.
-#: includes/class-cloud-settings-actions.php:736
+#: includes/class-cloud-settings-actions.php:747
 #, php-format
 msgid "Cloud authorization exchange failed: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:755
-#: includes/class-cloud-settings-actions.php:821
+#: includes/class-cloud-settings-actions.php:766
+#: includes/class-cloud-settings-actions.php:832
 msgid "Cloud authorization exchange did not return a valid connection key."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:763
+#: includes/class-cloud-settings-actions.php:774
 msgid "Cloud authorization exchange returned an invalid activation state."
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:793
+#: includes/class-cloud-settings-actions.php:804
 #, php-format
 msgid "The Cloud account has reached its active-site limit. Deactivate another active site in Npcink Cloud or upgrade the account plan, then start the connection again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:799
+#: includes/class-cloud-settings-actions.php:810
 #, php-format
 msgid "The Cloud account has reached its connected-site limit. Remove an unused site in Npcink Cloud, then start the connection again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:808
+#: includes/class-cloud-settings-actions.php:819
 #, php-format
 msgid "The Cloud authorization request expired or is invalid. Start the connection again from WordPress. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:815
+#: includes/class-cloud-settings-actions.php:826
 #, php-format
 msgid "Cloud authorization exchange failed. Start the connection again or contact support with this error code: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:858
+#: includes/class-cloud-settings-actions.php:869
 msgid "The site is connected, but Cloud service is not active yet. Activate this site in Npcink Cloud, then check activation again here."
 msgstr ""
 
 #. translators: %s: liveness error.
-#: includes/class-cloud-settings-actions.php:864
+#: includes/class-cloud-settings-actions.php:875
 #, php-format
 msgid "Live check failed: %s"
 msgstr ""
 
 #. translators: %s: signed verification error.
-#: includes/class-cloud-settings-actions.php:871
+#: includes/class-cloud-settings-actions.php:882
 #, php-format
 msgid "Signed verification failed: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:878
+#: includes/class-cloud-settings-actions.php:889
 msgid "Cloud verification failed."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1105
+#: includes/class-cloud-settings-actions.php:1116
 msgid "WordPress AI connector"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1106
+#: includes/class-cloud-settings-actions.php:1117
 msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1109
+#: includes/class-cloud-settings-actions.php:1120
 msgid "Enable Site Knowledge"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1110
+#: includes/class-cloud-settings-actions.php:1121
 msgid "Keep public posts and pages updated automatically so AI can reference them."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1113
+#: includes/class-cloud-settings-actions.php:1124
 msgid "Reference site content during generation"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1114
+#: includes/class-cloud-settings-actions.php:1125
 msgid "Use indexed public articles as generation context."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1117
+#: includes/class-cloud-settings-actions.php:1128
 msgid "Send anonymous diagnostics"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1118
+#: includes/class-cloud-settings-actions.php:1129
 msgid "Send metadata-only diagnostic events (feature steps, outcomes, timing, and error codes) to improve reliability. Never includes prompts, content, user or post IDs, emails, URLs, or credentials. Off by default."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1119
+#: includes/class-cloud-settings-actions.php:1130
 msgid "Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time."
 msgstr ""
 

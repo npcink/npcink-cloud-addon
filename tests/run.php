@@ -45,6 +45,7 @@ require __DIR__ . '/behavior-runtime-endpoint-policy.php';
 require __DIR__ . '/behavior-content-format.php';
 require __DIR__ . '/behavior-credential-store.php';
 require __DIR__ . '/behavior-cleanup.php';
+require __DIR__ . '/behavior-disconnect-preserves-base-url.php';
 require __DIR__ . '/behavior-outbound-policy.php';
 require __DIR__ . '/behavior-cloud-addon-localization.php';
 require __DIR__ . '/behavior-wordpress-ai-connector-result.php';
