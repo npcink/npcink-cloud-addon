@@ -135,6 +135,16 @@
 		}
 	}
 
+	function revealDialog() {
+		if ( typeof dialog.showModal === 'function' ) {
+			if ( ! dialog.open ) {
+				dialog.showModal();
+			}
+			return;
+		}
+		dialog.setAttribute( 'open', 'open' );
+	}
+
 	function openMediaLibrary( onSelect ) {
 		if ( ! window.wp || ! window.wp.media ) {
 			if ( statusEl ) {
@@ -150,14 +160,44 @@
 			library: { type: 'image' },
 			multiple: false,
 		} );
+		// wp.media can emit close before select. Capture on select; finalize on close
+		// after a tick so select has run; if select arrives after close, still fill.
+		var selectedAttachment = null;
+		var settled = false;
+		function applySelection() {
+			if ( selectedAttachment && typeof onSelect === 'function' ) {
+				onSelect( selectedAttachment );
+			}
+		}
+		function restoreDialog() {
+			if ( settled ) {
+				return;
+			}
+			settled = true;
+			revealDialog();
+			applySelection();
+		}
 		frame.on( 'select', function () {
 			var selection = frame.state().get( 'selection' );
-			var attachment = selection && selection.first ? selection.first().toJSON() : null;
-			if ( attachment ) {
-				onSelect( attachment );
+			selectedAttachment = selection && selection.first ? selection.first().toJSON() : null;
+			if ( settled ) {
+				applySelection();
 			}
 		} );
-		frame.open();
+		frame.on( 'close', function () {
+			window.setTimeout( restoreDialog, 0 );
+		} );
+		// Native <dialog> top-layer blocks wp.media; close first, then open the frame.
+		closeDialog();
+		frame.on( 'open', function () {
+			// Prefer the existing library grid over the empty uploader pane.
+			if ( frame.content && typeof frame.content.mode === 'function' ) {
+				frame.content.mode( 'browse' );
+			}
+		} );
+		window.setTimeout( function () {
+			frame.open();
+		}, 0 );
 	}
 
 	function bindMediaPicker( ability ) {

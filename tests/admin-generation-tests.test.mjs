@@ -203,31 +203,33 @@ test( 'generation tests show plain failure without dumping JSON', async () => {
 
 
 test( 'media picker fills attachment id and url for vision', async () => {
+	const log = [];
 	const dialog = {
+		open: false,
 		querySelector( sel ) { return this._nodes[ sel ] || null; },
 		querySelectorAll( sel ) { return this._nodesAll[ sel ] || []; },
-		showModal() { this.open = true; },
-		close() { this.open = false; },
+		showModal() { this.open = true; log.push( 'showModal' ); },
+		close() { this.open = false; log.push( 'close' ); },
 		addEventListener() {},
 		_nodes: {},
 		_nodesAll: {},
-		open: false,
 	};
 	const fields = {
-		innerHTML: '',
-		querySelector( sel ) {
-			if ( sel === '[data-npcink-gen-media]' ) {
-				return this._mediaBtn;
-			}
-			const name = ( sel.match( /name="([^"]+)"/ ) || [] )[1];
-			if ( ! name ) return null;
-			if ( ! this._inputs[ name ] ) {
-				this._inputs[ name ] = { value: '' };
-			}
-			return this._inputs[ name ];
-		},
+		_html: '',
 		_inputs: {},
 		_mediaBtn: null,
+		querySelector( sel ) {
+			if ( sel === '[data-npcink-gen-media]' ) return this._mediaBtn;
+			const name = ( sel.match( /name="([^"]+)"/ ) || [] )[1];
+			if ( ! name ) return null;
+			if ( ! this._inputs[ name ] ) this._inputs[ name ] = { value: '' };
+			return this._inputs[ name ];
+		},
+		get innerHTML() { return this._html; },
+		set innerHTML( value ) {
+			this._html = value;
+			this._mediaBtn = { addEventListener( type, fn ) { this._click = fn; } };
+		},
 	};
 	const result = { innerHTML: '', hidden: true };
 	const status = { textContent: '', hidden: true, className: '' };
@@ -252,7 +254,7 @@ test( 'media picker fills attachment id and url for vision', async () => {
 		getElementById( id ) { return id === 'npcink-cloud-gen-test-dialog' ? dialog : null; },
 		querySelectorAll( sel ) { return sel === '[data-npcink-gen-open]' ? [ openBtn ] : []; },
 	};
-	let mediaSelect = null;
+	const handlers = {};
 	const sandbox = {
 		window: {
 			npcinkCloudGenerationTests: {
@@ -276,8 +278,8 @@ test( 'media picker fills attachment id and url for vision', async () => {
 			wp: {
 				media() {
 					return {
-						on( event, fn ) { if ( event === 'select' ) mediaSelect = fn; },
-						open() {},
+						on( event, fn ) { handlers[ event ] = fn; },
+						open() { log.push( 'mediaOpen' ); },
 						state() {
 							return {
 								get() {
@@ -296,30 +298,34 @@ test( 'media picker fills attachment id and url for vision', async () => {
 					};
 				},
 			},
+			setTimeout( fn ) { fn(); return 0; },
 		},
 		document,
-		fetch() { return Promise.resolve( { json: async () => ( { success: true, data: { data: { alt_text: 'x' } } } ) } ); },
+		fetch() { return Promise.resolve( { json: async () => ( { success: true, data: {} } ) } ); },
 		FormData: class { constructor() { this.entries = {}; } append( k, v ) { this.entries[ k ] = v; } },
 		encodeURIComponent,
 	};
-	const source = readFileSync( path.join( root, '../assets/admin-generation-tests.js' ), 'utf8' );
-	// Capture media button listener when innerHTML is set
-	Object.defineProperty( fields, 'innerHTML', {
-		get() { return this._html || ''; },
-		set( value ) {
-			this._html = value;
-			this._mediaBtn = {
-				addEventListener( type, fn ) { this._click = fn; },
-			};
-		},
-	} );
-	runInContext( source, createContext( sandbox ) );
+	runInContext( readFileSync( path.join( root, '../assets/admin-generation-tests.js' ), 'utf8' ), createContext( sandbox ) );
 	openBtn._click();
-	assert.match( fields._html, /Select from media library/ );
-	assert.ok( fields._mediaBtn && fields._mediaBtn._click );
+	assert.deepEqual( log.slice( 0, 1 ), [ 'showModal' ] );
 	fields._mediaBtn._click();
-	assert.ok( mediaSelect );
-	mediaSelect();
+	assert.deepEqual( log.slice( 0, 3 ), [ 'showModal', 'close', 'mediaOpen' ] );
+
+	// select then close
+	handlers.select();
+	handlers.close();
+	assert.equal( dialog.open, true );
+	assert.equal( fields._inputs.attachment_id.value, '42' );
+	assert.equal( fields._inputs.image_url.value, 'https://example.test/wp-content/uploads/sample.jpg' );
+
+	// close before select still fills when select arrives later
+	fields._inputs.attachment_id.value = '';
+	fields._inputs.image_url.value = '';
+	fields._mediaBtn._click();
+	handlers.close();
+	assert.equal( dialog.open, true );
+	assert.equal( fields._inputs.attachment_id.value, '' );
+	handlers.select();
 	assert.equal( fields._inputs.attachment_id.value, '42' );
 	assert.equal( fields._inputs.image_url.value, 'https://example.test/wp-content/uploads/sample.jpg' );
 } );
