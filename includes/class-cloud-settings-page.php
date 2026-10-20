@@ -1604,47 +1604,42 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				&& 0 === absint( $status_summary['indexed_documents'] ?? 0 );
 			if ( $show_start_indexing ) {
 				$badge_class = 'muted';
-				$badge_label = __( 'Ready', 'npcink-cloud-addon' );
+				$badge_label = __( 'Ready to index', 'npcink-cloud-addon' );
 			}
 			?>
 			<?php
 			$scope_hint = __( 'AI can reference your public posts and pages. WordPress content and search engine settings are not changed.', 'npcink-cloud-addon' );
-			$cloud_details_label = __( 'View details in Cloud', 'npcink-cloud-addon' );
+			// Blocked / failed attention still offers Sync; only active delivery shows Syncing.
+			$sync_busy = $recovery_in_progress
+				|| ( $update_in_progress && ! $local_delivery_needs_attention && ! $capacity_needs_attention );
+			$show_sync_action = $delivery_enabled && ! $show_start_indexing;
 			?>
 			<section id="npcink-cloud-site-knowledge" class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title">
 						<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-heading npcink-cloud-section-title">
 							<h2 id="npcink-cloud-site-knowledge-status-title"><?php esc_html_e( 'Knowledge base', 'npcink-cloud-addon' ); ?></h2>
 							<div class="npcink-cloud-summary__actions">
-								<span class="npcink-cloud-info-hint" tabindex="0" title="<?php echo esc_attr( $scope_hint ); ?>" aria-label="<?php echo esc_attr( $scope_hint ); ?>"><?php esc_html_e( 'i', 'npcink-cloud-addon' ); ?></span>
+								<?php if ( $show_sync_action ) : ?>
+									<?php if ( $sync_busy ) : ?>
+										<button type="button" class="button button-secondary" disabled><?php esc_html_e( 'Syncing', 'npcink-cloud-addon' ); ?></button>
+									<?php else : ?>
+										<form class="npcink-cloud-verify-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+											<?php wp_nonce_field( Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE ); ?>
+											<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE ); ?>" />
+											<button type="submit" class="button button-secondary"><?php esc_html_e( 'Sync', 'npcink-cloud-addon' ); ?></button>
+										</form>
+									<?php endif; ?>
+								<?php endif; ?>
 								<a
-									class="button button-secondary npcink-cloud-icon-button"
+									class="button button-secondary npcink-cloud-secondary-action"
 									href="<?php echo esc_url( $cloud_site_knowledge_url ); ?>"
 									target="_blank"
 									rel="noopener noreferrer"
-									aria-label="<?php echo esc_attr( $cloud_details_label ); ?>"
-									title="<?php echo esc_attr( $cloud_details_label ); ?>"
-								><span class="dashicons dashicons-external" aria-hidden="true"></span></a>
+									title="<?php echo esc_attr( $scope_hint ); ?>"
+								><?php esc_html_e( 'Open in Cloud', 'npcink-cloud-addon' ); ?></a>
 							</div>
 						</div>
 						<div class="npcink-cloud-site-knowledge-summary__status">
 							<span class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( $badge_class ); ?>"><?php echo esc_html( $badge_label ); ?></span>
-							<?php if ( $local_delivery_needs_attention ) : ?>
-								<p class="npcink-cloud-site-knowledge-summary__result npcink-cloud-site-knowledge-summary__result--warning"><?php esc_html_e( 'Needs update', 'npcink-cloud-addon' ); ?></p>
-							<?php elseif ( $capacity_needs_attention ) : ?>
-								<p class="npcink-cloud-site-knowledge-summary__result npcink-cloud-site-knowledge-summary__result--warning"><?php echo esc_html( sprintf(
-									/* translators: %d: content count skipped by Cloud quota. */
-									__( '%d outside limit', 'npcink-cloud-addon' ),
-									$quota_skipped_count
-								) ); ?></p>
-							<?php elseif ( $update_in_progress ) : ?>
-								<p class="npcink-cloud-site-knowledge-summary__result"><?php echo esc_html( sprintf(
-									/* translators: %d: updates waiting. */
-									__( 'Updating · %d waiting', 'npcink-cloud-addon' ),
-									$waiting_count
-								) ); ?></p>
-							<?php elseif ( $show_start_indexing ) : ?>
-								<p class="npcink-cloud-site-knowledge-summary__result"><?php esc_html_e( 'Ready to index', 'npcink-cloud-addon' ); ?></p>
-							<?php endif; ?>
 						</div>
 						<?php if ( $local_delivery_needs_attention ) : ?>
 							<?php if ( 0 < $dropped_count ) : ?>
@@ -1659,7 +1654,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 								<p class="description npcink-cloud-site-knowledge-summary__detail"><?php esc_html_e( 'The system will keep trying automatically.', 'npcink-cloud-addon' ); ?></p>
 							<?php endif; ?>
 							<p class="npcink-cloud-site-knowledge-summary__support"><a href="<?php echo esc_url( self::tab_url( 'checks' ) ); ?>"><?php esc_html_e( 'View checks', 'npcink-cloud-addon' ); ?></a></p>
-							<?php self::render_site_knowledge_refresh_form( __( 'Update again', 'npcink-cloud-addon' ) ); ?>
 						<?php elseif ( $capacity_needs_attention ) : ?>
 							<p class="description npcink-cloud-site-knowledge-summary__detail"><?php echo esc_html( sprintf(
 								/* translators: %d: content count skipped by Cloud quota. */

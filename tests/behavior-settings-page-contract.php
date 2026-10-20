@@ -819,6 +819,10 @@ maca_assert(
 		&& false !== strpos( $site_knowledge_rendered, 'Knowledge base' )
 		&& false === strpos( $site_knowledge_rendered, 'Knowledge base status' )
 		&& false !== strpos( $site_knowledge_rendered, '<h2 id="npcink-cloud-site-knowledge-status-title">Knowledge base' )
+		&& false !== strpos( $site_knowledge_rendered, 'Open in Cloud' )
+		&& false !== strpos( $site_knowledge_rendered, '>Sync<' )
+		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-info-hint' )
+		&& false === strpos( $site_knowledge_rendered, 'Updating ·' )
 		&& false === strpos( $site_knowledge_rendered, 'screen-reader-text">Knowledge base' )
 		&& false === strpos( $site_knowledge_rendered, 'Updates will appear here after public content changes.' )
 		&& false === strpos( $site_knowledge_rendered, 'Manual update' )
@@ -915,9 +919,11 @@ $dropped_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $dropped_rendered, 'Needs attention' )
 	&& false !== strpos( $dropped_rendered, '3 content updates could not be delivered and were dropped. Update the knowledge base to include them again.' )
-	&& false !== strpos( $dropped_rendered, 'Update again' )
+	&& false !== strpos( $dropped_rendered, '>Sync<' )
+	&& false === strpos( $dropped_rendered, 'Update again' )
+	&& false === strpos( $dropped_rendered, 'Updating ·' )
 	&& false === strpos( $dropped_rendered, 'The system will keep trying automatically.' ),
-	'Behavior: dropped content changes surface one attention row with the update-knowledge-base recovery action instead of a false auto-retry promise.'
+	'Behavior: dropped content changes surface one attention row with Sync recovery instead of a false auto-retry promise.'
 );
 
 foreach ( array( 'queued', 'delivering', 'retrying', 'blocked' ) as $maintenance_state ) {
@@ -933,8 +939,8 @@ foreach ( array( 'queued', 'delivering', 'retrying', 'blocked' ) as $maintenance
 	$is_recovering = in_array( $maintenance_state, array( 'queued', 'delivering', 'retrying' ), true );
 	maca_assert(
 		$is_recovering
-			? false !== strpos( $recovery_html, 'Public content is being re-sent to Cloud.' ) && false === strpos( $recovery_html, 'Update again' ) && false === strpos( $recovery_html, 'were dropped' )
-			: false !== strpos( $recovery_html, 'Needs attention' ) && false !== strpos( $recovery_html, 'Update again' ),
+			? false !== strpos( $recovery_html, 'Public content is being re-sent to Cloud.' ) && false !== strpos( $recovery_html, 'Syncing' ) && false === strpos( $recovery_html, '>Sync<' ) && false === strpos( $recovery_html, 'were dropped' )
+			: false !== strpos( $recovery_html, 'Needs attention' ) && false !== strpos( $recovery_html, '>Sync<' ),
 		'Behavior: recovery progress replaces historical-drop warnings while retrying or blocked delivery keeps recovery visible: ' . $maintenance_state
 	);
 }
@@ -1093,7 +1099,7 @@ $stale_recovery_summary = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $stale_recovery_summary, 'out of date' )
 	&& false !== strpos( $stale_recovery_summary, 'Check connection' )
-	&& false === strpos( $stale_recovery_summary, 'Update again' ),
+	&& false === strpos( $stale_recovery_summary, 'Update again' ) && false === strpos( $stale_recovery_summary, '>Sync<' ),
 	'Behavior: independent stale-connection evidence keeps its connection action while dropped-content recovery is already running.'
 );
 
@@ -1112,7 +1118,10 @@ maca_assert(
 	'' === trim( $healthy_fragments['connection'] )
 	&& false !== strpos( $healthy_fragments['knowledge'], 'Up to date' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'All public content is up to date' )
+	&& false !== strpos( $healthy_fragments['knowledge'], '>Sync<' )
+	&& false !== strpos( $healthy_fragments['knowledge'], 'Open in Cloud' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'Update again' )
+	&& false === strpos( $healthy_fragments['knowledge'], 'npcink-cloud-info-hint' )
 	&& false !== strpos( $healthy_fragments['knowledge'], 'data-npcink-site-knowledge-status-retry' )
 	&& $http_before_fragments === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: refreshed healthy fragments clear historical recovery controls and reuse escaped renderers with zero extra Cloud requests.'
@@ -1121,7 +1130,8 @@ update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array( 
 $failed_fragments = Npcink_Cloud_Settings_Page::get_admin_status_fragments( true );
 maca_assert(
 	'' === trim( $failed_fragments['connection'] )
-	&& false !== strpos( $failed_fragments['knowledge'], 'Update again' )
+	&& false !== strpos( $failed_fragments['knowledge'], '>Sync<' )
+	&& false === strpos( $failed_fragments['knowledge'], 'Update again' )
 	&& 'ok' === $failed_fragments['service']['severity']
 	&& false !== strpos( $failed_fragments['knowledge'], 'were dropped' ),
 	'Behavior: a fresh Cloud read does not erase an independent local dropped-delivery warning.'

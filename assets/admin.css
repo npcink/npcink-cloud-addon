@@ -231,6 +231,27 @@
 	min-width: 0;
 }
 
+.npcink-cloud-site-knowledge-heading .npcink-cloud-summary__actions {
+	align-items: center;
+	gap: 10px;
+}
+
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-secondary-action {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	color: #2271b1;
+	min-height: auto;
+	padding: 0;
+	text-decoration: underline;
+}
+
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-secondary-action:hover,
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-secondary-action:focus {
+	background: transparent;
+	color: #135e96;
+}
+
 
 /* Overview: one padded-free column so connection + Features cards share the same width. */
 .npcink-cloud-overview.npcink-cloud-tab-panel {
