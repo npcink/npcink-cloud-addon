@@ -67,7 +67,7 @@ console.
 Verified admin navigation should stay at three top-level entries:
 
 - `Overview`: usage metrics, compact entitlement / monitoring detail, embedded
-  Site Knowledge status (sr-only Knowledge base status title, sync / configure /
+  Site Knowledge status (visible Knowledge base title, sync / configure /
   recovery), one Site Knowledge feature switch, and folded privacy consent.
   Entitlement keeps Renews and AI credit period visible; remaining limits fold
   under More limits. Routine Site Knowledge delivery buffering remains silent;

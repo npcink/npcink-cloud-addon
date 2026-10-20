@@ -530,7 +530,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$feedback = Npcink_Cloud_Settings_Actions::get_local_permission_feedback();
 			?>
 			<section id="npcink-cloud-feature-settings" class="npcink-cloud-local-permissions" aria-labelledby="npcink-cloud-local-permissions-title">
-				<div class="npcink-cloud-local-permissions__header">
+				<div class="npcink-cloud-section-title npcink-cloud-local-permissions__header">
 					<h2 id="npcink-cloud-local-permissions-title"><?php esc_html_e( 'Features', 'npcink-cloud-addon' ); ?></h2>
 				</div>
 				<div class="npcink-cloud-local-permissions__list">
@@ -946,7 +946,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<section class="npcink-cloud-section npcink-cloud-tab-panel npcink-cloud-overview">
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
 				<?php self::render_generation_test_links( true ); ?>
-				<div class="npcink-cloud-overview-panel">
+				<div class="npcink-cloud-overview-entitlements" aria-labelledby="npcink-cloud-entitlements-title">
+					<div class="npcink-cloud-section-title">
+						<h2 id="npcink-cloud-entitlements-title"><?php esc_html_e( 'Entitlements', 'npcink-cloud-addon' ); ?></h2>
+					</div>
+					<div class="npcink-cloud-overview-panel">
 					<?php
 					// Keep entitlement refresh hooks for admin-entitlement.js without showing
 					// connection title, Portal icon, Connected badge, or plan chip.
@@ -1035,8 +1039,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<?php endif; ?>
 					</div>
 					<?php endif; ?>
+					</div>
+					<?php self::render_status_account_usage( $entitlement ); ?>
 				</div>
-				<?php self::render_status_account_usage( $entitlement ); ?>
 				<?php self::render_status_monitoring_quality( $monitoring ); ?>
 				<?php self::render_site_knowledge_summary( $site_knowledge, $settings, $is_verified ); ?>
 				<?php self::render_local_permissions( $settings, $is_verified ); ?>
@@ -1607,17 +1612,19 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$cloud_details_label = __( 'View details in Cloud', 'npcink-cloud-addon' );
 			?>
 			<section id="npcink-cloud-site-knowledge" class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title">
-						<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-heading">
-							<h3 id="npcink-cloud-site-knowledge-status-title" class="screen-reader-text"><?php esc_html_e( 'Knowledge base status', 'npcink-cloud-addon' ); ?></h3>
-							<span class="npcink-cloud-info-hint" tabindex="0" title="<?php echo esc_attr( $scope_hint ); ?>" aria-label="<?php echo esc_attr( $scope_hint ); ?>"><?php esc_html_e( 'i', 'npcink-cloud-addon' ); ?></span>
-							<a
-								class="button button-secondary npcink-cloud-icon-button"
-								href="<?php echo esc_url( $cloud_site_knowledge_url ); ?>"
-								target="_blank"
-								rel="noopener noreferrer"
-								aria-label="<?php echo esc_attr( $cloud_details_label ); ?>"
-								title="<?php echo esc_attr( $cloud_details_label ); ?>"
-							><span class="dashicons dashicons-external" aria-hidden="true"></span></a>
+						<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-heading npcink-cloud-section-title">
+							<h2 id="npcink-cloud-site-knowledge-status-title"><?php esc_html_e( 'Knowledge base', 'npcink-cloud-addon' ); ?></h2>
+							<div class="npcink-cloud-summary__actions">
+								<span class="npcink-cloud-info-hint" tabindex="0" title="<?php echo esc_attr( $scope_hint ); ?>" aria-label="<?php echo esc_attr( $scope_hint ); ?>"><?php esc_html_e( 'i', 'npcink-cloud-addon' ); ?></span>
+								<a
+									class="button button-secondary npcink-cloud-icon-button"
+									href="<?php echo esc_url( $cloud_site_knowledge_url ); ?>"
+									target="_blank"
+									rel="noopener noreferrer"
+									aria-label="<?php echo esc_attr( $cloud_details_label ); ?>"
+									title="<?php echo esc_attr( $cloud_details_label ); ?>"
+								><span class="dashicons dashicons-external" aria-hidden="true"></span></a>
+							</div>
 						</div>
 						<div class="npcink-cloud-site-knowledge-summary__status">
 							<span class="npcink-cloud-badge npcink-cloud-badge--<?php echo esc_attr( $badge_class ); ?>"><?php echo esc_html( $badge_label ); ?></span>
@@ -1849,7 +1856,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$ownership_note = __( 'AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits.', 'npcink-cloud-addon' );
 			?>
 			<div class="npcink-cloud-entitlement-block">
-				<h3 class="screen-reader-text"><?php esc_html_e( 'Entitlement details', 'npcink-cloud-addon' ); ?></h3>
 				<span class="screen-reader-text"><?php echo esc_html( $ownership_note ); ?></span>
 				<?php if ( ! empty( $core_rows ) ) : ?>
 				<div class="npcink-cloud-entitlement-grid" role="list">

@@ -326,6 +326,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'For compatible Npcink Cloud deployments only. Cloud still owns site activation and key issuance.' => '仅用于兼容的 Npcink Cloud 部署。Cloud 仍负责站点激活和密钥签发。',
 				'This does not manage Cloud sites, keys, billing, models, router, workflows, or runtime policy.' => '这里不管理 Cloud 站点、密钥、账单、模型、路由器、工作流或运行时策略。',
 				'Features' => '功能',
+				'Entitlements' => '权益',
+				'Knowledge base' => '知识库',
 				'Privacy settings' => '隐私设置',
 				'Anonymous diagnostics %s' => '匿名诊断%s',
 				'on' => '已开启',
