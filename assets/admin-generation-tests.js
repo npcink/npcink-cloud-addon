@@ -103,7 +103,7 @@
 		var html = '<span class="npcink-cloud-gen-test-dialog__chips" role="group" aria-label="' + escapeHtml( field.label || field.key ) + '">';
 		chips.forEach( function ( chip, index ) {
 			html +=
-				'<button type="button" class="button-link npcink-cloud-gen-test-dialog__chip" data-npcink-gen-chip-field="' +
+				'<button type="button" class="npcink-cloud-gen-test-dialog__chip" data-npcink-gen-chip-field="' +
 				escapeHtml( field.key ) +
 				'" data-npcink-gen-chip-index="' +
 				String( index ) +

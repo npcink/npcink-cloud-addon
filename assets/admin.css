@@ -1397,30 +1397,34 @@ button.npcink-cloud-text-action:focus {
 }
 
 .npcink-cloud-gen-test-dialog__chips {
+	align-items: center;
 	display: flex;
 	flex-wrap: wrap;
-	gap: 4px 8px;
+	gap: 0 12px;
 	justify-content: flex-end;
 }
 
-.npcink-cloud-gen-test-dialog__chip,
-.npcink-cloud-gen-test-dialog__chip:hover,
-.npcink-cloud-gen-test-dialog__chip:focus {
-	background: #f0f0f1;
-	border: 1px solid #c3c4c7;
-	border-radius: 999px;
-	color: #1d2327;
+button.npcink-cloud-gen-test-dialog__chip,
+button.npcink-cloud-gen-test-dialog__chip:hover,
+button.npcink-cloud-gen-test-dialog__chip:focus,
+button.npcink-cloud-gen-test-dialog__chip:active {
+	background: none;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	color: #2271b1;
 	cursor: pointer;
+	font: inherit;
 	font-size: 12px;
+	font-weight: 600;
 	line-height: 1.4;
-	padding: 2px 10px;
+	margin: 0;
+	padding: 0;
 	text-decoration: none !important;
 }
 
-.npcink-cloud-gen-test-dialog__chip:hover,
-.npcink-cloud-gen-test-dialog__chip:focus {
-	background: #fff;
-	border-color: #2271b1;
+button.npcink-cloud-gen-test-dialog__chip:hover,
+button.npcink-cloud-gen-test-dialog__chip:focus {
 	color: #135e96;
 }
 
