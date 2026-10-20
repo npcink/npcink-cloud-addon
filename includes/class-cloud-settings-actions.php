@@ -321,7 +321,18 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			}
 
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			// Keep the last Cloud Base URL so reconnect (primary CTA and Advanced)
+			// does not silently fall back to the local default :8010 after a
+			// self-hosted disconnect. Credentials and buffers still wipe fully.
+			$remembered_base_url = (string) ( $settings['base_url'] ?? '' );
 			Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
+			if ( '' !== $remembered_base_url ) {
+				Npcink_Cloud_Addon_Settings::write_settings(
+					array(
+						'base_url' => $remembered_base_url,
+					)
+				);
+			}
 
 			self::set_admin_notice(
 				'success',

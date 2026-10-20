@@ -2318,6 +2318,8 @@ maca_assert(
 	&& false !== strpos( $settings_page, "admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_DISCONNECT" )
 	&& false !== strpos( $settings_actions, 'function handle_disconnect' )
 	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Addon_Cleanup::delete_all( $settings )' )
+	&& false !== strpos( $settings_actions, '$remembered_base_url' )
+	&& false !== strpos( $settings_actions, "'base_url' => \$remembered_base_url," )
 	&& false !== strpos( $settings_page, 'Change Cloud account' )
 	&& false === strpos( $settings_page, 'Open Cloud sites' )
 	&& false !== strpos( $settings_page, "render_portal_link( \$settings, 'icon' )" )
@@ -2338,7 +2340,7 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'Cloud-issued mak1_ recovery key only' )
 	&& false === strpos( $settings_page, 'JSON key' )
 	&& false === strpos( $settings_page, 'revoke' ),
-	'Settings page exposes account-owned Free and local-disconnect boundaries beside Cloud-side change actions without showing split credential identifiers or key-management controls.'
+	'Settings page exposes account-owned Free and local-disconnect boundaries beside Cloud-side change actions without showing split credential identifiers or key-management controls, and disconnect remembers Cloud Base URL for reconnect.'
 );
 
 maca_assert(
@@ -2373,7 +2375,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
 	'includes/class-cloud-settings-page.php'           => 2680,
-	'includes/class-cloud-settings-actions.php'        => 1170,
+	'includes/class-cloud-settings-actions.php'        => 1175,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1090,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
