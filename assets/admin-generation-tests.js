@@ -489,10 +489,11 @@
 		}
 		var input = collectInput( ability );
 		setBusy( true );
+		// Keep loading state on the button only; status is for outcomes (ok/error).
 		if ( statusEl ) {
-			statusEl.hidden = false;
-			statusEl.className = 'npcink-cloud-gen-test-dialog__status is-pending';
-			statusEl.textContent = cfg.strings.generating;
+			statusEl.textContent = '';
+			statusEl.hidden = true;
+			statusEl.className = 'npcink-cloud-gen-test-dialog__status';
 		}
 		if ( resultEl ) {
 			resultEl.hidden = true;
@@ -510,6 +511,7 @@
 			.then( function ( json ) {
 				if ( json && json.success ) {
 					if ( statusEl ) {
+						statusEl.hidden = false;
 						statusEl.className = 'npcink-cloud-gen-test-dialog__status is-ok';
 						statusEl.textContent = s.generated || s.success || 'Generated';
 					}
@@ -521,6 +523,7 @@
 				}
 				var message = plainError( json );
 				if ( statusEl ) {
+					statusEl.hidden = false;
 					statusEl.className = 'npcink-cloud-gen-test-dialog__status is-error';
 					statusEl.textContent = message;
 				}
@@ -531,6 +534,7 @@
 			} )
 			.catch( function () {
 				if ( statusEl ) {
+					statusEl.hidden = false;
 					statusEl.className = 'npcink-cloud-gen-test-dialog__status is-error';
 					statusEl.textContent = s.errorNetwork || s.error || 'Generation failed.';
 				}
