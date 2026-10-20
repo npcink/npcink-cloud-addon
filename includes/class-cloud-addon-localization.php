@@ -305,7 +305,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Image URL' => '图片 URL',
 				'Context' => '上下文',
 				'Media library attachment ID. Optional when an image URL is set.' => '媒体库附件 ID。已填写图片 URL 时可留空。',
-				'Public image URL or data URI when no attachment ID is available.' => '无附件 ID 时使用公开图片 URL 或 data URI。',
+				'Public image URL or data URI.' => '公开图片 URL 或 data URI。',
 				'WordPress AI can draft a short title from this sample paragraph about cloud-connected generation.' => 'WordPress AI 可据此示例段落起草一个简短标题，内容与云端生成相关。',
 				'A simple watercolor illustration of a notebook and a fountain pen on a wooden desk.' => '木桌上的笔记本与钢笔，简洁水彩插画。',
 				'Close' => '关闭',

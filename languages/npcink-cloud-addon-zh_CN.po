@@ -16,10 +16,10 @@ msgstr ""
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
 #: includes/bootstrap.php:964
-#: includes/class-cloud-settings-page.php:227
-#: includes/class-cloud-settings-page.php:238
-#: includes/class-cloud-settings-page.php:239
-#: includes/class-cloud-settings-page.php:283
+#: includes/class-cloud-settings-page.php:225
+#: includes/class-cloud-settings-page.php:236
+#: includes/class-cloud-settings-page.php:237
+#: includes/class-cloud-settings-page.php:281
 msgid "Npcink Cloud Addon"
 msgstr "Npcink Cloud Addon"
 
@@ -90,8 +90,8 @@ msgid "Settings"
 msgstr "设置"
 
 #: includes/class-cloud-addon-settings.php:268
-#: includes/class-cloud-settings-page.php:1229
-#: includes/class-cloud-settings-page.php:1484
+#: includes/class-cloud-settings-page.php:1227
+#: includes/class-cloud-settings-page.php:1482
 msgid "Not configured"
 msgstr "未配置"
 
@@ -120,7 +120,7 @@ msgid "This site is bound and its connection credential is stored, but Cloud run
 msgstr "此站点已绑定并保存连接凭据，但 Cloud 运行服务尚未激活。请先在 Npcink Cloud 中激活，再回到这里验证连接。"
 
 #: includes/class-cloud-addon-settings.php:308
-#: includes/class-cloud-settings-page.php:1358
+#: includes/class-cloud-settings-page.php:1356
 msgid "Unavailable"
 msgstr "不可用"
 
@@ -186,7 +186,7 @@ msgstr "暂时无法获取最新的 Cloud 摘要。请检查连接后重试。"
 #: includes/class-cloud-entitlement-summary.php:227
 #: includes/class-cloud-settings-actions.php:78
 #: includes/class-cloud-settings-page.php:124
-#: includes/class-cloud-settings-page.php:2292
+#: includes/class-cloud-settings-page.php:2290
 msgid "Plan and entitlement are temporarily unavailable."
 msgstr "暂时无法获取套餐与权益。"
 
@@ -517,8 +517,8 @@ msgid "Adapter"
 msgstr "渠道适配器"
 
 #: includes/class-cloud-observability-collector.php:1500
-#: includes/class-cloud-settings-page.php:228
-#: includes/class-cloud-settings-page.php:1490
+#: includes/class-cloud-settings-page.php:226
+#: includes/class-cloud-settings-page.php:1488
 msgid "Cloud Addon"
 msgstr "云端扩展"
 
@@ -1189,15 +1189,15 @@ msgid "%1$s %2$s."
 msgstr "%1$s%2$s。"
 
 #: includes/class-cloud-settings-actions.php:382
-#: includes/class-cloud-settings-page.php:2125
-#: includes/class-cloud-settings-page.php:2425
+#: includes/class-cloud-settings-page.php:2123
+#: includes/class-cloud-settings-page.php:2423
 msgid "enabled"
 msgstr "已启用"
 
 #: includes/class-cloud-settings-actions.php:382
-#: includes/class-cloud-settings-page.php:2125
-#: includes/class-cloud-settings-page.php:2426
-#: includes/class-cloud-settings-page.php:2500
+#: includes/class-cloud-settings-page.php:2123
+#: includes/class-cloud-settings-page.php:2424
+#: includes/class-cloud-settings-page.php:2498
 msgid "disabled"
 msgstr "已禁用"
 
@@ -1205,29 +1205,29 @@ msgstr "已禁用"
 msgid "Manual readiness test completed. Connector is ready."
 msgstr "手动就绪测试已完成。连接器已就绪。"
 
-#: includes/class-cloud-settings-page.php:284
+#: includes/class-cloud-settings-page.php:282
 msgid "Cloud connector status and access settings for this WordPress site."
 msgstr "此 WordPress 站点的 Cloud 连接器状态和访问设置。"
 
 #: includes/bootstrap.php:966
-#: includes/class-cloud-settings-page.php:292
+#: includes/class-cloud-settings-page.php:290
 msgid "Connect this site"
 msgstr "连接此站点"
 
-#: includes/class-cloud-settings-page.php:413
-#: includes/class-cloud-settings-page.php:1000
+#: includes/class-cloud-settings-page.php:411
+#: includes/class-cloud-settings-page.php:998
 msgid "Overview"
 msgstr "概览"
 
-#: includes/class-cloud-settings-page.php:420
+#: includes/class-cloud-settings-page.php:418
 msgid "Connect"
 msgstr "连接"
 
-#: includes/class-cloud-settings-page.php:794
+#: includes/class-cloud-settings-page.php:792
 msgid "Connection management"
 msgstr "连接管理"
 
-#: includes/class-cloud-settings-page.php:452
+#: includes/class-cloud-settings-page.php:450
 msgid "Cloud addon sections"
 msgstr "Cloud addon 分区"
 
@@ -1270,23 +1270,23 @@ msgstr "Cloud 授权请求已过期或无效。请从 WordPress 重新开始连�
 msgid "Cloud authorization exchange failed. Start the connection again or contact support with this error code: %s"
 msgstr "Cloud 授权交换失败。请重新开始连接，或联系支持并提供此错误代码：%s"
 
-#: includes/class-cloud-settings-page.php:557
-#: includes/class-cloud-settings-page.php:900
-#: includes/class-cloud-settings-page.php:1674
+#: includes/class-cloud-settings-page.php:555
+#: includes/class-cloud-settings-page.php:898
+#: includes/class-cloud-settings-page.php:1672
 msgid "Cloud Base URL"
 msgstr "Cloud 基础 URL"
 
-#: includes/class-cloud-settings-page.php:558
-#: includes/class-cloud-settings-page.php:1188
+#: includes/class-cloud-settings-page.php:556
+#: includes/class-cloud-settings-page.php:1186
 msgid "Not set"
 msgstr "未设置"
 
-#: includes/class-cloud-settings-page.php:561
+#: includes/class-cloud-settings-page.php:559
 msgid "Last verified"
 msgstr "上次验证"
 
-#: includes/class-cloud-settings-page.php:562
-#: includes/class-cloud-settings-page.php:1185
+#: includes/class-cloud-settings-page.php:560
+#: includes/class-cloud-settings-page.php:1183
 msgid "Never"
 msgstr "从未"
 
@@ -1314,448 +1314,448 @@ msgstr "使用已索引的公开文章作为生成上下文。"
 msgid "Send anonymous diagnostics"
 msgstr "发送匿名诊断信息"
 
-#: includes/class-cloud-settings-page.php:587
+#: includes/class-cloud-settings-page.php:585
 msgid "Features"
 msgstr "功能"
 
-#: includes/class-cloud-settings-page.php:594
+#: includes/class-cloud-settings-page.php:592
 msgid "Privacy settings"
 msgstr "隐私设置"
 
-#: includes/class-cloud-settings-page.php:653
+#: includes/class-cloud-settings-page.php:651
 msgid "Save"
 msgstr "保存"
 
-#: includes/class-cloud-settings-page.php:714
+#: includes/class-cloud-settings-page.php:712
 msgid "Activate this site in Cloud"
 msgstr "在 Cloud 中激活此站点"
 
-#: includes/class-cloud-settings-page.php:715
+#: includes/class-cloud-settings-page.php:713
 msgid "Check activation again"
 msgstr "重新检查激活状态"
 
-#: includes/class-cloud-settings-page.php:738
-#: includes/class-cloud-settings-page.php:2251
-#: includes/class-cloud-settings-page.php:2283
+#: includes/class-cloud-settings-page.php:736
+#: includes/class-cloud-settings-page.php:2249
+#: includes/class-cloud-settings-page.php:2281
 msgid "Not checked"
 msgstr "未检查"
 
-#: includes/class-cloud-settings-page.php:746
-#: includes/class-cloud-settings-page.php:1757
+#: includes/class-cloud-settings-page.php:744
+#: includes/class-cloud-settings-page.php:1755
 msgid "Needs attention"
 msgstr "需要注意"
 
-#: includes/class-cloud-settings-page.php:747
+#: includes/class-cloud-settings-page.php:745
 msgid "A recent Site Knowledge delivery could not reach or authenticate with Cloud. Re-check the connection or open Cloud for service detail."
 msgstr "最近一次站点知识库投递无法连接或通过 Cloud 认证。请重新检查连接，或打开 Cloud 查看服务详情。"
 
-#: includes/class-cloud-settings-page.php:760
+#: includes/class-cloud-settings-page.php:758
 msgid "Recently reachable"
 msgstr "最近可访问"
 
-#: includes/class-cloud-settings-page.php:760
+#: includes/class-cloud-settings-page.php:758
 msgid "A cached signed Cloud read is available."
 msgstr "已有缓存的 Cloud 签名读取结果。"
 
-#: includes/class-cloud-settings-page.php:763
+#: includes/class-cloud-settings-page.php:761
 msgid "Temporarily unavailable"
 msgstr "暂时不可用"
 
-#: includes/class-cloud-settings-page.php:763
+#: includes/class-cloud-settings-page.php:761
 msgid "The latest signed Cloud read did not complete. Re-check the connection or try again later."
 msgstr "最近一次 Cloud 签名读取未完成。请重新检查连接，或稍后再试。"
 
-#: includes/class-cloud-settings-page.php:755
-#: includes/class-cloud-settings-page.php:766
+#: includes/class-cloud-settings-page.php:753
+#: includes/class-cloud-settings-page.php:764
 msgid "Not recently checked"
 msgstr "最近未检查"
 
-#: includes/class-cloud-settings-page.php:766
+#: includes/class-cloud-settings-page.php:764
 msgid "Run a connection check when you need current service confirmation."
 msgstr "需要确认当前服务状态时，请运行连接检查。"
 
-#: includes/class-cloud-settings-page.php:795
+#: includes/class-cloud-settings-page.php:793
 msgid "Change the connected Cloud account in Cloud."
 msgstr "如需更换当前连接的 Cloud 账号，请前往 Cloud 操作。"
 
-#: includes/class-cloud-settings-page.php:798
-#: includes/class-cloud-settings-page.php:846
-#: includes/class-cloud-settings-page.php:1020
-#: includes/class-cloud-settings-page.php:1842
-#: includes/class-cloud-settings-page.php:1974
+#: includes/class-cloud-settings-page.php:796
+#: includes/class-cloud-settings-page.php:844
+#: includes/class-cloud-settings-page.php:1018
+#: includes/class-cloud-settings-page.php:1840
+#: includes/class-cloud-settings-page.php:1972
 msgid "Check connection"
 msgstr "检查连接"
 
-#: includes/class-cloud-settings-page.php:800
+#: includes/class-cloud-settings-page.php:798
 msgid "Change Cloud account"
 msgstr "更换 Cloud 账号"
 
-#: includes/class-cloud-settings-page.php:803
-#: includes/class-cloud-settings-page.php:867
+#: includes/class-cloud-settings-page.php:801
+#: includes/class-cloud-settings-page.php:865
 msgid "Disconnect this site"
 msgstr "断开此站点"
 
-#: includes/class-cloud-settings-page.php:804
+#: includes/class-cloud-settings-page.php:802
 msgid "Cloud features will stop on this WordPress site and its local connection data will be cleared. The site and its data will remain in Cloud."
 msgstr "断开后，此 WordPress 站点将停止使用 Cloud 功能，并清除本地连接信息。Cloud 中的站点和数据会保留。"
 
-#: includes/class-cloud-settings-page.php:819
+#: includes/class-cloud-settings-page.php:817
 msgid "Manual connection fallback"
 msgstr "手动连接备用方式"
 
-#: includes/class-cloud-settings-page.php:865
+#: includes/class-cloud-settings-page.php:863
 msgid "Disconnect this WordPress site? Cloud features will stop here and local connection data will be cleared. The site and its data will remain in Cloud."
 msgstr "确定断开此 WordPress 站点吗？本站将停止使用 Cloud 功能，并清除本地连接信息。Cloud 中的站点和数据会保留。"
 
-#: includes/class-cloud-settings-page.php:916
+#: includes/class-cloud-settings-page.php:914
 msgid "Recovery Cloud API Key"
 msgstr "恢复用 Cloud API 密钥"
 
-#: includes/class-cloud-settings-page.php:926
+#: includes/class-cloud-settings-page.php:924
 msgid "Paste a Cloud-issued mak1_ recovery key"
 msgstr "粘贴 Cloud 签发的 mak1_ 恢复密钥"
 
-#: includes/class-cloud-settings-page.php:933
+#: includes/class-cloud-settings-page.php:931
 msgid "Timeout"
 msgstr "超时"
 
-#: includes/class-cloud-settings-page.php:945
+#: includes/class-cloud-settings-page.php:943
 msgid "seconds"
 msgstr "秒"
 
-#: includes/class-cloud-settings-page.php:950
+#: includes/class-cloud-settings-page.php:948
 msgid "Save and Verify"
 msgstr "保存并验证"
 
-#: includes/class-cloud-settings-page.php:679
+#: includes/class-cloud-settings-page.php:677
 msgid "Open Cloud"
 msgstr "打开 Cloud"
 
-#: includes/class-cloud-settings-page.php:304
-#: includes/class-cloud-settings-page.php:415
-#: includes/class-cloud-settings-page.php:423
-#: includes/class-cloud-settings-page.php:513
-#: includes/class-cloud-settings-page.php:1646
+#: includes/class-cloud-settings-page.php:302
+#: includes/class-cloud-settings-page.php:413
+#: includes/class-cloud-settings-page.php:421
+#: includes/class-cloud-settings-page.php:511
+#: includes/class-cloud-settings-page.php:1644
 msgid "Connection"
 msgstr "连接"
 
-#: includes/class-cloud-settings-page.php:1018
-#: includes/class-cloud-settings-page.php:1058
-#: includes/class-cloud-settings-page.php:1498
-#: includes/class-cloud-settings-page.php:1588
-#: includes/class-cloud-settings-page.php:1888
+#: includes/class-cloud-settings-page.php:1016
+#: includes/class-cloud-settings-page.php:1056
+#: includes/class-cloud-settings-page.php:1496
+#: includes/class-cloud-settings-page.php:1586
+#: includes/class-cloud-settings-page.php:1886
 msgid "Retry"
 msgstr "重试"
 
-#: includes/class-cloud-settings-page.php:1025
+#: includes/class-cloud-settings-page.php:1023
 msgid "Available AI credits"
 msgstr "可用 AI 积分"
 
-#: includes/class-cloud-settings-page.php:1032
+#: includes/class-cloud-settings-page.php:1030
 msgid "Remaining AI credits percentage"
 msgstr "剩余 AI 积分占比"
 
-#: includes/class-cloud-settings-page.php:1042
+#: includes/class-cloud-settings-page.php:1040
 msgid "Available knowledge documents"
 msgstr "可用文章数"
 
-#: includes/class-cloud-settings-page.php:1050
+#: includes/class-cloud-settings-page.php:1048
 #: includes/class-cloud-site-knowledge-admin-projection.php:30
 msgid "Loading Site Knowledge usage…"
 msgstr "正在获取知识库用量…"
 
-#: includes/class-cloud-settings-page.php:1065
+#: includes/class-cloud-settings-page.php:1063
 msgid "Remaining knowledge document percentage"
 msgstr "知识库文章剩余占比"
 
-#: includes/class-cloud-settings-page.php:1076
+#: includes/class-cloud-settings-page.php:1074
 msgid "Available images"
 msgstr "可用图片数"
 
-#: includes/class-cloud-settings-page.php:1077
+#: includes/class-cloud-settings-page.php:1075
 msgid "Unlimited"
 msgstr "无限制"
 
 #. translators: 1: remaining image capacity, 2: image capacity limit.
 #. translators: 1: indexed chunks, 2: chunk limit.
-#: includes/class-cloud-settings-page.php:1079
+#: includes/class-cloud-settings-page.php:1077
 #: includes/class-cloud-site-knowledge-admin-projection.php:98
 #, php-format
 msgid "%1$s / %2$s"
 msgstr "%1$s / %2$s"
 
-#: includes/class-cloud-settings-page.php:1082
+#: includes/class-cloud-settings-page.php:1080
 msgid "Not available yet"
 msgstr "暂不可用"
 
-#: includes/class-cloud-settings-page.php:1084
+#: includes/class-cloud-settings-page.php:1082
 msgid "Remaining image recognition capacity percentage"
 msgstr "剩余图片识别额度占比"
 
-#: includes/class-cloud-settings-page.php:1088
+#: includes/class-cloud-settings-page.php:1086
 msgid "Runtime allowance"
 msgstr "运行额度"
 
-#: includes/class-cloud-settings-page.php:1095
-#: includes/class-cloud-settings-page.php:2106
+#: includes/class-cloud-settings-page.php:1093
+#: includes/class-cloud-settings-page.php:2104
 msgid "Monitoring needs attention"
 msgstr "监控需要处理"
 
-#: includes/class-cloud-settings-page.php:1098
+#: includes/class-cloud-settings-page.php:1096
 msgid "Site Knowledge needs attention"
 msgstr "站点知识库需要处理"
 
-#: includes/class-cloud-settings-page.php:1127
+#: includes/class-cloud-settings-page.php:1125
 msgid "Cloud connection verified"
 msgstr "Cloud 连接已验证"
 
-#: includes/class-cloud-settings-page.php:1128
+#: includes/class-cloud-settings-page.php:1126
 msgid "Would you like to help improve reliability by sharing anonymous usage and error diagnostics from this WordPress site?"
 msgstr "是否愿意分享此 WordPress 站点的匿名使用和故障诊断数据，以帮助改进可靠性？"
 
-#: includes/class-cloud-settings-page.php:1129
+#: includes/class-cloud-settings-page.php:1127
 msgid "Only feature steps, outcomes, timing, versions, and machine-readable error codes are sent. Prompts, source or generated content, user or post identifiers, URLs, credentials, and request headers are never sent."
 msgstr "只会发送功能步骤、结果、耗时、版本和机器可读错误码。不会发送 Prompt、源内容或生成内容、用户或文章标识、URL、凭据或请求头。"
 
-#: includes/class-cloud-settings-page.php:1136
+#: includes/class-cloud-settings-page.php:1134
 msgid "Allow anonymous diagnostics"
 msgstr "允许匿名诊断"
 
-#: includes/class-cloud-settings-page.php:1141
+#: includes/class-cloud-settings-page.php:1139
 msgid "Not now"
 msgstr "暂不允许"
 
-#: includes/class-cloud-settings-page.php:511
+#: includes/class-cloud-settings-page.php:509
 msgid "Service details"
 msgstr "服务详情"
 
-#: includes/class-cloud-settings-page.php:299
-#: includes/class-cloud-settings-page.php:414
-#: includes/class-cloud-settings-page.php:512
-#: includes/class-cloud-settings-page.php:1196
+#: includes/class-cloud-settings-page.php:297
+#: includes/class-cloud-settings-page.php:412
+#: includes/class-cloud-settings-page.php:510
+#: includes/class-cloud-settings-page.php:1194
 msgid "Checks"
 msgstr "检查"
 
 #. translators: 1: last verification time, 2: signed read status.
-#: includes/class-cloud-settings-page.php:1184
+#: includes/class-cloud-settings-page.php:1182
 #, php-format
 msgid "Last checked: %1$s · Signed read: %2$s"
 msgstr "上次检查：%1$s · 签名读取：%2$s"
 
-#: includes/class-cloud-settings-page.php:1199
+#: includes/class-cloud-settings-page.php:1197
 msgid "Open Cloud status detail"
 msgstr "打开 Cloud 状态详情"
 
-#: includes/class-cloud-settings-page.php:1211
-#: includes/class-cloud-settings-page.php:1240
+#: includes/class-cloud-settings-page.php:1209
+#: includes/class-cloud-settings-page.php:1238
 msgid "Check"
 msgstr "检查项"
 
-#: includes/class-cloud-settings-page.php:1212
-#: includes/class-cloud-settings-page.php:1241
+#: includes/class-cloud-settings-page.php:1210
+#: includes/class-cloud-settings-page.php:1239
 msgid "Status"
 msgstr "状态"
 
-#: includes/class-cloud-settings-page.php:1213
-#: includes/class-cloud-settings-page.php:1242
+#: includes/class-cloud-settings-page.php:1211
+#: includes/class-cloud-settings-page.php:1240
 msgid "Detail"
 msgstr "详情"
 
-#: includes/class-cloud-settings-page.php:1229
+#: includes/class-cloud-settings-page.php:1227
 msgid "Credentials"
 msgstr "凭据"
 
-#: includes/class-cloud-settings-page.php:1230
+#: includes/class-cloud-settings-page.php:1228
 msgid "Cloud connection"
 msgstr "Cloud 连接"
 
-#: includes/class-cloud-settings-page.php:1253
+#: includes/class-cloud-settings-page.php:1251
 msgid "Hosted Runtime"
 msgstr "托管运行时"
 
-#: includes/class-cloud-settings-page.php:1261
+#: includes/class-cloud-settings-page.php:1259
 msgid "Readiness result"
 msgstr "就绪检查结果"
 
+#: includes/class-cloud-settings-page.php:1223
 #: includes/class-cloud-settings-page.php:1225
-#: includes/class-cloud-settings-page.php:1227
-#: includes/class-cloud-settings-page.php:1439
+#: includes/class-cloud-settings-page.php:1437
 msgid "Run readiness test"
 msgstr "运行就绪测试"
 
-#: includes/class-cloud-settings-page.php:1464
-#: includes/class-cloud-settings-page.php:1488
+#: includes/class-cloud-settings-page.php:1462
+#: includes/class-cloud-settings-page.php:1486
 msgid "not run"
 msgstr "未运行"
 
-#: includes/class-cloud-settings-page.php:1480
-#: includes/class-cloud-settings-page.php:1766
+#: includes/class-cloud-settings-page.php:1478
+#: includes/class-cloud-settings-page.php:1764
 msgid "Ready"
 msgstr "就绪"
 
-#: includes/class-cloud-settings-page.php:1482
+#: includes/class-cloud-settings-page.php:1480
 msgid "Failed"
 msgstr "失败"
 
-#: includes/class-cloud-settings-page.php:1486
+#: includes/class-cloud-settings-page.php:1484
 msgid "Partial"
 msgstr "部分配置"
 
-#: includes/class-cloud-settings-page.php:1492
-#: includes/class-cloud-settings-page.php:1650
+#: includes/class-cloud-settings-page.php:1490
+#: includes/class-cloud-settings-page.php:1648
 msgid "Cloud"
 msgstr "Cloud"
 
-#: includes/class-cloud-settings-page.php:1494
+#: includes/class-cloud-settings-page.php:1492
 msgid "Operator"
 msgstr "管理员"
 
-#: includes/class-cloud-settings-page.php:1496
+#: includes/class-cloud-settings-page.php:1494
 msgid "continue"
 msgstr "继续"
 
-#: includes/class-cloud-settings-page.php:1500
-#: includes/class-cloud-settings-page.php:1592
+#: includes/class-cloud-settings-page.php:1498
+#: includes/class-cloud-settings-page.php:1590
 msgid "Check Cloud status"
 msgstr "检查 Cloud 状态"
 
-#: includes/class-cloud-settings-page.php:1502
+#: includes/class-cloud-settings-page.php:1500
 msgid "Open settings"
 msgstr "打开设置"
 
-#: includes/class-cloud-settings-page.php:1505
-#: includes/class-cloud-settings-page.php:2013
-#: includes/class-cloud-settings-page.php:2014
-#: includes/class-cloud-settings-page.php:2271
-#: includes/class-cloud-settings-page.php:2528
-#: includes/class-cloud-settings-page.php:2539
-#: includes/class-cloud-settings-page.php:2578
-#: includes/class-cloud-settings-page.php:2610
+#: includes/class-cloud-settings-page.php:1503
+#: includes/class-cloud-settings-page.php:2011
+#: includes/class-cloud-settings-page.php:2012
+#: includes/class-cloud-settings-page.php:2269
+#: includes/class-cloud-settings-page.php:2526
+#: includes/class-cloud-settings-page.php:2537
+#: includes/class-cloud-settings-page.php:2576
+#: includes/class-cloud-settings-page.php:2608
 msgid "unavailable"
 msgstr "不可用"
 
-#: includes/class-cloud-settings-page.php:1517
-#: includes/class-cloud-settings-page.php:1573
+#: includes/class-cloud-settings-page.php:1515
+#: includes/class-cloud-settings-page.php:1571
 msgid "Use Run readiness test to execute the liveness and signed-read checks."
 msgstr "使用“运行就绪测试”执行存活检查和签名读取检查。"
 
-#: includes/class-cloud-settings-page.php:1624
+#: includes/class-cloud-settings-page.php:1622
 msgid "Cloud entitlement did not return hosted runtime detail. Re-verify or open Cloud status detail."
 msgstr "Cloud 权益未返回托管运行时详情。请重新验证或打开 Cloud 状态详情。"
 
-#: includes/class-cloud-settings-page.php:1631
+#: includes/class-cloud-settings-page.php:1629
 msgid "Cloud reported the hosted runtime entitlement."
 msgstr "Cloud 已返回托管运行时权益。"
 
-#: includes/class-cloud-settings-page.php:1644
+#: includes/class-cloud-settings-page.php:1642
 msgid "Connection context"
 msgstr "连接上下文"
 
-#: includes/class-cloud-settings-page.php:1654
+#: includes/class-cloud-settings-page.php:1652
 msgid "Current site"
 msgstr "当前站点"
 
-#: includes/class-cloud-settings-page.php:1659
+#: includes/class-cloud-settings-page.php:1657
 msgid "Add this site in Npcink Cloud"
 msgstr "在 Npcink Cloud 添加当前站点"
 
-#: includes/class-cloud-settings-page.php:1660
+#: includes/class-cloud-settings-page.php:1658
 msgid "Cloud will create or activate this site connection and return here with a one-time authorization code."
 msgstr "Cloud 会创建或激活此站点连接，并通过一次性授权码返回这里。"
 
-#: includes/class-cloud-settings-page.php:1662
+#: includes/class-cloud-settings-page.php:1660
 msgid "Review Cloud privacy and data retention information"
 msgstr "查看 Cloud 隐私和数据保留信息"
 
-#: includes/class-cloud-settings-page.php:1663
+#: includes/class-cloud-settings-page.php:1661
 msgid "Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud."
 msgstr "免费服务和 AI 积分属于授权时选择的 Cloud 账户，不属于此站点。同一账户可随时重新连接；更换到其他账户时，须遵守 Cloud 显示的站点移除和冷却要求。"
 
-#: includes/class-cloud-settings-page.php:1667
+#: includes/class-cloud-settings-page.php:1665
 msgid "Advanced connection"
 msgstr "高级连接"
 
-#: includes/class-cloud-settings-page.php:1668
+#: includes/class-cloud-settings-page.php:1666
 msgid "Self-hosted Cloud endpoint"
 msgstr "自托管 Cloud 端点"
 
-#: includes/class-cloud-settings-page.php:1685
+#: includes/class-cloud-settings-page.php:1683
 msgid "Authorize with this endpoint"
 msgstr "使用此端点授权"
 
-#: includes/class-cloud-settings-page.php:1688
+#: includes/class-cloud-settings-page.php:1686
 msgid "For compatible Npcink Cloud deployments only. Cloud still owns site activation and key issuance."
 msgstr "仅用于兼容的 Npcink Cloud 部署。Cloud 仍负责站点激活和密钥签发。"
 
-#: includes/class-cloud-settings-page.php:1689
+#: includes/class-cloud-settings-page.php:1687
 msgid "This does not manage Cloud sites, keys, billing, models, router, workflows, or runtime policy."
 msgstr "这里不管理 Cloud 站点、密钥、账单、模型、路由器、工作流或运行时策略。"
 
-#: includes/class-cloud-settings-page.php:1723
+#: includes/class-cloud-settings-page.php:1721
 msgid "Site Knowledge delivery starts after the connector verifies successfully."
 msgstr "连接器成功验证后才会开始站点知识库投递。"
 
-#: includes/class-cloud-settings-page.php:1782
+#: includes/class-cloud-settings-page.php:1780
 msgid "AI can reference your public posts and pages. WordPress content and search engine settings are not changed."
 msgstr "AI 可以参考您网站的公开文章和页面，不会修改 WordPress 内容或搜索引擎设置。"
 
-#: includes/class-cloud-settings-page.php:1825
+#: includes/class-cloud-settings-page.php:1823
 msgid "Automatic updates are delayed. Check the site scheduler in Checks."
 msgstr "自动更新已延迟，请在「检查」中查看站点计划任务。"
 
-#: includes/class-cloud-settings-page.php:1826
-#: includes/class-cloud-settings-page.php:1893
+#: includes/class-cloud-settings-page.php:1824
+#: includes/class-cloud-settings-page.php:1891
 msgid "View checks"
 msgstr "查看检查"
 
 #. translators: %d: content count skipped by Cloud quota.
-#: includes/class-cloud-settings-page.php:1848
+#: includes/class-cloud-settings-page.php:1846
 #, php-format
 msgid "%d public items were not included. Review the plan details in Cloud."
 msgstr "%d 项公开内容未被收录，请在 Cloud 中查看套餐详情。"
 
 #. translators: %d: number of content updates waiting for automatic processing.
 #: includes/class-cloud-settings-actions.php:137
-#: includes/class-cloud-settings-page.php:1874
+#: includes/class-cloud-settings-page.php:1872
 #, php-format
 msgid "Updates waiting: %d"
 msgstr "待处理更新：%d"
 
 #. translators: %s: date and time of the most recent knowledge base update.
-#: includes/class-cloud-settings-page.php:1881
+#: includes/class-cloud-settings-page.php:1879
 #, php-format
 msgid "Last updated: %s"
 msgstr "最近更新：%s"
 
-#: includes/class-cloud-settings-page.php:1891
+#: includes/class-cloud-settings-page.php:1889
 msgid "Delivery is off; refresh controls and routine delivery rows are hidden."
 msgstr "投递已关闭；刷新控件和常规投递行已隐藏。"
 
-#: includes/class-cloud-settings-page.php:1927
+#: includes/class-cloud-settings-page.php:1925
 msgid "Knowledge base delivery"
 msgstr "知识库投递"
 
-#: includes/class-cloud-settings-page.php:1931
+#: includes/class-cloud-settings-page.php:1929
 msgid "Last success"
 msgstr "上次成功"
 
-#: includes/class-cloud-settings-page.php:1947
+#: includes/class-cloud-settings-page.php:1945
 msgid "Last error code"
 msgstr "上次错误代码"
 
-#: includes/class-cloud-settings-page.php:1951
+#: includes/class-cloud-settings-page.php:1949
 msgid "Last error time"
 msgstr "上次错误时间"
 
-#: includes/class-cloud-settings-page.php:1957
+#: includes/class-cloud-settings-page.php:1955
 msgid "WP-Cron disabled"
 msgstr "WP-Cron 已禁用"
 
-#: includes/class-cloud-settings-page.php:1958
+#: includes/class-cloud-settings-page.php:1956
 msgid "yes"
 msgstr "是"
 
-#: includes/class-cloud-settings-page.php:1961
+#: includes/class-cloud-settings-page.php:1959
 msgid "Manual flush command"
 msgstr "手动刷新命令"
 
@@ -1763,100 +1763,100 @@ msgstr "手动刷新命令"
 msgid "Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index."
 msgstr "站点知识库投递已在本地关闭。开始索引或重建索引前，请先启用投递。"
 
-#: includes/class-cloud-settings-page.php:1862
+#: includes/class-cloud-settings-page.php:1860
 msgid "Start indexing"
 msgstr "开始索引"
 
-#: includes/class-cloud-settings-page.php:2002
+#: includes/class-cloud-settings-page.php:2000
 msgid "Renews"
 msgstr "权益续期"
 
-#: includes/class-cloud-settings-page.php:2009
+#: includes/class-cloud-settings-page.php:2007
 msgid "AI credit period"
 msgstr "AI 积分周期"
 
 #. translators: 1: credit period start, 2: credit period end.
-#: includes/class-cloud-settings-page.php:2012
+#: includes/class-cloud-settings-page.php:2010
 #, php-format
 msgid "%1$s to %2$s"
 msgstr "%1$s 至 %2$s"
 
-#: includes/class-cloud-settings-page.php:2021
+#: includes/class-cloud-settings-page.php:2019
 msgid "Run limit"
 msgstr "运行次数上限"
 
-#: includes/class-cloud-settings-page.php:2022
+#: includes/class-cloud-settings-page.php:2020
 msgid "Token limit"
 msgstr "Token 上限"
 
-#: includes/class-cloud-settings-page.php:2023
+#: includes/class-cloud-settings-page.php:2021
 msgid "Site limit"
 msgstr "站点数上限"
 
-#: includes/class-cloud-settings-page.php:2024
+#: includes/class-cloud-settings-page.php:2022
 msgid "Active run limit"
 msgstr "并发运行上限"
 
-#: includes/class-cloud-settings-page.php:2025
+#: includes/class-cloud-settings-page.php:2023
 msgid "Batch item limit"
 msgstr "批量项目上限"
 
-#: includes/class-cloud-settings-page.php:2038
+#: includes/class-cloud-settings-page.php:2036
 msgid "Cost limit"
 msgstr "费用上限"
 
 #. translators: %s: USD cost limit.
-#: includes/class-cloud-settings-page.php:2041
+#: includes/class-cloud-settings-page.php:2039
 #, php-format
 msgid "%s USD"
 msgstr "%s USD"
 
-#: includes/class-cloud-settings-page.php:2049
+#: includes/class-cloud-settings-page.php:2047
 msgid "Execution tiers"
 msgstr "执行层级"
 
-#: includes/class-cloud-settings-page.php:2056
+#: includes/class-cloud-settings-page.php:2054
 msgid "AI credits shown here belong to the connected Cloud account. Disconnecting, removing, or changing this WordPress site does not transfer those AI credits."
 msgstr "此处显示的 AI 积分属于当前连接的 Cloud 账户。断开、移除或更换此 WordPress 站点不会转移这些 AI 积分。"
 
-#: includes/class-cloud-settings-page.php:2124
+#: includes/class-cloud-settings-page.php:2122
 msgid "Collection"
 msgstr "收集"
 
-#: includes/class-cloud-settings-page.php:2128
+#: includes/class-cloud-settings-page.php:2126
 msgid "Buffered events"
 msgstr "缓冲事件"
 
-#: includes/class-cloud-settings-page.php:2132
+#: includes/class-cloud-settings-page.php:2130
 msgid "Last upload status"
 msgstr "上次上传状态"
 
-#: includes/class-cloud-settings-page.php:2138
+#: includes/class-cloud-settings-page.php:2136
 msgid "never"
 msgstr "从未"
 
-#: includes/class-cloud-settings-page.php:2140
-#: includes/class-cloud-settings-page.php:2504
+#: includes/class-cloud-settings-page.php:2138
+#: includes/class-cloud-settings-page.php:2502
 msgid "ok"
 msgstr "正常"
 
-#: includes/class-cloud-settings-page.php:2140
+#: includes/class-cloud-settings-page.php:2138
 msgid "failed"
 msgstr "失败"
 
-#: includes/class-cloud-settings-page.php:2147
+#: includes/class-cloud-settings-page.php:2145
 msgid "Last upload error"
 msgstr "上次上传错误"
 
-#: includes/class-cloud-settings-page.php:2168
+#: includes/class-cloud-settings-page.php:2166
 msgid "Connection status"
 msgstr "连接状态"
 
-#: includes/class-cloud-settings-page.php:2172
+#: includes/class-cloud-settings-page.php:2170
 msgid "Cloud error classification"
 msgstr "Cloud 错误分类"
 
-#: includes/class-cloud-settings-page.php:2176
+#: includes/class-cloud-settings-page.php:2174
 msgid "Last failure"
 msgstr "上次失败"
 
@@ -1880,98 +1880,98 @@ msgstr "签名验证失败：%s"
 msgid "Cloud verification failed."
 msgstr "Cloud 验证失败。"
 
-#: includes/class-cloud-settings-page.php:2255
+#: includes/class-cloud-settings-page.php:2253
 msgid "available"
 msgstr "可用"
 
-#: includes/class-cloud-settings-page.php:2260
+#: includes/class-cloud-settings-page.php:2258
 msgid "not refreshed"
 msgstr "尚未刷新"
 
-#: includes/class-cloud-settings-page.php:2264
-#: includes/class-cloud-settings-page.php:2498
+#: includes/class-cloud-settings-page.php:2262
+#: includes/class-cloud-settings-page.php:2496
 msgid "not configured"
 msgstr "尚未配置"
 
-#: includes/class-cloud-settings-page.php:2268
+#: includes/class-cloud-settings-page.php:2266
 msgid "read failed"
 msgstr "读取失败"
 
-#: includes/class-cloud-settings-page.php:2288
+#: includes/class-cloud-settings-page.php:2286
 msgid "Loading plan and entitlement…"
 msgstr "正在获取套餐与权益…"
 
-#: includes/class-cloud-settings-page.php:2297
+#: includes/class-cloud-settings-page.php:2295
 msgid "Available"
 msgstr "可用"
 
-#: includes/class-cloud-settings-page.php:2312
+#: includes/class-cloud-settings-page.php:2310
 msgid "Free plan"
 msgstr "免费版"
 
-#: includes/class-cloud-settings-page.php:2313
+#: includes/class-cloud-settings-page.php:2311
 msgid "Pro plan"
 msgstr "专业版"
 
 #. translators: 1: remaining credits, 2: credit limit, 3: remaining percentage.
-#: includes/class-cloud-settings-page.php:2356
+#: includes/class-cloud-settings-page.php:2354
 #, php-format
 msgid "%1$s / %2$s · %3$d%% remaining"
 msgstr "%1$s / %2$s · 剩余 %3$d%%"
 
 #. translators: 1: used credits, 2: remaining credits, 3: credit limit.
-#: includes/class-cloud-settings-page.php:2364
+#: includes/class-cloud-settings-page.php:2362
 #, php-format
 msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
 msgstr "已用 %1$s AI 积分；剩余 %2$s AI 积分；上限 %3$s AI 积分。"
 
 #. translators: %s: remaining credits.
-#: includes/class-cloud-settings-page.php:2372
+#: includes/class-cloud-settings-page.php:2370
 #, php-format
 msgid "%s remaining"
 msgstr "剩余 %s"
 
 #. translators: 1: remaining runtime runs, 2: runtime run limit.
-#: includes/class-cloud-settings-page.php:2395
+#: includes/class-cloud-settings-page.php:2393
 #, php-format
 msgid "%1$d of %2$d runs remaining"
 msgstr "剩余 %1$d / %2$d 次"
 
 #. translators: 1: monitoring state, 2: buffered event count.
-#: includes/class-cloud-settings-page.php:2431
+#: includes/class-cloud-settings-page.php:2429
 #, php-format
 msgid "%1$s, %2$d buffered"
 msgstr "%1$s，%2$d 条待发送"
 
 #. translators: %d: buffered public change count.
-#: includes/class-cloud-settings-page.php:2476
+#: includes/class-cloud-settings-page.php:2474
 #, php-format
 msgid "%d public changes awaiting delivery"
 msgstr "%d 条公开变更待投递"
 
 #. translators: 1: bridge status, 2: buffered public change count.
-#: includes/class-cloud-settings-page.php:2483
+#: includes/class-cloud-settings-page.php:2481
 #, php-format
 msgid "%1$s, %2$d public changes buffered"
 msgstr "%1$s，%2$d 条公开变更已缓冲"
 
-#: includes/class-cloud-settings-page.php:2497
+#: includes/class-cloud-settings-page.php:2495
 msgid "idle"
 msgstr "空闲"
 
-#: includes/class-cloud-settings-page.php:2499
+#: includes/class-cloud-settings-page.php:2497
 msgid "unverified"
 msgstr "未验证"
 
-#: includes/class-cloud-settings-page.php:2501
+#: includes/class-cloud-settings-page.php:2499
 msgid "error"
 msgstr "错误"
 
-#: includes/class-cloud-settings-page.php:2502
+#: includes/class-cloud-settings-page.php:2500
 msgid "pending"
 msgstr "等待中"
 
-#: includes/class-cloud-settings-page.php:2503
+#: includes/class-cloud-settings-page.php:2501
 msgid "queued"
 msgstr "排队中"
 
@@ -2215,81 +2215,81 @@ msgstr "本地附件图像类型不受 Cloud 替代文本生成支持。"
 msgid "Invalid content formatting request."
 msgstr "正文整理请求无效。"
 
-#: includes/class-cloud-settings-page.php:1352
+#: includes/class-cloud-settings-page.php:1350
 msgid "Text generation"
 msgstr "文本生成"
 
-#: includes/class-cloud-settings-page.php:1353
+#: includes/class-cloud-settings-page.php:1351
 msgid "Image generation"
 msgstr "图片生成"
 
-#: includes/class-cloud-settings-page.php:1354
+#: includes/class-cloud-settings-page.php:1352
 msgid "Image understanding"
 msgstr "图片理解"
 
-#: includes/class-cloud-settings-page.php:1362
+#: includes/class-cloud-settings-page.php:1360
 msgid "Cloud configuration and site entitlement are confirmed. Generation has not been tested by this check."
 msgstr "Cloud 配置与本站权益已确认，本次检查未执行生成测试。"
 
-#: includes/class-cloud-settings-page.php:1363
+#: includes/class-cloud-settings-page.php:1361
 msgid "Activate this site in Cloud."
 msgstr "请在 Cloud 启用本站服务。"
 
-#: includes/class-cloud-settings-page.php:1364
+#: includes/class-cloud-settings-page.php:1362
 msgid "This site has no Cloud subscription."
 msgstr "本站没有 Cloud 订阅。"
 
-#: includes/class-cloud-settings-page.php:1365
+#: includes/class-cloud-settings-page.php:1363
 msgid "Subscription renewal or grace needs a runtime check."
 msgstr "订阅续期或宽限状态需要在运行时核对。"
 
-#: includes/class-cloud-settings-page.php:1366
+#: includes/class-cloud-settings-page.php:1364
 msgid "Cloud has no active entitlement for this site."
 msgstr "Cloud 未返回本站的有效权益。"
 
-#: includes/class-cloud-settings-page.php:1367
+#: includes/class-cloud-settings-page.php:1365
 msgid "Cloud did not provide complete entitlement evidence."
 msgstr "Cloud 未提供完整的权益证据。"
 
-#: includes/class-cloud-settings-page.php:1368
+#: includes/class-cloud-settings-page.php:1366
 msgid "This site is not entitled to this capability."
 msgstr "本站权益未包含此能力。"
 
-#: includes/class-cloud-settings-page.php:1369
+#: includes/class-cloud-settings-page.php:1367
 msgid "Cloud has no executable provider configured."
 msgstr "Cloud 未配置可执行的模型服务。"
 
-#: includes/class-cloud-settings-page.php:1370
+#: includes/class-cloud-settings-page.php:1368
 msgid "The required Cloud runtime profile is not configured."
 msgstr "所需的 Cloud 运行配置尚未完成。"
 
-#: includes/class-cloud-settings-page.php:1371
+#: includes/class-cloud-settings-page.php:1369
 msgid "Cloud has no eligible model or current capability evidence. Check Cloud service detail."
 msgstr "Cloud 没有符合条件的模型或有效的能力验证证据，请查看 Cloud 服务详情。"
 
-#: includes/class-cloud-settings-page.php:1372
+#: includes/class-cloud-settings-page.php:1370
 msgid "The Cloud runtime profile does not match this capability."
 msgstr "Cloud 运行配置与此能力不匹配。"
 
-#: includes/class-cloud-settings-page.php:1373
+#: includes/class-cloud-settings-page.php:1371
 msgid "The previous capability check has expired. Run the connection checks to refresh it."
 msgstr "上次能力检查已过期，请运行连接检查以刷新状态。"
 
-#: includes/class-cloud-settings-page.php:1374
+#: includes/class-cloud-settings-page.php:1372
 msgid "The latest Cloud check failed. Previous evidence is not current."
 msgstr "最近一次 Cloud 检查失败，先前证据不再代表当前状态。"
 
-#: includes/class-cloud-settings-page.php:1380
+#: includes/class-cloud-settings-page.php:1378
 msgid "Capability evidence is unavailable. Run the connection checks; older Cloud versions may not report it."
 msgstr "暂无能力证据，请运行连接检查；旧版 Cloud 可能尚未提供此信息。"
 
 #. translators: %s: last capability check in the site timezone.
-#: includes/class-cloud-settings-page.php:1384
+#: includes/class-cloud-settings-page.php:1382
 #, php-format
 msgid "Checked: %s"
 msgstr "检查时间：%s"
 
-#: includes/class-cloud-settings-page.php:1315
+#: includes/class-cloud-settings-page.php:1313
 msgid "WordPress AI generation tests"
 msgstr "WordPress AI 生成测试"
 
@@ -2301,47 +2301,47 @@ msgstr "发送仅含元数据的诊断事件（功能步骤、结果、耗时和
 msgid "Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time."
 msgstr "完整说明：仅含元数据的事件涵盖功能步骤、结果、耗时和机器可读错误码。绝不发送 Prompt、源内容或生成内容、原始 WordPress 用户或文章 ID、邮箱、URL、DOM 数据、凭据或自由文本错误消息。默认关闭；管理员可以随时关闭。"
 
-#: includes/class-cloud-settings-page.php:643
+#: includes/class-cloud-settings-page.php:641
 msgid "i"
 msgstr "i"
 
-#: includes/class-cloud-settings-page.php:1760
+#: includes/class-cloud-settings-page.php:1758
 msgid "Updating"
 msgstr "更新中"
 
-#: includes/class-cloud-settings-page.php:1763
+#: includes/class-cloud-settings-page.php:1761
 msgid "Up to date"
 msgstr "全部最新"
 
-#: includes/class-cloud-settings-page.php:1229
-#: includes/class-cloud-settings-page.php:1230
-#: includes/class-cloud-settings-page.php:1250
-#: includes/class-cloud-settings-page.php:1357
+#: includes/class-cloud-settings-page.php:1227
+#: includes/class-cloud-settings-page.php:1228
+#: includes/class-cloud-settings-page.php:1248
+#: includes/class-cloud-settings-page.php:1355
 msgid "Healthy"
 msgstr "正常"
 
-#: includes/class-cloud-settings-page.php:1230
+#: includes/class-cloud-settings-page.php:1228
 msgid "Not verified"
 msgstr "未验证"
 
-#: includes/class-cloud-settings-page.php:1251
+#: includes/class-cloud-settings-page.php:1249
 msgid "Not provided"
 msgstr "未提供"
 
-#: includes/class-cloud-settings-page.php:1251
+#: includes/class-cloud-settings-page.php:1249
 msgid "Paused"
 msgstr "已暂停"
 
-#: includes/class-cloud-settings-page.php:1198
+#: includes/class-cloud-settings-page.php:1196
 msgid "Run checks, or"
 msgstr "运行检查，或"
 
-#: includes/class-cloud-settings-page.php:1359
-#: includes/class-cloud-settings-page.php:1379
+#: includes/class-cloud-settings-page.php:1357
+#: includes/class-cloud-settings-page.php:1377
 msgid "Expired"
 msgstr "已过期"
 
-#: includes/class-cloud-settings-page.php:1864
+#: includes/class-cloud-settings-page.php:1862
 msgid "Send a public post and page manifest so existing content enters the knowledge base."
 msgstr "发送公开文章和页面清单，使现有内容进入知识库。"
 
@@ -2382,60 +2382,60 @@ msgstr "Cloud 授权请求已过期或无效。请从 WordPress 重新开始连�
 msgid "The Cloud connection works, but this site is not active in Cloud yet. Activate the site in Npcink Cloud, then check the activation again here."
 msgstr "Cloud 连接可用，但本站点尚未在 Cloud 激活。请先在 Npcink Cloud 激活站点，然后回到这里再次检查激活状态。"
 
-#: includes/class-cloud-settings-page.php:1528
-#: includes/class-cloud-settings-page.php:1583
+#: includes/class-cloud-settings-page.php:1526
+#: includes/class-cloud-settings-page.php:1581
 msgid "All checks passed. No action is needed."
 msgstr "全部检查已通过，无需任何操作。"
 
 #. translators: 1: next action label or link, 2: owner label, 3: blocked reason.
-#: includes/class-cloud-settings-page.php:1534
-#: includes/class-cloud-settings-page.php:1600
+#: includes/class-cloud-settings-page.php:1532
+#: includes/class-cloud-settings-page.php:1598
 #, php-format
 msgid "The readiness check did not pass. Next step: %1$s (handled by %2$s). Reason: %3$s"
 msgstr "就绪检查未通过。下一步：%1$s（由%2$s处理）。原因：%3$s"
 
 #. translators: 1: next action label or link, 2: owner label.
-#: includes/class-cloud-settings-page.php:1543
-#: includes/class-cloud-settings-page.php:1609
+#: includes/class-cloud-settings-page.php:1541
+#: includes/class-cloud-settings-page.php:1607
 #, php-format
 msgid "Next step: %1$s (handled by %2$s)."
 msgstr "下一步：%1$s（由%2$s处理）。"
 
-#: includes/class-cloud-settings-page.php:1936
+#: includes/class-cloud-settings-page.php:1934
 msgid "Dropped updates"
 msgstr "被放弃的更新"
 
 #. translators: 1: dropped update count, 2: drop time.
-#: includes/class-cloud-settings-page.php:1939
+#: includes/class-cloud-settings-page.php:1937
 #, php-format
 msgid "%1$d (last at %2$s)"
 msgstr "%1$d（最近于 %2$s）"
 
-#: includes/class-cloud-settings-page.php:2106
+#: includes/class-cloud-settings-page.php:2104
 msgid "Monitoring upload state"
 msgstr "监控上传状态"
 
-#: includes/class-cloud-settings-page.php:2195
+#: includes/class-cloud-settings-page.php:2193
 msgid "The Cloud connection is not configured yet."
 msgstr "尚未配置 Cloud 连接。"
 
-#: includes/class-cloud-settings-page.php:2197
+#: includes/class-cloud-settings-page.php:2195
 msgid "The Cloud connection is healthy."
 msgstr "Cloud 连接正常。"
 
-#: includes/class-cloud-settings-page.php:2199
+#: includes/class-cloud-settings-page.php:2197
 msgid "This site still needs to be activated in Cloud."
 msgstr "本站点还需要在 Cloud 激活。"
 
-#: includes/class-cloud-settings-page.php:2201
+#: includes/class-cloud-settings-page.php:2199
 msgid "Cloud could not be reached or refused the connection."
 msgstr "无法连接 Cloud，或 Cloud 拒绝了本次连接。"
 
-#: includes/class-cloud-settings-page.php:2203
+#: includes/class-cloud-settings-page.php:2201
 msgid "The Cloud credentials have not been verified yet."
 msgstr "Cloud 凭据尚未通过验证。"
 
-#: includes/class-cloud-settings-page.php:2206
+#: includes/class-cloud-settings-page.php:2204
 msgid "The last Cloud verification did not complete."
 msgstr "最近一次 Cloud 验证未完成。"
 
@@ -2535,15 +2535,15 @@ msgstr "新的 Cloud 连接未能通过验证：%s。连接信息已保存，请
 msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected."
 msgstr "允许 WordPress AI 使用 Npcink Cloud。站点保持连接期间默认启用。"
 
-#: includes/class-cloud-settings-page.php:1095
+#: includes/class-cloud-settings-page.php:1093
 msgid "View upload detail"
 msgstr "查看上传详情"
 
-#: includes/class-cloud-settings-page.php:1098
+#: includes/class-cloud-settings-page.php:1096
 msgid "View Site Knowledge status"
 msgstr "查看站点知识库状态"
 
-#: includes/class-cloud-settings-page.php:1661
+#: includes/class-cloud-settings-page.php:1659
 msgid "After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time."
 msgstr "连接后，WordPress AI 连接器将默认启用。站点知识库投递可随时在“概览”中开启或关闭。"
 
@@ -2640,11 +2640,11 @@ msgstr "AI 任务契约上下文 none 不能与其他值组合。"
 msgid "Confirm the local disconnect before submitting this action."
 msgstr "提交此操作前请确认要在本地断开连接。"
 
-#: includes/class-cloud-settings-page.php:870
+#: includes/class-cloud-settings-page.php:868
 msgid "Confirm local disconnect before submitting."
 msgstr "提交前请确认要在本地断开连接。"
 
-#: includes/class-cloud-settings-page.php:873
+#: includes/class-cloud-settings-page.php:871
 msgid "I understand that this clears only the WordPress-side connection and addon buffers."
 msgstr "我确认这只会清除 WordPress 端连接和插件缓冲区。"
 
@@ -2652,11 +2652,11 @@ msgstr "我确认这只会清除 WordPress 端连接和插件缓冲区。"
 msgid "Npcink Cloud model metadata not found."
 msgstr "未找到 Npcink Cloud 模型元数据。"
 
-#: includes/class-cloud-settings-page.php:756
+#: includes/class-cloud-settings-page.php:754
 msgid "The cached Cloud read is out of date. Re-check the connection to confirm current service status."
 msgstr "缓存的 Cloud 读取已过期。请重新检查连接以确认当前服务状态。"
 
-#: includes/class-cloud-settings-page.php:1854
+#: includes/class-cloud-settings-page.php:1852
 msgid "Public content is being re-sent to Cloud. The warning will clear when delivery finishes."
 msgstr "正在向 Cloud 重新投递公开内容。投递完成后，警告将自动解除。"
 
@@ -2686,11 +2686,11 @@ msgstr "Cloud 监控响应未返回已接受事件数量。"
 msgid "Agent feedback candidate_rank must be an integer from 1 through 20."
 msgstr "Agent 反馈的 candidate_rank 必须是 1 到 20 的整数。"
 
-#: includes/class-cloud-settings-page.php:1289
+#: includes/class-cloud-settings-page.php:1287
 msgid "Activate the WordPress AI plugin"
 msgstr "启用 WordPress 官方 AI 插件"
 
-#: includes/class-cloud-settings-page.php:1289
+#: includes/class-cloud-settings-page.php:1287
 msgid "Install the WordPress AI plugin"
 msgstr "安装 WordPress 官方 AI 插件"
 
@@ -2728,117 +2728,117 @@ msgstr "按区块为文章添加编辑建议，覆盖无障碍、可读性和语
 msgid "This Cloud feature is temporarily paused."
 msgstr "此 Cloud 功能已暂时停用。"
 
-#: includes/class-cloud-settings-page.php:1628
+#: includes/class-cloud-settings-page.php:1626
 msgid "Nightly site inspection is temporarily paused."
 msgstr "夜间站点巡检已暂时暂停。"
 
-#: includes/class-cloud-settings-page.php:821
+#: includes/class-cloud-settings-page.php:819
 msgid "Only when Cloud authorization is unavailable."
 msgstr "仅在 Cloud 授权不可用时使用。"
 
-#: includes/class-cloud-settings-page.php:928
+#: includes/class-cloud-settings-page.php:926
 msgid "Leave blank to keep the stored key. Accepts a Cloud-issued mak1_ recovery key only."
 msgstr "留空则保留已存密钥；仅接受 Cloud 签发的 mak1_ 恢复密钥。"
 
-#: includes/class-cloud-settings-page.php:1778
+#: includes/class-cloud-settings-page.php:1776
 msgid "Ready to index"
 msgstr "可以开始索引"
 
-#: includes/class-cloud-settings-page.php:1235
+#: includes/class-cloud-settings-page.php:1233
 msgid "Check details"
 msgstr "检查明细"
 
-#: includes/class-cloud-settings-page.php:2072
+#: includes/class-cloud-settings-page.php:2070
 msgid "More limits"
 msgstr "更多限额"
 
-#: includes/class-cloud-settings-page.php:1004
+#: includes/class-cloud-settings-page.php:1002
 msgid "Entitlements"
 msgstr "权益"
 
-#: includes/class-cloud-settings-page.php:1791
+#: includes/class-cloud-settings-page.php:1789
 msgid "Knowledge base"
 msgstr "知识库"
 
-#: includes/class-cloud-settings-page.php:1797
+#: includes/class-cloud-settings-page.php:1795
 msgid "Syncing"
 msgstr "同步中"
 
-#: includes/class-cloud-settings-page.php:1802
-#: includes/class-cloud-settings-page.php:1969
+#: includes/class-cloud-settings-page.php:1800
+#: includes/class-cloud-settings-page.php:1967
 msgid "Sync"
 msgstr "同步"
 
-#: includes/class-cloud-settings-page.php:1812
-#: includes/class-cloud-settings-page.php:1851
+#: includes/class-cloud-settings-page.php:1810
+#: includes/class-cloud-settings-page.php:1849
 msgid "Open in Cloud"
 msgstr "在 Cloud 中打开"
 
-#: includes/class-cloud-settings-page.php:1220
-#: includes/class-cloud-settings-page.php:1224
-#: includes/class-cloud-settings-page.php:1590
+#: includes/class-cloud-settings-page.php:1218
+#: includes/class-cloud-settings-page.php:1222
+#: includes/class-cloud-settings-page.php:1588
 msgid "Open Connection"
 msgstr "打开连接"
 
 #. translators: %d: number of dropped content updates.
-#: includes/class-cloud-settings-page.php:1819
+#: includes/class-cloud-settings-page.php:1817
 #, php-format
 msgid "%d content updates could not be delivered and were dropped. Use Sync to include them again."
 msgstr "有 %d 条内容更新未能投递并已丢弃。请使用「同步」重新纳入。"
 
-#: includes/class-cloud-settings-page.php:1822
+#: includes/class-cloud-settings-page.php:1820
 msgid "Sync above"
 msgstr "使用上方同步"
 
-#: includes/class-cloud-settings-page.php:1823
-#: includes/class-cloud-settings-page.php:1843
+#: includes/class-cloud-settings-page.php:1821
+#: includes/class-cloud-settings-page.php:1841
 msgid "View delivery detail"
 msgstr "查看投递详情"
 
 #. translators: %s: machine-readable delivery error code.
-#: includes/class-cloud-settings-page.php:1835
+#: includes/class-cloud-settings-page.php:1833
 #, php-format
 msgid "Delivery failed (%s). Re-check the Cloud connection, then sync if needed."
 msgstr "投递失败（%s）。请先检查 Cloud 连接，必要时再同步。"
 
-#: includes/class-cloud-settings-page.php:1839
+#: includes/class-cloud-settings-page.php:1837
 msgid "Delivery needs attention. Re-check the Cloud connection."
 msgstr "投递需要处理。请检查 Cloud 连接。"
 
-#: includes/class-cloud-settings-page.php:1972
+#: includes/class-cloud-settings-page.php:1970
 msgid "Open Knowledge base on Overview"
 msgstr "打开概览中的知识库"
 
 #. translators: %d: dropped content update count.
-#: includes/class-cloud-settings-page.php:2448
+#: includes/class-cloud-settings-page.php:2446
 #, php-format
 msgid "%d content updates were dropped"
 msgstr "有 %d 条内容更新被丢弃"
 
 #. translators: %s: machine-readable delivery error code.
-#: includes/class-cloud-settings-page.php:2459
+#: includes/class-cloud-settings-page.php:2457
 #, php-format
 msgid "Delivery error: %s"
 msgstr "投递错误：%s"
 
-#: includes/class-cloud-settings-page.php:1288
+#: includes/class-cloud-settings-page.php:1286
 msgid "Install the official WordPress AI plugin to use generation tests."
 msgstr "安装官方 WordPress AI 插件以使用生成测试。"
 
-#: includes/class-cloud-settings-page.php:1307
+#: includes/class-cloud-settings-page.php:1305
 msgid "Request log"
 msgstr "请求日志"
 
-#: includes/class-cloud-settings-page.php:1310
+#: includes/class-cloud-settings-page.php:1308
 msgid "AI settings"
 msgstr "AI 设置"
 
-#: includes/class-cloud-settings-page.php:1317
+#: includes/class-cloud-settings-page.php:1315
 msgid "May use credits. Cloud picks the model."
 msgstr "可能消耗额度，模型由云端选择。"
 
 #: includes/class-cloud-settings-page.php:183
-#: includes/class-cloud-settings-page.php:1335
+#: includes/class-cloud-settings-page.php:1333
 msgid "Generate"
 msgstr "生成"
 
@@ -2847,17 +2847,17 @@ msgid "Generating…"
 msgstr "生成中…"
 
 #: includes/class-cloud-settings-page.php:195
-#: includes/class-cloud-settings-page.php:1299
+#: includes/class-cloud-settings-page.php:1297
 msgid "Test text"
 msgstr "测文本"
 
 #: includes/class-cloud-settings-page.php:196
-#: includes/class-cloud-settings-page.php:1299
+#: includes/class-cloud-settings-page.php:1297
 msgid "Test image"
 msgstr "测图片"
 
 #: includes/class-cloud-settings-page.php:197
-#: includes/class-cloud-settings-page.php:1299
+#: includes/class-cloud-settings-page.php:1297
 msgid "Test vision"
 msgstr "测图像理解"
 
@@ -2870,38 +2870,26 @@ msgid "Prompt"
 msgstr "提示词"
 
 #: includes/class-cloud-settings-page.php:200
-msgid "Attachment ID"
-msgstr "附件 ID"
-
-#: includes/class-cloud-settings-page.php:201
 msgid "Image URL"
 msgstr "图片 URL"
 
-#: includes/class-cloud-settings-page.php:202
+#: includes/class-cloud-settings-page.php:201
 msgid "Context"
 msgstr "上下文"
 
 #: includes/class-cloud-settings-page.php:203
-msgid "Media library attachment ID. Optional when an image URL is set."
-msgstr "媒体库附件 ID。已填写图片 URL 时可留空。"
-
-#: includes/class-cloud-settings-page.php:204
-msgid "Public image URL or data URI when no attachment ID is available."
-msgstr "无附件 ID 时使用公开图片 URL 或 data URI。"
-
-#: includes/class-cloud-settings-page.php:205
 msgid "WordPress AI can draft a short title from this sample paragraph about cloud-connected generation."
 msgstr "WordPress AI 可据此示例段落起草一个简短标题，内容与云端生成相关。"
 
-#: includes/class-cloud-settings-page.php:206
+#: includes/class-cloud-settings-page.php:204
 msgid "A simple watercolor illustration of a notebook and a fountain pen on a wooden desk."
 msgstr "木桌上的笔记本与钢笔，简洁水彩插画。"
 
-#: includes/class-cloud-settings-page.php:1335
+#: includes/class-cloud-settings-page.php:1333
 msgid "Advanced: Open Ability Explorer"
 msgstr "高级：打开能力浏览器"
 
-#: includes/class-cloud-settings-page.php:1333
+#: includes/class-cloud-settings-page.php:1331
 msgid "Close"
 msgstr "关闭"
 
@@ -2942,18 +2930,23 @@ msgstr "请检查表单字段后重试。"
 msgid "This page expired. Refresh and try again."
 msgstr "页面已过期，请刷新后重试。"
 
-#: includes/class-cloud-settings-page.php:207
+#: includes/class-cloud-settings-page.php:205
+#: includes/class-cloud-settings-page.php:1333
 msgid "Select from media library"
 msgstr "从媒体库选择"
 
-#: includes/class-cloud-settings-page.php:208
+#: includes/class-cloud-settings-page.php:206
 msgid "Select an image"
 msgstr "选择图片"
 
-#: includes/class-cloud-settings-page.php:209
+#: includes/class-cloud-settings-page.php:207
 msgid "Use this image"
 msgstr "使用此图片"
 
-#: includes/class-cloud-settings-page.php:210
+#: includes/class-cloud-settings-page.php:208
 msgid "Media library is unavailable on this screen."
 msgstr "当前屏幕无法打开媒体库。"
+
+#: includes/class-cloud-settings-page.php:202
+msgid "Public image URL or data URI."
+msgstr "公开图片 URL 或 data URI。"

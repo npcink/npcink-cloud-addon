@@ -197,11 +197,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							'testVision' => __( 'Test vision', 'npcink-cloud-addon' ),
 							'content' => __( 'Content', 'npcink-cloud-addon' ),
 							'prompt' => __( 'Prompt', 'npcink-cloud-addon' ),
-							'attachmentId' => __( 'Attachment ID', 'npcink-cloud-addon' ),
 							'imageUrl' => __( 'Image URL', 'npcink-cloud-addon' ),
 							'context' => __( 'Context', 'npcink-cloud-addon' ),
-							'attachmentHelp' => __( 'Media library attachment ID. Optional when an image URL is set.', 'npcink-cloud-addon' ),
-							'imageUrlHelp' => __( 'Public image URL or data URI when no attachment ID is available.', 'npcink-cloud-addon' ),
+							'imageUrlHelp' => __( 'Public image URL or data URI.', 'npcink-cloud-addon' ),
 							'defaultContent' => __( 'WordPress AI can draft a short title from this sample paragraph about cloud-connected generation.', 'npcink-cloud-addon' ),
 							'defaultPrompt' => __( 'A simple watercolor illustration of a notebook and a fountain pen on a wooden desk.', 'npcink-cloud-addon' ),
 							'selectMedia' => __( 'Select from media library', 'npcink-cloud-addon' ),
@@ -1332,7 +1330,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<div class="npcink-cloud-gen-test-dialog__body">
 					<div class="npcink-cloud-gen-test-dialog__header"><h2 id="npcink-cloud-gen-test-title" data-npcink-gen-title></h2><button type="button" class="npcink-cloud-gen-test-dialog__close" data-npcink-gen-close aria-label="<?php esc_attr_e( 'Close', 'npcink-cloud-addon' ); ?>">×</button></div>
 					<div data-npcink-gen-fields class="npcink-cloud-gen-test-dialog__fields"></div>
-					<p class="npcink-cloud-gen-test-dialog__actions"><button type="button" class="button button-primary" data-npcink-gen-run><?php esc_html_e( 'Generate', 'npcink-cloud-addon' ); ?></button><?php if ( $explorer_url ) : ?><a class="npcink-cloud-text-action npcink-cloud-gen-test-dialog__advanced" data-npcink-gen-explorer href="<?php echo esc_url( $explorer_url ); ?>"><?php esc_html_e( 'Advanced: Open Ability Explorer', 'npcink-cloud-addon' ); ?></a><?php endif; ?></p>
+					<p class="npcink-cloud-gen-test-dialog__actions"><span class="npcink-cloud-gen-test-dialog__actions-main"><button type="button" class="button button-primary" data-npcink-gen-run><?php esc_html_e( 'Generate', 'npcink-cloud-addon' ); ?></button> <button type="button" class="button" data-npcink-gen-media hidden><?php esc_html_e( 'Select from media library', 'npcink-cloud-addon' ); ?></button></span><?php if ( $explorer_url ) : ?><a class="npcink-cloud-text-action npcink-cloud-gen-test-dialog__advanced" data-npcink-gen-explorer href="<?php echo esc_url( $explorer_url ); ?>"><?php esc_html_e( 'Advanced: Open Ability Explorer', 'npcink-cloud-addon' ); ?></a><?php endif; ?></p>
 					<p class="npcink-cloud-gen-test-dialog__status" data-npcink-gen-status hidden></p>
 					<div class="npcink-cloud-gen-test-dialog__result" data-npcink-gen-result hidden></div>
 				</div>

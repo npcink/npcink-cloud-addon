@@ -202,7 +202,7 @@ test( 'generation tests show plain failure without dumping JSON', async () => {
 } );
 
 
-test( 'media picker fills attachment id and url for vision', async () => {
+test( 'media picker fills image url and keeps attachment id internal', async () => {
 	const log = [];
 	const dialog = {
 		open: false,
@@ -217,19 +217,18 @@ test( 'media picker fills attachment id and url for vision', async () => {
 	const fields = {
 		_html: '',
 		_inputs: {},
-		_mediaBtn: null,
 		querySelector( sel ) {
-			if ( sel === '[data-npcink-gen-media]' ) return this._mediaBtn;
 			const name = ( sel.match( /name="([^"]+)"/ ) || [] )[1];
 			if ( ! name ) return null;
 			if ( ! this._inputs[ name ] ) this._inputs[ name ] = { value: '' };
 			return this._inputs[ name ];
 		},
 		get innerHTML() { return this._html; },
-		set innerHTML( value ) {
-			this._html = value;
-			this._mediaBtn = { addEventListener( type, fn ) { this._click = fn; } };
-		},
+		set innerHTML( value ) { this._html = value; },
+	};
+	const mediaBtn = {
+		hidden: true,
+		addEventListener( type, fn ) { this._click = fn; },
 	};
 	const result = { innerHTML: '', hidden: true };
 	const status = { textContent: '', hidden: true, className: '' };
@@ -244,6 +243,7 @@ test( 'media picker fills attachment id and url for vision', async () => {
 		'[data-npcink-gen-status]': status,
 		'[data-npcink-gen-run]': runBtn,
 		'[data-npcink-gen-explorer]': explorer,
+		'[data-npcink-gen-media]': mediaBtn,
 	};
 	dialog._nodesAll = { '[data-npcink-gen-close]': [ closeBtn ] };
 	const openBtn = {
@@ -255,6 +255,7 @@ test( 'media picker fills attachment id and url for vision', async () => {
 		querySelectorAll( sel ) { return sel === '[data-npcink-gen-open]' ? [ openBtn ] : []; },
 	};
 	const handlers = {};
+	let capturedInput = null;
 	const sandbox = {
 		window: {
 			npcinkCloudGenerationTests: {
@@ -267,8 +268,8 @@ test( 'media picker fills attachment id and url for vision', async () => {
 					generated: 'Generated',
 					viewRaw: 'View raw response',
 					testVision: 'Test vision',
-					attachmentId: 'Attachment ID',
 					imageUrl: 'Image URL',
+					imageUrlHelp: 'Public image URL or data URI.',
 					context: 'Context',
 					selectMedia: 'Select from media library',
 					mediaFrameTitle: 'Select an image',
@@ -280,6 +281,7 @@ test( 'media picker fills attachment id and url for vision', async () => {
 					return {
 						on( event, fn ) { handlers[ event ] = fn; },
 						open() { log.push( 'mediaOpen' ); },
+						content: { mode() {} },
 						state() {
 							return {
 								get() {
@@ -301,31 +303,27 @@ test( 'media picker fills attachment id and url for vision', async () => {
 			setTimeout( fn ) { fn(); return 0; },
 		},
 		document,
-		fetch() { return Promise.resolve( { json: async () => ( { success: true, data: {} } ) } ); },
+		fetch( url, opts ) {
+			capturedInput = JSON.parse( opts.body.entries.input );
+			return Promise.resolve( { json: async () => ( { success: true, data: { data: { alt_text: 'ok' } } } ) } );
+		},
 		FormData: class { constructor() { this.entries = {}; } append( k, v ) { this.entries[ k ] = v; } },
 		encodeURIComponent,
 	};
 	runInContext( readFileSync( path.join( root, '../assets/admin-generation-tests.js' ), 'utf8' ), createContext( sandbox ) );
 	openBtn._click();
-	assert.deepEqual( log.slice( 0, 1 ), [ 'showModal' ] );
-	fields._mediaBtn._click();
+	assert.equal( mediaBtn.hidden, false );
+	assert.doesNotMatch( fields._html, /attachment_id/ );
+	assert.match( fields._html, /name="image_url"/ );
+	mediaBtn._click();
 	assert.deepEqual( log.slice( 0, 3 ), [ 'showModal', 'close', 'mediaOpen' ] );
-
-	// select then close
 	handlers.select();
 	handlers.close();
 	assert.equal( dialog.open, true );
-	assert.equal( fields._inputs.attachment_id.value, '42' );
 	assert.equal( fields._inputs.image_url.value, 'https://example.test/wp-content/uploads/sample.jpg' );
-
-	// close before select still fills when select arrives later
-	fields._inputs.attachment_id.value = '';
-	fields._inputs.image_url.value = '';
-	fields._mediaBtn._click();
-	handlers.close();
-	assert.equal( dialog.open, true );
-	assert.equal( fields._inputs.attachment_id.value, '' );
-	handlers.select();
-	assert.equal( fields._inputs.attachment_id.value, '42' );
-	assert.equal( fields._inputs.image_url.value, 'https://example.test/wp-content/uploads/sample.jpg' );
+	assert.equal( fields._inputs.attachment_id, undefined );
+	runBtn._click();
+	await new Promise( ( r ) => setTimeout( r, 0 ) );
+	assert.equal( capturedInput.attachment_id, 42 );
+	assert.equal( capturedInput.image_url, 'https://example.test/wp-content/uploads/sample.jpg' );
 } );

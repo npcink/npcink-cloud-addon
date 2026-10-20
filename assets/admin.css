@@ -1408,9 +1408,17 @@ button.npcink-cloud-text-action:focus {
 .npcink-cloud-gen-test-dialog__actions {
 	align-items: center;
 	display: flex;
+	flex-wrap: wrap;
 	gap: 12px;
 	justify-content: space-between;
 	margin: 12px 0 8px;
+}
+
+.npcink-cloud-gen-test-dialog__actions-main {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
 }
 
 .npcink-cloud-gen-test-dialog__advanced {

@@ -29,7 +29,6 @@
 			mediaPicker: true,
 			fields: [
 				{ key: 'prompt', type: 'textarea', rows: 4, required: true, label: s.prompt || 'Prompt', default: s.defaultPrompt || '' },
-				{ key: 'attachment_id', type: 'number', valueType: 'integer', label: s.attachmentId || 'Attachment ID', help: s.attachmentHelp || '' },
 				{ key: 'image_url', type: 'url', label: s.imageUrl || 'Image URL', help: s.imageUrlHelp || '' }
 			]
 		},
@@ -38,7 +37,6 @@
 			explorerUrl: explorerTestUrl( 'ai/alt-text-generation' ),
 			mediaPicker: true,
 			fields: [
-				{ key: 'attachment_id', type: 'number', valueType: 'integer', label: s.attachmentId || 'Attachment ID', help: s.attachmentHelp || '' },
 				{ key: 'image_url', type: 'url', label: s.imageUrl || 'Image URL', help: s.imageUrlHelp || '' },
 				{ key: 'context', type: 'textarea', rows: 3, label: s.context || 'Context' }
 			]
@@ -58,6 +56,8 @@
 	var closeBtns = dialog.querySelectorAll( '[data-npcink-gen-close]' );
 	var explorerLink = dialog.querySelector( '[data-npcink-gen-explorer]' );
 	var currentAbility = '';
+	var selectedAttachmentId = null;
+	var mediaBtn = dialog.querySelector( '[data-npcink-gen-media]' );
 
 	function escapeHtml( value ) {
 		return String( value )
@@ -117,15 +117,7 @@
 			}
 			html += '</p>';
 		} );
-		if ( ability.mediaPicker ) {
-			html +=
-				'<p class="npcink-cloud-gen-test-dialog__media">' +
-				'<button type="button" class="button" data-npcink-gen-media>' +
-				escapeHtml( s.selectMedia || 'Select from media library' ) +
-				'</button></p>';
-		}
 		fieldsEl.innerHTML = html;
-		bindMediaPicker( ability );
 	}
 
 	function setFieldValue( name, value ) {
@@ -200,19 +192,25 @@
 		}, 0 );
 	}
 
-	function bindMediaPicker( ability ) {
-		var button = fieldsEl.querySelector( '[data-npcink-gen-media]' );
-		if ( ! button || ! ability.mediaPicker ) {
+	function syncMediaButton( ability ) {
+		if ( ! mediaBtn ) {
 			return;
 		}
-		button.addEventListener( 'click', function () {
+		mediaBtn.hidden = ! ( ability && ability.mediaPicker );
+	}
+
+	function bindMediaPicker() {
+		if ( ! mediaBtn ) {
+			return;
+		}
+		mediaBtn.addEventListener( 'click', function () {
 			openMediaLibrary( function ( attachment ) {
 				var id = attachment.id || attachment.ID || '';
 				var url = attachment.url || '';
 				if ( ! url && attachment.sizes && attachment.sizes.full && attachment.sizes.full.url ) {
 					url = attachment.sizes.full.url;
 				}
-				setFieldValue( 'attachment_id', id );
+				selectedAttachmentId = id ? parseInt( id, 10 ) || id : null;
 				setFieldValue( 'image_url', url );
 			} );
 		} );
@@ -238,13 +236,15 @@
 			}
 			input[ field.key ] = raw;
 		} );
-		// Image generation accepts prompt (+ optional base64 reference), not attachment fields.
 		if ( 'ai/image-generation' === currentAbility ) {
 			var imageInput = {};
 			if ( input.prompt ) {
 				imageInput.prompt = input.prompt;
 			}
 			return imageInput;
+		}
+		if ( 'ai/alt-text-generation' === currentAbility && selectedAttachmentId ) {
+			input.attachment_id = selectedAttachmentId;
 		}
 		return input;
 	}
@@ -362,10 +362,12 @@
 			return;
 		}
 		currentAbility = slug;
+		selectedAttachmentId = null;
 		if ( titleEl ) {
 			titleEl.textContent = ability.title || slug;
 		}
 		renderFields( ability );
+		syncMediaButton( ability );
 		if ( resultEl ) {
 			resultEl.innerHTML = '';
 			resultEl.hidden = true;
@@ -473,6 +475,7 @@
 	closeBtns.forEach( function ( button ) {
 		button.addEventListener( 'click', closeDialog );
 	} );
+	bindMediaPicker();
 	if ( runBtn ) {
 		runBtn.addEventListener( 'click', runGenerate );
 	}
