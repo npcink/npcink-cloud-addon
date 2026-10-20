@@ -1004,13 +1004,17 @@ maca_assert(
 	&& str_contains( $test_links_html, 'ai-request-logs' )
 	&& str_contains( $test_links_html, 'May use credits' )
 	&& str_contains( $test_links_html, 'Test text' )
+	&& str_contains( $test_links_html, 'npcink-cloud-gen-test-dialog__advanced' )
 	&& str_contains( $test_links_html, 'Advanced: Open Ability Explorer' )
 	&& str_contains( $test_links_html, 'page=ai-abilities-explorer' )
+	&& ! str_contains( $test_links_html, 'npcink-cloud-generation-tests__advanced' )
+	&& substr_count( $test_links_html, 'data-npcink-gen-close' ) === 1
+	&& ! str_contains( $test_links_html, 'npcink-cloud-gen-test-dialog__corner' )
 	&& str_contains( $test_links_html, 'npcink-cloud-text-action' )
 	&& ! str_contains( $test_links_html, 'button button-secondary' )
 	&& ! str_contains( $test_links_html, 'target="_blank"' )
 	&& $http_before === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: generation tests fold by default, open in-page modal actions for registered abilities, keep Advanced Explorer and request-log links, disclose cost, stay same-window, and perform zero requests on render.'
+	'Behavior: generation tests fold by default, open in-page modal actions for registered abilities, keep Advanced Explorer only inside the modal action row, disclose cost, stay same-window, and perform zero requests on render.'
 );
 
 // Re-pause only this surface to prove the guard path still works without ACTIVE=false.

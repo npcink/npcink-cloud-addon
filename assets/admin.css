@@ -1326,16 +1326,6 @@ button.npcink-cloud-text-action:focus {
 	text-decoration: underline;
 }
 
-.npcink-cloud-generation-tests__advanced {
-	display: flex;
-	justify-content: flex-end;
-	margin: 8px 0 0;
-}
-
-.npcink-cloud-generation-tests__advanced-link {
-	font-size: 12px;
-	font-weight: 500;
-}
 
 .npcink-cloud-gen-test-dialog {
 	border: 1px solid #c3c4c7;
@@ -1394,9 +1384,17 @@ button.npcink-cloud-text-action:focus {
 }
 
 .npcink-cloud-gen-test-dialog__actions {
+	align-items: center;
 	display: flex;
-	gap: 8px;
+	gap: 12px;
+	justify-content: space-between;
 	margin: 12px 0 8px;
+}
+
+.npcink-cloud-gen-test-dialog__advanced {
+	font-size: 12px;
+	font-weight: 500;
+	margin-left: auto;
 }
 
 .npcink-cloud-gen-test-dialog__status {
@@ -1436,16 +1434,6 @@ button.npcink-cloud-text-action:focus {
 	max-width: 100%;
 }
 
-.npcink-cloud-gen-test-dialog__corner {
-	display: flex;
-	justify-content: flex-end;
-	margin: 10px 0 0;
-}
-
-.npcink-cloud-gen-test-dialog__corner .npcink-cloud-text-action {
-	font-size: 12px;
-	font-weight: 500;
-}
 
 .npcink-cloud-gen-test-dialog__readable {
 	margin: 0 0 8px;
