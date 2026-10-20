@@ -8,6 +8,8 @@ repository remains the Cloud Addon transport owner; do not expand platform,
 Core governance, Toolkit ability, Adapter channel, product-surface, billing, or
 runtime truth rules here beyond addon-owned connector contracts.
 
+跨仓版本兼容以 Cloud [`docs/compatibility-matrix.md`](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/compatibility-matrix.md) 为准；本仓发版后应请更新该表推荐下限。不做 `version_compare` 运行时硬拒。
+
 ## Boundaries
 
 - Keep this addon a Cloud connector only.
