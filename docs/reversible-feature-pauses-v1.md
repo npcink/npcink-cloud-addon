@@ -21,7 +21,7 @@ Coordinated Cloud/Toolbox evidence lives in Cloud’s matching
 | **`advanced_media`** | runtime feature markers | Ability/合约/profile 含 media derivative / governance audit / batch plan 等 marker；`Media_Derivative_Transport` 在上传前拒绝；`Media_Plan_Projection` 拒新优化计划；`Runtime_Client` 预签名 + 部分路径再拒 | ① 从 `$paused_runtime_features` 去掉本键（或全局 ACTIVE）② Cloud + Toolbox 媒体批处理入口可用 ③ 回归：派发/计划/治理审计与「暂停时零 HTTP」对偶用例 ④ 确认本地 Core/Toolbox continuation 不误伤 | **P3** 面最宽、上传与治理耦合最深，最后恢复 |
 | **`audio_generation`** | runtime feature markers | `generate-audio` / `audio_generation*` / `audio.narration.default` 等 marker 在 `runtime_error` 预签名拒绝 | ① 移出 paused markers ② Cloud 音频执行可用 ③ 窄回归：音频请求 409→成功，普通文本不受影响 | **P2** 面较窄，依赖 Cloud 音频能力就绪 |
 | **`cloud_inspection`** | runtime feature markers + 权益投影 | Nightly / site-ops 分析 marker；`retry_run` 等检查路径；权益将 Hosted Runtime 标为 `paused`；Overview **隐藏 Runtime allowance** | ① 移出 paused markers ② Cloud 巡检/批处理可用 ③ 权益缓存与 Overview Runtime 行回归 ④ 确认夜间批与 site-ops 入口 | **P2** 影响额度展示与夜间批，需 Cloud 批处理就绪 |
-| **`wordpress_ai_generation_tests`** | admin surface | Checks（原 Advanced）上 WordPress AI 生成测试按钮区（`is_admin_surface_paused`）；官方 AI 插件与 helper **仍安装** | ① `$paused_admin_surfaces` 去掉本键（或 ACTIVE）② 本机已装/激活官方 AI 插件 ③ 冒烟：Checks 再出现测试入口且不误开 SEO | **P0** 仅管理端入口、不改 transport，最适合先解以利联调 |
+| **`wordpress_ai_generation_tests`** | admin surface | **已于 2026-10-20 P0 恢复**：Checks 再显示生成测试 / 缺插件引导；`is_admin_surface_paused` 守卫保留，默认可为空数组再单键暂停 | 已完成：从 `$paused_admin_surfaces` 去掉本键（未动 `ACTIVE`） | **P0 已恢复** |
 
 全局开关：`Npcink_Cloud_Discoverability_Pause::ACTIVE`。设为 `false` 会一次解除上表全部项；**不推荐**作为「只开一项」的手段。单项恢复应改 `$paused_runtime_features` / `$paused_admin_surfaces` / `is_task_paused` 列表，并走审阅 PR。
 
@@ -33,8 +33,8 @@ Coordinated Cloud/Toolbox evidence lives in Cloud’s matching
 
 ## 恢复路线图（可转述）
 
-1. **P0 — 生成测试入口**  
-   去掉 `wordpress_ai_generation_tests` admin pause → 确认 Checks 出现测试链 → 跑既有 WP AI smoke（不涉及 SEO 专项）。  
+1. **P0 — 生成测试入口（已完成 2026-10-20）**  
+   已从 `$paused_admin_surfaces` 去掉 `wordpress_ai_generation_tests`（保持 `ACTIVE=true`，其它 pause 不变）→ Checks 露出测试入口或官方 AI 插件引导 → 联调可跑 WP AI smoke（不涉及 SEO 专项）。  
    *目的：先恢复联调入口，不动付费专项 transport。*
 
 2. **P1 — SEO/AEO/GEO 专项**  
