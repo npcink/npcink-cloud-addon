@@ -1383,6 +1383,11 @@ button.npcink-cloud-text-action:focus {
 	margin: 0 0 10px;
 }
 
+.npcink-cloud-gen-test-dialog__media {
+	margin: 0 0 10px;
+}
+
+
 .npcink-cloud-gen-test-dialog__field label {
 	display: block;
 	font-weight: 600;

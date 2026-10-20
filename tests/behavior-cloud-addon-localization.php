@@ -262,6 +262,11 @@ maca_assert(
 		'View raw response',
 		'View raw response',
 		'npcink-cloud-addon'
+	)
+	&& '从媒体库选择' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Select from media library',
+		'Select from media library',
+		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers the connected summary, troubleshooting, readiness, monitoring-consent, and hosted model ownership surfaces.'
 );

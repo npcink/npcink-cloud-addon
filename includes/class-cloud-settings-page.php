@@ -162,10 +162,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 
 			$gen_js = NPCINK_CLOUD_ADDON_DIR . '/assets/admin-generation-tests.js';
 			if ( is_readable( $gen_js ) ) {
+				if ( function_exists( 'wp_enqueue_media' ) ) {
+					wp_enqueue_media();
+				}
 				wp_enqueue_script(
 					'npcink-cloud-addon-admin-generation-tests',
 					self::asset_url( 'assets/admin-generation-tests.js' ),
-					array(),
+					array( 'jquery' ),
 					NPCINK_CLOUD_ADDON_VERSION . '.' . (string) filemtime( $gen_js ),
 					true
 				);
@@ -201,6 +204,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							'imageUrlHelp' => __( 'Public image URL or data URI when no attachment ID is available.', 'npcink-cloud-addon' ),
 							'defaultContent' => __( 'WordPress AI can draft a short title from this sample paragraph about cloud-connected generation.', 'npcink-cloud-addon' ),
 							'defaultPrompt' => __( 'A simple watercolor illustration of a notebook and a fountain pen on a wooden desk.', 'npcink-cloud-addon' ),
+							'selectMedia' => __( 'Select from media library', 'npcink-cloud-addon' ),
+							'mediaFrameTitle' => __( 'Select an image', 'npcink-cloud-addon' ),
+							'mediaFrameButton' => __( 'Use this image', 'npcink-cloud-addon' ),
+							'mediaUnavailable' => __( 'Media library is unavailable on this screen.', 'npcink-cloud-addon' ),
 						),
 					)
 				);

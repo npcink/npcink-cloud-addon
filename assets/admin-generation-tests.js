@@ -26,13 +26,17 @@
 		'ai/image-generation': {
 			title: s.testImage || 'Test image',
 			explorerUrl: explorerTestUrl( 'ai/image-generation' ),
+			mediaPicker: true,
 			fields: [
-				{ key: 'prompt', type: 'textarea', rows: 4, required: true, label: s.prompt || 'Prompt', default: s.defaultPrompt || '' }
+				{ key: 'prompt', type: 'textarea', rows: 4, required: true, label: s.prompt || 'Prompt', default: s.defaultPrompt || '' },
+				{ key: 'attachment_id', type: 'number', valueType: 'integer', label: s.attachmentId || 'Attachment ID', help: s.attachmentHelp || '' },
+				{ key: 'image_url', type: 'url', label: s.imageUrl || 'Image URL', help: s.imageUrlHelp || '' }
 			]
 		},
 		'ai/alt-text-generation': {
 			title: s.testVision || 'Test vision',
 			explorerUrl: explorerTestUrl( 'ai/alt-text-generation' ),
+			mediaPicker: true,
 			fields: [
 				{ key: 'attachment_id', type: 'number', valueType: 'integer', label: s.attachmentId || 'Attachment ID', help: s.attachmentHelp || '' },
 				{ key: 'image_url', type: 'url', label: s.imageUrl || 'Image URL', help: s.imageUrlHelp || '' },
@@ -113,7 +117,65 @@
 			}
 			html += '</p>';
 		} );
+		if ( ability.mediaPicker ) {
+			html +=
+				'<p class="npcink-cloud-gen-test-dialog__media">' +
+				'<button type="button" class="button" data-npcink-gen-media>' +
+				escapeHtml( s.selectMedia || 'Select from media library' ) +
+				'</button></p>';
+		}
 		fieldsEl.innerHTML = html;
+		bindMediaPicker( ability );
+	}
+
+	function setFieldValue( name, value ) {
+		var el = fieldsEl.querySelector( '[name="' + name + '"]' );
+		if ( el ) {
+			el.value = value == null ? '' : String( value );
+		}
+	}
+
+	function openMediaLibrary( onSelect ) {
+		if ( ! window.wp || ! window.wp.media ) {
+			if ( statusEl ) {
+				statusEl.hidden = false;
+				statusEl.className = 'npcink-cloud-gen-test-dialog__status is-error';
+				statusEl.textContent = s.mediaUnavailable || 'Media library is unavailable on this screen.';
+			}
+			return;
+		}
+		var frame = window.wp.media( {
+			title: s.mediaFrameTitle || 'Select an image',
+			button: { text: s.mediaFrameButton || 'Use this image' },
+			library: { type: 'image' },
+			multiple: false,
+		} );
+		frame.on( 'select', function () {
+			var selection = frame.state().get( 'selection' );
+			var attachment = selection && selection.first ? selection.first().toJSON() : null;
+			if ( attachment ) {
+				onSelect( attachment );
+			}
+		} );
+		frame.open();
+	}
+
+	function bindMediaPicker( ability ) {
+		var button = fieldsEl.querySelector( '[data-npcink-gen-media]' );
+		if ( ! button || ! ability.mediaPicker ) {
+			return;
+		}
+		button.addEventListener( 'click', function () {
+			openMediaLibrary( function ( attachment ) {
+				var id = attachment.id || attachment.ID || '';
+				var url = attachment.url || '';
+				if ( ! url && attachment.sizes && attachment.sizes.full && attachment.sizes.full.url ) {
+					url = attachment.sizes.full.url;
+				}
+				setFieldValue( 'attachment_id', id );
+				setFieldValue( 'image_url', url );
+			} );
+		} );
 	}
 
 	function collectInput( ability ) {
@@ -136,6 +198,14 @@
 			}
 			input[ field.key ] = raw;
 		} );
+		// Image generation accepts prompt (+ optional base64 reference), not attachment fields.
+		if ( 'ai/image-generation' === currentAbility ) {
+			var imageInput = {};
+			if ( input.prompt ) {
+				imageInput.prompt = input.prompt;
+			}
+			return imageInput;
+		}
 		return input;
 	}
 
