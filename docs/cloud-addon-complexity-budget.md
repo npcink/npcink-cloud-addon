@@ -106,12 +106,14 @@ connector classes so they cannot grow unnoticed:
   path keeps exchanged credentials in the unverified state instead of
   discarding them; raised again for the 2026-10-12 server-side no-JS disconnect
   confirmation guard; raised by one line to distinguish scheduled recovery notices from completed delivery; raised by two lines to return current admin status fragments with existing authenticated reads)
-- `includes/class-cloud-wordpress-ai-connector.php` — 1035 lines (was 2767 before the
+- `includes/class-cloud-wordpress-ai-connector.php` — 1090 lines (was 2767 before the
   2026-10-06 per-class split into seven satellite files; raised from 1002 with
   reason: the 2026-10-11 in-progress run probe shares one
   `response_indicates_in_progress_run()` helper across the three models; raised
   from 1024 with reason: the 2026-10-20 WordPress AI 1.4 request-log gate aligns
-  with Features Loader so Cloud ability invokes write Tools → AI request logs)
+  with Features Loader so Cloud ability invokes write Tools → AI request logs;
+  raised from 1035 with reason: the 2026-10-20 connector-runtime request-log
+  bridge maps Cloud `result.usage` tokens_in/out into host tokens_input/output)
 - `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 338 lines
 - `includes/class-cloud-wordpress-ai-availability.php` — 32 lines
 - `includes/class-cloud-wordpress-ai-image-model.php` — 496 lines (raised from

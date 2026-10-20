@@ -142,7 +142,9 @@ namespace {
 		&& ! isset( $text_context['input_preview'] )
 		&& ! isset( $text_context['output_preview'] )
 		&& false === strpos( wp_json_encode( $text_log ), $text_input_sentinel )
-		&& false === strpos( wp_json_encode( $text_log ), $text_output_sentinel ),
+		&& false === strpos( wp_json_encode( $text_log ), $text_output_sentinel )
+		&& ! array_key_exists( 'tokens_input', $text_log )
+		&& ! array_key_exists( 'tokens_output', $text_log ),
 		'Behavior: WordPress AI text success keeps nested cloud_run_id as metadata-only correlation evidence.'
 	);
 
@@ -262,5 +264,76 @@ namespace {
 		&& 'run_invalid_image' === ( $invalid_log['context']['cloud_run_id'] ?? '' )
 		&& 'Image verification failed.' === ( $invalid_log['error_message'] ?? '' ),
 		'Behavior: an HTTP success with invalid output is logged as an error and retains Cloud correlation.'
+	);
+
+	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
+		array(
+			'type'                       => 'text',
+			'operation'                  => 'npcink-cloud/connector-runtime',
+			'task'                       => 'title_generation',
+			'contract_version'           => 'cloud_connector_runtime.v1',
+			'operation_contract_version' => 'wordpress_operation.v1',
+			'response'                   => array(
+				'data' => array(
+					'run_id' => 'run_usage_tokens_1',
+					'result' => array(
+						'contract_version' => 'cloud_connector_result.v1',
+						'provider_id'      => 'cloud-text-provider',
+						'model_id'         => 'cloud-text-model',
+						'output'           => array( 'output_text' => 'A title' ),
+						'usage'            => array(
+							'tokens_in'     => 24,
+							'tokens_out'    => 8,
+							'total_tokens'  => 32,
+						),
+					),
+				),
+			),
+			'duration_ms'                => 88,
+			'fallback_model_id'          => Npcink_Cloud_WordPress_AI_Connector::MODEL_ID,
+		)
+	);
+
+	$usage_log = $GLOBALS['maca_wpai_request_logs'][6] ?? array();
+	maca_assert(
+		7 === count( $GLOBALS['maca_wpai_request_logs'] )
+		&& 'success' === (string) ( $usage_log['status'] ?? '' )
+		&& 'npcink-cloud/connector-runtime:title_generation' === (string) ( $usage_log['operation'] ?? '' )
+		&& 24 === (int) ( $usage_log['tokens_input'] ?? -1 )
+		&& 8 === (int) ( $usage_log['tokens_output'] ?? -1 )
+		&& 'run_usage_tokens_1' === (string) ( ( $usage_log['context']['cloud_run_id'] ?? '' ) )
+		&& false === strpos( wp_json_encode( $usage_log ), 'total_tokens' ),
+		'Behavior: WordPress AI request log bridge maps cloud_connector_result.v1 usage tokens_in/out into tokens_input/output.'
+	);
+
+	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
+		array(
+			'type'                       => 'text',
+			'operation'                  => 'npcink-cloud/connector-runtime',
+			'task'                       => 'title_generation',
+			'contract_version'           => 'cloud_connector_runtime.v1',
+			'operation_contract_version' => 'wordpress_operation.v1',
+			'response'                   => array(
+				'data' => array(
+					'run_id' => 'run_usage_empty_object',
+					'result' => array(
+						'contract_version' => 'cloud_connector_result.v1',
+						'output'           => array( 'output_text' => 'B title' ),
+						'usage'            => array( 'cost' => 0.01 ),
+					),
+				),
+			),
+			'duration_ms'                => 11,
+			'fallback_model_id'          => Npcink_Cloud_WordPress_AI_Connector::MODEL_ID,
+		)
+	);
+
+	$empty_usage_log = $GLOBALS['maca_wpai_request_logs'][7] ?? array();
+	maca_assert(
+		8 === count( $GLOBALS['maca_wpai_request_logs'] )
+		&& 'run_usage_empty_object' === (string) ( ( $empty_usage_log['context']['cloud_run_id'] ?? '' ) )
+		&& ! array_key_exists( 'tokens_input', $empty_usage_log )
+		&& ! array_key_exists( 'tokens_output', $empty_usage_log ),
+		'Behavior: WordPress AI request log bridge omits TOKEN fields when usage lacks tokens_in/out.'
 	);
 }

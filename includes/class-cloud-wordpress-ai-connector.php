@@ -668,6 +668,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'context'     => $context,
 			);
 
+			// Cloud connector envelope (cloud_connector_result.v1) may project
+			// provider-call tokens as result.usage.{tokens_in,tokens_out,total_tokens}.
+			// Map into the host AI request-log fields when present; omit when absent
+			// so TOKEN stays empty (same as before Cloud projects usage).
+			$usage_tokens = self::usage_tokens_from_response( $response_array );
+			if ( is_array( $usage_tokens ) ) {
+				$log_data['tokens_input']  = $usage_tokens['tokens_input'];
+				$log_data['tokens_output'] = $usage_tokens['tokens_output'];
+			}
+
 			try {
 				$manager = new $manager_class();
 				if ( method_exists( $manager, 'init' ) ) {
@@ -958,6 +968,51 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @param string              $fallback Fallback.
 		 * @return string
 		 */
+
+		/**
+		 * Maps Cloud connector result.usage into WordPress AI request-log token fields.
+		 *
+		 * Cloud draft contract (cloud_connector_result.v1): usage sits beside output with
+		 * tokens_in / tokens_out / total_tokens. The host log expects tokens_input /
+		 * tokens_output. Missing usage returns null so callers omit the fields.
+		 *
+		 * @param array<string,mixed> $source Runtime response array.
+		 * @return array{tokens_input:int,tokens_output:int}|null
+		 */
+		private static function usage_tokens_from_response( array $source ): ?array {
+			$usage = null;
+			foreach ( array( 'data.result.usage', 'result.usage', 'data.usage', 'usage' ) as $path ) {
+				$candidate = self::array_dot_value( $source, $path );
+				if ( is_array( $candidate ) ) {
+					$usage = $candidate;
+					break;
+				}
+			}
+
+			if ( ! is_array( $usage ) ) {
+				return null;
+			}
+
+			$has_cloud_keys = array_key_exists( 'tokens_in', $usage ) || array_key_exists( 'tokens_out', $usage );
+			$has_host_keys  = array_key_exists( 'tokens_input', $usage ) || array_key_exists( 'tokens_output', $usage );
+			if ( ! $has_cloud_keys && ! $has_host_keys ) {
+				return null;
+			}
+
+			if ( $has_cloud_keys ) {
+				$tokens_input  = max( 0, (int) ( $usage['tokens_in'] ?? 0 ) );
+				$tokens_output = max( 0, (int) ( $usage['tokens_out'] ?? 0 ) );
+			} else {
+				$tokens_input  = max( 0, (int) ( $usage['tokens_input'] ?? 0 ) );
+				$tokens_output = max( 0, (int) ( $usage['tokens_output'] ?? 0 ) );
+			}
+
+			return array(
+				'tokens_input'  => $tokens_input,
+				'tokens_output' => $tokens_output,
+			);
+		}
+
 		private static function first_response_string( array $source, array $paths, string $fallback ): string {
 			foreach ( $paths as $path ) {
 				$value = self::array_dot_value( $source, $path );

@@ -1026,9 +1026,15 @@ maca_assert(
 	&& false !== strpos( $wpai_text_model, "'operation_contract_version' => 'wordpress_operation.v1'" )
 	&& false !== strpos( $wordpress_ai_connector, "'channel'                    => 'editor'" )
 	&& false !== strpos( $wordpress_ai_connector, "'connector_id'               => 'npcink-cloud-addon'" )
+	&& false !== strpos( $wordpress_ai_connector, 'usage_tokens_from_response' )
+	&& false !== strpos( $wordpress_ai_connector, "'data.result.usage'" )
+	&& false !== strpos( $wordpress_ai_connector, "\$log_data['tokens_input']" )
+	&& false !== strpos( $wordpress_ai_connector, "\$log_data['tokens_output']" )
+	&& false !== strpos( $wordpress_ai_connector, "\$usage['tokens_in']" )
+	&& false !== strpos( $wordpress_ai_connector, "\$usage['tokens_out']" )
 	&& false === strpos( $wpai_bundle_scope, "'input_preview'" )
 	&& false === strpos( $wpai_bundle_scope, "'output_preview'" ),
-	'WordPress AI request log bridge is metadata-only and does not persist prompt or output previews.'
+	'WordPress AI request log bridge is metadata-only, maps Cloud result.usage tokens into the host log, and does not persist prompt or output previews.'
 );
 
 maca_assert(
@@ -2368,7 +2374,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
 	'includes/class-cloud-settings-page.php'           => 2680,
 	'includes/class-cloud-settings-actions.php'        => 1170,
-	'includes/class-cloud-wordpress-ai-connector.php'  => 1035,
+	'includes/class-cloud-wordpress-ai-connector.php'  => 1090,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
 	'includes/class-cloud-wordpress-ai-image-model.php' => 496,
