@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T06:37:30+00:00\n"
+"POT-Creation-Date: 2026-10-20T06:44:35+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -245,7 +245,7 @@ msgid "AI task contracts require ai_task_contract.v1."
 msgstr ""
 
 #: includes/class-cloud-ai-task-contract.php:250
-#: includes/class-cloud-discoverability-pause.php:102
+#: includes/class-cloud-discoverability-pause.php:120
 #: includes/class-cloud-runtime-request-guards.php:214
 msgid "SEO/AEO/GEO specialist assistance is paused."
 msgstr ""
@@ -295,15 +295,15 @@ msgstr ""
 msgid "Cloud customer journey response did not include an accepted event count."
 msgstr ""
 
-#: includes/class-cloud-discoverability-pause.php:34
+#: includes/class-cloud-discoverability-pause.php:44
 msgid "This Cloud feature is temporarily paused."
 msgstr ""
 
-#: includes/class-cloud-discoverability-pause.php:66
+#: includes/class-cloud-discoverability-pause.php:81
 msgid "Suggests short, readable permalink slugs from post title or content. Requires an AI connector that includes support for text generation models."
 msgstr ""
 
-#: includes/class-cloud-discoverability-pause.php:69
+#: includes/class-cloud-discoverability-pause.php:84
 msgid "Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, and Grammar. Requires an AI connector that includes support for text generation models."
 msgstr ""
 

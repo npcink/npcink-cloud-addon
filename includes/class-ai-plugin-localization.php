@@ -592,7 +592,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'Meta description copied to clipboard.' => 'SEO 描述已复制到剪贴板。',
 				'Meta Description generation will be available when the post content has at least %d characters.' => '文章内容至少达到 %d 个字符后可生成 SEO 描述。',
 				'Editorial Notes' => '编辑建议',
-				'Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, Grammar, and SEO. Requires an AI connector that includes support for text generation models.' => '按区块为文章添加编辑建议，覆盖无障碍、可读性和语法。需要支持文本生成模型的 AI 连接器。',
+				'Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, Grammar, and SEO. Requires an AI connector that includes support for text generation models.' => '按区块为文章添加编辑建议，覆盖无障碍、可读性、语法和 SEO。需要支持文本生成模型的 AI 连接器。',
 				'Generate Editorial Note' => '生成编辑建议',
 				'%d suggestion added. Save to keep changes.' => '已添加 %d 条建议。请保存以保留更改。',
 				'%d suggestions added. Save to keep changes.' => '已添加 %d 条建议。请保存以保留更改。',
@@ -806,7 +806,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'WordPress AI failed to upgrade to %1$s. Migration version %2$s failed with the following error: %3$s. Please deactivate and reactivate the plugin to try again.' => 'WordPress AI 升级到 %1$s 失败。迁移版本 %2$s 出错：%3$s。请停用并重新启用插件后重试。',
 				// WordPress AI plugin 1.3.0: new experiments on the settings screen.
 				'Slug Generation' => '别名生成',
-				'Suggests SEO-friendly permalink slugs from post title or content. Requires an AI connector that includes support for text generation models.' => '根据文章标题或内容生成简短、易读的永久链接别名建议。需要支持文本生成模型的 AI 连接器。',
+				'Suggests SEO-friendly permalink slugs from post title or content. Requires an AI connector that includes support for text generation models.' => '根据文章标题或内容生成利于 SEO 的永久链接别名建议。需要支持文本生成模型的 AI 连接器。',
 				'Content Translation' => '内容翻译',
 				'Translate paragraph and heading blocks into a different language. Requires an AI connector that includes support for text generation models.' => '将段落和标题区块翻译为其他语言。需要支持文本生成模型的 AI 连接器。',
 				'Custom Abilities' => '自定义能力',

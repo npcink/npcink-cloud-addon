@@ -283,7 +283,7 @@ foreach ( array( 'excerpt_generation', 'meta_description', 'content_classificati
 	);
 	maca_assert(
 		is_wp_error( $unsupported_task_reference )
-		&& ( 'meta_description' === $unsupported_reference_task ? 'cloud_feature_paused' : 'cloud_wp_ai_connector_site_knowledge_reference_task_not_allowed' ) === $unsupported_task_reference->get_error_code(),
+		&& 'cloud_wp_ai_connector_site_knowledge_reference_task_not_allowed' === $unsupported_task_reference->get_error_code(),
 		'Behavior: WordPress AI generation reference stays disabled for ' . $unsupported_reference_task . ' until quality evidence exists.'
 	);
 }
@@ -1293,35 +1293,45 @@ maca_assert(
 
 $pause_http_count = count( $GLOBALS['maca_http_requests'] );
 foreach ( array( false, true ) as $with_contract ) {
+    $GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'run_id' => 'run_meta_p1' ) ) ) );
     $pause_request = maca_wordpress_operation_request( 'meta_description', array( 'source_text' => 'Source content' ) );
     if ( $with_contract ) {
         $pause_request['operation_contract']['request']['task_contract'] = array( 'task' => 'meta_description' );
     }
     $pause_result = $client->execute_wordpress_ai_connector_runtime( $pause_request );
-    maca_assert( is_wp_error( $pause_result ) && 'cloud_feature_paused' === $pause_result->get_error_code(), 'Paused metadata task is refused before transport, with or without a local contract.' );
+    maca_assert( ! is_wp_error( $pause_result ) || 'cloud_feature_paused' !== $pause_result->get_error_code(), 'P1 restore lets metadata tasks past the pause gate, with or without a local contract.' );
 }
+$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ) );
 $pause_result = $client->execute_runtime( array( 'input' => array( 'operation_contract' => array( 'task' => 'meta_description' ) ) ) );
-maca_assert( is_wp_error( $pause_result ) && 'cloud_feature_paused' === $pause_result->get_error_code() && $pause_http_count === count( $GLOBALS['maca_http_requests'] ), 'Legacy runtime callers cannot bypass the pause or send HTTP.' );
+maca_assert( ( ! is_wp_error( $pause_result ) || 'cloud_feature_paused' !== $pause_result->get_error_code() ) && count( $GLOBALS['maca_http_requests'] ) > $pause_http_count, 'P1 restore lets legacy metadata runtime callers reach transport.' );
 
+$editorial_http_count = count( $GLOBALS['maca_http_requests'] );
 foreach ( array( 'seo', 'aeo', 'geo', ' SEO ' ) as $pause_review_type ) {
+    $GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'run_id' => 'run_editorial_p1' ) ) ) );
     $pause_result = $client->execute_wordpress_ai_connector_runtime( maca_wordpress_operation_request( 'editorial_notes', array( 'prompt' => 'Review one paragraph', 'review_types' => array( $pause_review_type ) ) ) );
-    maca_assert( is_wp_error( $pause_result ) && 'cloud_feature_paused' === $pause_result->get_error_code() && $pause_http_count === count( $GLOBALS['maca_http_requests'] ), 'Specialist-only editorial review is rejected without HTTP: ' . $pause_review_type );
+    maca_assert( ! is_wp_error( $pause_result ) || 'cloud_feature_paused' !== $pause_result->get_error_code(), 'P1 restore accepts specialist editorial review types: ' . $pause_review_type );
 }
+maca_assert( count( $GLOBALS['maca_http_requests'] ) > $editorial_http_count, 'P1 restore specialist editorial reviews reach transport.' );
 
 foreach ( array( array( 'readability', 'seo' ), array( 'SEO' ), array( 'grammar', ' GEO ' ) ) as $legacy_review_types ) {
+    $GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ) );
     $legacy_result = $client->execute_runtime( array( 'input' => array( 'operation_contract' => array( 'task' => 'editorial_notes', 'request' => array( 'review_types' => $legacy_review_types ) ) ) ) );
-    maca_assert( is_wp_error( $legacy_result ) && 'cloud_feature_paused' === $legacy_result->get_error_code() && $pause_http_count === count( $GLOBALS['maca_http_requests'] ), 'Legacy mixed or uppercase specialist review is rejected before HTTP.' );
+    maca_assert( ! is_wp_error( $legacy_result ) || 'cloud_feature_paused' !== $legacy_result->get_error_code(), 'P1 restore lets legacy mixed or uppercase specialist review reach transport.' );
 }
-maca_assert( array( 'readability', 'grammar' ) === Npcink_Cloud_Discoverability_Pause::without_specialist_reviews( array( 'readability', ' SEO ', 'aeo', 'grammar', 'GEO' ) ), 'Mixed connector reviews preserve generic types and remove normalized specialist types.' );
+maca_assert( array( 'readability', ' SEO ', 'aeo', 'grammar', 'GEO' ) === Npcink_Cloud_Discoverability_Pause::without_specialist_reviews( array( 'readability', ' SEO ', 'aeo', 'grammar', 'GEO' ) ), 'With specialist pause off, mixed connector reviews keep specialist types.' );
 
-$alias_http_count = count( $GLOBALS['maca_http_requests'] );
 foreach ( array( false, true ) as $alias_with_contract ) {
     $alias_request = maca_wordpress_operation_request( 'seo_headline', array( 'prompt' => 'One headline' ) );
     if ( $alias_with_contract ) {
         $alias_request['operation_contract']['request']['task_contract'] = array( 'contract_version' => 'ai_task_contract.v1', 'task' => 'seo_headline' );
     }
     $alias_result = $client->execute_wordpress_ai_connector_runtime( $alias_request );
-    maca_assert( is_wp_error( $alias_result ) && 'cloud_feature_paused' === $alias_result->get_error_code() && $alias_http_count === count( $GLOBALS['maca_http_requests'] ), 'Registered SEO headline alias cannot bypass the pause with a task projection.' );
+    maca_assert(
+        is_wp_error( $alias_result )
+        && 'cloud_feature_paused' !== $alias_result->get_error_code(),
+        'P1 restore no longer pauses seo_headline (fails later on allow-list or contract shape, not cloud_feature_paused).'
+    );
 }
+maca_assert( ! Npcink_Cloud_Discoverability_Pause::is_task_paused( 'seo_headline' ), 'P1 restore clears seo_headline from the specialist pause list.' );
 
 $retained_pause_policy->setValue( null, $retained_pause_snapshot );

@@ -401,7 +401,7 @@ if ( ! function_exists( '__return_false' ) ) {
 }
 Npcink_Cloud_Discoverability_Pause::register_hooks();
 $GLOBALS['maca_options']['wpai_feature_meta-description_enabled'] = '1';
-maca_assert( false === apply_filters( 'wpai_feature_meta-description_enabled', true ) && '1' === get_option( 'wpai_feature_meta-description_enabled' ), 'Official feature filter disables the entry while retaining the saved preference.' );
+maca_assert( true === apply_filters( 'wpai_feature_meta-description_enabled', true ) && '1' === get_option( 'wpai_feature_meta-description_enabled' ), 'P1 restore leaves Meta Description enabled and keeps the saved preference.' );
 
 $pause_features = apply_filters( 'wpai_default_feature_classes', array( 'meta-description' => 'Meta_Class', 'title-generation' => 'Title_Class', 'slug-generation' => 'Slug_Class' ) );
-maca_assert( array( 'title-generation' => 'Title_Class', 'slug-generation' => 'Slug_Class' ) === $pause_features, 'Only the dedicated metadata feature entry is removed from the host feature list.' );
+maca_assert( array( 'meta-description' => 'Meta_Class', 'title-generation' => 'Title_Class', 'slug-generation' => 'Slug_Class' ) === $pause_features, 'P1 restore keeps the Meta Description host feature class registered.' );

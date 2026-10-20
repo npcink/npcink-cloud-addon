@@ -2711,20 +2711,20 @@ msgid "Site Knowledge usage could not be read. Check the Cloud connection and th
 msgstr "无法读取知识库用量。请先检查 Cloud 连接及 Cloud 中的此站点状态，再重试。"
 
 #: includes/class-cloud-ai-task-contract.php:250
-#: includes/class-cloud-discoverability-pause.php:102
+#: includes/class-cloud-discoverability-pause.php:120
 #: includes/class-cloud-runtime-request-guards.php:214
 msgid "SEO/AEO/GEO specialist assistance is paused."
 msgstr "SEO/AEO/GEO 专项辅助功能已暂停。"
 
-#: includes/class-cloud-discoverability-pause.php:66
+#: includes/class-cloud-discoverability-pause.php:81
 msgid "Suggests short, readable permalink slugs from post title or content. Requires an AI connector that includes support for text generation models."
 msgstr "根据文章标题或内容生成简短、易读的永久链接别名建议。需要支持文本生成模型的 AI 连接器。"
 
-#: includes/class-cloud-discoverability-pause.php:69
+#: includes/class-cloud-discoverability-pause.php:84
 msgid "Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, and Grammar. Requires an AI connector that includes support for text generation models."
 msgstr "按区块为文章添加编辑建议，覆盖无障碍、可读性和语法。需要支持文本生成模型的 AI 连接器。"
 
-#: includes/class-cloud-discoverability-pause.php:34
+#: includes/class-cloud-discoverability-pause.php:44
 msgid "This Cloud feature is temporarily paused."
 msgstr "此 Cloud 功能已暂时停用。"
 

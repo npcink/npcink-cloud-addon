@@ -39,3 +39,20 @@ maca_assert(
 	! Npcink_Cloud_Discoverability_Pause::is_admin_surface_paused( 'unknown_surface' ),
 	'Unknown admin surfaces are not treated as paused.'
 );
+
+maca_assert(
+	! Npcink_Cloud_Discoverability_Pause::is_specialist_pause_active()
+	&& ! Npcink_Cloud_Discoverability_Pause::is_task_paused( 'meta_description' )
+	&& ! Npcink_Cloud_Discoverability_Pause::is_task_paused( 'seo_headline' ),
+	'Default release policy unpauses SEO/AEO/GEO specialist tasks (P1).'
+);
+maca_assert(
+	array( 'readability', ' SEO ', 'aeo', 'grammar', 'GEO' ) === Npcink_Cloud_Discoverability_Pause::without_specialist_reviews( array( 'readability', ' SEO ', 'aeo', 'grammar', 'GEO' ) ),
+	'With specialist pause off, editorial review types pass through unchanged.'
+);
+maca_assert(
+	is_wp_error( Npcink_Cloud_Discoverability_Pause::feature_error( 'advanced_media' ) )
+	&& is_wp_error( Npcink_Cloud_Discoverability_Pause::feature_error( 'audio_generation' ) )
+	&& is_wp_error( Npcink_Cloud_Discoverability_Pause::feature_error( 'cloud_inspection' ) ),
+	'P1 restore leaves advanced_media, audio_generation, and cloud_inspection paused.'
+);

@@ -1,6 +1,6 @@
 # SEO Specialist Connector Pause
 
-Status: development candidate, 2026-10-18.
+Status: Addon P1 restored 2026-10-20 (empty `$paused_specialist_tasks`); Cloud/Toolbox alignment tracked separately. Prior pause record retained below (2026-10-18).
 
 `Npcink_Cloud_Discoverability_Pause` owns a small transport availability guard,
 not local Ability truth or a second registry. `ACTIVE=true` pauses the named

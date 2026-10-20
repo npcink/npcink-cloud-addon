@@ -29,6 +29,16 @@ final class Npcink_Cloud_Discoverability_Pause {
 		// wordpress_ai_generation_tests restored 2026-10-20 (P0): Checks entry visible again.
 	);
 
+	/**
+	 * SEO/AEO/GEO specialist tasks paused while ACTIVE and non-empty.
+	 * Restored 2026-10-20 (P1): empty list; host filters no longer register.
+	 */
+	private static array $paused_specialist_tasks = array(
+		// meta_description, seo_title, seo_headline, seo_description, seo_metadata,
+		// aeo_summary, answer_summary, geo_summary, structured_data_hints,
+		// content_discoverability — restored 2026-10-20 (P1).
+	);
+
 	public static function feature_error( string $feature ) {
 		return isset( self::$paused_runtime_features[ $feature ] )
 			? new WP_Error( 'cloud_feature_paused', __( 'This Cloud feature is temporarily paused.', 'npcink-cloud-addon' ), array( 'status' => 409, 'feature' => $feature, 'retryable' => false ) )
@@ -40,13 +50,18 @@ final class Npcink_Cloud_Discoverability_Pause {
 		return self::ACTIVE;
 	}
 
+	/** True while ACTIVE and at least one specialist task remains paused. */
+	public static function is_specialist_pause_active(): bool {
+		return self::is_active() && ! empty( self::$paused_specialist_tasks );
+	}
+
 	/** Settings-page entry points only; does not delete classes, actions, or options. */
 	public static function is_admin_surface_paused( string $surface ): bool {
 		return self::is_active() && ! empty( self::$paused_admin_surfaces[ $surface ] );
 	}
 
 	public static function register_hooks(): void {
-		if ( self::is_active() ) {
+		if ( self::is_specialist_pause_active() ) {
 			add_filter( 'wpai_feature_meta-description_enabled', '__return_false', PHP_INT_MAX );
 			add_filter( 'gettext_ai', array( self::class, 'filter_ui_description' ), PHP_INT_MAX, 3 );
 			add_filter( 'wpai_default_feature_classes', array( self::class, 'filter_features' ), PHP_INT_MAX );
@@ -55,13 +70,13 @@ final class Npcink_Cloud_Discoverability_Pause {
 
 	/** Uses the host feature filter, leaving saved options and source untouched. */
 	public static function filter_features( array $features ): array {
-		if ( self::is_active() ) { unset( $features['meta-description'] ); }
+		if ( self::is_specialist_pause_active() ) { unset( $features['meta-description'] ); }
 		return $features;
 	}
 
 	/** Fixed feature UI copy only; never alters Ability metadata or schemas. */
 	public static function filter_ui_description( string $translated, string $text, string $domain ): string {
-		if ( ! self::is_active() || 'ai' !== $domain ) { return $translated; }
+		if ( ! self::is_specialist_pause_active() || 'ai' !== $domain ) { return $translated; }
 		if ( 'Suggests SEO-friendly permalink slugs from post title or content. Requires an AI connector that includes support for text generation models.' === $text ) {
 			return __( 'Suggests short, readable permalink slugs from post title or content. Requires an AI connector that includes support for text generation models.', 'npcink-cloud-addon' );
 		}
@@ -72,11 +87,14 @@ final class Npcink_Cloud_Discoverability_Pause {
 	}
 
 	public static function is_task_paused( string $task ): bool {
-		return self::is_active() && in_array( strtolower( trim( $task ) ), array( 'meta_description', 'seo_title', 'seo_headline', 'seo_description', 'seo_metadata', 'aeo_summary', 'answer_summary', 'geo_summary', 'structured_data_hints', 'content_discoverability' ), true );
+		return self::is_specialist_pause_active() && in_array( strtolower( trim( $task ) ), self::$paused_specialist_tasks, true );
 	}
 
 	/** Keeps generic review types while matching specialist names case-insensitively. */
 	public static function without_specialist_reviews( array $types ): array {
+		if ( ! self::is_specialist_pause_active() ) {
+			return array_values( $types );
+		}
 		return array_values( array_filter( $types, static function ( $type ): bool {
 			return ! in_array( strtolower( trim( (string) $type ) ), array( 'seo', 'aeo', 'geo' ), true );
 		} ) );
@@ -98,7 +116,7 @@ final class Npcink_Cloud_Discoverability_Pause {
 		$operation = is_array( $payload['input']['operation_contract'] ?? null ) ? $payload['input']['operation_contract'] : array();
 		$task = strtolower( trim( (string) ( $operation['task'] ?? '' ) ) );
 		$types = $operation['request']['review_types'] ?? array();
-		if ( self::is_task_paused( $task ) || ( self::is_active() && 'editorial_notes' === $task && is_array( $types ) && ! empty( $types ) && count( $types ) !== count( self::without_specialist_reviews( $types ) ) ) ) {
+		if ( self::is_task_paused( $task ) || ( self::is_specialist_pause_active() && 'editorial_notes' === $task && is_array( $types ) && ! empty( $types ) && count( $types ) !== count( self::without_specialist_reviews( $types ) ) ) ) {
 			return new WP_Error( 'cloud_feature_paused', __( 'SEO/AEO/GEO specialist assistance is paused.', 'npcink-cloud-addon' ), array( 'status' => 409 ) );
 		}
 		return null;
