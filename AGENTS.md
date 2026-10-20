@@ -8,6 +8,8 @@ repository remains the Cloud Addon transport owner; do not expand platform,
 Core governance, Toolkit ability, Adapter channel, product-surface, billing, or
 runtime truth rules here beyond addon-owned connector contracts.
 
+跨仓版本兼容以 Cloud [`docs/compatibility-matrix.md`](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/compatibility-matrix.md) 为准；本仓发版后应请更新该表推荐下限。不做 `version_compare` 运行时硬拒。
+
 ## Boundaries
 
 - Keep this addon a Cloud connector only.
@@ -73,6 +75,8 @@ runtime truth rules here beyond addon-owned connector contracts.
   `composer quality:matrix:run` before cross-repo closeout.
 
 ## Current Cloud Runtime Contract
+
+联调排障优先保留/查找 Cloud 回包中的 `run_id`；本地可读 trace 与 Cloud hex 可能不一致。
 
 Allowed runtime/read endpoints:
 

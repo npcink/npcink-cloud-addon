@@ -34,6 +34,13 @@ artifact delivery remain supported. Public helper methods and configuration
 are retained for reviewed restoration; their presence does not imply execution
 availability. See [reversible pauses](docs/reversible-feature-pauses-v1.md).
 
+## Three-repo version compatibility
+
+三仓版本兼容以 Cloud 仓一张 Markdown 表为准（最低配；**不做**运行时硬拒）：
+
+- Cloud：[`docs/compatibility-matrix.md`](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/compatibility-matrix.md)
+- 本仓发版后应请 Cloud 更新推荐下限；细节见 [reversible pauses](docs/reversible-feature-pauses-v1.md#three-repo-version-compatibility-docs-only)。
+
 ## Engineering Decisions and Standards
 
 - [Editor native feedback](docs/editor-native-feedback-v1.md) defines exact-save
