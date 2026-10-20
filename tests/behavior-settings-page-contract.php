@@ -188,6 +188,7 @@ $expected_hooks = array(
 	'admin_post_npcink_cloud_addon_start_auth' => array( Npcink_Cloud_Settings_Actions::class, 'handle_start_auth', 10 ),
 	'admin_post_npcink_cloud_addon_start_custom_auth' => array( Npcink_Cloud_Settings_Actions::class, 'handle_start_custom_auth', 10 ),
 	'admin_post_npcink_cloud_addon_disconnect' => array( Npcink_Cloud_Settings_Actions::class, 'handle_disconnect', 10 ),
+	'admin_post_npcink_cloud_addon_change_account' => array( Npcink_Cloud_Settings_Actions::class, 'handle_change_account', 10 ),
 	'admin_post_npcink_cloud_addon_update_local_permission' => array( Npcink_Cloud_Settings_Actions::class, 'handle_update_local_permission', 10 ),
 	'admin_post_npcink_cloud_addon_dismiss_monitoring_prompt' => array( Npcink_Cloud_Settings_Actions::class, 'handle_dismiss_monitoring_prompt', 10 ),
 	'admin_post_npcink_cloud_addon_refresh_site_knowledge' => array( Npcink_Cloud_Settings_Actions::class, 'handle_refresh_site_knowledge', 10 ),
@@ -678,6 +679,7 @@ $connection_renderer->invoke(
 $connection_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $connection_rendered, 'Change Cloud account' )
+	&& false !== strpos( $connection_rendered, 'Connected Cloud identity' )
 	&& false === strpos( $connection_rendered, 'npcink-cloud-checks-table' )
 	&& false !== strpos( $connection_rendered, 'screen-reader-text' )
 	&& false !== strpos( $connection_rendered, 'Connection management' )
@@ -688,7 +690,7 @@ maca_assert(
 	&& false !== strpos( $connection_rendered, 'Only when Cloud authorization is unavailable.' )
 	&& strpos( $connection_rendered, '<summary>' ) < strpos( $connection_rendered, 'Cloud Base URL' )
 	&& false === strpos( $connection_rendered, 'npcink-cloud-secondary-tabs' ),
-	'Behavior: Connection tab renders connection management only without secondary tabs or checks.'
+	'Behavior: Connection tab renders identity plus connection management without secondary tabs or checks.'
 );
 
 // Overview includes entitlement details after the merge.
@@ -714,6 +716,31 @@ maca_assert(
 	'Behavior: Overview skips empty entitlement copy; extra limits fold under More limits when present.'
 );
 
+
+$connection_identity_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_connection_identity' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$connection_identity_renderer->setAccessible( true );
+}
+ob_start();
+$connection_identity_renderer->invoke(
+	null,
+	Npcink_Cloud_Addon_Settings::get_settings(),
+	Npcink_Cloud_Addon_Settings::get_credential_state(),
+	array(
+		'package_label' => 'free',
+		'available' => true,
+	)
+);
+$connection_identity_rendered = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $connection_identity_rendered, 'Connected Cloud identity' )
+	&& false !== strpos( $connection_identity_rendered, 'Last verified' )
+	&& false !== strpos( $connection_identity_rendered, 'Plan' )
+	&& false === strpos( $connection_identity_rendered, 'Site ID' )
+	&& false === strpos( $connection_identity_rendered, 'Key ID' ),
+	'Behavior: Connection identity projects status, endpoint, verification time, and plan without split credential identifiers.'
+);
+
 $connection_management_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_connection_management' );
 if ( PHP_VERSION_ID < 80100 ) {
 	$connection_management_renderer->setAccessible( true );
@@ -730,12 +757,14 @@ $connection_management_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $connection_management_rendered, 'Connection management' )
 	&& false !== strpos( $connection_management_rendered, 'Change Cloud account' )
+	&& false !== strpos( $connection_management_rendered, 'npcink_cloud_addon_change_account' )
 	&& false !== strpos( $connection_management_rendered, 'button button-primary' )
 	&& false !== strpos( $connection_management_rendered, 'Disconnect this site' )
 	&& false !== strpos( $connection_management_rendered, 'The site and its data will remain in Cloud.' )
 		&& false !== strpos( $connection_management_rendered, 'js_confirmation' )
 		&& false !== strpos( $connection_management_rendered, 'noscript_confirmation' )
 		&& false !== strpos( $connection_management_rendered, 'Confirm local disconnect before submitting.' )
+		&& false !== strpos( $connection_management_rendered, 'Confirm local credential clear before changing the Cloud account.' )
 	&& false === strpos( $connection_management_rendered, 'Check connection' )
 	&& false === strpos( $connection_management_rendered, 'Re-verify and refresh' )
 	&& strpos( $connection_management_rendered, 'Change Cloud account' ) < strpos( $connection_management_rendered, 'Disconnect this site' )

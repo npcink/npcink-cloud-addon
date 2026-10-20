@@ -34,6 +34,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_START_AUTH, array( Npcink_Cloud_Settings_Actions::class, 'handle_start_auth' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_START_CUSTOM_AUTH, array( Npcink_Cloud_Settings_Actions::class, 'handle_start_custom_auth' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_DISCONNECT, array( Npcink_Cloud_Settings_Actions::class, 'handle_disconnect' ) );
+			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_CHANGE_ACCOUNT, array( Npcink_Cloud_Settings_Actions::class, 'handle_change_account' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_UPDATE_LOCAL_PERMISSION, array( Npcink_Cloud_Settings_Actions::class, 'handle_update_local_permission' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_DISMISS_MONITORING_PROMPT, array( Npcink_Cloud_Settings_Actions::class, 'handle_dismiss_monitoring_prompt' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE, array( Npcink_Cloud_Settings_Actions::class, 'handle_refresh_site_knowledge' ) );
@@ -804,18 +805,98 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 			?>
 			<h3 class="screen-reader-text"><?php esc_html_e( 'Connection management', 'npcink-cloud-addon' ); ?></h3>
-			<p class="description"><?php esc_html_e( 'Change the connected Cloud account in Cloud.', 'npcink-cloud-addon' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Changing accounts clears local credentials, then opens Cloud so you can authorize with the selected account.', 'npcink-cloud-addon' ); ?></p>
 			<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
 				<?php if ( ! Npcink_Cloud_Addon_Settings::is_verified() || $service_needs_attention ) : ?>
 					<?php self::render_reverify_form( $settings, __( 'Check connection', 'npcink-cloud-addon' ) ); ?>
 				<?php endif; ?>
-				<?php self::render_authorization_form( __( 'Change Cloud account', 'npcink-cloud-addon' ), Npcink_Cloud_Addon_Settings::is_verified() ? 'button button-primary' : 'button button-secondary' ); ?>
+				<?php self::render_change_account_form( Npcink_Cloud_Addon_Settings::is_verified() ? 'button button-primary' : 'button button-secondary' ); ?>
 			</div>
 			<div class="npcink-cloud-connection-danger">
 				<h4><?php esc_html_e( 'Disconnect this site', 'npcink-cloud-addon' ); ?></h4>
 				<p class="description"><?php esc_html_e( 'Cloud features will stop on this WordPress site and its local connection data will be cleared. The site and its data will remain in Cloud.', 'npcink-cloud-addon' ); ?></p>
 				<?php self::render_disconnect_form(); ?>
 			</div>
+			<?php
+		}
+
+		/**
+		 * Renders a non-secret projection of the current Cloud connection identity.
+		 *
+		 * Shows status, endpoint, last verified time, and plan label only.
+		 * Does not expose site_id, key_id, or secret identifiers.
+		 *
+		 * @param array<string,mixed> $settings Stored settings.
+		 * @param array<string,mixed> $state Credential state.
+		 * @param array<string,mixed> $entitlement Cached entitlement summary.
+		 * @return void
+		 */
+		private static function render_connection_identity( array $settings, array $state, array $entitlement ): void {
+			$configured = ! empty( $state['configured'] );
+			if ( ! $configured && empty( $settings['base_url'] ) ) {
+				return;
+			}
+
+			$base_url = $configured
+				? (string) ( $settings['base_url'] ?? '' )
+				: Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings );
+			$verified_at = self::format_datetime_value( (string) ( $settings['verified_at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) );
+			$package_label = self::format_overview_package_label( $entitlement );
+			?>
+			<section class="npcink-cloud-connect-context npcink-cloud-connection-identity" aria-label="<?php esc_attr_e( 'Connected Cloud identity', 'npcink-cloud-addon' ); ?>">
+				<div class="npcink-cloud-connect-context__item">
+					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Connection', 'npcink-cloud-addon' ); ?></span>
+					<strong class="npcink-cloud-connect-context__value"><?php echo esc_html( (string) ( $state['label'] ?? '' ) ); ?></strong>
+				</div>
+				<div class="npcink-cloud-connect-context__item">
+					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Cloud', 'npcink-cloud-addon' ); ?></span>
+					<code class="npcink-cloud-connect-context__value"><?php echo esc_html( self::format_setting_value( $base_url, __( 'Not set', 'npcink-cloud-addon' ) ) ); ?></code>
+				</div>
+				<div class="npcink-cloud-connect-context__item">
+					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Last verified', 'npcink-cloud-addon' ); ?></span>
+					<span class="npcink-cloud-connect-context__value"><?php echo esc_html( $verified_at ); ?></span>
+				</div>
+				<?php if ( '' !== $package_label ) : ?>
+					<div class="npcink-cloud-connect-context__item">
+						<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Plan', 'npcink-cloud-addon' ); ?></span>
+						<span class="npcink-cloud-connect-context__value"><?php echo esc_html( $package_label ); ?></span>
+					</div>
+				<?php endif; ?>
+				<p class="description"><?php esc_html_e( 'Free service and AI credits belong to the Cloud account selected during authorization, not this site. Open Cloud to review the signed-in account.', 'npcink-cloud-addon' ); ?></p>
+				<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
+					<?php self::render_portal_link( $settings ); ?>
+				</div>
+			</section>
+			<?php
+		}
+
+		/**
+		 * Renders the change-account action that clears local credentials then starts Cloud auth.
+		 *
+		 * @param string $class_name Button classes.
+		 * @return void
+		 */
+		private static function render_change_account_form( string $class_name ): void {
+			?>
+			<form class="npcink-cloud-change-account-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( Npcink_Cloud_Settings_Actions::ACTION_CHANGE_ACCOUNT ) ); ?>" />
+				<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_CHANGE_ACCOUNT ); ?>" />
+				<input type="hidden" name="js_confirmation" value="0" />
+				<button
+					type="submit"
+					class="<?php echo esc_attr( $class_name ); ?>"
+					onclick="if (!window.confirm('<?php echo esc_js( __( 'Clear local Cloud credentials and open Cloud to choose an account? Cancel keeps the current connection. Finish authorization in Cloud to reconnect.', 'npcink-cloud-addon' ) ); ?>')) { return false; } this.form.elements.namedItem('js_confirmation').value = '1'; return true;"
+				>
+					<?php esc_html_e( 'Change Cloud account', 'npcink-cloud-addon' ); ?>
+				</button>
+				<noscript>
+					<p class="description"><strong><?php esc_html_e( 'Confirm local credential clear before changing the Cloud account.', 'npcink-cloud-addon' ); ?></strong></p>
+					<label>
+						<input type="checkbox" name="noscript_confirmation" value="1" required />
+						<?php esc_html_e( 'I understand this clears local credentials, then opens Cloud authorization.', 'npcink-cloud-addon' ); ?>
+					</label>
+				</noscript>
+			</form>
 			<?php
 		}
 
@@ -1168,6 +1249,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 */
 		private static function render_connection_page( array $settings, array $state, bool $is_verified, array $entitlement = array(), array $site_knowledge = array() ): void {
 			self::render_advanced_information( $state );
+			self::render_connection_identity( $settings, $state, $entitlement );
 			$service_health = self::get_current_service_health( $is_verified, $entitlement, $site_knowledge );
 			$service_needs_attention = $is_verified && 'warning' === (string) ( $service_health['severity'] ?? '' );
 			self::render_connection_management( $settings, $service_needs_attention );

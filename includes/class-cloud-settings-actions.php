@@ -26,6 +26,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		public const ACTION_START_AUTH = 'npcink_cloud_addon_start_auth';
 		public const ACTION_START_CUSTOM_AUTH = 'npcink_cloud_addon_start_custom_auth';
 		public const ACTION_DISCONNECT = 'npcink_cloud_addon_disconnect';
+		public const ACTION_CHANGE_ACCOUNT = 'npcink_cloud_addon_change_account';
 		public const ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission';
 		public const ACTION_DISMISS_MONITORING_PROMPT = 'npcink_cloud_addon_dismiss_monitoring_prompt';
 		public const ACTION_REFRESH_SITE_KNOWLEDGE = 'npcink_cloud_addon_refresh_site_knowledge';
@@ -320,25 +321,49 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				self::redirect_to_page( 'status' );
 			}
 
-			$settings = Npcink_Cloud_Addon_Settings::get_settings();
-			// Keep the last Cloud Base URL so reconnect (primary CTA and Advanced)
-			// does not silently fall back to the local default :8010 after a
-			// self-hosted disconnect. Credentials and buffers still wipe fully.
-			$remembered_base_url = (string) ( $settings['base_url'] ?? '' );
-			Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
-			if ( '' !== $remembered_base_url ) {
-				Npcink_Cloud_Addon_Settings::write_settings(
-					array(
-						'base_url' => $remembered_base_url,
-					)
-				);
-			}
-
+			self::clear_local_connection_preserving_base_url();
 			self::set_admin_notice(
 				'success',
 				__( 'Cloud connection disconnected locally. Stored credentials and addon-owned buffers were cleared.', 'npcink-cloud-addon' )
 			);
 			self::redirect_to_page( 'status' );
+		}
+
+		/**
+		 * Clears local credentials, then opens Cloud authorization to pick an account.
+		 *
+		 * Keeps the remembered Cloud Base URL so reconnect targets the same endpoint.
+		 * Account selection, site release, and cooldown remain Cloud-owned.
+		 *
+		 * @return void
+		 */
+		public static function handle_change_account(): void {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html__( 'You do not have permission to manage Npcink Cloud settings.', 'npcink-cloud-addon' ) );
+			}
+
+			check_admin_referer( self::ACTION_CHANGE_ACCOUNT );
+
+			if ( ! self::has_disconnect_confirmation() ) {
+				self::set_admin_notice(
+					'error',
+					__( 'Confirm the local credential clear before changing the Cloud account.', 'npcink-cloud-addon' )
+				);
+				self::redirect_to_page( 'connection' );
+			}
+
+			$base_url = self::clear_local_connection_preserving_base_url();
+			if ( '' === $base_url ) {
+				$base_url = Npcink_Cloud_Addon_Settings::get_effective_base_url(
+					Npcink_Cloud_Addon_Settings::get_settings()
+				);
+			}
+
+			self::set_admin_notice(
+				'info',
+				__( 'Local Cloud credentials were cleared. Finish authorization in Cloud to connect with the selected account.', 'npcink-cloud-addon' )
+			);
+			self::redirect_to_cloud_authorization( $base_url );
 		}
 
 		/**
@@ -916,6 +941,29 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			wp_safe_redirect( $url );
 			exit;
+		}
+
+		/**
+		 * Wipes local credentials and buffers while remembering Cloud Base URL.
+		 *
+		 * Used by disconnect and account-change so reconnect does not fall back
+		 * to the local default endpoint after a self-hosted connection.
+		 *
+		 * @return string Remembered Cloud Base URL, or empty when none was stored.
+		 */
+		private static function clear_local_connection_preserving_base_url(): string {
+			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			$remembered_base_url = (string) ( $settings['base_url'] ?? '' );
+			Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
+			if ( '' !== $remembered_base_url ) {
+				Npcink_Cloud_Addon_Settings::write_settings(
+					array(
+						'base_url' => $remembered_base_url,
+					)
+				);
+			}
+
+			return $remembered_base_url;
 		}
 
 		/**

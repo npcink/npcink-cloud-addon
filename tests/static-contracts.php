@@ -2321,6 +2321,11 @@ maca_assert(
 	&& false !== strpos( $settings_actions, '$remembered_base_url' )
 	&& false !== strpos( $settings_actions, "'base_url' => \$remembered_base_url," )
 	&& false !== strpos( $settings_page, 'Change Cloud account' )
+	&& false !== strpos( $settings_actions, "ACTION_CHANGE_ACCOUNT = 'npcink_cloud_addon_change_account'" )
+	&& false !== strpos( $settings_actions, 'function handle_change_account' )
+	&& false !== strpos( $settings_actions, 'function clear_local_connection_preserving_base_url' )
+	&& false !== strpos( $settings_page, 'Connected Cloud identity' )
+	&& false !== strpos( $settings_page, 'render_change_account_form' )
 	&& false === strpos( $settings_page, 'Open Cloud sites' )
 	&& false !== strpos( $settings_page, "render_portal_link( \$settings, 'icon' )" )
 	&& false !== strpos( $settings_page, 'function render_connection_actions( array $settings, bool $is_verified, bool $service_needs_attention = false )' )
@@ -2374,8 +2379,8 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2680,
-	'includes/class-cloud-settings-actions.php'        => 1175,
+	'includes/class-cloud-settings-page.php'           => 2760,
+	'includes/class-cloud-settings-actions.php'        => 1230,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1090,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,

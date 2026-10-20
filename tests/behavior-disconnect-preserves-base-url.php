@@ -81,3 +81,40 @@ maca_assert(
 	&& Npcink_Cloud_Addon_Settings::get_default_base_url() === $fallback,
 	'Behavior: disconnect with no stored Base URL still falls back to the default endpoint.'
 );
+
+$clear_method = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'clear_local_connection_preserving_base_url' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$clear_method->setAccessible( true );
+}
+
+$swap_base_url_input = 'https://cloud.example.test/';
+Npcink_Cloud_Addon_Settings::write_settings(
+	array(
+		'base_url' => $swap_base_url_input,
+		'site_id' => 'site_swap',
+		'key_id' => 'key_swap',
+		'secret' => 'secret_swap',
+		'timeout' => 8,
+		'verified' => true,
+		'verified_at' => '2026-10-20 00:00:00 UTC',
+		'last_verification_error' => '',
+		'monitoring_enabled' => false,
+		'site_knowledge_delivery_enabled' => false,
+		'site_knowledge_generation_reference_enabled' => false,
+		'wordpress_ai_connector_enabled' => true,
+	)
+);
+$expected_swap_base_url = (string) Npcink_Cloud_Addon_Settings::get_settings()['base_url'];
+$remembered = (string) $clear_method->invoke( null );
+$after_clear = Npcink_Cloud_Addon_Settings::get_settings();
+maca_assert(
+	$expected_swap_base_url === $remembered
+	&& $expected_swap_base_url === (string) ( $after_clear['base_url'] ?? '' )
+	&& '' === (string) ( $after_clear['site_id'] ?? '' )
+	&& '' === (string) ( $after_clear['key_id'] ?? '' )
+	&& '' === (string) ( $after_clear['secret'] ?? '' )
+	&& ! Npcink_Cloud_Addon_Settings::is_configured()
+	&& ! Npcink_Cloud_Addon_Settings::is_verified(),
+	'Behavior: change-account wipe helper clears credentials while remembering Cloud Base URL.'
+);
+
