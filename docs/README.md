@@ -46,6 +46,8 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 - `adapter-integration-seam.md` — Adapter channel integration seam.
 - `cloud-bulk-article-run-seam.md` — bulk article run seam.
 - `cloud-site-connection-flow-history.md` — connection flow evolution.
+- `reversible-feature-pauses-v1.md` — pause inventory, cross-repo对照 (Cloud / Addon / Toolbox), error codes, release order, smoke matrix row map.
+- `seo-specialist-pause-v1.md` — SEO/AEO/GEO specialist transport pause detail.
 
 ## Guides
 
