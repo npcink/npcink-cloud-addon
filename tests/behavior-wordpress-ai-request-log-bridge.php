@@ -49,7 +49,8 @@ namespace {
 	$GLOBALS['maca_wpai_request_log_inits'] = 0;
 
 	maca_reset_test_state();
-	update_option( 'wpai_features_enabled', '1', false );
+	// AI 1.4+ deletes wpai_features_enabled; do not set it. Gate uses filter default true.
+	delete_option( 'wpai_features_enabled' );
 	update_option( 'wpai_feature_ai-request-logging_enabled', '1', false );
 
 	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
@@ -160,7 +161,43 @@ namespace {
 		'Behavior: WordPress AI request log bridge respects the AI request logging feature flag.'
 	);
 
+	// Simulate a hard kill-switch via the AI 1.4 Features Loader filter (option remains absent).
+	add_filter(
+		'wpai_features_enabled',
+		static function () {
+			return false;
+		}
+	);
 	update_option( 'wpai_feature_ai-request-logging_enabled', '1', false );
+	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
+		array(
+			'type'        => 'text',
+			'task'        => 'content_summary',
+			'response'    => array( 'run_id' => 'run_global_filter_off' ),
+			'duration_ms' => 1,
+		)
+	);
+	maca_assert(
+		2 === count( $GLOBALS['maca_wpai_request_logs'] ),
+		'Behavior: WordPress AI request log bridge respects wpai_features_enabled filter when forced off.'
+	);
+	unset( $GLOBALS['maca_filters']['wpai_features_enabled'] );
+
+	update_option( 'wpai_feature_ai-request-logging_enabled', '1', false );
+	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
+		array(
+			'type'        => 'text',
+			'task'        => 'content_summary',
+			'response'    => array( 'run_id' => 'run_after_global_absent' ),
+			'duration_ms' => 1,
+		)
+	);
+	maca_assert(
+		3 === count( $GLOBALS['maca_wpai_request_logs'] )
+		&& 'run_after_global_absent' === (string) ( ( $GLOBALS['maca_wpai_request_logs'][2]['context']['cloud_run_id'] ?? '' ) ),
+		'Behavior: WordPress AI request log bridge writes when global option is absent (AI 1.4+) and the single feature is on.'
+	);
+
 	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
 		array(
 			'type'                       => 'text',
@@ -175,10 +212,10 @@ namespace {
 		)
 	);
 
-	$error_log = $GLOBALS['maca_wpai_request_logs'][2] ?? array();
+	$error_log = $GLOBALS['maca_wpai_request_logs'][3] ?? array();
 	$error_context = is_array( $error_log['context'] ?? null ) ? $error_log['context'] : array();
 	maca_assert(
-		3 === count( $GLOBALS['maca_wpai_request_logs'] )
+		4 === count( $GLOBALS['maca_wpai_request_logs'] )
 		&& 'ai_client' === (string) ( $error_log['type'] ?? '' )
 		&& 'error' === (string) ( $error_log['status'] ?? '' )
 		&& 'npcink-cloud/connector-runtime:content_summary' === (string) ( $error_log['operation'] ?? '' )
@@ -203,9 +240,9 @@ namespace {
 			'response' => array( 'run_id' => 'run_vision_1' ),
 		)
 	);
-	$vision_log = $GLOBALS['maca_wpai_request_logs'][3] ?? array();
+	$vision_log = $GLOBALS['maca_wpai_request_logs'][4] ?? array();
 	maca_assert(
-		4 === count( $GLOBALS['maca_wpai_request_logs'] )
+		5 === count( $GLOBALS['maca_wpai_request_logs'] )
 		&& 'ai_client' === ( $vision_log['type'] ?? '' )
 		&& 'vision' === ( $vision_log['context']['modality'] ?? '' )
 		&& 'run_vision_1' === ( $vision_log['context']['cloud_run_id'] ?? '' ),
@@ -219,7 +256,7 @@ namespace {
 			'validation_error' => new \WP_Error( 'invalid_output', 'Image verification failed.' ),
 		)
 	);
-	$invalid_log = $GLOBALS['maca_wpai_request_logs'][4] ?? array();
+	$invalid_log = $GLOBALS['maca_wpai_request_logs'][5] ?? array();
 	maca_assert(
 		'error' === ( $invalid_log['status'] ?? '' )
 		&& 'run_invalid_image' === ( $invalid_log['context']['cloud_run_id'] ?? '' )
