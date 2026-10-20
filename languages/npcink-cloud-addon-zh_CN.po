@@ -2445,67 +2445,67 @@ msgstr "最近一次 Cloud 验证未完成。"
 msgid "The knowledge base update could not be delivered and will be retried automatically. Detail: %s"
 msgstr "知识库更新未能投递，系统会自动重试。详情：%s"
 
-#: includes/class-cloud-wordpress-ai-connector.php:757
+#: includes/class-cloud-wordpress-ai-connector.php:767
 msgid "This request is not supported by the Npcink Cloud AI connection yet."
 msgstr "Npcink Cloud AI 连接暂不支持该请求。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:758
+#: includes/class-cloud-wordpress-ai-connector.php:768
 msgid "The Npcink Cloud AI connection does not support conversation history for this request."
 msgstr "Npcink Cloud AI 连接不支持在此请求中使用对话历史。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:759
+#: includes/class-cloud-wordpress-ai-connector.php:769
 msgid "The Npcink Cloud AI connection does not support tool calls or web search."
 msgstr "Npcink Cloud AI 连接不支持工具调用或网页搜索。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:760
+#: includes/class-cloud-wordpress-ai-connector.php:770
 msgid "The Npcink Cloud AI connection needs text input for this request."
 msgstr "此请求需要为 Npcink Cloud AI 连接提供文本输入。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:761
+#: includes/class-cloud-wordpress-ai-connector.php:771
 msgid "Image-to-image refinement is not supported by the Npcink Cloud AI connection yet."
 msgstr "Npcink Cloud AI 连接暂不支持图生图细化。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:762
+#: includes/class-cloud-wordpress-ai-connector.php:772
 msgid "This AI feature is not currently available through the Npcink Cloud connection."
 msgstr "该 AI 功能当前无法通过 Npcink Cloud 连接使用。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:763
+#: includes/class-cloud-wordpress-ai-connector.php:773
 msgid "Npcink Cloud did not return usable output for this request. Please try again."
 msgstr "Npcink Cloud 未返回可用的结果，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:765
+#: includes/class-cloud-wordpress-ai-connector.php:775
 msgid "Npcink Cloud returned an unexpected image result. Please try again."
 msgstr "Npcink Cloud 返回了异常的图片结果，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:766
+#: includes/class-cloud-wordpress-ai-connector.php:776
 msgid "The generated image previews are too large to show. Try generating fewer images at once."
 msgstr "生成的图片预览过大，无法显示。请尝试一次生成更少的图片。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:767
+#: includes/class-cloud-wordpress-ai-connector.php:777
 msgid "The generated image could not be verified for safe delivery. Please try again."
 msgstr "生成的图片未能通过安全投递校验，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:768
+#: includes/class-cloud-wordpress-ai-connector.php:778
 msgid "Npcink Cloud could not confirm delivery of the generated image. Please try again."
 msgstr "Npcink Cloud 未能确认图片已投递，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:769
+#: includes/class-cloud-wordpress-ai-connector.php:779
 msgid "The generated image is no longer available. Please generate it again."
 msgstr "生成的图片已失效，请重新生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:770
+#: includes/class-cloud-wordpress-ai-connector.php:780
 msgid "Npcink Cloud could not complete this AI request. Please try again in a moment."
 msgstr "Npcink Cloud 暂时无法完成该 AI 请求，请稍后重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:771
+#: includes/class-cloud-wordpress-ai-connector.php:781
 msgid "Npcink Cloud could not be reached from this site. Please try again in a moment."
 msgstr "本站点暂时无法连接 Npcink Cloud，请稍后重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:772
+#: includes/class-cloud-wordpress-ai-connector.php:782
 msgid "The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page."
 msgstr "Npcink Cloud 连接的授权已失效。请在 Cloud Addon 设置页面重新连接站点。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:773
+#: includes/class-cloud-wordpress-ai-connector.php:783
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr "该请求已达到 Npcink Cloud 的限额。请稍后重试，或在 Cloud 中查看套餐用量。"
 
@@ -2547,7 +2547,7 @@ msgstr "查看站点知识库状态"
 msgid "After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time."
 msgstr "连接后，WordPress AI 连接器将默认启用。站点知识库投递可随时在“概览”中开启或关闭。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:764
+#: includes/class-cloud-wordpress-ai-connector.php:774
 msgid "Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run."
 msgstr "Npcink Cloud 仍在处理此请求。请稍候再试，以免重复执行产生额外消耗。"
 
