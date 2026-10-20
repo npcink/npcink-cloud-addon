@@ -998,16 +998,19 @@ maca_assert(
 	&& str_contains( $test_links_html, '<details' )
 	&& ! str_contains( $test_links_html, 'npcink-cloud-generation-tests" open' )
 	&& ! str_contains( $test_links_html, 'npcink-cloud-generation-tests open' )
-	&& str_contains( $test_links_html, 'ability=ai/title-generation' )
-	&& ! str_contains( $test_links_html, 'ability=ai/image-generation' )
+	&& str_contains( $test_links_html, 'data-npcink-gen-open="ai/title-generation"' )
+	&& ! str_contains( $test_links_html, 'data-npcink-gen-open="ai/image-generation"' )
+	&& str_contains( $test_links_html, 'npcink-cloud-gen-test-dialog' )
 	&& str_contains( $test_links_html, 'ai-request-logs' )
 	&& str_contains( $test_links_html, 'May use credits' )
-	&& str_contains( $test_links_html, 'Text test' )
+	&& str_contains( $test_links_html, 'Test text' )
+	&& str_contains( $test_links_html, 'Advanced: Open Ability Explorer' )
+	&& str_contains( $test_links_html, 'page=ai-abilities-explorer' )
 	&& str_contains( $test_links_html, 'npcink-cloud-text-action' )
 	&& ! str_contains( $test_links_html, 'button button-secondary' )
 	&& ! str_contains( $test_links_html, 'target="_blank"' )
 	&& $http_before === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: generation tests fold by default, use short copy and text actions, expose registered host tests only, disclose cost, stay same-window, and perform zero requests.'
+	'Behavior: generation tests fold by default, open in-page modal actions for registered abilities, keep Advanced Explorer and request-log links, disclose cost, stay same-window, and perform zero requests on render.'
 );
 
 // Re-pause only this surface to prove the guard path still works without ACTIVE=false.

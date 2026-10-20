@@ -1308,6 +1308,146 @@ a.npcink-cloud-text-action:focus {
 	margin-left: 6px;
 }
 
+button.npcink-cloud-text-action {
+	background: none;
+	border: 0;
+	color: #2271b1;
+	cursor: pointer;
+	font: inherit;
+	font-weight: 600;
+	margin: 0;
+	padding: 0;
+	text-decoration: none;
+}
+
+button.npcink-cloud-text-action:hover,
+button.npcink-cloud-text-action:focus {
+	color: #135e96;
+	text-decoration: underline;
+}
+
+.npcink-cloud-generation-tests__advanced {
+	display: flex;
+	justify-content: flex-end;
+	margin: 8px 0 0;
+}
+
+.npcink-cloud-generation-tests__advanced-link {
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.npcink-cloud-gen-test-dialog {
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	max-width: min(560px, 92vw);
+	padding: 0;
+	width: 560px;
+}
+
+.npcink-cloud-gen-test-dialog::backdrop {
+	background: rgba(0, 0, 0, 0.35);
+}
+
+.npcink-cloud-gen-test-dialog__body {
+	padding: 16px 18px 14px;
+}
+
+.npcink-cloud-gen-test-dialog__header {
+	align-items: flex-start;
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.npcink-cloud-gen-test-dialog__header h2 {
+	font-size: 16px;
+	margin: 0;
+}
+
+.npcink-cloud-gen-test-dialog__close {
+	font-size: 20px;
+	line-height: 1;
+	text-decoration: none;
+}
+
+.npcink-cloud-gen-test-dialog__field {
+	margin: 0 0 10px;
+}
+
+.npcink-cloud-gen-test-dialog__field label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+
+.npcink-cloud-gen-test-dialog__field input,
+.npcink-cloud-gen-test-dialog__field textarea {
+	max-width: 100%;
+	width: 100%;
+}
+
+.npcink-cloud-gen-test-dialog__field .description {
+	display: block;
+	margin-top: 4px;
+}
+
+.npcink-cloud-gen-test-dialog__actions {
+	display: flex;
+	gap: 8px;
+	margin: 12px 0 8px;
+}
+
+.npcink-cloud-gen-test-dialog__status {
+	margin: 0 0 8px;
+}
+
+.npcink-cloud-gen-test-dialog__status.is-ok {
+	color: #007017;
+}
+
+.npcink-cloud-gen-test-dialog__status.is-error {
+	color: #b32d2e;
+}
+
+.npcink-cloud-gen-test-dialog__result {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	max-height: 280px;
+	overflow: auto;
+	padding: 10px;
+}
+
+.npcink-cloud-gen-test-dialog__result pre {
+	margin: 0;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.npcink-cloud-gen-test-dialog__preview {
+	margin: 0 0 8px;
+}
+
+.npcink-cloud-gen-test-dialog__preview img {
+	display: block;
+	max-height: 180px;
+	max-width: 100%;
+}
+
+.npcink-cloud-gen-test-dialog__corner {
+	display: flex;
+	justify-content: flex-end;
+	margin: 10px 0 0;
+}
+
+.npcink-cloud-gen-test-dialog__corner .npcink-cloud-text-action {
+	font-size: 12px;
+	font-weight: 500;
+}
+
+
 .npcink-cloud-subcard {
 	align-items: start;
 	border-top: 0;

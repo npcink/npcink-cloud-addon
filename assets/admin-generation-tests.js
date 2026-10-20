@@ -1,0 +1,286 @@
+( function () {
+	'use strict';
+
+	var cfg = window.npcinkCloudGenerationTests;
+	if ( ! cfg || ! cfg.ajaxUrl || ! cfg.nonce ) {
+		return;
+	}
+
+	var s = cfg.strings || {};
+	var explorerBase = cfg.explorerUrl || '';
+	function explorerTestUrl( ability ) {
+		if ( ! explorerBase ) {
+			return '';
+		}
+		var join = explorerBase.indexOf( '?' ) >= 0 ? '&' : '?';
+		return explorerBase + join + 'action=test&ability=' + encodeURIComponent( ability );
+	}
+	cfg.abilities = cfg.abilities || {
+		'ai/title-generation': {
+			title: s.testText || 'Test text',
+			explorerUrl: explorerTestUrl( 'ai/title-generation' ),
+			fields: [
+				{ key: 'content', type: 'textarea', rows: 6, required: true, label: s.content || 'Content', default: s.defaultContent || '' }
+			]
+		},
+		'ai/image-generation': {
+			title: s.testImage || 'Test image',
+			explorerUrl: explorerTestUrl( 'ai/image-generation' ),
+			fields: [
+				{ key: 'prompt', type: 'textarea', rows: 4, required: true, label: s.prompt || 'Prompt', default: s.defaultPrompt || '' }
+			]
+		},
+		'ai/alt-text-generation': {
+			title: s.testVision || 'Test vision',
+			explorerUrl: explorerTestUrl( 'ai/alt-text-generation' ),
+			fields: [
+				{ key: 'attachment_id', type: 'number', valueType: 'integer', label: s.attachmentId || 'Attachment ID', help: s.attachmentHelp || '' },
+				{ key: 'image_url', type: 'url', label: s.imageUrl || 'Image URL', help: s.imageUrlHelp || '' },
+				{ key: 'context', type: 'textarea', rows: 3, label: s.context || 'Context' }
+			]
+		}
+	};
+
+	var dialog = document.getElementById( 'npcink-cloud-gen-test-dialog' );
+	if ( ! dialog ) {
+		return;
+	}
+
+	var titleEl = dialog.querySelector( '[data-npcink-gen-title]' );
+	var fieldsEl = dialog.querySelector( '[data-npcink-gen-fields]' );
+	var resultEl = dialog.querySelector( '[data-npcink-gen-result]' );
+	var statusEl = dialog.querySelector( '[data-npcink-gen-status]' );
+	var runBtn = dialog.querySelector( '[data-npcink-gen-run]' );
+	var closeBtns = dialog.querySelectorAll( '[data-npcink-gen-close]' );
+	var explorerLink = dialog.querySelector( '[data-npcink-gen-explorer]' );
+	var currentAbility = '';
+
+	function escapeHtml( value ) {
+		return String( value )
+			.replace( /&/g, '&amp;' )
+			.replace( /</g, '&lt;' )
+			.replace( />/g, '&gt;' )
+			.replace( /"/g, '&quot;' )
+			.replace( /'/g, '&#039;' );
+	}
+
+	function abilityConfig( slug ) {
+		return ( cfg.abilities && cfg.abilities[ slug ] ) || null;
+	}
+
+	function renderFields( ability ) {
+		var fields = ability.fields || [];
+		var html = '';
+		fields.forEach( function ( field ) {
+			var id = 'npcink-gen-field-' + field.key;
+			html += '<p class="npcink-cloud-gen-test-dialog__field">';
+			html += '<label for="' + escapeHtml( id ) + '">' + escapeHtml( field.label ) + '</label>';
+			if ( 'textarea' === field.type ) {
+				html +=
+					'<textarea id="' +
+					escapeHtml( id ) +
+					'" name="' +
+					escapeHtml( field.key ) +
+					'" rows="' +
+					( field.rows || 5 ) +
+					'"' +
+					( field.required ? ' required' : '' ) +
+					'>' +
+					escapeHtml( field.default || '' ) +
+					'</textarea>';
+			} else {
+				html +=
+					'<input id="' +
+					escapeHtml( id ) +
+					'" name="' +
+					escapeHtml( field.key ) +
+					'" type="' +
+					escapeHtml( field.type || 'text' ) +
+					'" value="' +
+					escapeHtml( field.default || '' ) +
+					'"' +
+					( field.required ? ' required' : '' ) +
+					' />';
+			}
+			if ( field.help ) {
+				html += '<span class="description">' + escapeHtml( field.help ) + '</span>';
+			}
+			html += '</p>';
+		} );
+		fieldsEl.innerHTML = html;
+	}
+
+	function collectInput( ability ) {
+		var input = {};
+		( ability.fields || [] ).forEach( function ( field ) {
+			var el = fieldsEl.querySelector( '[name="' + field.key + '"]' );
+			if ( ! el ) {
+				return;
+			}
+			var raw = el.value;
+			if ( 'number' === field.type || 'integer' === field.valueType ) {
+				if ( '' === String( raw ).trim() ) {
+					return;
+				}
+				input[ field.key ] = parseInt( raw, 10 );
+				return;
+			}
+			if ( '' === String( raw ).trim() && ! field.required ) {
+				return;
+			}
+			input[ field.key ] = raw;
+		} );
+		return input;
+	}
+
+	function formatResult( payload ) {
+		var data = payload && Object.prototype.hasOwnProperty.call( payload, 'data' ) ? payload.data : payload;
+		var html = '';
+		if ( data && data.image && data.image.data ) {
+			var src = String( data.image.data );
+			if ( 0 !== src.indexOf( 'data:' ) ) {
+				src = 'data:image/png;base64,' + src;
+			}
+			html += '<p class="npcink-cloud-gen-test-dialog__preview"><img alt="" src="' + escapeHtml( src ) + '" /></p>';
+		}
+		if ( data && typeof data.title === 'string' ) {
+			html += '<p><strong>' + escapeHtml( data.title ) + '</strong></p>';
+		}
+		if ( data && typeof data.alt_text === 'string' ) {
+			html += '<p>' + escapeHtml( data.alt_text ) + '</p>';
+		}
+		html += '<pre>' + escapeHtml( JSON.stringify( payload, null, 2 ) ) + '</pre>';
+		return html;
+	}
+
+	function setBusy( busy ) {
+		if ( ! runBtn ) {
+			return;
+		}
+		runBtn.disabled = !! busy;
+		runBtn.textContent = busy ? cfg.strings.generating : cfg.strings.generate;
+	}
+
+	function openFor( slug ) {
+		var ability = abilityConfig( slug );
+		if ( ! ability ) {
+			return;
+		}
+		currentAbility = slug;
+		if ( titleEl ) {
+			titleEl.textContent = ability.title || slug;
+		}
+		renderFields( ability );
+		if ( resultEl ) {
+			resultEl.innerHTML = '';
+			resultEl.hidden = true;
+		}
+		if ( statusEl ) {
+			statusEl.textContent = '';
+			statusEl.hidden = true;
+			statusEl.className = 'npcink-cloud-gen-test-dialog__status';
+		}
+		if ( explorerLink && ability.explorerUrl ) {
+			explorerLink.href = ability.explorerUrl;
+			explorerLink.hidden = false;
+		} else if ( explorerLink ) {
+			explorerLink.hidden = ! cfg.explorerUrl;
+			if ( cfg.explorerUrl ) {
+				explorerLink.href = cfg.explorerUrl;
+			}
+		}
+		if ( typeof dialog.showModal === 'function' ) {
+			dialog.showModal();
+		} else {
+			dialog.setAttribute( 'open', 'open' );
+		}
+		var first = fieldsEl.querySelector( 'textarea, input' );
+		if ( first ) {
+			first.focus();
+		}
+	}
+
+	function closeDialog() {
+		if ( typeof dialog.close === 'function' ) {
+			dialog.close();
+		} else {
+			dialog.removeAttribute( 'open' );
+		}
+	}
+
+	function runGenerate() {
+		var ability = abilityConfig( currentAbility );
+		if ( ! ability ) {
+			return;
+		}
+		var input = collectInput( ability );
+		setBusy( true );
+		if ( statusEl ) {
+			statusEl.hidden = false;
+			statusEl.className = 'npcink-cloud-gen-test-dialog__status is-pending';
+			statusEl.textContent = cfg.strings.generating;
+		}
+		if ( resultEl ) {
+			resultEl.hidden = true;
+			resultEl.innerHTML = '';
+		}
+		var body = new FormData();
+		body.append( 'action', 'ai_ability_explorer_invoke' );
+		body.append( 'nonce', cfg.nonce );
+		body.append( 'ability', currentAbility );
+		body.append( 'input', JSON.stringify( input ) );
+		fetch( cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' } )
+			.then( function ( response ) {
+				return response.json();
+			} )
+			.then( function ( json ) {
+				if ( json && json.success ) {
+					if ( statusEl ) {
+						statusEl.className = 'npcink-cloud-gen-test-dialog__status is-ok';
+						statusEl.textContent = ( json.data && json.data.message ) || cfg.strings.success;
+					}
+					if ( resultEl ) {
+						resultEl.hidden = false;
+						resultEl.innerHTML = formatResult( json.data || {} );
+					}
+					return;
+				}
+				var message =
+					( json && json.data && ( json.data.message || ( json.data.errors && json.data.errors.join( '; ' ) ) ) ) ||
+					cfg.strings.error;
+				if ( statusEl ) {
+					statusEl.className = 'npcink-cloud-gen-test-dialog__status is-error';
+					statusEl.textContent = message;
+				}
+				if ( resultEl && json && json.data ) {
+					resultEl.hidden = false;
+					resultEl.innerHTML = '<pre>' + escapeHtml( JSON.stringify( json.data, null, 2 ) ) + '</pre>';
+				}
+			} )
+			.catch( function () {
+				if ( statusEl ) {
+					statusEl.className = 'npcink-cloud-gen-test-dialog__status is-error';
+					statusEl.textContent = cfg.strings.error;
+				}
+			} )
+			.finally( function () {
+				setBusy( false );
+			} );
+	}
+
+	document.querySelectorAll( '[data-npcink-gen-open]' ).forEach( function ( button ) {
+		button.addEventListener( 'click', function () {
+			openFor( button.getAttribute( 'data-npcink-gen-open' ) || '' );
+		} );
+	} );
+	closeBtns.forEach( function ( button ) {
+		button.addEventListener( 'click', closeDialog );
+	} );
+	if ( runBtn ) {
+		runBtn.addEventListener( 'click', runGenerate );
+	}
+	dialog.addEventListener( 'cancel', function ( event ) {
+		event.preventDefault();
+		closeDialog();
+	} );
+}() );

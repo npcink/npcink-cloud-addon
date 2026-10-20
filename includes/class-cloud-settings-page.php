@@ -159,6 +159,44 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					'savingLabel' => __( 'Saving…', 'npcink-cloud-addon' ),
 				)
 			);
+
+			$gen_js = NPCINK_CLOUD_ADDON_DIR . '/assets/admin-generation-tests.js';
+			if ( is_readable( $gen_js ) ) {
+				wp_enqueue_script(
+					'npcink-cloud-addon-admin-generation-tests',
+					self::asset_url( 'assets/admin-generation-tests.js' ),
+					array(),
+					NPCINK_CLOUD_ADDON_VERSION . '.' . (string) filemtime( $gen_js ),
+					true
+				);
+				wp_localize_script(
+					'npcink-cloud-addon-admin-generation-tests',
+					'npcinkCloudGenerationTests',
+					array(
+						'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+						'nonce' => wp_create_nonce( 'ai_ability_explorer_invoke' ),
+						'explorerUrl' => admin_url( 'tools.php?page=ai-abilities-explorer' ),
+						'strings' => array(
+							'generate' => __( 'Generate', 'npcink-cloud-addon' ),
+							'generating' => __( 'Generating…', 'npcink-cloud-addon' ),
+							'success' => __( 'Done', 'npcink-cloud-addon' ),
+							'error' => __( 'Generation failed.', 'npcink-cloud-addon' ),
+							'testText' => __( 'Test text', 'npcink-cloud-addon' ),
+							'testImage' => __( 'Test image', 'npcink-cloud-addon' ),
+							'testVision' => __( 'Test vision', 'npcink-cloud-addon' ),
+							'content' => __( 'Content', 'npcink-cloud-addon' ),
+							'prompt' => __( 'Prompt', 'npcink-cloud-addon' ),
+							'attachmentId' => __( 'Attachment ID', 'npcink-cloud-addon' ),
+							'imageUrl' => __( 'Image URL', 'npcink-cloud-addon' ),
+							'context' => __( 'Context', 'npcink-cloud-addon' ),
+							'attachmentHelp' => __( 'Media library attachment ID. Optional when an image URL is set.', 'npcink-cloud-addon' ),
+							'imageUrlHelp' => __( 'Public image URL or data URI when no attachment ID is available.', 'npcink-cloud-addon' ),
+							'defaultContent' => __( 'WordPress AI can draft a short title from this sample paragraph about cloud-connected generation.', 'npcink-cloud-addon' ),
+							'defaultPrompt' => __( 'A simple watercolor illustration of a notebook and a fountain pen on a wooden desk.', 'npcink-cloud-addon' ),
+						),
+					)
+				);
+			}
 		}
 
 
@@ -1241,28 +1279,54 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			if ( $guidance_only ) {
 				return;
 			}
-			$actions = array();
+			$modal_tests = array();
 			if ( $explorer_available ) {
-				foreach ( array( 'ai/title-generation' => __( 'Text test', 'npcink-cloud-addon' ), 'ai/image-generation' => __( 'Image test', 'npcink-cloud-addon' ), 'ai/alt-text-generation' => __( 'Vision test', 'npcink-cloud-addon' ) ) as $ability => $label ) {
+				foreach ( array( 'ai/title-generation' => __( 'Test text', 'npcink-cloud-addon' ), 'ai/image-generation' => __( 'Test image', 'npcink-cloud-addon' ), 'ai/alt-text-generation' => __( 'Test vision', 'npcink-cloud-addon' ) ) as $ability => $label ) {
 					if ( wp_get_ability( $ability ) ) {
-						$actions[] = array( 'href' => add_query_arg( array( 'page' => 'ai-abilities-explorer', 'action' => 'test', 'ability' => $ability ), admin_url( 'tools.php' ) ), 'label' => $label );
+						$modal_tests[ $ability ] = $label;
 					}
 				}
 			}
+			$links = array();
 			if ( $logs_available ) {
-				$actions[] = array( 'href' => admin_url( 'tools.php?page=ai-request-logs' ), 'label' => __( 'Request log', 'npcink-cloud-addon' ) );
+				$links[] = array( 'href' => admin_url( 'tools.php?page=ai-request-logs' ), 'label' => __( 'Request log', 'npcink-cloud-addon' ) );
 			}
-			if ( count( $actions ) < 4 || ! $logs_available ) {
-				$actions[] = array( 'href' => admin_url( 'options-general.php?page=ai-wp-admin' ), 'label' => __( 'AI settings', 'npcink-cloud-addon' ) );
+			if ( ! $modal_tests ) {
+				$links[] = array( 'href' => admin_url( 'options-general.php?page=ai-wp-admin' ), 'label' => __( 'AI settings', 'npcink-cloud-addon' ) );
 			}
+			$explorer_url = $explorer_available ? admin_url( 'tools.php?page=ai-abilities-explorer' ) : '';
 			?>
 			<details class="npcink-cloud-advanced-detail npcink-cloud-generation-tests">
 				<summary><?php esc_html_e( 'WordPress AI generation tests', 'npcink-cloud-addon' ); ?></summary>
 				<div class="npcink-cloud-advanced-detail__body">
 					<p class="description"><?php esc_html_e( 'May use credits. Cloud picks the model.', 'npcink-cloud-addon' ); ?></p>
-					<p class="npcink-cloud-generation-tests__actions"><?php foreach ( $actions as $index => $action ) : ?><?php if ( $index > 0 ) : ?><span class="npcink-cloud-generation-tests__sep" aria-hidden="true"> · </span><?php endif; ?><a class="npcink-cloud-text-action" href="<?php echo esc_url( (string) $action['href'] ); ?>"><?php echo esc_html( (string) $action['label'] ); ?></a><?php endforeach; ?></p>
+					<p class="npcink-cloud-generation-tests__actions">
+						<?php $sep = false; foreach ( $modal_tests as $ability => $label ) : ?>
+							<?php if ( $sep ) : ?><span class="npcink-cloud-generation-tests__sep" aria-hidden="true"> · </span><?php endif; $sep = true; ?>
+							<button type="button" class="npcink-cloud-text-action" data-npcink-gen-open="<?php echo esc_attr( $ability ); ?>"><?php echo esc_html( $label ); ?></button>
+						<?php endforeach; ?>
+						<?php foreach ( $links as $link ) : ?>
+							<?php if ( $sep ) : ?><span class="npcink-cloud-generation-tests__sep" aria-hidden="true"> · </span><?php endif; $sep = true; ?>
+							<a class="npcink-cloud-text-action" href="<?php echo esc_url( (string) $link['href'] ); ?>"><?php echo esc_html( (string) $link['label'] ); ?></a>
+						<?php endforeach; ?>
+					</p>
+					<?php if ( $explorer_url ) : ?>
+						<p class="npcink-cloud-generation-tests__advanced"><a class="npcink-cloud-text-action npcink-cloud-generation-tests__advanced-link" href="<?php echo esc_url( $explorer_url ); ?>"><?php esc_html_e( 'Advanced: Open Ability Explorer', 'npcink-cloud-addon' ); ?></a></p>
+					<?php endif; ?>
 				</div>
 			</details>
+			<?php if ( $modal_tests ) : ?>
+			<dialog id="npcink-cloud-gen-test-dialog" class="npcink-cloud-gen-test-dialog" role="dialog" aria-modal="true" aria-labelledby="npcink-cloud-gen-test-title">
+				<div class="npcink-cloud-gen-test-dialog__body">
+					<div class="npcink-cloud-gen-test-dialog__header"><h2 id="npcink-cloud-gen-test-title" data-npcink-gen-title></h2><button type="button" class="button-link npcink-cloud-gen-test-dialog__close" data-npcink-gen-close aria-label="<?php esc_attr_e( 'Close', 'npcink-cloud-addon' ); ?>">×</button></div>
+					<div data-npcink-gen-fields class="npcink-cloud-gen-test-dialog__fields"></div>
+					<p class="npcink-cloud-gen-test-dialog__actions"><button type="button" class="button button-primary" data-npcink-gen-run><?php esc_html_e( 'Generate', 'npcink-cloud-addon' ); ?></button> <button type="button" class="button" data-npcink-gen-close><?php esc_html_e( 'Close', 'npcink-cloud-addon' ); ?></button></p>
+					<p class="npcink-cloud-gen-test-dialog__status" data-npcink-gen-status hidden></p>
+					<div class="npcink-cloud-gen-test-dialog__result" data-npcink-gen-result hidden></div>
+					<p class="npcink-cloud-gen-test-dialog__corner"><a class="npcink-cloud-text-action" data-npcink-gen-explorer href="<?php echo esc_url( $explorer_url ); ?>"><?php esc_html_e( 'Advanced: Open Ability Explorer', 'npcink-cloud-addon' ); ?></a></p>
+				</div>
+			</dialog>
+			<?php endif; ?>
 			<?php
 		}
 

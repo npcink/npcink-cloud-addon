@@ -243,9 +243,14 @@ maca_assert(
 		'May use credits. Cloud picks the model.',
 		'npcink-cloud-addon'
 	)
-	&& '文本测试' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Text test',
-		'Text test',
+	&& '测文本' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Test text',
+		'Test text',
+		'npcink-cloud-addon'
+	)
+	&& '高级：打开能力浏览器' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Advanced: Open Ability Explorer',
+		'Advanced: Open Ability Explorer',
 		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers the connected summary, troubleshooting, readiness, monitoring-consent, and hosted model ownership surfaces.'
