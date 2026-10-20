@@ -108,6 +108,8 @@ test( 'generation tests open modal and invoke explorer AJAX', async () => {
 	assert.equal( dialog.open, true );
 	assert.equal( title.textContent, 'Test text' );
 	assert.match( fields.innerHTML, /name="content"/ );
+	assert.match( fields.innerHTML, /aria-label="Content"/ );
+	assert.doesNotMatch( fields.innerHTML, /<label[^>]*>Content<\/label>/ );
 	assert.match( explorer.href, /ability=ai%2Ftitle-generation/ );
 	runBtn._click();
 	await new Promise( ( r ) => setTimeout( r, 0 ) );

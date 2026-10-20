@@ -20,7 +20,7 @@
 			title: s.testText || 'Test text',
 			explorerUrl: explorerTestUrl( 'ai/title-generation' ),
 			fields: [
-				{ key: 'content', type: 'textarea', rows: 6, required: true, label: s.content || 'Content', default: s.defaultContent || '' }
+				{ key: 'content', type: 'textarea', rows: 6, required: true, hideLabel: true, label: s.content || 'Content', default: s.defaultContent || '' }
 			]
 		},
 		'ai/image-generation': {
@@ -73,8 +73,12 @@
 		var html = '';
 		fields.forEach( function ( field ) {
 			var id = 'npcink-gen-field-' + field.key;
+			var label = field.label || field.key;
+			var aria = ' aria-label="' + escapeHtml( label ) + '"';
 			html += '<p class="npcink-cloud-gen-test-dialog__field">';
-			html += '<label for="' + escapeHtml( id ) + '">' + escapeHtml( field.label ) + '</label>';
+			if ( ! field.hideLabel ) {
+				html += '<label for="' + escapeHtml( id ) + '">' + escapeHtml( label ) + '</label>';
+			}
 			if ( 'textarea' === field.type ) {
 				html +=
 					'<textarea id="' +
@@ -84,6 +88,7 @@
 					'" rows="' +
 					( field.rows || 5 ) +
 					'"' +
+					aria +
 					( field.required ? ' required' : '' ) +
 					'>' +
 					escapeHtml( field.default || '' ) +
@@ -99,6 +104,7 @@
 					'" value="' +
 					escapeHtml( field.default || '' ) +
 					'"' +
+					aria +
 					( field.required ? ' required' : '' ) +
 					' />';
 			}

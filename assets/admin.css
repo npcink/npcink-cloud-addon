@@ -1277,14 +1277,17 @@ button.npcink-cloud-icon-button.button-link:focus {
 }
 
 .npcink-cloud-generation-tests__actions {
+	align-items: center;
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0;
+	gap: 6px 10px;
 	margin: 0;
 }
 
 .npcink-cloud-generation-tests__sep {
 	color: #646970;
+	margin: 0 2px;
+	padding: 0 2px;
 }
 
 a.npcink-cloud-text-action {
@@ -1356,10 +1359,24 @@ button.npcink-cloud-text-action:focus {
 	margin: 0;
 }
 
-.npcink-cloud-gen-test-dialog__close {
+.npcink-cloud-gen-test-dialog__close,
+.npcink-cloud-gen-test-dialog__close:hover,
+.npcink-cloud-gen-test-dialog__close:focus,
+.npcink-cloud-gen-test-dialog__close:active {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	color: #50575e;
+	cursor: pointer;
 	font-size: 20px;
 	line-height: 1;
-	text-decoration: none;
+	padding: 0 2px;
+	text-decoration: none !important;
+}
+
+.npcink-cloud-gen-test-dialog__close:hover,
+.npcink-cloud-gen-test-dialog__close:focus {
+	color: #1d2327;
 }
 
 .npcink-cloud-gen-test-dialog__field {

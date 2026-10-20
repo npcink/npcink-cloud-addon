@@ -1323,7 +1323,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<?php if ( $modal_tests ) : ?>
 			<dialog id="npcink-cloud-gen-test-dialog" class="npcink-cloud-gen-test-dialog" role="dialog" aria-modal="true" aria-labelledby="npcink-cloud-gen-test-title">
 				<div class="npcink-cloud-gen-test-dialog__body">
-					<div class="npcink-cloud-gen-test-dialog__header"><h2 id="npcink-cloud-gen-test-title" data-npcink-gen-title></h2><button type="button" class="button-link npcink-cloud-gen-test-dialog__close" data-npcink-gen-close aria-label="<?php esc_attr_e( 'Close', 'npcink-cloud-addon' ); ?>">×</button></div>
+					<div class="npcink-cloud-gen-test-dialog__header"><h2 id="npcink-cloud-gen-test-title" data-npcink-gen-title></h2><button type="button" class="npcink-cloud-gen-test-dialog__close" data-npcink-gen-close aria-label="<?php esc_attr_e( 'Close', 'npcink-cloud-addon' ); ?>">×</button></div>
 					<div data-npcink-gen-fields class="npcink-cloud-gen-test-dialog__fields"></div>
 					<p class="npcink-cloud-gen-test-dialog__actions"><button type="button" class="button button-primary" data-npcink-gen-run><?php esc_html_e( 'Generate', 'npcink-cloud-addon' ); ?></button><?php if ( $explorer_url ) : ?><a class="npcink-cloud-text-action npcink-cloud-gen-test-dialog__advanced" data-npcink-gen-explorer href="<?php echo esc_url( $explorer_url ); ?>"><?php esc_html_e( 'Advanced: Open Ability Explorer', 'npcink-cloud-addon' ); ?></a><?php endif; ?></p>
 					<p class="npcink-cloud-gen-test-dialog__status" data-npcink-gen-status hidden></p>
