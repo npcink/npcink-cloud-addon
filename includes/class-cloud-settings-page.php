@@ -1620,12 +1620,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							<div class="npcink-cloud-summary__actions">
 								<?php if ( $show_sync_action ) : ?>
 									<?php if ( $sync_busy ) : ?>
-										<button type="button" class="button button-secondary" disabled><?php esc_html_e( 'Syncing', 'npcink-cloud-addon' ); ?></button>
+										<button type="button" class="button button-secondary npcink-cloud-primary-action" disabled><?php esc_html_e( 'Syncing', 'npcink-cloud-addon' ); ?></button>
 									<?php else : ?>
 										<form class="npcink-cloud-verify-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 											<?php wp_nonce_field( Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE ); ?>
 											<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE ); ?>" />
-											<button type="submit" class="button button-secondary"><?php esc_html_e( 'Sync', 'npcink-cloud-addon' ); ?></button>
+											<button type="submit" class="button button-secondary npcink-cloud-primary-action"><?php esc_html_e( 'Sync', 'npcink-cloud-addon' ); ?></button>
 										</form>
 									<?php endif; ?>
 								<?php endif; ?>

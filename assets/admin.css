@@ -236,6 +236,29 @@
 	gap: 10px;
 }
 
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	color: #1d2327;
+	font-weight: 600;
+	min-height: auto;
+	padding: 0;
+}
+
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action:hover,
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action:focus {
+	background: transparent;
+	color: #2271b1;
+}
+
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action:disabled,
+.npcink-cloud-site-knowledge-heading .button.npcink-cloud-primary-action[disabled] {
+	color: #646970;
+	cursor: default;
+	opacity: 1;
+}
+
 .npcink-cloud-site-knowledge-heading .button.npcink-cloud-secondary-action {
 	background: transparent;
 	border: 0;
