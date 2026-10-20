@@ -659,9 +659,13 @@ maca_assert(
 	&& false !== strpos( $checks_rendered, 'Run checks, or' )
 	&& false !== strpos( $checks_rendered, 'Run readiness test' )
 	&& strpos( $checks_rendered, 'npcink-cloud-checks-heading__hint' ) < strpos( $checks_rendered, 'Run readiness test' )
-	&& false === strpos( $checks_rendered, 'WordPress AI generation tests' )
-	&& false === strpos( $checks_rendered, 'npcink-cloud-secondary-tabs' ),
-	'Behavior: Checks keeps credentials visible, pairs readiness hint with the run button, folds Hosted Runtime into Check details, and hides generation tests.'
+	&& false === strpos( $checks_rendered, 'npcink-cloud-secondary-tabs' )
+	&& (
+		false !== strpos( $checks_rendered, 'WordPress AI generation tests' )
+		|| false !== strpos( $checks_rendered, 'Install the WordPress AI plugin' )
+		|| false !== strpos( $checks_rendered, 'Activate the WordPress AI plugin' )
+	),
+	'Behavior: Checks keeps credentials visible, pairs readiness hint with the run button, folds Hosted Runtime into Check details, and exposes generation tests or AI plugin guidance.'
 );
 
 ob_start();
@@ -987,36 +991,55 @@ $GLOBALS['maca_abilities'] = array( 'ai/title-generation' => new stdClass() );
 $http_before = count( $GLOBALS['maca_http_requests'] );
 ob_start();
 $test_links->invoke( null );
-$paused_test_links_html = (string) ob_get_clean();
+$test_links_html = (string) ob_get_clean();
 maca_assert(
-	'' === trim( $paused_test_links_html )
+	str_contains( $test_links_html, 'WordPress AI generation tests' )
+	&& str_contains( $test_links_html, 'npcink-cloud-generation-tests' )
+	&& str_contains( $test_links_html, '<details' )
+	&& ! str_contains( $test_links_html, 'npcink-cloud-generation-tests" open' )
+	&& ! str_contains( $test_links_html, 'npcink-cloud-generation-tests open' )
+	&& str_contains( $test_links_html, 'data-npcink-gen-open="ai/title-generation"' )
+	&& ! str_contains( $test_links_html, 'data-npcink-gen-open="ai/image-generation"' )
+	&& str_contains( $test_links_html, 'npcink-cloud-gen-test-dialog' )
+	&& str_contains( $test_links_html, 'ai-request-logs' )
+	&& str_contains( $test_links_html, 'May use credits' )
+	&& str_contains( $test_links_html, 'Test text' )
+	&& str_contains( $test_links_html, 'npcink-cloud-gen-test-dialog__advanced' )
+	&& str_contains( $test_links_html, 'Advanced: Open Ability Explorer' )
+	&& str_contains( $test_links_html, 'page=ai-abilities-explorer' )
+	&& ! str_contains( $test_links_html, 'npcink-cloud-generation-tests__advanced' )
+	&& substr_count( $test_links_html, 'data-npcink-gen-close' ) === 1
+	&& ! str_contains( $test_links_html, 'npcink-cloud-gen-test-dialog__corner' )
+	&& str_contains( $test_links_html, 'npcink-cloud-text-action' )
+	&& ! str_contains( $test_links_html, 'button button-secondary' )
+	&& ! str_contains( $test_links_html, 'target="_blank"' )
 	&& $http_before === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: WordPress AI generation tests stay hidden while the admin surface pause is active.'
+	'Behavior: generation tests fold by default, open in-page modal actions for registered abilities, keep Advanced Explorer only inside the modal action row, disclose cost, stay same-window, and perform zero requests on render.'
 );
 
+// Re-pause only this surface to prove the guard path still works without ACTIVE=false.
 $admin_surfaces = new ReflectionProperty( Npcink_Cloud_Discoverability_Pause::class, 'paused_admin_surfaces' );
 $admin_surfaces->setAccessible( true );
 $previous_admin_surfaces = $admin_surfaces->getValue();
-$admin_surfaces->setValue( null, array() );
+$admin_surfaces->setValue( null, array( 'wordpress_ai_generation_tests' => true ) );
 ob_start();
 $test_links->invoke( null );
-$test_links_html = (string) ob_get_clean();
+$re_paused_html = (string) ob_get_clean();
 maca_assert(
-	str_contains( $test_links_html, 'ability=ai/title-generation' )
-	&& ! str_contains( $test_links_html, 'ability=ai/image-generation' )
-	&& str_contains( $test_links_html, 'ai-request-logs' )
-	&& str_contains( $test_links_html, 'may consume credits' )
+	'' === trim( $re_paused_html )
 	&& $http_before === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: generation entry links expose registered host tests only, disclose cost, and perform zero requests.'
+	'Behavior: wordpress_ai_generation_tests can still be paused alone without flipping ACTIVE.'
 );
 $admin_surfaces->setValue( null, $previous_admin_surfaces );
+
 $GLOBALS['_registered_pages'] = array();
 ob_start();
 $test_links->invoke( null );
-$test_links_html = (string) ob_get_clean();
+$missing_on_checks = (string) ob_get_clean();
 maca_assert(
-	'' === trim( $test_links_html ),
-	'Behavior: paused generation-test surface does not render missing-plugin guidance outside guidance-only mode.'
+	str_contains( $missing_on_checks, 'Install the WordPress AI plugin' )
+	|| str_contains( $missing_on_checks, 'Activate the WordPress AI plugin' ),
+	'Behavior: unpaused Checks surface shows missing-plugin guidance when host AI tools are absent.'
 );
 $GLOBALS['_registered_pages'] = array();
 ob_start();

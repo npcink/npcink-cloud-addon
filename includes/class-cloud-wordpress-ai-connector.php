@@ -926,17 +926,28 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		/**
 		 * Checks whether AI request logging is enabled by the AI plugin feature flags.
 		 *
+		 * WordPress AI 1.4+ removed the global `wpai_features_enabled` option
+		 * (`wpai_global_toggle_removed`). Features Loader now treats a missing
+		 * global as enabled via `apply_filters( 'wpai_features_enabled', true )`.
+		 * Do not require the deleted option via get_option(..., false).
+		 *
 		 * @return bool
 		 */
 		private static function is_wordpress_ai_request_logging_enabled(): bool {
-			$global_enabled = (bool) get_option( 'wpai_features_enabled', false );
+			// Match AI Features\Loader: missing global defaults to enabled.
+			$features_enabled = true;
+			if ( function_exists( 'apply_filters' ) ) {
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress AI owns this filter name.
+				$features_enabled = (bool) apply_filters( 'wpai_features_enabled', true );
+			}
+
 			$feature_enabled = (bool) get_option( 'wpai_feature_ai-request-logging_enabled', false );
 			if ( function_exists( 'apply_filters' ) ) {
 				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress AI owns this feature-flag filter name.
 				$feature_enabled = (bool) apply_filters( 'wpai_feature_ai-request-logging_enabled', $feature_enabled );
 			}
 
-			return $global_enabled && $feature_enabled;
+			return $features_enabled && $feature_enabled;
 		}
 
 		/**

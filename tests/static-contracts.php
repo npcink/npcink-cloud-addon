@@ -91,6 +91,7 @@ $settings = maca_read( $root . '/includes/class-cloud-addon-settings.php' );
 $cleanup = maca_read( $root . '/includes/class-cloud-addon-cleanup.php' );
 $uninstall = maca_read( $root . '/uninstall.php' );
 $settings_page = maca_read( $root . '/includes/class-cloud-settings-page.php' );
+$discoverability_pause = maca_read( $root . '/includes/class-cloud-discoverability-pause.php' );
 $settings_actions = maca_read( $root . '/includes/class-cloud-settings-actions.php' );
 $refresh_site_knowledge_handler = maca_extract_class_method_source( $settings_actions, 'public static function handle_refresh_site_knowledge(): void' );
 $manage_site_knowledge_index_handler = maca_extract_class_method_source( $settings_actions, 'public static function handle_manage_site_knowledge_index(): void' );
@@ -1797,6 +1798,8 @@ maca_assert(
 	&& false === strpos( $settings_page, 'strpos( $hook_suffix, self::PARENT_MENU_SLUG )' )
 	&& false === strpos( $admin_css, '.npcink-cloud-secondary-tabs' )
 	&& false !== strpos( $settings_page, "is_admin_surface_paused( 'wordpress_ai_generation_tests' )" )
+	&& false === strpos( $discoverability_pause, "'wordpress_ai_generation_tests' => true" )
+	&& false !== strpos( $discoverability_pause, 'wordpress_ai_generation_tests restored' )
 	&& false === strpos( $settings_page, 'Read-only connection and service status. Product actions, approvals, and WordPress writes stay outside this addon.' )
 		&& false === strpos( $settings_page, 'Cloud runtime runs' )
 	&& false !== strpos( $settings_page, 'Open Cloud status detail' )
@@ -2363,9 +2366,9 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2600,
+	'includes/class-cloud-settings-page.php'           => 2680,
 	'includes/class-cloud-settings-actions.php'        => 1170,
-	'includes/class-cloud-wordpress-ai-connector.php'  => 1024,
+	'includes/class-cloud-wordpress-ai-connector.php'  => 1035,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
 	'includes/class-cloud-wordpress-ai-image-model.php' => 496,

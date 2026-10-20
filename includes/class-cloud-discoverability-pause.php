@@ -26,7 +26,7 @@ final class Npcink_Cloud_Discoverability_Pause {
 
 	/** Admin surfaces hidden while ACTIVE; implementation and options stay intact. */
 	private static array $paused_admin_surfaces = array(
-		'wordpress_ai_generation_tests' => true,
+		// wordpress_ai_generation_tests restored 2026-10-20 (P0): Checks entry visible again.
 	);
 
 	public static function feature_error( string $feature ) {

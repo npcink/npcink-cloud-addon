@@ -238,9 +238,34 @@ maca_assert(
 		'Cloud Addon',
 		'npcink-cloud-addon'
 	)
-	&& '执行测试可能消耗额度。测试使用当前 WordPress AI 配置；请求日志只记录每次请求由哪个模型处理。模型由 Npcink Cloud 按任务自动选择，这里没有需要你选择的模型。' === Npcink_Cloud_Addon_Localization::filter_gettext(
-		'Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here.',
-		'Invoking a test may consume credits. Tests use the current WordPress AI configuration; the request log records which model handled each request. Npcink Cloud chooses the model for each task, so there is no model selection to make here.',
+	&& '可能消耗额度，模型由云端选择。' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'May use credits. Cloud picks the model.',
+		'May use credits. Cloud picks the model.',
+		'npcink-cloud-addon'
+	)
+	&& '测文本' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Test text',
+		'Test text',
+		'npcink-cloud-addon'
+	)
+	&& '高级：打开能力浏览器' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Advanced: Open Ability Explorer',
+		'Advanced: Open Ability Explorer',
+		'npcink-cloud-addon'
+	)
+	&& '已生成' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Generated',
+		'Generated',
+		'npcink-cloud-addon'
+	)
+	&& '查看原始响应' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'View raw response',
+		'View raw response',
+		'npcink-cloud-addon'
+	)
+	&& '从媒体库选择' === Npcink_Cloud_Addon_Localization::filter_gettext(
+		'Select from media library',
+		'Select from media library',
 		'npcink-cloud-addon'
 	),
 	'Addon localization fallback covers the connected summary, troubleshooting, readiness, monitoring-consent, and hosted model ownership surfaces.'

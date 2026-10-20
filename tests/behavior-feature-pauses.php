@@ -32,8 +32,8 @@ $pause_client->execute_runtime( array( 'ability_name' => 'ordinary-title' ) );
 maca_assert( 2 === count( $GLOBALS['maca_http_requests'] ), 'Ordinary runtime transport remains available.' );
 
 maca_assert(
-	Npcink_Cloud_Discoverability_Pause::is_admin_surface_paused( 'wordpress_ai_generation_tests' ),
-	'Default release policy hides WordPress AI generation-test entry points.'
+	! Npcink_Cloud_Discoverability_Pause::is_admin_surface_paused( 'wordpress_ai_generation_tests' ),
+	'Default release policy exposes WordPress AI generation-test entry points (P0 unpause).'
 );
 maca_assert(
 	! Npcink_Cloud_Discoverability_Pause::is_admin_surface_paused( 'unknown_surface' ),
