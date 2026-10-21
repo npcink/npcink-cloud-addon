@@ -165,8 +165,10 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 
 			$locale_data = array(
 				'' => array(
-					'domain' => self::AI_TEXT_DOMAIN,
-					'lang'   => 'zh_CN',
+					'domain'       => self::AI_TEXT_DOMAIN,
+					'lang'         => 'zh_CN',
+					// Chinese has one plural form; without this, JS _n() picks index 1 and falls back to English.
+					'plural_forms' => 'nplurals=1; plural=0;',
 				),
 			);
 			foreach ( self::translations() as $source => $translation ) {
@@ -594,8 +596,8 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'Editorial Notes' => '编辑建议',
 				'Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, Grammar, and SEO. Requires an AI connector that includes support for text generation models.' => '按区块为文章添加编辑建议，覆盖无障碍、可读性和语法。需要支持文本生成模型的 AI 连接器。',
 				'Generate Editorial Note' => '生成编辑建议',
-				'%d suggestion added. Save to keep changes.' => '已添加 %d 条建议。请保存以保留更改。',
-				'%d suggestions added. Save to keep changes.' => '已添加 %d 条建议。请保存以保留更改。',
+				'%d suggestion added. Save to keep changes.' => '已添加 %d 条建议，保存后生效。',
+				'%d suggestions added. Save to keep changes.' => '已添加 %d 条建议，保存后生效。',
 				'%d suggestion added, view those Notes <a>here</a>.' => '已添加 %d 条建议，可在<a>此处</a>查看这些建议。',
 				'%d suggestions added, view those Notes <a>here</a>.' => '已添加 %d 条建议，可在<a>此处</a>查看这些建议。',
 				'No new suggestions found.' => '未找到新建议。',

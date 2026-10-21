@@ -514,7 +514,7 @@ maca_assert(
 		'Generate Editorial Note',
 		'ai'
 	)
-	&& '已添加 %d 条建议。请保存以保留更改。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
+	&& '已添加 %d 条建议，保存后生效。' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'%d suggestions added. Save to keep changes.',
 		'%d suggestions added. Save to keep changes.',
 		'ai'
@@ -1376,6 +1376,13 @@ foreach ( $audit_gap_translations as $source => $expected ) {
 		'AI localization includes audited UI copy in the JS locale payload: ' . $source
 	);
 }
+maca_assert(
+	'已添加 %d 条建议，保存后生效。' === ( $locale_data['%d suggestion added. Save to keep changes.'][0] ?? '' )
+	&& 'nplurals=1; plural=0;' === ( $locale_data['']['plural_forms'] ?? '' )
+	&& '已添加 %d 条建议，保存后生效。' === ( $locale_data['%d suggestions added. Save to keep changes.'][0] ?? '' )
+	&& 'ai' === ( $locale_data['']['domain'] ?? '' ),
+	'AI localization: editorial-notes success plural ships as one Chinese form under the singular key with a one-form plural header in the ai domain only.'
+);
 
 maca_assert(
 	'npcink-cloud-addon-ai-plugin-localization' === ( $enqueued_script['handle'] ?? '' )
