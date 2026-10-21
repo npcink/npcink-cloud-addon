@@ -1095,6 +1095,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<section class="npcink-cloud-section npcink-cloud-tab-panel npcink-cloud-overview">
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
+				<?php $first_connection = (bool) get_transient( Npcink_Cloud_Settings_Actions::FIRST_CONNECTION_TRANSIENT ); ?>
+				<?php if ( $first_connection ) { delete_transient( Npcink_Cloud_Settings_Actions::FIRST_CONNECTION_TRANSIENT ); } ?>
 				<?php $topup_url = (string) ( is_array( $entitlement['links'] ?? null ) ? ( $entitlement['links']['billing_url'] ?? '' ) : '' ); ?>
 				<?php if ( ! empty( $credit_metric['low'] ) ) : ?>
 					<div class="card npcink-cloud-card npcink-cloud-overview-status npcink-cloud-low-balance">
@@ -1104,7 +1106,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<?php endif; ?>
 					</div>
 				<?php else : ?>
-				<div class="card npcink-cloud-card npcink-cloud-overview-status"><?php self::render_status_line( __( 'Connected. AI features are ready to use.', 'npcink-cloud-addon' ), 'ok' ); ?></div>
+				<div class="card npcink-cloud-card npcink-cloud-overview-status"><?php self::render_status_line( $first_connection ? __( 'Connected. You can now use AI in the post editor.', 'npcink-cloud-addon' ) : __( 'Connected. AI features are ready to use.', 'npcink-cloud-addon' ), 'ok' ); ?></div>
 				<?php endif; ?>
 				<?php self::render_generation_test_links( true ); ?>
 				<div class="npcink-cloud-overview-entitlements" aria-labelledby="npcink-cloud-entitlements-title">

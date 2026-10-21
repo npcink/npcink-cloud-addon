@@ -243,10 +243,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			}
 
 			$first_connection = ! $was_verified && 'change_account' !== (string) ( $auth_state['flow'] ?? '' );
-			self::persist_and_verify_settings(
-				$settings,
-				! $first_connection ? __( 'Connected to Npcink Cloud.', 'npcink-cloud-addon' ) : __( 'Connected. You can now use AI in the post editor.', 'npcink-cloud-addon' )
-			);
+			// First connection: no notice; the Overview top card says it once instead.
+			self::persist_and_verify_settings( $settings, $first_connection ? '' : __( 'Connected to Npcink Cloud.', 'npcink-cloud-addon' ) );
+			if ( $first_connection ) {
+				set_transient( self::FIRST_CONNECTION_TRANSIENT, 1, 10 * MINUTE_IN_SECONDS );
+			}
 			self::maybe_prompt_for_monitoring_consent( $was_verified );
 
 			// First connection lands on Overview (ready state + where to try AI);
@@ -583,7 +584,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 					return;
 				}
 
-				self::set_admin_notice( 'success', $success_message );
+				if ( '' !== $success_message ) {
+					self::set_admin_notice( 'success', $success_message );
+				}
 				return;
 			}
 
@@ -702,6 +705,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 * @var string
 		 */
 		private static $authorization_flow = '';
+
+		/**
+		 * One-shot marker: the next Overview render uses the first-connection wording.
+		 */
+		public const FIRST_CONNECTION_TRANSIENT = 'npcink_cloud_addon_first_connection';
 
 		/**
 		 * Creates a short-lived local authorization state.
