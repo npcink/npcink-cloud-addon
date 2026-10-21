@@ -242,13 +242,17 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				self::redirect_to_page( 'status' );
 			}
 
-			self::persist_and_verify_settings( $settings, __( 'Connected to Npcink Cloud.', 'npcink-cloud-addon' ) );
+			$first_connection = ! $was_verified && 'change_account' !== (string) ( $auth_state['flow'] ?? '' );
+			// First connection: no notice; the Overview top card says it once instead.
+			self::persist_and_verify_settings( $settings, $first_connection ? '' : __( 'Connected to Npcink Cloud.', 'npcink-cloud-addon' ) );
+			if ( $first_connection ) {
+				set_transient( self::FIRST_CONNECTION_TRANSIENT, 1, 10 * MINUTE_IN_SECONDS );
+			}
 			self::maybe_prompt_for_monitoring_consent( $was_verified );
 
-			// Land on Connection so the verified identity and success notice are
-			// visible right after (re)authorization. A pending monitoring prompt
-			// stays queued for Overview.
-			self::redirect_to_page( 'connection' );
+			// First connection lands on Overview (ready state + where to try AI);
+			// a reconnect or account change lands on Connection to show the identity.
+			self::redirect_to_page( $first_connection ? '' : 'connection' );
 		}
 
 		/**
@@ -367,6 +371,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				'info',
 				__( 'Disconnected from the previous account. Choose an account in Npcink Cloud.', 'npcink-cloud-addon' )
 			);
+			self::$authorization_flow = 'change_account';
 			self::redirect_to_cloud_authorization( $base_url );
 		}
 
@@ -579,7 +584,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 					return;
 				}
 
-				self::set_admin_notice( 'success', $success_message );
+				if ( '' !== $success_message ) {
+					self::set_admin_notice( 'success', $success_message );
+				}
 				return;
 			}
 
@@ -693,6 +700,18 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		}
 
 		/**
+		 * Authorization flow tag stored with the state ('' or 'change_account').
+		 *
+		 * @var string
+		 */
+		private static $authorization_flow = '';
+
+		/**
+		 * One-shot marker: the next Overview render uses the first-connection wording.
+		 */
+		public const FIRST_CONNECTION_TRANSIENT = 'npcink_cloud_addon_first_connection';
+
+		/**
 		 * Creates a short-lived local authorization state.
 		 *
 		 * @param string $base_url Cloud base URL.
@@ -705,6 +724,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				array(
 					'base_url' => $base_url,
 					'created'  => time(),
+					'flow'     => self::$authorization_flow,
 				),
 				self::AUTH_STATE_TTL_SECONDS
 			);

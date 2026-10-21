@@ -100,7 +100,7 @@ connector classes so they cannot grow unnoticed:
   updating while retaining failures in diagnostics and restoring attention after delivery fails;
   raised by 23 lines for shared escaped AJAX status fragments, stale-evidence gating,
   and failure-only retry feedback)
-- `includes/class-cloud-settings-actions.php` — 1230 lines (settings request
+- `includes/class-cloud-settings-actions.php` — 1250 lines (settings request
   handlers and their transient state; the render class stays a projection;
   raised from 1106 with reason: the 2026-10-11 first-connection verify-failure
   path keeps exchanged credentials in the unverified state instead of
@@ -488,3 +488,5 @@ actions, options, or public APIs are removed.
 2026-10-21 connection layout: settings-page ceiling 2760→2800 for a single card per state (status line + one main action + one description), shared status-line helper, folded More information / bottom Advanced settings, and hiding the tab bar before verification.
 2026-10-21 checks-simple: settings-page ceiling 2760→2800 for a plain-language Checks status line with one main action, and folding existing check tables/tests into a default-collapsed "More information (for contacting support)" with Copy information. Status is projected only from stored Cloud-reported state; no new WordPress-side judgments.
 2026-10-21 checks-simple on connection layout: settings-page ceiling 2800→2840 so the Checks status reuses the shared card and status-line helper.
+
+2026-10-21 first-connection onboarding: settings-actions 1230→1250 for the authorization flow tag that keeps change-account landing on Connection while a first connection lands on Overview.

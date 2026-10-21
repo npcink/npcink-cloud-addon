@@ -1095,6 +1095,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<section class="npcink-cloud-section npcink-cloud-tab-panel npcink-cloud-overview">
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
+				<?php $first_connection = (bool) get_transient( Npcink_Cloud_Settings_Actions::FIRST_CONNECTION_TRANSIENT ); ?>
+				<?php if ( $first_connection ) { delete_transient( Npcink_Cloud_Settings_Actions::FIRST_CONNECTION_TRANSIENT ); } ?>
 				<?php $topup_url = (string) ( is_array( $entitlement['links'] ?? null ) ? ( $entitlement['links']['billing_url'] ?? '' ) : '' ); ?>
 				<?php if ( ! empty( $credit_metric['low'] ) ) : ?>
 					<div class="card npcink-cloud-card npcink-cloud-overview-status npcink-cloud-low-balance">
@@ -1104,7 +1106,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<?php endif; ?>
 					</div>
 				<?php else : ?>
-				<div class="card npcink-cloud-card npcink-cloud-overview-status"><?php self::render_status_line( __( 'Connected. AI features are ready to use.', 'npcink-cloud-addon' ), 'ok' ); ?></div>
+				<div class="card npcink-cloud-card npcink-cloud-overview-status"><?php self::render_status_line( $first_connection ? __( 'Connected. You can now use AI in the post editor.', 'npcink-cloud-addon' ) : __( 'Connected. AI features are ready to use.', 'npcink-cloud-addon' ), 'ok' ); ?></div>
 				<?php endif; ?>
 				<?php self::render_generation_test_links( true ); ?>
 				<div class="npcink-cloud-overview-entitlements" aria-labelledby="npcink-cloud-entitlements-title">
@@ -1686,7 +1688,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<div class="npcink-cloud-connect-actions">
 						<?php self::render_authorization_form( __( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary button-hero' ); ?>
 					</div>
-					<p class="description"><?php esc_html_e( 'Npcink Cloud opens in a new tab. Choose your account there, then come back here.', 'npcink-cloud-addon' ); ?></p>
+					<p class="description"><?php esc_html_e( 'You will go to Npcink Cloud to confirm, then come back here automatically.', 'npcink-cloud-addon' ); ?></p>
 				<?php endif; ?>
 			</div>
 			<details class="npcink-cloud-connect-more npcink-cloud-fold" aria-label="<?php esc_attr_e( 'Connection context', 'npcink-cloud-addon' ); ?>">
@@ -1747,7 +1749,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 */
 		private static function render_authorization_form( string $label, string $class_name ): void {
 			?>
-			<form class="npcink-cloud-authorization-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" target="_blank">
+			<form class="npcink-cloud-authorization-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<?php wp_nonce_field( Npcink_Cloud_Settings_Actions::ACTION_START_AUTH ); ?>
 				<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_START_AUTH ); ?>" />
 				<button type="submit" class="<?php echo esc_attr( $class_name ); ?>"><?php echo esc_html( $label ); ?></button>
