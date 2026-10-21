@@ -1311,7 +1311,46 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$portal_status_url = untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal';
 			$readiness_status = sanitize_key( (string) ( $readiness['bounded_status'] ?? $readiness['status'] ?? '' ) );
 			$readiness_failed = ! empty( $readiness ) && 'ready' !== $readiness_status;
+			// Plain status projected only from Cloud-reported state already stored locally.
+			if ( ! $credentials_ok ) {
+				$simple_tone = 'warn';
+				$simple_message = __( 'This site is not connected yet.', 'npcink-cloud-addon' );
+				$simple_hint = __( 'Connect it to Npcink Cloud to use AI features.', 'npcink-cloud-addon' );
+			} elseif ( ! $connection_ok ) {
+				$simple_tone = 'warn';
+				$simple_message = __( 'The connection needs to be confirmed again.', 'npcink-cloud-addon' );
+				$simple_hint = __( 'Click the button below and confirm in Npcink Cloud to restore it.', 'npcink-cloud-addon' );
+			} elseif ( $readiness_failed || 'unavailable' === sanitize_key( (string) ( $entitlement['state'] ?? '' ) ) ) {
+				$simple_tone = 'bad';
+				$simple_message = __( 'The service has a problem we cannot fix automatically.', 'npcink-cloud-addon' );
+				$simple_hint = __( 'Please contact support and include the information under More information.', 'npcink-cloud-addon' );
+			} else {
+				$simple_tone = 'ok';
+				$simple_message = __( 'Everything is working. AI features are ready to use.', 'npcink-cloud-addon' );
+				$simple_hint = sprintf(
+					/* translators: %s: last check time. */
+					__( 'Last checked: %s', 'npcink-cloud-addon' ),
+					self::format_datetime_value( (string) ( $settings['verified_at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) )
+				);
+			}
 			?>
+			<div class="npcink-cloud-checks-simple npcink-cloud-checks-simple--<?php echo esc_attr( $simple_tone ); ?>">
+				<p class="npcink-cloud-checks-simple__status"><span class="npcink-cloud-checks-simple__dot" aria-hidden="true"></span><strong><?php echo esc_html( $simple_message ); ?></strong></p>
+				<p class="description"><?php echo esc_html( $simple_hint ); ?></p>
+				<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
+					<?php if ( 'warn' === $simple_tone ) : ?>
+						<a class="button button-primary" href="<?php echo esc_url( self::tab_url( 'connection' ) ); ?>"><?php esc_html_e( 'Reconnect', 'npcink-cloud-addon' ); ?></a>
+					<?php elseif ( 'bad' === $simple_tone ) : ?>
+						<a class="button button-primary" href="<?php echo esc_url( $portal_status_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contact support', 'npcink-cloud-addon' ); ?></a>
+					<?php else : ?>
+						<?php self::render_reverify_form( $settings, __( 'Check again', 'npcink-cloud-addon' ) ); ?>
+					<?php endif; ?>
+				</div>
+			</div>
+			<details class="npcink-cloud-advanced-detail npcink-cloud-checks-more" id="npcink-cloud-checks-more">
+				<summary><?php esc_html_e( 'More information (for contacting support)', 'npcink-cloud-addon' ); ?></summary>
+				<div class="npcink-cloud-advanced-detail__body">
+				<p><button type="button" class="button button-secondary" onclick="var d=document.getElementById('npcink-cloud-checks-more');var t=d?d.querySelector('.npcink-cloud-advanced-detail__body').innerText:'';if(navigator.clipboard){navigator.clipboard.writeText(t);}this.textContent=<?php echo wp_json_encode( __( 'Copied', 'npcink-cloud-addon' ) ); ?>;"><?php esc_html_e( 'Copy information', 'npcink-cloud-addon' ); ?></button></p>
 			<div class="npcink-cloud-section-heading npcink-cloud-checks-heading">
 				<h3 class="screen-reader-text"><?php esc_html_e( 'Checks', 'npcink-cloud-addon' ); ?></h3>
 				<p class="description npcink-cloud-checks-heading__hint">
@@ -1388,6 +1427,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<?php if ( $site_knowledge_needs_attention ) : ?>
 				<?php self::render_site_knowledge_bridge_health_detail( $site_knowledge ); ?>
 			<?php endif; ?>
+				</div>
+			</details>
 			<?php
 		}
 
