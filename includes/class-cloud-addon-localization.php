@@ -483,6 +483,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Connected. AI features are ready to use.' => '已连接，AI 功能可以使用。',
 				'AI credits are running low.' => 'AI 积分快用完了',
 				'Top up on Npcink Cloud' => '去 Npcink Cloud 充值',
+				'The AI request did not succeed. Try again later; if it keeps failing, copy the information on the Checks tab and contact support.' => 'AI 请求没有成功。请稍后再试，若一直失败请到「检查」页复制信息联系客服。',
 				'Your AI credits have run out. Top up on Npcink Cloud, then try again.' => 'AI 积分已用完。请去 Npcink Cloud 充值后再试。',
 				'This site is no longer connected to Npcink Cloud. Reconnect it on the Npcink AI > Cloud Addon page, then try again.' => '此站点已与 Npcink Cloud 断开。请在“Npcink AI > 云端扩展”页面重新连接后再试。',
 				'This site is turned off in Npcink Cloud. Turn it on in Npcink Cloud, then try again.' => '此站点在 Npcink Cloud 中已停用。请在 Npcink Cloud 中启用后再试。',

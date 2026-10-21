@@ -335,7 +335,7 @@ namespace {
 	try {
 		$image_parser->invoke( $image_model, $expired_artifact, 'trace-expired-image-result' );
 	} catch ( \WordPress\AiClient\Common\Exception\RuntimeException $error ) {
-		$expired_artifact_code = $error->getMessage();
+		$expired_artifact_code = maca_ai_error_text( $error );
 	}
 	maca_assert(
 		false !== strpos( $expired_artifact_code, 'cloud_wp_ai_image_artifact_purged' )
@@ -404,7 +404,7 @@ namespace {
 	try {
 		$image_parser->invoke( $image_model, $image_result, 'trace-changed-expiry-ack' );
 	} catch ( \WordPress\AiClient\Common\Exception\RuntimeException $error ) {
-		$changed_expiry_rejected = str_contains( $error->getMessage(), 'cloud_wp_ai_image_delivery_ack_invalid' );
+		$changed_expiry_rejected = str_contains( maca_ai_error_text( $error ), 'cloud_wp_ai_image_delivery_ack_invalid' );
 	}
 	maca_assert(
 		$changed_expiry_rejected && 2 === count( $GLOBALS['maca_http_requests'] ),
@@ -413,10 +413,11 @@ namespace {
 
 
 	maca_assert(
-		str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'cloud_upstream_error', 'cloud_upstream_error:poll', 'database connection pool exhausted' ), 'cloud_upstream_error-poll' )
-		&& false === strpos( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'cloud_upstream_error', 'cloud_upstream_error:poll', 'database connection pool exhausted' ), 'could not be reached' )
+		str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'cloud_upstream_error', 'cloud_upstream_error:poll', 'database connection pool exhausted' ), 'did not succeed' )
+		&& 'cloud_upstream_error-poll' === ( get_option( Npcink_Cloud_WordPress_AI_Connector::LAST_AI_ERROR_OPTION, array() )['code'] ?? '' )
 		&& str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'http_request_failed', '', 'curl error 28' ), 'could not be reached' )
-		&& str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_failed', 'cloud_upstream_error:poll', 'detail https://example.test/signed?token=abc' ), '[url]' ),
+		&& false === strpos( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_failed', 'cloud_upstream_error:poll', 'detail https://example.test/signed?token=abc' ), 'example.test' )
+		&& false === strpos( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_failed', 'cloud_upstream_error:poll', 'detail' ), '(' ),
 		'Behavior: runtime failure classification keys off structured codes with a readable code-stage separator, and connector detail strips request URLs.'
 	);
 
@@ -438,7 +439,7 @@ namespace {
 	maca_assert(
 		$plain_ok
 		&& 'cloud_service_unavailable' === ( $last_ai_error['code'] ?? '' )
-		&& str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'cloud_upstream_error', '', '' ), 'cloud_upstream_error' ),
+		&& false === strpos( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'cloud_upstream_error', '', '' ), 'cloud_upstream_error' ),
 		'Behavior: common Cloud AI errors map to one plain sentence plus the next step; the raw code is kept only for Copy information.'
 	);
 
