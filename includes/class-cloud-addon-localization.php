@@ -448,7 +448,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'The connection needs to be confirmed again.' => '连接需要重新确认。',
 				'Click the button below and confirm in Npcink Cloud to restore it.' => '点下面的按钮，在 Npcink Cloud 里确认一下即可恢复。',
 				'The service has a problem we cannot fix automatically.' => '服务暂时有问题，无法自动修复。',
-				'Please contact support and include the information under More information.' => '请联系客服，并附上“更多信息”里的内容。',
+				'Please contact support and include the information under More information.' => '请联系客服，并附上「更多信息」里的内容。',
 				'Everything is working. AI features are ready to use.' => '一切正常，AI 功能可以使用。',
 				'Last checked: %s' => '上次检查：%s',
 				'Contact support' => '联系客服',
