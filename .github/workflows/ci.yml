@@ -115,8 +115,19 @@ jobs:
         with:
           node-version: '22'
 
+      # Keep pinned WordPress / WordPress AI zips across runs so a transient
+      # upstream 403 does not block a blocking lane. The moving develop lane is
+      # never cached.
+      - name: Cache WordPress and WordPress AI archives
+        if: matrix.ai_version != 'develop'
+        uses: actions/cache@v4
+        with:
+          path: ~/.wordpress-playground
+          key: wp-ai-archives-v1-wp${{ matrix.wordpress }}-ai${{ matrix.ai_version }}
+
       - name: Run compatibility lane
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           WP_AI_COMPAT_LANE: ${{ matrix.lane }}
           NPCINK_COMPAT_PLAYGROUND_PORT: 9427
           NPCINK_COMPAT_WORDPRESS_VERSION: ${{ matrix.wordpress }}

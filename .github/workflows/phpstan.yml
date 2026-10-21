@@ -1,10 +1,10 @@
-# PHPStan advisory gate for first-party connector code (level 5 + baseline).
+# PHPStan gate for first-party connector code (level 5 + baseline).
 #
-# Enrollment follows the OpenCodeReview convention in ocr-review.yml: this
-# workflow posts results on PRs but must never join required checks. Treat
-# findings as a second opinion: fix real defects or record why they are
+# A red run now fails the workflow. Fix real defects or record why they are
 # acceptable, and shrink phpstan-baseline.neon over time instead of growing it.
-name: PHPStan (advisory)
+# When a baseline entry stops matching, regenerate it with
+# `vendor/bin/phpstan analyse --generate-baseline phpstan-baseline.neon`.
+name: PHPStan
 
 on:
   pull_request:
@@ -21,12 +21,9 @@ concurrency:
 
 jobs:
   phpstan:
-    name: PHPStan level 5 (advisory)
+    name: PHPStan level 5
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Advisory only: a red run must not block merge. Remove together with the
-    # baseline once the level-5 debt is paid down.
-    continue-on-error: true
 
     steps:
       - name: Checkout

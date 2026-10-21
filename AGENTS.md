@@ -142,7 +142,7 @@ acceptable. Follows AI Code Review Standard v1 in `npcink-workflow-toolbox`
 `docs/platform/ai-code-review-standard-v1.md`; the CI workflow posting the same
 review on pull requests is advisory and never a required check.
 
-Advisory static analysis gate, under the same advisory-only contract:
+Static analysis gate:
 
 ```bash
 composer run stan
@@ -150,8 +150,8 @@ composer run stan
 
 It runs PHPStan level 5 over first-party connector code against
 `phpstan-baseline.neon`; shrink the baseline instead of growing it. The
-`phpstan.yml` CI workflow posts the same result and must never join required
-checks.
+`phpstan.yml` CI workflow ("PHPStan level 5") fails on new findings; whether
+it is a required branch check is a repository-settings decision.
 
 Also run `composer run smoke:playground` when a change affects plugin bootstrap,
 activation, the public connector API, the default credential/connector state,

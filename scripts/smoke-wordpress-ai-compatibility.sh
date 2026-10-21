@@ -97,6 +97,8 @@ if [ ! -f "${PLAYGROUND_WP_CACHE_FILE}" ] || ! unzip -tqq "${PLAYGROUND_WP_CACHE
 	curl --location --fail --silent --show-error --retry 8 --retry-delay 20 --retry-max-time 900 --retry-all-errors --connect-timeout 15 --max-time 180 "${WP_URL}" --output "${PLAYGROUND_WP_CACHE_FILE}.partial"
 	unzip -tqq "${PLAYGROUND_WP_CACHE_FILE}.partial" >/dev/null 2>&1 || fail "WordPress ${WP_VERSION} archive failed ZIP verification."
 	mv "${PLAYGROUND_WP_CACHE_FILE}.partial" "${PLAYGROUND_WP_CACHE_FILE}"
+else
+	echo "[prepare] Using cached WordPress ${WP_VERSION} archive."
 fi
 
 AI_CACHE_KEY="ai-${AI_VERSION//[^A-Za-z0-9._-]/-}"
@@ -104,7 +106,14 @@ AI_CACHE_FILE="${PLAYGROUND_CACHE_ROOT}/${AI_CACHE_KEY}.zip"
 AI_ZIP="${TEMP_DIR}/ai.zip"
 AI_UNPACKED="${TEMP_DIR}/ai-unpacked"
 if [ ! -f "${AI_CACHE_FILE}" ] || ! unzip -tqq "${AI_CACHE_FILE}" >/dev/null 2>&1; then
-	curl --location --fail --silent --show-error --retry 8 --retry-delay 20 --retry-max-time 900 --retry-all-errors --connect-timeout 15 --max-time 180 -H 'Accept: application/octet-stream' "${AI_URL}" --output "${AI_CACHE_FILE}.partial" || {
+	echo "[prepare] Downloading WordPress AI ${AI_VERSION} into the persistent Playground cache."
+	AI_CURL_AUTH=()
+	# Anonymous api.github.com asset reads share the runner IP rate limit and
+	# return 403; authenticate with the job token when CI provides one.
+	case "${AI_URL}" in
+		https://api.github.com/*) [ -n "${GITHUB_TOKEN:-}" ] && AI_CURL_AUTH=(-H "Authorization: Bearer ${GITHUB_TOKEN}") ;;
+	esac
+	curl --location --fail --silent --show-error --retry 8 --retry-delay 20 --retry-max-time 900 --retry-all-errors --connect-timeout 15 --max-time 180 -H 'Accept: application/octet-stream' ${AI_CURL_AUTH[@]+"${AI_CURL_AUTH[@]}"} "${AI_URL}" --output "${AI_CACHE_FILE}.partial" || {
 		if [ "${GATE}" = 'non_blocking_warning' ]; then
 			warn "Could not download WordPress AI ${AI_VERSION}; upstream lane remains warning-only."
 			exit 0
@@ -113,6 +122,8 @@ if [ ! -f "${AI_CACHE_FILE}" ] || ! unzip -tqq "${AI_CACHE_FILE}" >/dev/null 2>&
 	}
 	unzip -tqq "${AI_CACHE_FILE}.partial" >/dev/null 2>&1 || fail "WordPress AI ${AI_VERSION} archive failed ZIP verification."
 	mv "${AI_CACHE_FILE}.partial" "${AI_CACHE_FILE}"
+else
+	echo "[prepare] Using cached WordPress AI ${AI_VERSION} archive."
 fi
 cp "${AI_CACHE_FILE}" "${AI_ZIP}"
 unzip -q "${AI_ZIP}" -d "${AI_UNPACKED}" || {
