@@ -818,13 +818,25 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		public const LAST_AI_ERROR_OPTION = 'npcink_cloud_addon_last_ai_error';
 
 		/**
+		 * Sanitizes a stable error code, keeping dots and dashes.
+		 *
+		 * @param string $code Raw code.
+		 * @return string
+		 */
+		public static function sanitize_error_code( string $code ): string {
+			return substr( (string) preg_replace( '/[^a-z0-9_.\-]/', '', strtolower( $code ) ), 0, 120 );
+		}
+
+		/**
 		 * Stores the last AI request error code (code and time only; never content or secrets).
 		 *
 		 * @param string $stable_code Stable error code.
 		 * @return void
 		 */
 		private static function remember_last_ai_error( string $stable_code ): void {
-			$code = sanitize_key( str_replace( ':', '-', $stable_code ) );
+			// Keep dots so Cloud codes such as commercial.quota_exceeded stay
+			// readable in Copy information; sanitize_key() would strip them.
+			$code = self::sanitize_error_code( str_replace( ':', '-', $stable_code ) );
 			if ( '' === $code || ! function_exists( 'update_option' ) ) {
 				return;
 			}
