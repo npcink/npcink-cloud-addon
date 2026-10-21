@@ -1350,7 +1350,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<details class="npcink-cloud-advanced-detail npcink-cloud-checks-more" id="npcink-cloud-checks-more">
 				<summary><?php esc_html_e( 'More information (for contacting support)', 'npcink-cloud-addon' ); ?></summary>
 				<div class="npcink-cloud-advanced-detail__body">
-				<p><button type="button" class="button button-secondary" onclick="var d=document.getElementById('npcink-cloud-checks-more');var t=d?d.querySelector('.npcink-cloud-advanced-detail__body').innerText:'';if(navigator.clipboard){navigator.clipboard.writeText(t);}this.textContent=<?php echo wp_json_encode( __( 'Copied', 'npcink-cloud-addon' ) ); ?>;"><?php esc_html_e( 'Copy information', 'npcink-cloud-addon' ); ?></button></p>
+				<p><button type="button" class="button button-secondary" data-copied-label="<?php echo esc_attr__( 'Copied', 'npcink-cloud-addon' ); ?>" onclick="var b=this,d=b.closest('.npcink-cloud-advanced-detail__body'),n=d.querySelectorAll('details'),o=[];n.forEach(function(x){o.push(x.open);x.open=true;});var t=d.innerText.replace(b.innerText,'').trim();n.forEach(function(x,i){x.open=o[i];});var done=function(){b.textContent=b.getAttribute('data-copied-label');};if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(done);}else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done();}"><?php esc_html_e( 'Copy information', 'npcink-cloud-addon' ); ?></button></p>
 			<div class="npcink-cloud-section-heading npcink-cloud-checks-heading">
 				<h3 class="screen-reader-text"><?php esc_html_e( 'Checks', 'npcink-cloud-addon' ); ?></h3>
 				<p class="description npcink-cloud-checks-heading__hint">
