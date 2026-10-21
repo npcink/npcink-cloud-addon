@@ -805,7 +805,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			}
 			?>
 			<h3 class="screen-reader-text"><?php esc_html_e( 'Connection management', 'npcink-cloud-addon' ); ?></h3>
-			<p class="description"><?php esc_html_e( 'Changing accounts clears local credentials, then opens Cloud so you can authorize with the selected account.', 'npcink-cloud-addon' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Changing the account disconnects this site first, then opens Npcink Cloud so you can pick an account.', 'npcink-cloud-addon' ); ?></p>
 			<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
 				<?php if ( ! Npcink_Cloud_Addon_Settings::is_verified() || $service_needs_attention ) : ?>
 					<?php self::render_reverify_form( $settings, __( 'Check connection', 'npcink-cloud-addon' ) ); ?>
@@ -849,11 +849,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<strong class="npcink-cloud-connect-context__value"><?php echo esc_html( (string) ( $state['label'] ?? '' ) ); ?></strong>
 				</div>
 				<div class="npcink-cloud-connect-context__item">
-					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Cloud', 'npcink-cloud-addon' ); ?></span>
-					<code class="npcink-cloud-connect-context__value"><?php echo esc_html( self::format_setting_value( $base_url, __( 'Not set', 'npcink-cloud-addon' ) ) ); ?></code>
-				</div>
-				<div class="npcink-cloud-connect-context__item">
-					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Last verified', 'npcink-cloud-addon' ); ?></span>
+					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Last checked', 'npcink-cloud-addon' ); ?></span>
 					<span class="npcink-cloud-connect-context__value"><?php echo esc_html( $verified_at ); ?></span>
 				</div>
 				<?php if ( '' !== $package_label ) : ?>
@@ -862,10 +858,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<span class="npcink-cloud-connect-context__value"><?php echo esc_html( $package_label ); ?></span>
 					</div>
 				<?php endif; ?>
-				<p class="description"><?php esc_html_e( 'Free service and AI credits belong to the Cloud account selected during authorization, not this site. Open Cloud to review the signed-in account.', 'npcink-cloud-addon' ); ?></p>
-				<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
-					<?php self::render_portal_link( $settings ); ?>
-				</div>
+				<details class="npcink-cloud-connection-identity__more">
+					<summary><?php esc_html_e( 'More information', 'npcink-cloud-addon' ); ?></summary>
+					<p class="description"><?php esc_html_e( 'Free credits belong to the account you chose when connecting, not to this site.', 'npcink-cloud-addon' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Service address', 'npcink-cloud-addon' ); ?>: <code><?php echo esc_html( self::format_setting_value( $base_url, __( 'Not set', 'npcink-cloud-addon' ) ) ); ?></code></p>
+					<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
+						<?php self::render_portal_link( $settings ); ?>
+					</div>
+				</details>
 			</section>
 			<?php
 		}
@@ -885,15 +885,15 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<button
 					type="submit"
 					class="<?php echo esc_attr( $class_name ); ?>"
-					onclick="if (!window.confirm('<?php echo esc_js( __( 'Clear local Cloud credentials and open Cloud to choose an account? Cancel keeps the current connection. Finish authorization in Cloud to reconnect.', 'npcink-cloud-addon' ) ); ?>')) { return false; } this.form.elements.namedItem('js_confirmation').value = '1'; return true;"
+					onclick="if (!window.confirm('<?php echo esc_js( __( 'Change account? This site will be disconnected first, then Npcink Cloud opens so you can pick an account. Cancel keeps everything as it is.', 'npcink-cloud-addon' ) ); ?>')) { return false; } this.form.elements.namedItem('js_confirmation').value = '1'; return true;"
 				>
-					<?php esc_html_e( 'Change Cloud account', 'npcink-cloud-addon' ); ?>
+					<?php esc_html_e( 'Change account', 'npcink-cloud-addon' ); ?>
 				</button>
 				<noscript>
-					<p class="description"><strong><?php esc_html_e( 'Confirm local credential clear before changing the Cloud account.', 'npcink-cloud-addon' ); ?></strong></p>
+					<p class="description"><strong><?php esc_html_e( 'Confirm before changing the account.', 'npcink-cloud-addon' ); ?></strong></p>
 					<label>
 						<input type="checkbox" name="noscript_confirmation" value="1" required />
-						<?php esc_html_e( 'I understand this clears local credentials, then opens Cloud authorization.', 'npcink-cloud-addon' ); ?>
+						<?php esc_html_e( 'I understand this site will be disconnected first.', 'npcink-cloud-addon' ); ?>
 					</label>
 				</noscript>
 			</form>

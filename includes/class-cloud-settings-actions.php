@@ -350,7 +350,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			if ( ! self::has_disconnect_confirmation() ) {
 				self::set_admin_notice(
 					'error',
-					__( 'Confirm the local credential clear before changing the Cloud account.', 'npcink-cloud-addon' )
+					__( 'Confirm before changing the account.', 'npcink-cloud-addon' )
 				);
 				self::redirect_to_page( 'connection' );
 			}
@@ -364,7 +364,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			self::set_admin_notice(
 				'info',
-				__( 'Local Cloud credentials were cleared. Finish authorization in Cloud to connect with the selected account.', 'npcink-cloud-addon' )
+				__( 'This site was disconnected. Pick an account in Npcink Cloud to reconnect.', 'npcink-cloud-addon' )
 			);
 			self::redirect_to_cloud_authorization( $base_url );
 		}

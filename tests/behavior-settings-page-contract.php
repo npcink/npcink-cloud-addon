@@ -653,7 +653,7 @@ maca_assert(
 	&& false === strpos( $checks_rendered, 'npcink-cloud-checks-detail open' )
 	&& strpos( $checks_rendered, 'Credentials' ) < strpos( $checks_rendered, '<summary>' )
 	&& strpos( $checks_rendered, '<summary>' ) < strpos( $checks_rendered, 'Hosted Runtime' )
-	&& false === strpos( $checks_rendered, 'Change Cloud account' )
+	&& false === strpos( $checks_rendered, 'Change account' )
 	&& false === strpos( $checks_rendered, '<h3>Checks</h3>' )
 	&& false !== strpos( $checks_rendered, 'screen-reader-text' )
 	&& false !== strpos( $checks_rendered, 'npcink-cloud-checks-heading__hint' )
@@ -678,7 +678,7 @@ $connection_renderer->invoke(
 );
 $connection_rendered = (string) ob_get_clean();
 maca_assert(
-	false !== strpos( $connection_rendered, 'Change Cloud account' )
+	false !== strpos( $connection_rendered, 'Change account' )
 	&& false !== strpos( $connection_rendered, 'Connected Cloud identity' )
 	&& false === strpos( $connection_rendered, 'npcink-cloud-checks-table' )
 	&& false !== strpos( $connection_rendered, 'screen-reader-text' )
@@ -734,7 +734,7 @@ $connection_identity_renderer->invoke(
 $connection_identity_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $connection_identity_rendered, 'Connected Cloud identity' )
-	&& false !== strpos( $connection_identity_rendered, 'Last verified' )
+	&& false !== strpos( $connection_identity_rendered, 'Last checked' )
 	&& false !== strpos( $connection_identity_rendered, 'Plan' )
 	&& false === strpos( $connection_identity_rendered, 'Site ID' )
 	&& false === strpos( $connection_identity_rendered, 'Key ID' ),
@@ -756,7 +756,7 @@ $connection_management_rendered = (string) ob_get_clean();
 
 maca_assert(
 	false !== strpos( $connection_management_rendered, 'Connection management' )
-	&& false !== strpos( $connection_management_rendered, 'Change Cloud account' )
+	&& false !== strpos( $connection_management_rendered, 'Change account' )
 	&& false !== strpos( $connection_management_rendered, 'npcink_cloud_addon_change_account' )
 	&& false !== strpos( $connection_management_rendered, 'button button-primary' )
 	&& false !== strpos( $connection_management_rendered, 'Disconnect this site' )
@@ -764,10 +764,10 @@ maca_assert(
 		&& false !== strpos( $connection_management_rendered, 'js_confirmation' )
 		&& false !== strpos( $connection_management_rendered, 'noscript_confirmation' )
 		&& false !== strpos( $connection_management_rendered, 'Confirm local disconnect before submitting.' )
-		&& false !== strpos( $connection_management_rendered, 'Confirm local credential clear before changing the Cloud account.' )
+		&& false !== strpos( $connection_management_rendered, 'Confirm before changing the account.' )
 	&& false === strpos( $connection_management_rendered, 'Check connection' )
 	&& false === strpos( $connection_management_rendered, 'Re-verify and refresh' )
-	&& strpos( $connection_management_rendered, 'Change Cloud account' ) < strpos( $connection_management_rendered, 'Disconnect this site' )
+	&& strpos( $connection_management_rendered, 'Change account' ) < strpos( $connection_management_rendered, 'Disconnect this site' )
 	&& $http_before_connection_management === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: Connection Management presents one Cloud account action and separates the local destructive action without Cloud HTTP.'
 );
@@ -781,7 +781,7 @@ $connection_management_renderer->invoke(
 $connection_management_attention = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $connection_management_attention, 'Check connection' )
-	&& false !== strpos( $connection_management_attention, 'Change Cloud account' ),
+	&& false !== strpos( $connection_management_attention, 'Change account' ),
 	'Behavior: Connection Management reuses Check connection when service needs attention.'
 );
 
