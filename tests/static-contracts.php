@@ -1924,7 +1924,7 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'format_site_knowledge_overview' )
 	&& false !== strpos( $settings_page, 'Plan and entitlement' )
 	&& false === strpos( $settings_page, 'Re-verify and refresh' )
-	&& 2 === substr_count( $settings_page, 'self::render_reverify_form( $settings );' )
+	&& 1 === substr_count( $settings_page, 'self::render_reverify_form( $settings );' )
 	&& false !== strpos( $settings_page, "self::render_reverify_form( \$settings, __( 'Check connection'" )
 	&& false !== strpos( $admin_css, '.npcink-cloud-summary__actions > form' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-section-heading .npcink-cloud-verify-form' )

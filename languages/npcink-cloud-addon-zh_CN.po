@@ -1669,7 +1669,7 @@ msgstr "查看 Cloud 隐私和数据保留信息"
 
 #: includes/class-cloud-settings-page.php:1675
 msgid "Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud."
-msgstr "免费服务和 AI 积分属于授权时选择的 Cloud 账户，不属于此站点。同一账户可随时重新连接；更换到其他账户时，须遵守 Cloud 显示的站点移除和冷却要求。"
+msgstr "免费额度属于你连接时选择的账号，不属于此站点。换成其他账号时，请按 Npcink Cloud 页面上的提示操作。"
 
 #: includes/class-cloud-settings-page.php:1679
 msgid "Advanced connection"
@@ -3006,3 +3006,81 @@ msgstr "无文字"
 #: includes/class-cloud-settings-page.php:216
 msgid "Do not include any text or logos in the image."
 msgstr "画面中不要出现文字或标志。"
+
+msgid "Changing the account disconnects this site first, then opens Npcink Cloud so you can pick an account."
+msgstr "更换账号会先断开此站点，再打开 Npcink Cloud 让你选择账号。"
+
+msgid "Connected Cloud identity"
+msgstr "当前连接"
+
+msgid "Plan"
+msgstr "方案"
+
+msgid "More information"
+msgstr "更多信息"
+
+msgid "Connection not finished"
+msgstr "连接还没完成"
+
+msgid "Click Reconnect to finish connecting in Npcink Cloud."
+msgstr "点「重新连接」，在 Npcink Cloud 中完成连接。"
+
+msgid "Reconnect"
+msgstr "重新连接"
+
+msgid "Check again"
+msgstr "重新检查"
+
+msgid "Connect this site to Npcink Cloud to use AI features."
+msgstr "把此站点连接到 Npcink Cloud，即可使用 AI 功能。"
+
+msgid "Not connected"
+msgstr "未连接"
+
+msgid "This site is not connected yet."
+msgstr "此站点还没有连接。"
+
+msgid "Npcink Cloud opens in a new tab. Choose your account there, then come back here."
+msgstr "会在新标签页打开 Npcink Cloud，选好账号后回到这里即可。"
+
+msgid "This site"
+msgstr "此站点"
+
+msgid "Once connected, AI features turn on automatically. You can change them in Overview at any time."
+msgstr "连接后 AI 功能会自动开启，可随时在“概览”中调整。"
+
+msgid "Free credits belong to the account you choose when connecting, not to this site. To switch to another account later, follow the steps shown in Npcink Cloud."
+msgstr "免费额度属于你连接时选择的账号，不属于此站点。以后要换账号，请按 Npcink Cloud 中的提示操作。"
+
+msgid "Advanced settings"
+msgstr "高级设置"
+
+msgid "Usually not needed"
+msgstr "一般不需要"
+
+msgid "Only use this if support asks you to, or if connecting through Npcink Cloud does not work."
+msgstr "仅在客服要求，或通过 Npcink Cloud 连接不成功时使用。"
+
+msgid "Change account"
+msgstr "更换账号"
+
+msgid "Last checked"
+msgstr "上次检查"
+
+msgid "Service address"
+msgstr "服务地址"
+
+msgid "Free credits belong to the account you chose when connecting, not to this site."
+msgstr "免费额度属于你连接时选择的账号，不属于此站点。"
+
+msgid "Change account? This site will be disconnected first, then Npcink Cloud opens so you can pick an account. Cancel keeps everything as it is."
+msgstr "要更换账号吗？此站点会先断开，然后打开 Npcink Cloud 让你选择账号。点「取消」则保持不变。"
+
+msgid "Confirm before changing the account."
+msgstr "更换账号前请先确认。"
+
+msgid "I understand this site will be disconnected first."
+msgstr "我知道此站点会先断开。"
+
+msgid "This site was disconnected. Pick an account in Npcink Cloud to reconnect."
+msgstr "此站点已断开。请在 Npcink Cloud 中选择账号重新连接。"

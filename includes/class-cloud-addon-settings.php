@@ -303,8 +303,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 
 			return array(
 				'code' => '' !== $last_error ? 'configured_unavailable' : 'configured_unverified',
-				'label' => '' !== $last_error ? __( 'Unavailable', 'npcink-cloud-addon' ) : __( 'Pending verification', 'npcink-cloud-addon' ),
-				'message' => '' !== $last_error ? $last_error : __( 'Cloud settings are saved but have not passed verification.', 'npcink-cloud-addon' ),
+				'label' => '' !== $last_error ? __( 'Unavailable', 'npcink-cloud-addon' ) : __( 'Connection not finished', 'npcink-cloud-addon' ),
+				'message' => '' !== $last_error ? $last_error : __( 'Click Reconnect to finish connecting in Npcink Cloud.', 'npcink-cloud-addon' ),
 				'configured' => true,
 				'verified' => false,
 				'verified_at' => '',

@@ -565,16 +565,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php endif; ?>
 				</div>
 				<?php if ( $is_configured && ! $is_verified ) : ?>
-					<div class="npcink-cloud-summary__grid">
-						<div class="npcink-cloud-summary__item">
-							<span class="npcink-cloud-summary__label"><?php esc_html_e( 'Cloud Base URL', 'npcink-cloud-addon' ); ?></span>
-							<span class="npcink-cloud-summary__value"><?php echo esc_html( self::format_setting_value( $display_base_url, __( 'Not set', 'npcink-cloud-addon' ) ) ); ?></span>
-						</div>
-						<div class="npcink-cloud-summary__item">
-							<span class="npcink-cloud-summary__label"><?php esc_html_e( 'Last verified', 'npcink-cloud-addon' ); ?></span>
-							<span class="npcink-cloud-summary__value"><?php echo esc_html( self::format_datetime_value( (string) $settings['verified_at'], __( 'Never', 'npcink-cloud-addon' ) ) ); ?></span>
-						</div>
-					</div>
+					<details class="npcink-cloud-summary__more">
+						<summary><?php esc_html_e( 'More information', 'npcink-cloud-addon' ); ?></summary>
+						<p class="description"><?php esc_html_e( 'Service address', 'npcink-cloud-addon' ); ?>: <code><?php echo esc_html( self::format_setting_value( $display_base_url, __( 'Not set', 'npcink-cloud-addon' ) ) ); ?></code></p>
+						<p class="description"><?php esc_html_e( 'Last checked', 'npcink-cloud-addon' ); ?>: <?php echo esc_html( self::format_datetime_value( (string) $settings['verified_at'], __( 'Never', 'npcink-cloud-addon' ) ) ); ?></p>
+						<?php self::render_reverify_form( $settings, __( 'Check again', 'npcink-cloud-addon' ) ); ?>
+					</details>
 				<?php endif; ?>
 			</section>
 			<?php
@@ -732,7 +728,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php endif; ?>
 					<?php self::render_portal_link( $settings, 'icon' ); ?>
 				<?php else : ?>
-					<?php self::render_reverify_form( $settings ); ?>
+					<?php self::render_authorization_form( __( 'Reconnect', 'npcink-cloud-addon' ), 'button button-primary' ); ?>
 				<?php endif; ?>
 			</div>
 			<?php
@@ -833,8 +829,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 */
 		private static function render_connection_identity( array $settings, array $state, array $entitlement ): void {
 			$configured = ! empty( $state['configured'] );
-			if ( ! $configured && empty( $settings['base_url'] ) ) {
-				return;
+			if ( ( ! $configured && empty( $settings['base_url'] ) ) || ( $configured && empty( $state['verified'] ) ) ) {
+				return; // Top summary already shows the single status line.
 			}
 
 			$base_url = $configured
