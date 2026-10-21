@@ -55,18 +55,6 @@ parameters:
 			path: includes/class-cloud-customer-journey.php
 
 		-
-			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 2
-			path: includes/class-cloud-media-plan-projection.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between '''' and non\-empty\-string will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: includes/class-cloud-media-derivative-transport.php
-
-		-
 			message: '#^Offset ''mime'' on array\{0\: int\<0, max\>, 1\: int\<0, max\>, 2\: int, 3\: string, mime\: string, channels\?\: int, bits\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -83,6 +71,18 @@ parameters:
 			identifier: nullCoalesce.offset
 			count: 1
 			path: includes/class-cloud-media-artifact-verification.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between '''' and non\-empty\-string will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: includes/class-cloud-media-derivative-transport.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: includes/class-cloud-media-plan-projection.php
 
 		-
 			message: '#^Offset ''mime'' on array\{0\: int\<0, max\>, 1\: int\<0, max\>, 2\: int, 3\: string, mime\: string, channels\?\: int, bits\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
@@ -121,19 +121,13 @@ parameters:
 			path: includes/class-cloud-runtime-client.php
 
 		-
-			message: '#^Offset ''more'' does not exist on array\{label\: string, description\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: includes/class-cloud-settings-page.php
-
-		-
-			message: '#^Static method Npcink_Cloud_Settings_Page\:\:page_form_action_url\(\) is unused\.$#'
+			message: '#^Static method Npcink_Cloud_Settings_Page\:\:advanced_section_labels\(\) is unused\.$#'
 			identifier: method.unused
 			count: 1
 			path: includes/class-cloud-settings-page.php
 
 		-
-			message: '#^Static method Npcink_Cloud_Settings_Page\:\:tab_url\(\) is unused\.$#'
+			message: '#^Static method Npcink_Cloud_Settings_Page\:\:page_form_action_url\(\) is unused\.$#'
 			identifier: method.unused
 			count: 1
 			path: includes/class-cloud-settings-page.php
@@ -199,6 +193,12 @@ parameters:
 			path: includes/class-cloud-wordpress-ai-alt-text-handoff.php
 
 		-
+			message: '#^Strict comparison using \!\=\= between '''' and non\-falsy\-string will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: includes/class-cloud-wordpress-ai-connector.php
+
+		-
 			message: '#^Offset ''mime'' on array\{0\: int\<0, max\>, 1\: int\<0, max\>, 2\: int, 3\: string, mime\: string, channels\?\: int, bits\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -233,9 +233,3 @@ parameters:
 			identifier: nullCoalesce.property
 			count: 1
 			path: includes/class-cloud-wordpress-ai-text-model.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between '''' and non\-falsy\-string will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: includes/class-cloud-wordpress-ai-connector.php
