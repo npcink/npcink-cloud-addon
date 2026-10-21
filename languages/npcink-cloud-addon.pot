@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-21T06:16:15+00:00\n"
+"POT-Creation-Date: 2026-10-21T06:17:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -1340,14 +1340,14 @@ msgstr ""
 
 #: includes/class-cloud-settings-actions.php:422
 #: includes/class-cloud-settings-page.php:2155
-#: includes/class-cloud-settings-page.php:2462
+#: includes/class-cloud-settings-page.php:2461
 msgid "enabled"
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:422
 #: includes/class-cloud-settings-page.php:2155
-#: includes/class-cloud-settings-page.php:2463
-#: includes/class-cloud-settings-page.php:2537
+#: includes/class-cloud-settings-page.php:2462
+#: includes/class-cloud-settings-page.php:2536
 msgid "disabled"
 msgstr ""
 
@@ -2204,10 +2204,10 @@ msgstr ""
 #: includes/class-cloud-settings-page.php:2048
 #: includes/class-cloud-settings-page.php:2049
 #: includes/class-cloud-settings-page.php:2298
-#: includes/class-cloud-settings-page.php:2565
-#: includes/class-cloud-settings-page.php:2576
-#: includes/class-cloud-settings-page.php:2615
-#: includes/class-cloud-settings-page.php:2647
+#: includes/class-cloud-settings-page.php:2564
+#: includes/class-cloud-settings-page.php:2575
+#: includes/class-cloud-settings-page.php:2614
+#: includes/class-cloud-settings-page.php:2646
 msgid "unavailable"
 msgstr ""
 
@@ -2501,7 +2501,7 @@ msgid "never"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:2170
-#: includes/class-cloud-settings-page.php:2541
+#: includes/class-cloud-settings-page.php:2540
 msgid "ok"
 msgstr ""
 
@@ -2558,7 +2558,7 @@ msgid "not refreshed"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:2291
-#: includes/class-cloud-settings-page.php:2535
+#: includes/class-cloud-settings-page.php:2534
 msgid "not configured"
 msgstr ""
 
@@ -2588,77 +2588,77 @@ msgstr ""
 msgid "%1$s / %2$s · %3$d%% remaining"
 msgstr ""
 
-#. translators: 1: credits used this period, 2: remaining credits.
+#. translators: %s: credits used this period.
 #: includes/class-cloud-settings-page.php:2394
 #, php-format
-msgid "This period: %1$s credits used, %2$s left."
+msgid "This period: %s credits used."
 msgstr ""
 
 #. translators: 1: used credits, 2: remaining credits, 3: credit limit.
-#: includes/class-cloud-settings-page.php:2401
+#: includes/class-cloud-settings-page.php:2400
 #, php-format
 msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
 msgstr ""
 
 #. translators: %s: remaining credits.
-#: includes/class-cloud-settings-page.php:2409
+#: includes/class-cloud-settings-page.php:2408
 #, php-format
 msgid "%s remaining"
 msgstr ""
 
 #. translators: 1: remaining runtime runs, 2: runtime run limit.
-#: includes/class-cloud-settings-page.php:2432
+#: includes/class-cloud-settings-page.php:2431
 #, php-format
 msgid "%1$d of %2$d runs remaining"
 msgstr ""
 
 #. translators: 1: monitoring state, 2: buffered event count.
-#: includes/class-cloud-settings-page.php:2468
+#: includes/class-cloud-settings-page.php:2467
 #, php-format
 msgid "%1$s, %2$d buffered"
 msgstr ""
 
 #. translators: %d: dropped content update count.
-#: includes/class-cloud-settings-page.php:2485
+#: includes/class-cloud-settings-page.php:2484
 #, php-format
 msgid "%d content updates were dropped"
 msgstr ""
 
 #. translators: %s: machine-readable delivery error code.
-#: includes/class-cloud-settings-page.php:2496
+#: includes/class-cloud-settings-page.php:2495
 #, php-format
 msgid "Delivery error: %s"
 msgstr ""
 
 #. translators: %d: buffered public change count.
-#: includes/class-cloud-settings-page.php:2513
+#: includes/class-cloud-settings-page.php:2512
 #, php-format
 msgid "%d public changes awaiting delivery"
 msgstr ""
 
 #. translators: 1: bridge status, 2: buffered public change count.
-#: includes/class-cloud-settings-page.php:2520
+#: includes/class-cloud-settings-page.php:2519
 #, php-format
 msgid "%1$s, %2$d public changes buffered"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2534
+#: includes/class-cloud-settings-page.php:2533
 msgid "idle"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2536
+#: includes/class-cloud-settings-page.php:2535
 msgid "unverified"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2538
+#: includes/class-cloud-settings-page.php:2537
 msgid "error"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2539
+#: includes/class-cloud-settings-page.php:2538
 msgid "pending"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2540
+#: includes/class-cloud-settings-page.php:2539
 msgid "queued"
 msgstr ""
 

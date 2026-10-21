@@ -1213,7 +1213,7 @@ $usage_without_used = Npcink_Cloud_Settings_Page::get_overview_entitlement_metri
 $usage_unavailable = Npcink_Cloud_Settings_Page::get_overview_entitlement_metrics( array() );
 maca_assert(
 	false !== strpos( (string) $usage_with_used['credits']['usage_line'], '1,830' )
-	&& false !== strpos( (string) $usage_with_used['credits']['usage_line'], '18,170' )
+	&& false === strpos( (string) $usage_with_used['credits']['usage_line'], '18,170' )
 	&& '' === (string) $usage_without_used['credits']['usage_line']
 	&& '' === (string) $usage_unavailable['credits']['usage_line']
 	&& false === stripos( (string) $usage_with_used['credits']['usage_line'], 'about' )

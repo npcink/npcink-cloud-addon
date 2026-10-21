@@ -2390,10 +2390,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					// Plain usage line: only when Cloud reports "used" itself (no WP-side estimates).
 					if ( is_numeric( $credit_summary['used'] ?? null ) ) {
 						$credits['usage_line'] = sprintf(
-							/* translators: 1: credits used this period, 2: remaining credits. */
-							__( 'This period: %1$s credits used, %2$s left.', 'npcink-cloud-addon' ),
-							self::format_credit_amount( $credit_summary['used'] ),
-							$remaining_label
+							/* translators: %s: credits used this period. */
+							__( 'This period: %s credits used.', 'npcink-cloud-addon' ),
+							self::format_credit_amount( $credit_summary['used'] )
 						);
 					}
 					$credits['tooltip'] = sprintf(

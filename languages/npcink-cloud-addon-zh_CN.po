@@ -1066,14 +1066,14 @@ msgstr "%1$s%2$s。"
 
 #: includes/class-cloud-settings-actions.php:422
 #: includes/class-cloud-settings-page.php:2155
-#: includes/class-cloud-settings-page.php:2462
+#: includes/class-cloud-settings-page.php:2461
 msgid "enabled"
 msgstr "已启用"
 
 #: includes/class-cloud-settings-actions.php:422
 #: includes/class-cloud-settings-page.php:2155
-#: includes/class-cloud-settings-page.php:2463
-#: includes/class-cloud-settings-page.php:2537
+#: includes/class-cloud-settings-page.php:2462
+#: includes/class-cloud-settings-page.php:2536
 msgid "disabled"
 msgstr "已禁用"
 
@@ -1348,10 +1348,10 @@ msgstr "打开设置"
 #: includes/class-cloud-settings-page.php:2048
 #: includes/class-cloud-settings-page.php:2049
 #: includes/class-cloud-settings-page.php:2298
-#: includes/class-cloud-settings-page.php:2565
-#: includes/class-cloud-settings-page.php:2576
-#: includes/class-cloud-settings-page.php:2615
-#: includes/class-cloud-settings-page.php:2647
+#: includes/class-cloud-settings-page.php:2564
+#: includes/class-cloud-settings-page.php:2575
+#: includes/class-cloud-settings-page.php:2614
+#: includes/class-cloud-settings-page.php:2646
 msgid "unavailable"
 msgstr "不可用"
 
@@ -1489,7 +1489,7 @@ msgid "never"
 msgstr "从未"
 
 #: includes/class-cloud-settings-page.php:2170
-#: includes/class-cloud-settings-page.php:2541
+#: includes/class-cloud-settings-page.php:2540
 msgid "ok"
 msgstr "正常"
 
@@ -1522,7 +1522,7 @@ msgid "not refreshed"
 msgstr "尚未刷新"
 
 #: includes/class-cloud-settings-page.php:2291
-#: includes/class-cloud-settings-page.php:2535
+#: includes/class-cloud-settings-page.php:2534
 msgid "not configured"
 msgstr "尚未配置"
 
@@ -1553,58 +1553,58 @@ msgid "%1$s / %2$s · %3$d%% remaining"
 msgstr "%1$s / %2$s · 剩余 %3$d%%"
 
 #. translators: 1: used credits, 2: remaining credits, 3: credit limit.
-#: includes/class-cloud-settings-page.php:2401
+#: includes/class-cloud-settings-page.php:2400
 #, php-format
 msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
 msgstr "已用 %1$s AI 积分；剩余 %2$s AI 积分；上限 %3$s AI 积分。"
 
 #. translators: %s: remaining credits.
-#: includes/class-cloud-settings-page.php:2409
+#: includes/class-cloud-settings-page.php:2408
 #, php-format
 msgid "%s remaining"
 msgstr "剩余 %s"
 
 #. translators: 1: remaining runtime runs, 2: runtime run limit.
-#: includes/class-cloud-settings-page.php:2432
+#: includes/class-cloud-settings-page.php:2431
 #, php-format
 msgid "%1$d of %2$d runs remaining"
 msgstr "剩余 %1$d / %2$d 次"
 
 #. translators: 1: monitoring state, 2: buffered event count.
-#: includes/class-cloud-settings-page.php:2468
+#: includes/class-cloud-settings-page.php:2467
 #, php-format
 msgid "%1$s, %2$d buffered"
 msgstr "%1$s，%2$d 条待发送"
 
 #. translators: %d: buffered public change count.
-#: includes/class-cloud-settings-page.php:2513
+#: includes/class-cloud-settings-page.php:2512
 #, php-format
 msgid "%d public changes awaiting delivery"
 msgstr "%d 条公开变更待投递"
 
 #. translators: 1: bridge status, 2: buffered public change count.
-#: includes/class-cloud-settings-page.php:2520
+#: includes/class-cloud-settings-page.php:2519
 #, php-format
 msgid "%1$s, %2$d public changes buffered"
 msgstr "%1$s，%2$d 条公开变更已缓冲"
 
-#: includes/class-cloud-settings-page.php:2534
+#: includes/class-cloud-settings-page.php:2533
 msgid "idle"
 msgstr "空闲"
 
-#: includes/class-cloud-settings-page.php:2536
+#: includes/class-cloud-settings-page.php:2535
 msgid "unverified"
 msgstr "未验证"
 
-#: includes/class-cloud-settings-page.php:2538
+#: includes/class-cloud-settings-page.php:2537
 msgid "error"
 msgstr "错误"
 
-#: includes/class-cloud-settings-page.php:2539
+#: includes/class-cloud-settings-page.php:2538
 msgid "pending"
 msgstr "等待中"
 
-#: includes/class-cloud-settings-page.php:2540
+#: includes/class-cloud-settings-page.php:2539
 msgid "queued"
 msgstr "排队中"
 
@@ -2284,13 +2284,13 @@ msgid "Open Knowledge base on Overview"
 msgstr "打开概览中的知识库"
 
 #. translators: %d: dropped content update count.
-#: includes/class-cloud-settings-page.php:2485
+#: includes/class-cloud-settings-page.php:2484
 #, php-format
 msgid "%d content updates were dropped"
 msgstr "有 %d 条内容更新被丢弃"
 
 #. translators: %s: machine-readable delivery error code.
-#: includes/class-cloud-settings-page.php:2496
+#: includes/class-cloud-settings-page.php:2495
 #, php-format
 msgid "Delivery error: %s"
 msgstr "投递错误：%s"
@@ -3018,8 +3018,8 @@ msgstr "费用上限"
 msgid "AI credits belong to your Npcink Cloud account, not this site."
 msgstr "AI 积分属于你的 Npcink Cloud 账号，不属于此站点。"
 
-#. translators: 1: credits used this period, 2: remaining credits.
+#. translators: %s: credits used this period.
 #: includes/class-cloud-settings-page.php:2394
 #, php-format
-msgid "This period: %1$s credits used, %2$s left."
-msgstr "本期已用 %1$s 积分，剩余 %2$s"
+msgid "This period: %s credits used."
+msgstr "本期已用 %s 积分"
