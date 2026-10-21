@@ -40,6 +40,9 @@ runtime truth rules here beyond addon-owned connector contracts.
 
 ## AI Development Rules
 
+- New work branches must start from the latest `master`; never branch off an
+  unmerged branch. Keep at most 1 unmerged branch per repo (exception: changes
+  with zero file overlap may each branch from `master`).
 - Start AI-assisted work with `git status --short --branch` and a compact
   change envelope: target repositories, focused module, intended change,
   explicit non-goals, public contracts touched, expected files, files or areas
