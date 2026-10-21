@@ -433,7 +433,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'connect' => __( 'Connect', 'npcink-cloud-addon' ),
 			);
 			if ( self::should_show_unverified_advanced_tab( $state ) ) {
-				$tabs['connection'] = __( 'Connection', 'npcink-cloud-addon' );
+				// "Connect" and "Connection" both read 连接 in Chinese; label the
+				// unverified troubleshooting tab distinctly so only one 连接 shows.
+				$tabs['connection'] = __( 'Advanced settings', 'npcink-cloud-addon' );
 			}
 
 			return $tabs;
@@ -803,7 +805,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<h3 class="screen-reader-text"><?php esc_html_e( 'Connection management', 'npcink-cloud-addon' ); ?></h3>
 			<p class="description"><?php esc_html_e( 'Changing the account disconnects this site first, then opens Npcink Cloud so you can pick an account.', 'npcink-cloud-addon' ); ?></p>
 			<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
-				<?php if ( ! Npcink_Cloud_Addon_Settings::is_verified() || $service_needs_attention ) : ?>
+				<?php if ( Npcink_Cloud_Addon_Settings::is_verified() && $service_needs_attention ) : ?>
 					<?php self::render_reverify_form( $settings, __( 'Check connection', 'npcink-cloud-addon' ) ); ?>
 				<?php endif; ?>
 				<?php self::render_change_account_form( Npcink_Cloud_Addon_Settings::is_verified() ? 'button button-primary' : 'button button-secondary' ); ?>
