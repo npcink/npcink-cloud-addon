@@ -29,6 +29,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		public const ACTION_CHANGE_ACCOUNT = 'npcink_cloud_addon_change_account';
 		public const ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission';
 		public const ACTION_DISMISS_MONITORING_PROMPT = 'npcink_cloud_addon_dismiss_monitoring_prompt';
+		public const MONITORING_PROMPT_ANSWERED_OPTION = 'npcink_cloud_addon_monitoring_prompt_answered';
 		public const ACTION_REFRESH_SITE_KNOWLEDGE = 'npcink_cloud_addon_refresh_site_knowledge';
 		public const ACTION_REFRESH_SITE_KNOWLEDGE_STATUS = 'npcink_cloud_addon_refresh_site_knowledge_status';
 		public const ACTION_MANAGE_SITE_KNOWLEDGE_INDEX = 'npcink_cloud_addon_manage_site_knowledge_index';
@@ -179,7 +180,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				self::redirect_to_page();
 			}
 
-			self::persist_and_verify_settings( $settings, __( 'Cloud settings saved and verified.', 'npcink-cloud-addon' ) );
+			self::persist_and_verify_settings( $settings, __( 'Saved. The site is connected.', 'npcink-cloud-addon' ) );
 			self::maybe_prompt_for_monitoring_consent( $was_verified );
 			self::redirect_to_page();
 		}
@@ -201,7 +202,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$code  = is_string( $raw_code ) ? sanitize_text_field( wp_unslash( $raw_code ) ) : '';
 			$auth_state = self::consume_authorization_state( $state );
 			if ( empty( $auth_state ) || '' === $code ) {
-				self::set_admin_notice( 'error', __( 'The Cloud authorization request expired or is invalid. Start the connection again from WordPress.', 'npcink-cloud-addon' ) );
+				self::set_admin_notice( 'error', __( 'The connection link expired. Click Connect again.', 'npcink-cloud-addon' ) );
 				self::redirect_to_page( 'status' );
 			}
 
@@ -230,12 +231,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
 					self::set_admin_notice(
 						'error',
-						__( 'Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect.', 'npcink-cloud-addon' )
+						__( 'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.', 'npcink-cloud-addon' )
 					);
 				} else {
 					self::set_admin_notice(
 						'warning',
-						__( 'Cloud connection completed. This site is bound but not active because no active-site slot was available. Activate it in Npcink Cloud, then verify the connection here.', 'npcink-cloud-addon' )
+						__( 'Connected, but this site still needs to be turned on in Npcink Cloud. Turn it on there, then check again here.', 'npcink-cloud-addon' )
 					);
 				}
 				self::redirect_to_page( 'status' );
@@ -281,7 +282,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				? sanitize_text_field( wp_unslash( $_POST['self_hosted_base_url'] ) )
 				: '';
 			if ( '' === trim( $base_url ) ) {
-				self::set_admin_notice( 'error', __( 'Enter a Cloud Base URL before starting self-hosted authorization.', 'npcink-cloud-addon' ) );
+				self::set_admin_notice( 'error', __( 'Enter the service address first.', 'npcink-cloud-addon' ) );
 				self::redirect_to_page( 'connect' );
 			}
 
@@ -297,7 +298,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			$normalized_base_url = (string) ( $settings['base_url'] ?? '' );
 			if ( '' === $normalized_base_url ) {
-				self::set_admin_notice( 'error', __( 'Cloud Base URL must use HTTPS unless it points to localhost or 127.0.0.1.', 'npcink-cloud-addon' ) );
+				self::set_admin_notice( 'error', __( 'The service address must start with https://.', 'npcink-cloud-addon' ) );
 				self::redirect_to_page( 'connect' );
 			}
 
@@ -319,7 +320,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			if ( ! self::has_disconnect_confirmation() ) {
 				self::set_admin_notice(
 					'error',
-					__( 'Confirm the local disconnect before submitting this action.', 'npcink-cloud-addon' )
+					__( 'Please confirm before disconnecting.', 'npcink-cloud-addon' )
 				);
 				self::redirect_to_page( 'status' );
 			}
@@ -327,7 +328,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			self::clear_local_connection_preserving_base_url();
 			self::set_admin_notice(
 				'success',
-				__( 'Disconnected. The site and its data remain in Npcink Cloud.', 'npcink-cloud-addon' )
+				__( 'Disconnected. Your data stays in Npcink Cloud.', 'npcink-cloud-addon' )
 			);
 			self::redirect_to_page( 'status' );
 		}
@@ -350,7 +351,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			if ( ! self::has_disconnect_confirmation() ) {
 				self::set_admin_notice(
 					'error',
-					__( 'Confirm before changing the account.', 'npcink-cloud-addon' )
+					__( 'Please confirm before changing the account.', 'npcink-cloud-addon' )
 				);
 				self::redirect_to_page( 'connection' );
 			}
@@ -364,7 +365,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			self::set_admin_notice(
 				'info',
-				__( 'The previous account was disconnected from this site.', 'npcink-cloud-addon' )
+				__( 'Disconnected from the previous account. Choose an account in Npcink Cloud.', 'npcink-cloud-addon' )
 			);
 			self::redirect_to_cloud_authorization( $base_url );
 		}
@@ -382,14 +383,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			check_admin_referer( self::ACTION_UPDATE_LOCAL_PERMISSION );
 
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
-				self::set_admin_notice( 'error', __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ) );
+				self::set_admin_notice( 'error', __( 'Connect this site first.', 'npcink-cloud-addon' ) );
 				self::redirect_to_page( 'status' );
 			}
 
 			$permission = isset( $_POST['permission'] ) ? sanitize_key( wp_unslash( $_POST['permission'] ) ) : '';
 			$definitions = self::get_local_permission_definitions();
 			if ( ! isset( $definitions[ $permission ] ) ) {
-				self::set_admin_notice( 'error', __( 'The requested local permission is not supported.', 'npcink-cloud-addon' ) );
+				self::set_admin_notice( 'error', __( 'This setting is not supported.', 'npcink-cloud-addon' ) );
 				self::redirect_to_page( 'status' );
 			}
 
@@ -405,7 +406,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
 				self::set_local_permission_feedback(
 					'error',
-					__( 'The local permission could not be saved securely. No permission or background delivery state was changed.', 'npcink-cloud-addon' ),
+					__( 'The setting could not be saved and nothing was changed. Try again.', 'npcink-cloud-addon' ),
 					$permission
 				);
 				self::redirect_to_local_permission( $permission );
@@ -491,7 +492,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			$status = sanitize_key( (string) ( $result['bounded_status'] ?? $result['status'] ?? '' ) );
 			if ( 'ready' === $status ) {
-				self::set_admin_notice( 'success', __( 'Manual readiness test completed. Connector is ready.', 'npcink-cloud-addon' ) );
+				self::set_admin_notice( 'success', __( 'Full check passed. Everything is working.', 'npcink-cloud-addon' ) );
 			} else {
 				self::set_admin_notice( 'warning', Npcink_Cloud_Settings_Page::format_readiness_detail( $result ) );
 			}
@@ -509,7 +510,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$authorization_url  = esc_url_raw( self::build_authorization_url_for_base_url( $base_url ) );
 			$authorization_host = wp_parse_url( $authorization_url, PHP_URL_HOST );
 			if ( ! is_string( $authorization_host ) || '' === trim( $authorization_host ) ) {
-				self::set_admin_notice( 'error', __( 'Cloud Base URL must use HTTPS unless it points to localhost or 127.0.0.1.', 'npcink-cloud-addon' ) );
+				self::set_admin_notice( 'error', __( 'The service address must start with https://.', 'npcink-cloud-addon' ) );
 				self::redirect_to_page( 'connect' );
 			}
 
@@ -539,7 +540,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				|| ( $same_connection && ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) ) {
 				self::set_admin_notice(
 					'error',
-					__( 'Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect.', 'npcink-cloud-addon' )
+					__( 'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.', 'npcink-cloud-addon' )
 				);
 				return;
 			}
@@ -555,7 +556,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
 					self::set_admin_notice(
 						'error',
-						__( 'Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect.', 'npcink-cloud-addon' )
+						__( 'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.', 'npcink-cloud-addon' )
 					);
 					return;
 				}
@@ -571,7 +572,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 						'warning',
 						sprintf(
 							/* translators: %s: entitlement refresh message. */
-							__( 'Cloud settings verified, but entitlement summary could not refresh: %s', 'npcink-cloud-addon' ),
+							__( 'Connected, but credits could not be loaded. Check again later. (%s)', 'npcink-cloud-addon' ),
 							self::bound_admin_error_detail( (string) ( $summary['message'] ?? __( 'Unknown entitlement refresh result.', 'npcink-cloud-addon' ) ) )
 						)
 					);
@@ -595,7 +596,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 					if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
 						self::set_admin_notice(
 							'error',
-							__( 'Cloud credentials could not be stored securely. The existing connection was not changed. Check the WordPress security salts and reconnect.', 'npcink-cloud-addon' )
+							__( 'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.', 'npcink-cloud-addon' )
 						);
 						return;
 					}
@@ -603,7 +604,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 						'error',
 						sprintf(
 							/* translators: %s: Cloud connectivity error. */
-							__( 'The new Cloud connection could not be verified: %s. The connection details were saved, so use Check connection on this page to verify again.', 'npcink-cloud-addon' ),
+							__( 'The connection could not be checked (%s). Click Check again on this page.', 'npcink-cloud-addon' ),
 							$message
 						)
 					);
@@ -613,7 +614,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 					'error',
 					sprintf(
 						/* translators: %s: Cloud connectivity error. */
-						__( 'The replacement Cloud connection could not be verified, so the existing connection was kept: %s', 'npcink-cloud-addon' ),
+						__( 'The new account could not be connected, so the current one was kept. (%s)', 'npcink-cloud-addon' ),
 						$message
 					)
 				);
@@ -627,12 +628,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				$inactive_settings['activation_state'] = 'inactive';
 				$inactive_settings['activation_reason'] = 'cloud_site_inactive';
 				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $inactive_settings ) ) {
-					self::set_admin_notice( 'error', __( 'Cloud verification completed, but the activation state could not be stored securely.', 'npcink-cloud-addon' ) );
+					self::set_admin_notice( 'error', __( 'The check finished, but the result could not be saved. Try again.', 'npcink-cloud-addon' ) );
 					return;
 				}
 				self::set_admin_notice(
 					'warning',
-					__( 'The Cloud connection works, but this site is not active in Cloud yet. Activate the site in Npcink Cloud, then check the activation again here.', 'npcink-cloud-addon' )
+					__( 'Connected, but this site still needs to be turned on in Npcink Cloud. Turn it on there, then check again here.', 'npcink-cloud-addon' )
 				);
 				return;
 			}
@@ -772,7 +773,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 					'cloud_authorization_exchange_failed',
 					sprintf(
 						/* translators: %s: request error message. */
-						__( 'Cloud authorization exchange failed: %s', 'npcink-cloud-addon' ),
+						__( 'Connection failed (%s). Click Connect again.', 'npcink-cloud-addon' ),
 						self::bound_admin_error_detail( self::redact_sensitive_message( $response->get_error_message() ) )
 					)
 				);
@@ -791,7 +792,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			if ( '' === $cloud_api_key ) {
 				return new WP_Error(
 					'cloud_authorization_exchange_failed',
-					__( 'Cloud authorization exchange did not return a valid connection key.', 'npcink-cloud-addon' )
+					__( 'Connection failed. Click Connect again.', 'npcink-cloud-addon' )
 				);
 			}
 
@@ -799,7 +800,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			if ( ! in_array( $activation_state, array( 'active', 'inactive' ), true ) ) {
 				return new WP_Error(
 					'cloud_authorization_exchange_failed',
-					__( 'Cloud authorization exchange returned an invalid activation state.', 'npcink-cloud-addon' )
+					__( 'Connection failed. Click Connect again.', 'npcink-cloud-addon' )
 				);
 			}
 
@@ -829,13 +830,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				case 'service.site_limit_exceeded':
 					return sprintf(
 						/* translators: %s: stable Cloud error code. */
-						__( 'The Cloud account has reached its active-site limit. Deactivate another active site in Npcink Cloud or upgrade the account plan, then start the connection again. (%s)', 'npcink-cloud-addon' ),
+						__( 'Your account has no free site slots. Turn off another site or upgrade in Npcink Cloud, then connect again. (%s)', 'npcink-cloud-addon' ),
 						$error_code
 					);
 				case 'service.site_bind_limit_exceeded':
 					return sprintf(
 						/* translators: %s: stable Cloud error code. */
-						__( 'The Cloud account has reached its connected-site limit. Remove an unused site in Npcink Cloud, then start the connection again. (%s)', 'npcink-cloud-addon' ),
+						__( 'Your account has reached its site limit. Remove an unused site in Npcink Cloud, then connect again. (%s)', 'npcink-cloud-addon' ),
 						$error_code
 					);
 				case 'service.wordpress_addon_connection_code_invalid':
@@ -844,20 +845,20 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				case 'service.wordpress_addon_connection_payload_invalid':
 					return sprintf(
 						/* translators: %s: stable Cloud error code. */
-						__( 'The Cloud authorization request expired or is invalid. Start the connection again from WordPress. (%s)', 'npcink-cloud-addon' ),
+						__( 'The connection link expired. Click Connect again. (%s)', 'npcink-cloud-addon' ),
 						$error_code
 					);
 				default:
 					if ( '' !== $error_code ) {
 						return sprintf(
 							/* translators: %s: stable Cloud error code. */
-							__( 'Cloud authorization exchange failed. Start the connection again or contact support with this error code: %s', 'npcink-cloud-addon' ),
+							__( 'Connection failed. Connect again, or send this code to support: %s', 'npcink-cloud-addon' ),
 							$error_code
 						);
 					}
 			}
 
-			return __( 'Cloud authorization exchange did not return a valid connection key.', 'npcink-cloud-addon' );
+			return __( 'Connection failed. Click Connect again.', 'npcink-cloud-addon' );
 		}
 
 		/**
@@ -894,27 +895,27 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 */
 		private static function format_probe_failure_message( array $probe ): string {
 			if ( 'auth.site_inactive' === (string) ( $probe['auth_error_code'] ?? '' ) ) {
-				return __( 'The site is connected, but Cloud service is not active yet. Activate this site in Npcink Cloud, then check activation again here.', 'npcink-cloud-addon' );
+				return __( 'Connected, but this site still needs to be turned on in Npcink Cloud. Turn it on there, then check again here.', 'npcink-cloud-addon' );
 			}
 			$messages = array();
 			if ( empty( $probe['live_ok'] ) && ! empty( $probe['live_message'] ) ) {
 				$messages[] = sprintf(
 					/* translators: %s: liveness error. */
-					__( 'Live check failed: %s', 'npcink-cloud-addon' ),
+					__( 'Could not reach Npcink Cloud: %s', 'npcink-cloud-addon' ),
 					self::bound_admin_error_detail( self::redact_sensitive_message( (string) $probe['live_message'] ) )
 				);
 			}
 			if ( empty( $probe['auth_ok'] ) && ! empty( $probe['auth_message'] ) ) {
 				$messages[] = sprintf(
 					/* translators: %s: signed verification error. */
-					__( 'Signed verification failed: %s', 'npcink-cloud-addon' ),
+					__( 'Npcink Cloud did not accept this site: %s', 'npcink-cloud-addon' ),
 					self::bound_admin_error_detail( self::redact_sensitive_message( (string) $probe['auth_message'] ) )
 				);
 			}
 
 			return '' !== implode( ' ', $messages )
 				? sanitize_text_field( implode( ' ', $messages ) )
-				: __( 'Cloud verification failed.', 'npcink-cloud-addon' );
+				: __( 'The connection check failed. Try again.', 'npcink-cloud-addon' );
 		}
 
 		/**
@@ -1043,7 +1044,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 * @return void
 		 */
 		private static function maybe_prompt_for_monitoring_consent( bool $was_verified ): void {
-			if ( $was_verified || ! Npcink_Cloud_Addon_Settings::is_verified() || Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+			if ( $was_verified || ! Npcink_Cloud_Addon_Settings::is_verified() || Npcink_Cloud_Addon_Settings::is_monitoring_enabled() || get_option( self::MONITORING_PROMPT_ANSWERED_OPTION ) ) {
 				return;
 			}
 
@@ -1109,6 +1110,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 */
 		private static function clear_monitoring_consent_prompt(): void {
 			delete_transient( self::monitoring_consent_prompt_transient_key() );
+			// The owner answered once (prompt or toggle); never ask again, even after reconnecting.
+			update_option( self::MONITORING_PROMPT_ANSWERED_OPTION, 1, false );
 		}
 
 		/**
@@ -1177,7 +1180,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				),
 				'monitoring_enabled' => array(
 					'label'       => __( 'Send anonymous diagnostics', 'npcink-cloud-addon' ),
-					'description' => __( 'Send metadata-only diagnostic events (feature steps, outcomes, timing, and error codes) to improve reliability. Never includes prompts, content, user or post IDs, emails, URLs, or credentials. Off by default.', 'npcink-cloud-addon' ),
+					'description' => __( 'Sends anonymous error reports to help us fix problems. Never includes your content.', 'npcink-cloud-addon' ),
 					'more'        => __( 'Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time.', 'npcink-cloud-addon' ),
 				),
 			);

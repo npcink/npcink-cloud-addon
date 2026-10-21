@@ -291,7 +291,7 @@ $capacity_error = $authorization_exchange->invoke(
 );
 maca_assert(
 	is_wp_error( $capacity_error )
-	&& false !== strpos( $capacity_error->get_error_message(), 'Deactivate another active site' )
+	&& false !== strpos( $capacity_error->get_error_message(), 'Turn off another site' )
 	&& false !== strpos( $capacity_error->get_error_message(), 'service.site_limit_exceeded' ),
 	'Behavior: addon authorization surfaces the actionable Cloud active-site limit instead of hiding it as a missing key.'
 );
@@ -361,7 +361,7 @@ $expired_error = $authorization_exchange->invoke(
 );
 maca_assert(
 	is_wp_error( $expired_error )
-	&& false !== strpos( $expired_error->get_error_message(), 'Start the connection again from WordPress' )
+	&& false !== strpos( $expired_error->get_error_message(), 'Click Connect again' )
 	&& false !== strpos( $expired_error->get_error_message(), 'service.wordpress_addon_connection_code_expired' ),
 	'Behavior: addon authorization preserves a non-secret Cloud error code and gives an expired-flow recovery action.'
 );
@@ -446,7 +446,7 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $settings_page_source, 'npcink-cloud-monitoring-consent' )
-	&& false !== strpos( $settings_page_source, 'Allow anonymous diagnostics' )
+	&& false !== strpos( $settings_page_source, 'Yes, share' )
 	&& false !== strpos( $settings_page_source, 'Not now' )
 	&& false !== strpos( $settings_actions_source, 'maybe_prompt_for_monitoring_consent' ),
 	'Behavior: first verified connection offers one explicit metadata-only monitoring consent prompt.'
@@ -460,8 +460,8 @@ Npcink_Cloud_Settings_Page::render();
 $consent_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $consent_rendered, 'role="dialog"' )
-	&& false !== strpos( $consent_rendered, 'Cloud connection verified' )
-	&& false !== strpos( $consent_rendered, 'Allow anonymous diagnostics' )
+	&& false !== strpos( $consent_rendered, 'Help us improve?' )
+	&& false !== strpos( $consent_rendered, 'Yes, share' )
 	&& false !== strpos( $consent_rendered, 'Not now' ),
 	'Behavior: a pending first-connection consent is rendered as a bounded confirmation dialog without Cloud HTTP.'
 );
@@ -523,7 +523,7 @@ maca_assert(
 	&& false !== strpos( $overview_rendered, 'data-npcink-site-knowledge-usage' )
 	&& false !== strpos( $overview_rendered, 'npcink-cloud-site-knowledge-summary' )
 	&& false !== strpos( $overview_rendered, 'id="npcink-cloud-site-knowledge"' )
-	&& false !== strpos( $overview_rendered, 'Entitlements' )
+	&& false !== strpos( $overview_rendered, 'Plan and credits' )
 	&& false !== strpos( $overview_rendered, 'id="npcink-cloud-entitlements-title"' )
 	&& false !== strpos( $overview_rendered, 'Knowledge base' )
 	&& false === strpos( $overview_rendered, 'Knowledge base status' )
@@ -683,7 +683,7 @@ maca_assert(
 	&& false === strpos( $connection_rendered, 'npcink-cloud-manual-fallback" open' )
 	&& false === strpos( $connection_rendered, 'npcink-cloud-manual-fallback open' )
 	&& false !== strpos( $connection_rendered, 'Only use this if support asks you to, or if connecting through Npcink Cloud does not work.' )
-	&& strpos( $connection_rendered, '<summary>' ) < strpos( $connection_rendered, 'Cloud Base URL' )
+	&& strpos( $connection_rendered, '<summary>' ) < strpos( $connection_rendered, 'Service address' )
 	&& false === strpos( $connection_rendered, 'npcink-cloud-secondary-tabs' ),
 	'Behavior: Connection tab renders identity plus connection management without secondary tabs or checks.'
 );
@@ -695,7 +695,7 @@ $overview_with_entitlement = (string) ob_get_clean();
 maca_assert(
 	false === strpos( $overview_with_entitlement, 'No additional entitlement parameters were returned by Cloud.' )
 	&& false === strpos( $overview_with_entitlement, 'View AI credit details in Cloud' )
-	&& false !== strpos( $overview_with_entitlement, 'Entitlements' )
+	&& false !== strpos( $overview_with_entitlement, 'Plan and credits' )
 	&& (
 		false === strpos( $overview_with_entitlement, 'npcink-cloud-entitlement-block' )
 		|| false !== strpos( $overview_with_entitlement, 'npcink-cloud-overview-entitlements' )
@@ -755,11 +755,11 @@ maca_assert(
 	&& false !== strpos( $connection_management_rendered, 'npcink_cloud_addon_change_account' )
 	&& false !== strpos( $connection_management_rendered, 'button button-secondary' )
 	&& false !== strpos( $connection_management_rendered, 'Disconnect this site' )
-	&& false !== strpos( $connection_management_rendered, 'The site and its data will remain in Cloud.' )
+	&& false !== strpos( $connection_management_rendered, 'Your data stays in Npcink Cloud.' )
 		&& false !== strpos( $connection_management_rendered, 'js_confirmation' )
 		&& false !== strpos( $connection_management_rendered, 'noscript_confirmation' )
 		&& false !== strpos( $connection_management_rendered, 'Confirm local disconnect before submitting.' )
-		&& false !== strpos( $connection_management_rendered, 'Confirm before changing the account.' )
+		&& false !== strpos( $connection_management_rendered, 'Please confirm before changing the account.' )
 	&& false === strpos( $connection_management_rendered, 'Check connection' )
 	&& false === strpos( $connection_management_rendered, 'Re-verify and refresh' )
 	&& strpos( $connection_management_rendered, 'Change account' ) < strpos( $connection_management_rendered, 'Disconnect this site' )
@@ -860,7 +860,7 @@ maca_assert(
 		&& false !== strpos( $site_knowledge_rendered, 'Knowledge base' )
 		&& false === strpos( $site_knowledge_rendered, 'Knowledge base status' )
 		&& false !== strpos( $site_knowledge_rendered, '<h2 id="npcink-cloud-site-knowledge-status-title">Knowledge base' )
-		&& false !== strpos( $site_knowledge_rendered, 'Open in Cloud' )
+		&& false !== strpos( $site_knowledge_rendered, 'Open Npcink Cloud' )
 		&& false !== strpos( $site_knowledge_rendered, '>Sync<' )
 		&& false !== strpos( $site_knowledge_rendered, 'npcink-cloud-site-knowledge-heading__title' )
 		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-site-knowledge-summary__status' )
@@ -1182,7 +1182,7 @@ maca_assert(
 	&& false !== strpos( $healthy_fragments['knowledge'], 'Up to date' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'All public content is up to date' )
 	&& false !== strpos( $healthy_fragments['knowledge'], '>Sync<' )
-	&& false !== strpos( $healthy_fragments['knowledge'], 'Open in Cloud' )
+	&& false !== strpos( $healthy_fragments['knowledge'], 'Open Npcink Cloud' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'Update again' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'npcink-cloud-info-hint' )
 	&& false !== strpos( $healthy_fragments['knowledge'], 'data-npcink-site-knowledge-status-retry' )

@@ -23,7 +23,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 		 */
 		public static function request_public_refresh(): array {
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
-				return self::result( false, 'not_verified', __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'refresh' );
+				return self::result( false, 'not_verified', __( 'Connect this site first.', 'npcink-cloud-addon' ), 'refresh' );
 			}
 			if ( ! Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled() ) {
 				return self::result( false, 'delivery_disabled', __( 'Site Knowledge delivery is disabled locally.', 'npcink-cloud-addon' ), 'refresh' );
@@ -115,7 +115,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 		 */
 		public static function request_article_refresh( int $post_id ): array {
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
-				return self::result( false, 'not_verified', __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'article_refresh' );
+				return self::result( false, 'not_verified', __( 'Connect this site first.', 'npcink-cloud-addon' ), 'article_refresh' );
 			}
 			if ( $post_id < 1 ) {
 				return self::result( false, 'invalid_article', __( 'Choose a valid published article to refresh.', 'npcink-cloud-addon' ), 'article_refresh' );
@@ -144,7 +144,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 		 */
 		public static function request_index_operation( string $operation, string $confirmation = '' ): array {
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
-				return self::result( false, 'not_verified', __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), $operation );
+				return self::result( false, 'not_verified', __( 'Connect this site first.', 'npcink-cloud-addon' ), $operation );
 			}
 			if ( ! in_array( $operation, array( 'start', 'rebuild', 'delete' ), true ) ) {
 				return self::result( false, 'unsupported_operation', __( 'The requested Site Knowledge index action is not supported.', 'npcink-cloud-addon' ), $operation );
