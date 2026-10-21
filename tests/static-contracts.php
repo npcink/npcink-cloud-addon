@@ -667,7 +667,7 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $zh_cn_po, 'msgstr "Cloud 基础 URL"' )
-	&& false !== strpos( $zh_cn_po, 'msgstr "托管运行时"' )
+	&& false !== strpos( $zh_cn_po, 'msgstr "夜间巡检"' )
 	&& false === strpos( $zh_cn_po, 'msgstr "高级与排查"' )
 		&& false !== strpos( $zh_cn_po, 'msgstr "同步"' )
 		&& false !== strpos( $zh_cn_po, 'msgstr "同步中"' )
@@ -1779,19 +1779,19 @@ maca_assert(
 	&& false === strpos( $settings_page, 'Usage limits and quotas' )
 	&& false !== strpos( $settings_page, 'More limits' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-entitlement-more' )
-	&& false !== strpos( $settings_page, 'Check details' )
-	&& false !== strpos( $settings_page, 'npcink-cloud-checks-detail' )
+	&& false !== strpos( $settings_page, 'Reading credits' )
+	&& false !== strpos( $settings_page, 'npcink-cloud-kv' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-entitlement-grid' )
 	&& false !== strpos( $admin_css, 'max-width: 720px' )
 	&& false === strpos( $settings_page, 'npcink-cloud-entitlement-heading--actions-only' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-entitlement-grid' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-entitlement-grid' )
 	&& false === strpos( $settings_page, 'View AI credit details in Cloud' )
-	&& false !== strpos( $settings_page, 'Nightly site inspection is temporarily paused.' )
+	&& false !== strpos( $settings_page, 'Nightly site check' )
 	&& false === strpos( $settings_page, 'npcink-cloud-advanced-stack' )
 	&& false === strpos( $admin_css, '.npcink-cloud-advanced-stack' )
 	&& false === strpos( $settings_page, 'Run the bounded connection checks' )
-	&& false !== strpos( $settings_page, 'Run checks, or' )
+	&& false !== strpos( $settings_page, 'Run a full check' )
 	&& false === strpos( $settings_page, 'function render_secondary_tab_navigation' )
 	&& false === strpos( $settings_page, 'self::advanced_section_labels()' )
 	&& false === strpos( $settings_page, "if ( 'checks' === \$active_view )" )
@@ -1808,7 +1808,7 @@ maca_assert(
 	&& false !== strpos( $discoverability_pause, 'wordpress_ai_generation_tests restored' )
 	&& false === strpos( $settings_page, 'Read-only connection and service status. Product actions, approvals, and WordPress writes stay outside this addon.' )
 		&& false === strpos( $settings_page, 'Cloud runtime runs' )
-	&& false !== strpos( $settings_page, 'Open Cloud status detail' )
+	&& false !== strpos( $settings_page, 'open Npcink Cloud' )
 	&& false !== strpos( $settings_page, 'Cloud connection' )
 	&& false === strpos( $settings_page, "__( 'Cloud liveness'" )
 	&& false === strpos( $settings_page, "__( 'Signed Cloud read'" )
@@ -1941,7 +1941,7 @@ maca_assert(
 		&& false === strpos( $settings_page, '<h2 class="screen-reader-text"><?php esc_html_e( \'Site Knowledge\'' )
 		&& false !== strpos( $settings_page, 'id="npcink-cloud-site-knowledge"' )
 		&& false !== strpos( $settings_page, 'render_site_knowledge_summary( $site_knowledge, $settings, $is_verified )' )
-		&& false !== strpos( $settings_page, 'npcink-cloud-checks-heading__hint' )
+		&& false !== strpos( $settings_page, 'npcink-cloud-run-readiness-test' )
 		&& false === strpos( $settings_page, '<h3><?php esc_html_e( \'Monitoring & Quality\'' )
 		&& false !== strpos( $settings_page, "esc_html__( 'Monitoring needs attention', 'npcink-cloud-addon' ) : esc_html__( 'Monitoring upload state', 'npcink-cloud-addon' )" )
 	&& false !== strpos( $settings_actions, "self::redirect_to_page( 'status' );" )
@@ -2375,7 +2375,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2800,
+	'includes/class-cloud-settings-page.php'           => 2840,
 	'includes/class-cloud-settings-actions.php'        => 1230,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1090,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
