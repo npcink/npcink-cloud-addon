@@ -376,7 +376,7 @@ maca_assert(
 	false !== strpos( $rendered, 'Npcink Cloud Addon' )
 	&& false !== strpos( $rendered, 'Add this site in Npcink Cloud' )
 	&& false !== strpos( $rendered, 'npcink_cloud_addon_start_auth' )
-	&& false !== strpos( $rendered, 'Free service and AI credits belong to the Cloud account selected during authorization' )
+	&& false !== strpos( $rendered, 'Free credits belong to the account you choose when connecting' )
 	&& $http_before_render === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: the representative unconfigured admin render explains account-owned Free service and performs zero outbound HTTP requests.'
 );
@@ -687,7 +687,7 @@ maca_assert(
 	&& false !== strpos( $connection_rendered, 'npcink-cloud-manual-fallback' )
 	&& false === strpos( $connection_rendered, 'npcink-cloud-manual-fallback" open' )
 	&& false === strpos( $connection_rendered, 'npcink-cloud-manual-fallback open' )
-	&& false !== strpos( $connection_rendered, 'Only when Cloud authorization is unavailable.' )
+	&& false !== strpos( $connection_rendered, 'Only use this if support asks you to, or if connecting through Npcink Cloud does not work.' )
 	&& strpos( $connection_rendered, '<summary>' ) < strpos( $connection_rendered, 'Cloud Base URL' )
 	&& false === strpos( $connection_rendered, 'npcink-cloud-secondary-tabs' ),
 	'Behavior: Connection tab renders identity plus connection management without secondary tabs or checks.'

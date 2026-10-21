@@ -294,7 +294,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<div class="wrap npcink-cloud-addon">
 				<h1><?php esc_html_e( 'Npcink Cloud Addon', 'npcink-cloud-addon' ); ?></h1>
-				<p><?php esc_html_e( 'Cloud connector status and access settings for this WordPress site.', 'npcink-cloud-addon' ); ?></p>
+				<p><?php esc_html_e( 'Connect this site to Npcink Cloud to use AI features.', 'npcink-cloud-addon' ); ?></p>
 				<?php self::render_admin_notice(); ?>
 
 				<div data-npcink-connection-summary><?php self::render_connection_summary( $settings, $state, $entitlement, $site_knowledge ); ?></div>
@@ -909,9 +909,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private static function render_manual_connection_disclosure( array $settings ): void {
 			?>
 			<details class="npcink-cloud-advanced-detail npcink-cloud-manual-fallback">
-				<summary><?php esc_html_e( 'Manual connection fallback', 'npcink-cloud-addon' ); ?></summary>
+				<summary><?php esc_html_e( 'Advanced settings', 'npcink-cloud-addon' ); ?> <small><?php esc_html_e( 'Usually not needed', 'npcink-cloud-addon' ); ?></small></summary>
 				<div class="npcink-cloud-advanced-detail__body">
-					<p class="description"><?php esc_html_e( 'Only when Cloud authorization is unavailable.', 'npcink-cloud-addon' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Only use this if support asks you to, or if connecting through Npcink Cloud does not work.', 'npcink-cloud-addon' ); ?></p>
 					<?php self::render_settings_form( $settings ); ?>
 				</div>
 			</details>
@@ -1735,31 +1735,22 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private static function render_cloud_authorization_panel( array $settings, array $state ): void {
 			$base_url = Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings );
 			?>
-			<div class="npcink-cloud-connect-context" aria-label="<?php esc_attr_e( 'Connection context', 'npcink-cloud-addon' ); ?>">
-				<div class="npcink-cloud-connect-context__item">
-					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Connection', 'npcink-cloud-addon' ); ?></span>
-					<strong class="npcink-cloud-connect-context__value"><?php echo esc_html( (string) ( $state['label'] ?? '' ) ); ?></strong>
-				</div>
-				<div class="npcink-cloud-connect-context__item">
-					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Cloud', 'npcink-cloud-addon' ); ?></span>
-					<code class="npcink-cloud-connect-context__value"><?php echo esc_html( $base_url ); ?></code>
-				</div>
-				<div class="npcink-cloud-connect-context__item">
-					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Current site', 'npcink-cloud-addon' ); ?></span>
-					<span class="npcink-cloud-connect-context__value"><?php echo esc_html( home_url( '/' ) ); ?></span>
-				</div>
-				</div>
-				<div class="npcink-cloud-connect-actions">
-					<?php self::render_authorization_form( __( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary button-hero' ); ?>
-				<p class="description"><?php esc_html_e( 'Cloud will create or activate this site connection and return here with a one-time authorization code.', 'npcink-cloud-addon' ); ?></p>
-				<p class="description"><?php esc_html_e( 'After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time.', 'npcink-cloud-addon' ); ?></p>
-				<p class="description"><a href="<?php echo esc_url( self::privacy_policy_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Review Cloud privacy and data retention information', 'npcink-cloud-addon' ); ?></a></p>
-				<p class="description"><?php esc_html_e( 'Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud.', 'npcink-cloud-addon' ); ?></p>
+			<div class="npcink-cloud-connect-actions">
+				<?php self::render_authorization_form( __( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary button-hero' ); ?>
+				<p class="description"><?php esc_html_e( 'Npcink Cloud opens in a new tab. Choose your account there, then come back here.', 'npcink-cloud-addon' ); ?></p>
 			</div>
+			<details class="npcink-cloud-connect-more" aria-label="<?php esc_attr_e( 'Connection context', 'npcink-cloud-addon' ); ?>">
+				<summary><?php esc_html_e( 'More information', 'npcink-cloud-addon' ); ?></summary>
+				<p class="description"><?php esc_html_e( 'This site', 'npcink-cloud-addon' ); ?>: <?php echo esc_html( home_url( '/' ) ); ?></p>
+				<p class="description"><?php esc_html_e( 'Service address', 'npcink-cloud-addon' ); ?>: <code><?php echo esc_html( $base_url ); ?></code></p>
+				<p class="description"><?php esc_html_e( 'Once connected, AI features turn on automatically. You can change them in Overview at any time.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Free credits belong to the account you choose when connecting, not to this site. To switch to another account later, follow the steps shown in Npcink Cloud.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description"><a href="<?php echo esc_url( self::privacy_policy_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Review Cloud privacy and data retention information', 'npcink-cloud-addon' ); ?></a></p>
+			</details>
 			<details class="npcink-cloud-endpoint-advanced">
 				<summary>
-					<span><?php esc_html_e( 'Advanced connection', 'npcink-cloud-addon' ); ?></span>
-					<small><?php esc_html_e( 'Self-hosted Cloud endpoint', 'npcink-cloud-addon' ); ?></small>
+					<span><?php esc_html_e( 'Advanced settings', 'npcink-cloud-addon' ); ?></span>
+					<small><?php esc_html_e( 'Usually not needed', 'npcink-cloud-addon' ); ?></small>
 				</summary>
 				<div class="npcink-cloud-endpoint-advanced__body">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">

@@ -265,10 +265,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			if ( ! $configured ) {
 				return array(
 					'code' => 'not_configured',
-					'label' => __( 'Not configured', 'npcink-cloud-addon' ),
-					'message' => $has_any_values
-						? __( 'Cloud settings are incomplete. Reconnect this site in Npcink Cloud to issue a new connection key.', 'npcink-cloud-addon' )
-						: __( 'Authorize this site in Npcink Cloud to create the connection.', 'npcink-cloud-addon' ),
+					'label' => __( 'Not connected', 'npcink-cloud-addon' ),
+					'message' => __( 'This site is not connected yet.', 'npcink-cloud-addon' ),
 					'configured' => false,
 					'verified' => false,
 					'verified_at' => '',
