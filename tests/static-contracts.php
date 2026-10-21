@@ -666,19 +666,19 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $zh_cn_po, 'msgstr "Cloud 基础 URL"' )
+	false !== strpos( $zh_cn_po, 'msgstr "服务地址"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "夜间巡检"' )
 	&& false === strpos( $zh_cn_po, 'msgstr "高级与排查"' )
 		&& false !== strpos( $zh_cn_po, 'msgstr "同步"' )
 		&& false !== strpos( $zh_cn_po, 'msgstr "同步中"' )
-		&& false !== strpos( $zh_cn_po, 'msgstr "在 Cloud 中打开"' )
+		&& false !== strpos( $zh_cn_po, 'msgstr "打开 Npcink Cloud"' )
 		&& false !== strpos( $zh_cn_po, 'msgstr "查看检查"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "启用站点知识库"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "隐私设置"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "Cloud 错误分类"' )
 	&& false !== strpos( $pot, 'Cloud credentials could not be stored or read securely.' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "无法安全存储或读取 Cloud 凭据。请检查 WordPress 安全盐后重新连接此站点。"' )
-	&& false !== strpos( $zh_cn_po, 'msgstr "无法安全存储 Cloud 凭据。现有连接未更改。请检查 WordPress 安全盐并重新连接。"' ),
+	&& false !== strpos( $zh_cn_po, 'msgstr "无法在此站点保存连接。请让主机商检查站点安全密钥，然后重新连接。"' ),
 	'Chinese localization translates fixed Cloud Addon admin terminology without translating dynamic metadata.'
 );
 

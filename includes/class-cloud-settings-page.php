@@ -1095,9 +1095,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<section class="npcink-cloud-section npcink-cloud-tab-panel npcink-cloud-overview">
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
-				<?php if ( $is_verified ) : ?>
-					<div class="card npcink-cloud-card npcink-cloud-overview-status"><?php self::render_status_line( __( 'Connected. AI features are ready to use.', 'npcink-cloud-addon' ), 'ok' ); ?></div>
-				<?php endif; ?>
+				<div class="card npcink-cloud-card npcink-cloud-overview-status"><?php self::render_status_line( __( 'Connected. AI features are ready to use.', 'npcink-cloud-addon' ), 'ok' ); ?></div>
 				<?php self::render_generation_test_links( true ); ?>
 				<div class="npcink-cloud-overview-entitlements" aria-labelledby="npcink-cloud-entitlements-title">
 					<div class="npcink-cloud-section-title">
