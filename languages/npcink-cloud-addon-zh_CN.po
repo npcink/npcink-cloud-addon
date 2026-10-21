@@ -3047,7 +3047,7 @@ msgid "This site"
 msgstr "此站点"
 
 msgid "Once connected, AI features turn on automatically. You can change them in Overview at any time."
-msgstr "连接后 AI 功能会自动开启，可随时在“概览”中调整。"
+msgstr "连接后 AI 功能会自动开启，可随时在「概览」中调整。"
 
 msgid "Free credits belong to the account you choose when connecting, not to this site. To switch to another account later, follow the steps shown in Npcink Cloud."
 msgstr "免费额度属于你连接时选择的账号，不属于此站点。以后要换账号，请按 Npcink Cloud 中的提示操作。"
@@ -3101,7 +3101,7 @@ msgid "The connection has a problem"
 msgstr "连接出现问题"
 
 msgid "Click Check again. If it keeps happening, contact support with the details under More information."
-msgstr "点「重新检查」。如果一直这样，请联系客服并附上“更多信息”里的内容。"
+msgstr "点「重新检查」。如果一直这样，请联系客服并附上「更多信息」里的内容。"
 
 msgid "Open Npcink Cloud"
 msgstr "打开 Npcink Cloud"
