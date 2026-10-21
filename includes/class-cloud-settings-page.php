@@ -726,13 +726,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<div class="npcink-cloud-summary__actions">
 				<?php if ( $activation_required ) : ?>
-					<a class="button button-primary" href="<?php echo esc_url( self::portal_url( $settings ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Activate this site in Cloud', 'npcink-cloud-addon' ); ?></a>
-					<?php self::render_reverify_form( $settings, __( 'Check activation again', 'npcink-cloud-addon' ) ); ?>
+					<a class="button button-primary" href="<?php echo esc_url( self::portal_url( $settings ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Npcink Cloud', 'npcink-cloud-addon' ); ?></a>
 				<?php elseif ( $is_verified ) : ?>
 					<?php if ( $service_needs_attention ) : ?>
 						<?php self::render_reverify_form( $settings ); ?>
 					<?php endif; ?>
 					<?php self::render_portal_link( $settings, 'icon' ); ?>
+				<?php elseif ( '' !== (string) ( $settings['last_verification_error'] ?? '' ) ) : ?>
+					<?php self::render_reverify_form( $settings, __( 'Check again', 'npcink-cloud-addon' ), 'button button-primary' ); ?>
 				<?php else : ?>
 					<?php self::render_authorization_form( __( 'Reconnect', 'npcink-cloud-addon' ), 'button button-primary' ); ?>
 				<?php endif; ?>
@@ -811,9 +812,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<?php if ( Npcink_Cloud_Addon_Settings::is_verified() && $service_needs_attention ) : ?>
 					<?php self::render_reverify_form( $settings, __( 'Check connection', 'npcink-cloud-addon' ) ); ?>
 				<?php endif; ?>
-				<?php self::render_change_account_form( Npcink_Cloud_Addon_Settings::is_verified() ? 'button button-primary' : 'button button-secondary' ); ?>
+				<?php self::render_change_account_form( 'button button-secondary' ); ?>
 			</div>
-			<p class="description"><?php esc_html_e( 'Changing the account disconnects this site first, then opens Npcink Cloud so you can pick an account.', 'npcink-cloud-addon' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Switching accounts disconnects this site first.', 'npcink-cloud-addon' ); ?></p>
 			<?php if ( $close_card ) : ?>
 				</div>
 				<?php self::render_connection_more( $settings ); ?>
@@ -945,7 +946,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param array<string,mixed> $settings Stored settings.
 		 * @return void
 		 */
-		private static function render_reverify_form( array $settings, string $label = '' ): void {
+		private static function render_reverify_form( array $settings, string $label = '', string $class_name = 'button button-secondary' ): void {
 			?>
 			<form class="npcink-cloud-verify-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( Npcink_Cloud_Settings_Actions::ACTION_SAVE ) ); ?>" />
@@ -957,7 +958,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<input type="hidden" name="site_knowledge_delivery_enabled" value="<?php echo esc_attr( ! empty( $settings['site_knowledge_delivery_enabled'] ) ? '1' : '0' ); ?>" />
 				<input type="hidden" name="site_knowledge_generation_reference_enabled" value="<?php echo esc_attr( ! empty( $settings['site_knowledge_generation_reference_enabled'] ) ? '1' : '0' ); ?>" />
 				<input type="hidden" name="wordpress_ai_connector_enabled" value="<?php echo esc_attr( ! empty( $settings['wordpress_ai_connector_enabled'] ) ? '1' : '0' ); ?>" />
-				<button type="submit" class="button button-secondary"><?php echo esc_html( '' !== $label ? $label : __( 'Check connection', 'npcink-cloud-addon' ) ); ?></button>
+				<button type="submit" class="<?php echo esc_attr( $class_name ); ?>"><?php echo esc_html( '' !== $label ? $label : __( 'Check connection', 'npcink-cloud-addon' ) ); ?></button>
 			</form>
 			<?php
 		}
@@ -1784,8 +1785,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<p class="description"><?php esc_html_e( 'Once connected, AI features turn on automatically. You can change them in Overview at any time.', 'npcink-cloud-addon' ); ?></p>
 				<p class="description"><?php esc_html_e( 'Free credits belong to the account you choose when connecting, not to this site. To switch to another account later, follow the steps shown in Npcink Cloud.', 'npcink-cloud-addon' ); ?></p>
 				<p class="description"><a href="<?php echo esc_url( self::privacy_policy_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Review Cloud privacy and data retention information', 'npcink-cloud-addon' ); ?></a></p>
-				<?php if ( $configured ) : ?>
-					<?php self::render_reverify_form( $settings, __( 'Check again', 'npcink-cloud-addon' ) ); ?>
+				<?php if ( $configured && '' !== (string) ( $state['last_verification_error'] ?? '' ) ) : ?>
+					<p class="description"><?php esc_html_e( 'Details for support', 'npcink-cloud-addon' ); ?>: <code><?php echo esc_html( Npcink_Cloud_Settings_Actions::bound_admin_error_detail( (string) $state['last_verification_error'] ) ); ?></code></p>
+				<?php elseif ( $configured ) : ?>
+					<?php self::render_reverify_form( $settings, 'activation_required' === (string) ( $state['code'] ?? '' ) ? __( 'Check activation again', 'npcink-cloud-addon' ) : __( 'Check again', 'npcink-cloud-addon' ) ); ?>
 				<?php endif; ?>
 			</details>
 			<details class="npcink-cloud-endpoint-advanced npcink-cloud-fold npcink-cloud-fold--bottom">

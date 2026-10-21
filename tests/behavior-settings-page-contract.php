@@ -491,8 +491,8 @@ Npcink_Cloud_Settings_Page::render();
 $inactive_rendered = (string) ob_get_clean();
 
 maca_assert(
-	false !== strpos( $inactive_rendered, 'Connected, activation required' )
-	&& false !== strpos( $inactive_rendered, 'Activate this site in Cloud' )
+	false !== strpos( $inactive_rendered, 'This site needs to be turned on in Npcink Cloud' )
+	&& false !== strpos( $inactive_rendered, 'Open Npcink Cloud' )
 	&& false !== strpos( $inactive_rendered, 'Check activation again' )
 	&& false === strpos( $inactive_rendered, 'Signed verification failed' ),
 	'Behavior: an inactive bound site renders activation recovery actions without calling it a signature failure.'
@@ -758,7 +758,7 @@ maca_assert(
 	false !== strpos( $connection_management_rendered, 'Connection management' )
 	&& false !== strpos( $connection_management_rendered, 'Change account' )
 	&& false !== strpos( $connection_management_rendered, 'npcink_cloud_addon_change_account' )
-	&& false !== strpos( $connection_management_rendered, 'button button-primary' )
+	&& false !== strpos( $connection_management_rendered, 'button button-secondary' )
 	&& false !== strpos( $connection_management_rendered, 'Disconnect this site' )
 	&& false !== strpos( $connection_management_rendered, 'The site and its data will remain in Cloud.' )
 		&& false !== strpos( $connection_management_rendered, 'js_confirmation' )

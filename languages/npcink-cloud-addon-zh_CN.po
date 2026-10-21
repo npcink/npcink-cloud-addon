@@ -3084,3 +3084,30 @@ msgstr "我知道此站点会先断开。"
 
 msgid "This site was disconnected. Pick an account in Npcink Cloud to reconnect."
 msgstr "此站点已断开。请在 Npcink Cloud 中选择账号重新连接。"
+
+msgid "Site connected"
+msgstr "已连接"
+
+msgid "This site is connected to Npcink Cloud."
+msgstr "此站点已连接到 Npcink Cloud。"
+
+msgid "This site needs to be turned on in Npcink Cloud"
+msgstr "需要在 Npcink Cloud 中启用此站点"
+
+msgid "Open Npcink Cloud, turn this site on, then come back here."
+msgstr "打开 Npcink Cloud 启用此站点，然后回到这里。"
+
+msgid "The connection has a problem"
+msgstr "连接出现问题"
+
+msgid "Click Check again. If it keeps happening, contact support with the details under More information."
+msgstr "点「重新检查」。如果一直这样，请联系客服并附上“更多信息”里的内容。"
+
+msgid "Open Npcink Cloud"
+msgstr "打开 Npcink Cloud"
+
+msgid "Details for support"
+msgstr "给客服的信息"
+
+msgid "Switching accounts disconnects this site first."
+msgstr "换账号会先断开此站点。"

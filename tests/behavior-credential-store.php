@@ -129,7 +129,7 @@ maca_assert(
 	'activation_required' === (string) ( $inactive_state['code'] ?? '' )
 	&& true === (bool) ( $inactive_state['configured'] ?? false )
 	&& false === (bool) ( $inactive_state['verified'] ?? true )
-	&& 'Connected, activation required' === (string) ( $inactive_state['label'] ?? '' ),
+	&& 'This site needs to be turned on in Npcink Cloud' === (string) ( $inactive_state['label'] ?? '' ),
 	'Behavior: a bound inactive site is shown as connected with activation required, not as a missing credential.'
 );
 Npcink_Cloud_Addon_Settings::mark_verification_result( true, '' );

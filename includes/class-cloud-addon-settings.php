@@ -278,8 +278,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			if ( $verified ) {
 				return array(
 					'code' => 'configured_valid',
-					'label' => __( 'Verified', 'npcink-cloud-addon' ),
-					'message' => __( 'Cloud settings are saved and verified.', 'npcink-cloud-addon' ),
+					'label' => __( 'Site connected', 'npcink-cloud-addon' ),
+					'message' => __( 'This site is connected to Npcink Cloud.', 'npcink-cloud-addon' ),
 					'configured' => true,
 					'verified' => true,
 					'verified_at' => sanitize_text_field( (string) $settings['verified_at'] ),
@@ -291,8 +291,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			if ( 'inactive' === $activation_state ) {
 				return array(
 					'code' => 'activation_required',
-					'label' => __( 'Connected, activation required', 'npcink-cloud-addon' ),
-					'message' => __( 'This site is bound and its connection credential is stored, but Cloud runtime service is inactive. Activate it in Npcink Cloud, then verify the connection here.', 'npcink-cloud-addon' ),
+					'label' => __( 'This site needs to be turned on in Npcink Cloud', 'npcink-cloud-addon' ),
+					'message' => __( 'Open Npcink Cloud, turn this site on, then come back here.', 'npcink-cloud-addon' ),
 					'configured' => true,
 					'verified' => false,
 					'verified_at' => '',
@@ -303,8 +303,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 
 			return array(
 				'code' => '' !== $last_error ? 'configured_unavailable' : 'configured_unverified',
-				'label' => '' !== $last_error ? __( 'Unavailable', 'npcink-cloud-addon' ) : __( 'Connection not finished', 'npcink-cloud-addon' ),
-				'message' => '' !== $last_error ? $last_error : __( 'Click Reconnect to finish connecting in Npcink Cloud.', 'npcink-cloud-addon' ),
+				'label' => '' !== $last_error ? __( 'The connection has a problem', 'npcink-cloud-addon' ) : __( 'Connection not finished', 'npcink-cloud-addon' ),
+				'message' => '' !== $last_error ? __( 'Click Check again. If it keeps happening, contact support with the details under More information.', 'npcink-cloud-addon' ) : __( 'Click Reconnect to finish connecting in Npcink Cloud.', 'npcink-cloud-addon' ),
 				'configured' => true,
 				'verified' => false,
 				'verified_at' => '',
