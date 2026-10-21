@@ -1820,8 +1820,3 @@ button.npcink-cloud-gen-test-dialog__chip:focus {
 .npcink-cloud-addon details.npcink-cloud-fold--bottom { border-top: 1px solid #dcdcde; margin-top: 24px; padding-top: 16px; }
 .npcink-cloud-addon .npcink-cloud-connection-danger { margin-top: 24px; }
 .npcink-cloud-card .npcink-cloud-summary__actions { justify-content: flex-start; }
-.npcink-cloud-checks-simple { margin: 8px 0 16px; }
-.npcink-cloud-checks-simple__status { display: flex; align-items: center; gap: 8px; font-size: 15px; margin: 0 0 4px; }
-.npcink-cloud-checks-simple__dot { width: 10px; height: 10px; border-radius: 50%; background: #00a32a; flex: none; }
-.npcink-cloud-checks-simple--warn .npcink-cloud-checks-simple__dot { background: #dba617; }
-.npcink-cloud-checks-simple--bad .npcink-cloud-checks-simple__dot { background: #d63638; }

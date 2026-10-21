@@ -1334,9 +1334,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				);
 			}
 			?>
-			<div class="npcink-cloud-checks-simple npcink-cloud-checks-simple--<?php echo esc_attr( $simple_tone ); ?>">
-				<p class="npcink-cloud-checks-simple__status"><span class="npcink-cloud-checks-simple__dot" aria-hidden="true"></span><strong><?php echo esc_html( $simple_message ); ?></strong></p>
-				<p class="description"><?php echo esc_html( $simple_hint ); ?></p>
+			<div class="card npcink-cloud-card npcink-cloud-checks-simple npcink-cloud-checks-simple--<?php echo esc_attr( $simple_tone ); ?>">
+				<?php self::render_status_line( $simple_message, $simple_tone ); ?>
 				<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
 					<?php if ( 'warn' === $simple_tone ) : ?>
 						<a class="button button-primary" href="<?php echo esc_url( self::tab_url( 'connection' ) ); ?>"><?php esc_html_e( 'Reconnect', 'npcink-cloud-addon' ); ?></a>
@@ -1346,8 +1345,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<?php self::render_reverify_form( $settings, __( 'Check again', 'npcink-cloud-addon' ) ); ?>
 					<?php endif; ?>
 				</div>
+				<p class="description"><?php echo esc_html( $simple_hint ); ?></p>
 			</div>
-			<details class="npcink-cloud-advanced-detail npcink-cloud-checks-more" id="npcink-cloud-checks-more">
+			<details class="npcink-cloud-advanced-detail npcink-cloud-checks-more npcink-cloud-fold" id="npcink-cloud-checks-more">
 				<summary><?php esc_html_e( 'More information (for contacting support)', 'npcink-cloud-addon' ); ?></summary>
 				<div class="npcink-cloud-advanced-detail__body">
 				<p><button type="button" class="button button-secondary" data-copied-label="<?php echo esc_attr__( 'Copied', 'npcink-cloud-addon' ); ?>" onclick="var b=this,d=b.closest('.npcink-cloud-advanced-detail__body'),n=d.querySelectorAll('details'),o=[];n.forEach(function(x){o.push(x.open);x.open=true;});var t=d.innerText.replace(b.innerText,'').trim();n.forEach(function(x,i){x.open=o[i];});var done=function(){b.textContent=b.getAttribute('data-copied-label');};if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(done);}else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done();}"><?php esc_html_e( 'Copy information', 'npcink-cloud-addon' ); ?></button></p>
