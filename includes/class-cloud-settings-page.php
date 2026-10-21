@@ -1350,9 +1350,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<?php
 				$hosted_runtime_ok = ! empty( $runtime['available'] );
 				self::render_diagnostic_row( __( 'Connection', 'npcink-cloud-addon' ), $connection_ok ? __( 'Normal', 'npcink-cloud-addon' ) : __( 'Not connected', 'npcink-cloud-addon' ), $credentials_detail );
-				self::render_diagnostic_row( __( 'Last checked', 'npcink-cloud-addon' ), self::format_datetime_value( (string) ( $settings['verified_at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) ), '' );
+				// Shown on the card already; kept visually hidden so Copy information still includes it.
+				?><div class="npcink-cloud-kv__row screen-reader-text"><dt><?php esc_html_e( 'Last checked', 'npcink-cloud-addon' ); ?></dt><dd><?php echo esc_html( self::format_datetime_value( (string) ( $settings['verified_at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) ) ); ?></dd></div><?php
 				self::render_diagnostic_row( __( 'Reading credits', 'npcink-cloud-addon' ), self::format_entitlement_availability( $entitlement, $is_verified ), '' );
-				self::render_diagnostic_row( __( 'Nightly site check', 'npcink-cloud-addon' ), $hosted_runtime_ok ? __( 'Normal', 'npcink-cloud-addon' ) : __( 'Paused for now', 'npcink-cloud-addon' ), '' );
+				self::render_diagnostic_row( __( 'Nightly site check', 'npcink-cloud-addon' ), $hosted_runtime_ok ? __( 'Normal', 'npcink-cloud-addon' ) : __( 'Paused', 'npcink-cloud-addon' ), '' );
 				self::render_capability_diagnostics();
 				if ( ! empty( $readiness ) ) {
 					self::render_diagnostic_row( __( 'Full check', 'npcink-cloud-addon' ), self::format_readiness_status( $readiness ), '' );
