@@ -818,13 +818,25 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		public const LAST_AI_ERROR_OPTION = 'npcink_cloud_addon_last_ai_error';
 
 		/**
+		 * Sanitizes a stable error code, keeping dots and dashes.
+		 *
+		 * @param string $code Raw code.
+		 * @return string
+		 */
+		public static function sanitize_error_code( string $code ): string {
+			return substr( (string) preg_replace( '/[^a-z0-9_.\-]/', '', strtolower( $code ) ), 0, 120 );
+		}
+
+		/**
 		 * Stores the last AI request error code (code and time only; never content or secrets).
 		 *
 		 * @param string $stable_code Stable error code.
 		 * @return void
 		 */
 		private static function remember_last_ai_error( string $stable_code ): void {
-			$code = sanitize_key( str_replace( ':', '-', $stable_code ) );
+			// Keep dots so Cloud codes such as commercial.quota_exceeded stay
+			// readable in Copy information; sanitize_key() would strip them.
+			$code = self::sanitize_error_code( str_replace( ':', '-', $stable_code ) );
 			if ( '' === $code || ! function_exists( 'update_option' ) ) {
 				return;
 			}
@@ -845,7 +857,12 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			// pool" in an application error) and must not drive the family.
 			$haystack = strtolower( $error_code . ' ' . $diagnostic );
 			$friendly_key = 'runtime_failed';
-			if ( 1 === preg_match( '/(?:insufficient[_ ]credit|credits?[_ ]exhausted|quota[_ ]exhausted|payment[_ ]required|credit[_ ]balance)/', $haystack ) ) {
+			// Cloud upstream model-provider codes (provider.quota_exhausted,
+			// provider.rate_limited, ...) describe Npcink's provider, not the
+			// site's credits or request rate, so they are always "unavailable".
+			if ( 1 === preg_match( '/(?:^|[^a-z0-9_.])provider\./', $haystack ) ) {
+				$friendly_key = 'plain_service_unavailable';
+			} elseif ( 1 === preg_match( '/(?:commercial\.quota_exceeded|insufficient[_ ]credit|credits?[_ ]exhausted|quota[_ ]exhausted|payment[_ ]required|credit[_ ]balance)/', $haystack ) ) {
 				$friendly_key = 'plain_credits_exhausted';
 			} elseif ( 1 === preg_match( '/(?:site[_ ](?:inactive|not[_ ]active|disabled|suspended)|key[_ ]inactive|secret[_ ]inactive)/', $haystack ) ) {
 				$friendly_key = 'plain_site_inactive';

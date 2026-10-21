@@ -428,8 +428,20 @@ namespace {
 		array( 'cloud_site_inactive', '', 'turned off' ),
 		array( 'cloud_key_inactive', '', 'turned off' ),
 		array( 'cloud_rate_limited', '', 'Wait a minute' ),
+		array( 'commercial.quota_exceeded', 'commercial.quota_exceeded', 'run out' ),
+		array( 'cloud_runtime_error', 'commercial.quota_exceeded', 'run out' ),
+		array( 'provider.quota_exhausted', '', 'temporarily unavailable' ),
+		array( 'cloud_runtime_error', 'provider.rate_limited', 'temporarily unavailable' ),
+		array( 'provider.rate_limited', 'provider.rate_limited', 'temporarily unavailable' ),
 		array( 'cloud_service_unavailable', '', 'temporarily unavailable' ),
 	);
+Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'cloud_runtime_error', 'commercial.quota_exceeded:entitlement', 'raw' );
+maca_assert(
+	'commercial.quota_exceeded-entitlement' === ( get_option( Npcink_Cloud_WordPress_AI_Connector::LAST_AI_ERROR_OPTION, array() )['code'] ?? '' )
+	&& 'provider.rate_limited' === Npcink_Cloud_WordPress_AI_Connector::sanitize_error_code( 'Provider.Rate_Limited !' )
+	&& false === strpos( (string) file_get_contents( dirname( __DIR__ ) . '/includes/class-cloud-settings-page.php' ), "sanitize_key( (string) \$last_ai_error" ),
+	'Behavior: the saved last AI error keeps the dots of Cloud codes (commercial.quota_exceeded), so Copy information shows the real code.'
+);
 	$plain_ok = true;
 	foreach ( $plain_cases as $plain_case ) {
 		$plain_message = Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( $plain_case[0], $plain_case[1], 'raw upstream detail' );

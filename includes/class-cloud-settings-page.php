@@ -665,6 +665,20 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		}
 
 		/**
+		 * Returns the fixed Cloud portal page for plans and credits.
+		 *
+		 * Matches the Cloud portal route /portal/billing ("Package" in the
+		 * portal navigation), so the low-balance top-up link does not depend
+		 * on the entitlement payload carrying links.billing_url.
+		 *
+		 * @return string
+		 */
+		public static function get_portal_billing_url(): string {
+			$base_url = untrailingslashit( esc_url_raw( Npcink_Cloud_Addon_Settings::get_effective_base_url() ) );
+			return '' !== $base_url ? $base_url . '/portal/billing' : '';
+		}
+
+		/**
 		 * Renders the single Portal exit: text button when healthy, icon when an alert CTA is present.
 		 *
 		 * @param array<string,mixed> $settings Stored settings.
@@ -1097,7 +1111,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
 				<?php $first_connection = (bool) get_transient( Npcink_Cloud_Settings_Actions::FIRST_CONNECTION_TRANSIENT ); ?>
 				<?php if ( $first_connection ) { delete_transient( Npcink_Cloud_Settings_Actions::FIRST_CONNECTION_TRANSIENT ); } ?>
-				<?php $topup_url = (string) ( is_array( $entitlement['links'] ?? null ) ? ( $entitlement['links']['billing_url'] ?? '' ) : '' ); ?>
+				<?php $topup_url = self::get_portal_billing_url(); ?>
 				<?php if ( ! empty( $credit_metric['low'] ) ) : ?>
 					<div class="card npcink-cloud-card npcink-cloud-overview-status npcink-cloud-low-balance">
 						<?php self::render_status_line( __( 'AI credits are running low.', 'npcink-cloud-addon' ), 'warn' ); ?>
@@ -1359,9 +1373,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				// Shown on the card already; kept visually hidden so Copy information still includes it.
 				?><div class="npcink-cloud-kv__row screen-reader-text"><dt><?php esc_html_e( 'Last checked', 'npcink-cloud-addon' ); ?></dt><dd><?php echo esc_html( self::format_datetime_value( (string) ( $settings['verified_at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) ) ); ?></dd></div><?php
 				$last_ai_error = get_option( Npcink_Cloud_WordPress_AI_Connector::LAST_AI_ERROR_OPTION, array() );
-				if ( is_array( $last_ai_error ) && '' !== sanitize_key( (string) ( $last_ai_error['code'] ?? '' ) ) ) :
+				if ( is_array( $last_ai_error ) && '' !== Npcink_Cloud_WordPress_AI_Connector::sanitize_error_code( (string) ( $last_ai_error['code'] ?? '' ) ) ) :
 					// Raw AI error code: kept visually hidden so it only appears in Copy information.
-					?><div class="npcink-cloud-kv__row screen-reader-text"><dt><?php esc_html_e( 'Last AI error code', 'npcink-cloud-addon' ); ?></dt><dd><?php echo esc_html( sanitize_key( (string) $last_ai_error['code'] ) . ' (' . self::format_datetime_value( (string) ( $last_ai_error['at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) ) . ')' ); ?></dd></div><?php
+					?><div class="npcink-cloud-kv__row screen-reader-text"><dt><?php esc_html_e( 'Last AI error code', 'npcink-cloud-addon' ); ?></dt><dd><?php echo esc_html( Npcink_Cloud_WordPress_AI_Connector::sanitize_error_code( (string) $last_ai_error['code'] ) . ' (' . self::format_datetime_value( (string) ( $last_ai_error['at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) ) . ')' ); ?></dd></div><?php
 				endif;
 				self::render_diagnostic_row( __( 'Reading credits', 'npcink-cloud-addon' ), self::format_entitlement_availability( $entitlement, $is_verified ), '' );
 				self::render_diagnostic_row( __( 'Nightly site check', 'npcink-cloud-addon' ), $hosted_runtime_ok ? __( 'Normal', 'npcink-cloud-addon' ) : __( 'Paused', 'npcink-cloud-addon' ), '' );

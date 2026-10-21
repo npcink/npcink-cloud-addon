@@ -1238,6 +1238,13 @@ maca_assert(
 	&& false === strpos( $settings_page_source, 'npcink-cloud-low-balance__action"><a class="button-primary' ),
 	'Behavior: low-balance reminder shows only under 10% of a Cloud-reported limit, as a plain text link inside the plugin page.'
 );
+$portal_billing_url = Npcink_Cloud_Settings_Page::get_portal_billing_url();
+maca_assert(
+	untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url() ) . '/portal/billing' === $portal_billing_url
+	&& false !== strpos( $settings_page_source, '$topup_url = self::get_portal_billing_url();' )
+	&& false === strpos( $settings_page_source, "['links']['billing_url']" ),
+	'Behavior: the low-balance top-up link always points at the Cloud portal plans and credits page (/portal/billing), without needing links.billing_url from the entitlement payload.'
+);
 $onboarding_actions_source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/class-cloud-settings-actions.php' );
 $onboarding_page_source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/class-cloud-settings-page.php' );
 maca_assert(
