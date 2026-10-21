@@ -623,7 +623,7 @@ $failed_state = Npcink_Cloud_Addon_Settings::get_credential_state();
 
 maca_assert(
 	'configured_unavailable' === (string) ( $failed_state['code'] ?? '' )
-	&& false !== strpos( (string) ( $failed_state['message'] ?? '' ), 'Cloud unavailable.' )
+	&& false !== strpos( (string) ( $failed_state['last_verification_error'] ?? '' ), 'Cloud unavailable.' )
 	&& false === get_transient( 'npcink_cloud_notice_1' ),
 	'Behavior: verification failure remains visible in the connection summary without a duplicate redirect notice.'
 );
@@ -648,7 +648,7 @@ $inactive_state = Npcink_Cloud_Addon_Settings::get_credential_state();
 
 maca_assert(
 	'activation_required' === (string) ( $inactive_state['code'] ?? '' )
-	&& 'Connected, activation required' === (string) ( $inactive_state['label'] ?? '' )
+	&& 'This site needs to be turned on in Npcink Cloud' === (string) ( $inactive_state['label'] ?? '' )
 	&& false === (bool) ( $inactive_state['verified'] ?? true )
 	&& '' === (string) ( $inactive_state['last_verification_error'] ?? '' ),
 	'Behavior: auth.site_inactive becomes the connected activation-required state instead of a signature failure.'

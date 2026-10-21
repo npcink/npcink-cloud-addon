@@ -1881,11 +1881,11 @@ maca_assert(
 	&& false !== strpos( $admin_css, '.npcink-cloud-local-permissions' )
 	&& false !== strpos( $admin_css, '.npcink-ai-switch__track' )
 	&& false !== strpos( $settings_page, 'class="npcink-ai-switch__input"' )
-	&& false !== strpos( $settings_page, 'Manual connection fallback' )
+	&& false !== strpos( $settings_page, 'npcink-cloud-manual-fallback' )
 	&& false === strpos( $settings_page, 'Local connection fallback and last verification failure.' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-manual-fallback' )
 	&& false === strpos( $settings_page, 'npcink-cloud-manual-fallback" open' )
-	&& false !== strpos( $settings_page, 'Only when Cloud authorization is unavailable.' )
+	&& false !== strpos( $settings_page, 'Only use this if support asks you to' )
 	&& false === strpos( $settings_page, 'Use only for recovery or local debugging when Cloud authorization is unavailable.' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-advanced-detail' )
 	&& false !== strpos( $settings_page, '<h3 class="screen-reader-text"><?php esc_html_e( \'Connection status\'' )
@@ -1924,7 +1924,7 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'format_site_knowledge_overview' )
 	&& false !== strpos( $settings_page, 'Plan and entitlement' )
 	&& false === strpos( $settings_page, 'Re-verify and refresh' )
-	&& 2 === substr_count( $settings_page, 'self::render_reverify_form( $settings );' )
+	&& 1 === substr_count( $settings_page, 'self::render_reverify_form( $settings );' )
 	&& false !== strpos( $settings_page, "self::render_reverify_form( \$settings, __( 'Check connection'" )
 	&& false !== strpos( $admin_css, '.npcink-cloud-summary__actions > form' )
 	&& false !== strpos( $admin_css, '.npcink-cloud-section-heading .npcink-cloud-verify-form' )
@@ -2213,7 +2213,7 @@ maca_assert(
 	&& false !== strpos( $settings_actions, '/portal/v1/addon-connections/exchange' )
 	&& false !== strpos( $settings_page, 'Add this site in Npcink Cloud' )
 	&& false !== strpos( $settings_actions, 'persist_and_verify_settings' )
-	&& false !== strpos( $settings_actions, 'Cloud connection completed and verified.' ),
+	&& false !== strpos( $settings_actions, 'Connected to Npcink Cloud.' ),
 	'Settings page defaults to Cloud-side site authorization, exchanges the callback key, and verifies the saved connection immediately.'
 );
 
@@ -2230,11 +2230,11 @@ maca_assert(
 	&& false !== strpos( $settings_actions, "remove_filter( 'allowed_redirect_hosts', \$allow_cloud_host )" )
 	&& false === strpos( $settings_page, 'wp_redirect(' )
 	&& false === strpos( $settings_actions, 'wp_redirect(' )
-	&& false !== strpos( $settings_page, 'class="npcink-cloud-connect-context"' )
+	&& false !== strpos( $settings_page, 'class="npcink-cloud-connect-more npcink-cloud-fold"' )
 	&& false !== strpos( $settings_page, 'target="_blank" rel="noopener noreferrer"' )
-	&& false !== strpos( $settings_page, '<details class="npcink-cloud-endpoint-advanced">' )
-	&& false !== strpos( $settings_page, 'Advanced connection' )
-	&& false !== strpos( $settings_page, 'Self-hosted Cloud endpoint' )
+	&& false !== strpos( $settings_page, '<details class="npcink-cloud-endpoint-advanced npcink-cloud-fold npcink-cloud-fold--bottom">' )
+	&& false !== strpos( $settings_page, 'Advanced settings' )
+	&& false !== strpos( $settings_page, 'Usually not needed' )
 	&& false !== strpos( $settings_page, 'Authorize with this endpoint' )
 	&& false !== strpos( $settings_page, 'formtarget="_blank"' )
 	&& false !== strpos( $settings_page, 'This does not manage Cloud sites, keys, billing, models, router, workflows, or runtime policy.' )
@@ -2251,11 +2251,7 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $zh_cn_po, 'msgid "Advanced connection"' )
-	&& false !== strpos( $zh_cn_po, 'msgstr "高级连接"' )
-	&& false !== strpos( $zh_cn_po, 'msgid "Self-hosted Cloud endpoint"' )
-	&& false !== strpos( $zh_cn_po, 'msgstr "自托管 Cloud 端点"' )
-	&& false !== strpos( $zh_cn_po, 'msgid "Authorize with this endpoint"' )
+	false !== strpos( $zh_cn_po, 'msgid "Authorize with this endpoint"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "使用此端点授权"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "仅用于兼容的 Npcink Cloud 部署。Cloud 仍负责站点激活和密钥签发。"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "这里不管理 Cloud 站点、密钥、账单、模型、路由器、工作流或运行时策略。"' ),
@@ -2320,7 +2316,12 @@ maca_assert(
 	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Addon_Cleanup::delete_all( $settings )' )
 	&& false !== strpos( $settings_actions, '$remembered_base_url' )
 	&& false !== strpos( $settings_actions, "'base_url' => \$remembered_base_url," )
-	&& false !== strpos( $settings_page, 'Change Cloud account' )
+	&& false !== strpos( $settings_page, 'Change account' )
+	&& false !== strpos( $settings_actions, "ACTION_CHANGE_ACCOUNT = 'npcink_cloud_addon_change_account'" )
+	&& false !== strpos( $settings_actions, 'function handle_change_account' )
+	&& false !== strpos( $settings_actions, 'function clear_local_connection_preserving_base_url' )
+	&& false !== strpos( $settings_page, 'Connected Cloud identity' )
+	&& false !== strpos( $settings_page, 'render_change_account_form' )
 	&& false === strpos( $settings_page, 'Open Cloud sites' )
 	&& false !== strpos( $settings_page, "render_portal_link( \$settings, 'icon' )" )
 	&& false !== strpos( $settings_page, 'function render_connection_actions( array $settings, bool $is_verified, bool $service_needs_attention = false )' )
@@ -2329,7 +2330,7 @@ maca_assert(
 	&& false === strpos( $settings_page, "render_site_knowledge_refresh_form( __( 'Update again', 'npcink-cloud-addon' )" )
 	&& false !== strpos( $settings_page, 'if ( $is_verified )' )
 	&& false !== strpos( $settings_page, 'Disconnect this site' )
-	&& false !== strpos( $settings_page, 'Free service and AI credits belong to the Cloud account selected during authorization' )
+	&& false !== strpos( $settings_page, 'Free credits belong to the account you choose when connecting' )
 	&& false !== strpos( $settings_page, 'AI credits shown here belong to the connected Cloud account' )
 	&& false !== strpos( $settings_page, 'The site and its data will remain in Cloud.' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-connection-danger' )
@@ -2374,8 +2375,8 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2680,
-	'includes/class-cloud-settings-actions.php'        => 1175,
+	'includes/class-cloud-settings-page.php'           => 2800,
+	'includes/class-cloud-settings-actions.php'        => 1230,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1090,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,

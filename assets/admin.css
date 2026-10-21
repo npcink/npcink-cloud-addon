@@ -1789,3 +1789,34 @@ button.npcink-cloud-gen-test-dialog__chip:focus {
 	border: 0;
 	box-shadow: none;
 }
+
+/* Restrained layout: 8 / 16 / 24 spacing scale. */
+.npcink-cloud-addon .npcink-cloud-subtitle { margin: 8px 0 16px; }
+.npcink-cloud-addon .npcink-cloud-tabs { margin-bottom: 16px; }
+.npcink-cloud-back-link { margin: 0 0 16px; }
+.npcink-cloud-addon .card.npcink-cloud-card { box-sizing: border-box; margin: 16px 0 0; max-width: 720px; min-width: 0; padding: 16px 24px; }
+.npcink-cloud-card > :first-child { margin-top: 0; }
+.npcink-cloud-card > :last-child { margin-bottom: 0; }
+.npcink-cloud-card .npcink-cloud-connection-identity { margin: 0; }
+.npcink-cloud-card__status { align-items: center; display: flex; font-size: 15px; gap: 8px; margin: 0 0 16px; }
+.npcink-cloud-card__meta { color: #646970; margin: -8px 0 16px; }
+.npcink-cloud-card .npcink-cloud-connect-actions,
+.npcink-cloud-card .npcink-cloud-summary__actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.npcink-cloud-card .npcink-cloud-summary__actions form,
+.npcink-cloud-card .npcink-cloud-connect-actions form { margin: 0; }
+.npcink-cloud-card .description { margin: 8px 0 0; }
+.npcink-cloud-status-dot { background: #00a32a; border-radius: 50%; flex: none; height: 10px; width: 10px; }
+.npcink-cloud-status-dot--warn { background: #dba617; }
+.npcink-cloud-status-dot--bad { background: #d63638; }
+.npcink-cloud-status-dot--muted { background: #a7aaad; }
+.npcink-cloud-addon details.npcink-cloud-fold { border-top: 0; margin: 16px 0 0; max-width: 720px; padding: 0; }
+.npcink-cloud-addon details.npcink-cloud-fold > summary { color: #2271b1; cursor: pointer; display: list-item; font-weight: 400; padding: 0; width: max-content; }
+.npcink-cloud-addon details.npcink-cloud-fold > summary small { color: #646970; font-size: 12px; margin-left: 8px; }
+.npcink-cloud-addon details.npcink-cloud-fold[open] > summary { margin-bottom: 8px; }
+.npcink-cloud-addon details.npcink-cloud-fold > .description,
+.npcink-cloud-addon details.npcink-cloud-fold > p { margin: 8px 0 0 16px; }
+.npcink-cloud-addon details.npcink-cloud-fold > div,
+.npcink-cloud-addon details.npcink-cloud-fold > form { margin: 8px 0 0 16px; }
+.npcink-cloud-addon details.npcink-cloud-fold--bottom { border-top: 1px solid #dcdcde; margin-top: 24px; padding-top: 16px; }
+.npcink-cloud-addon .npcink-cloud-connection-danger { margin-top: 24px; }
+.npcink-cloud-card .npcink-cloud-summary__actions { justify-content: flex-start; }

@@ -34,6 +34,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_START_AUTH, array( Npcink_Cloud_Settings_Actions::class, 'handle_start_auth' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_START_CUSTOM_AUTH, array( Npcink_Cloud_Settings_Actions::class, 'handle_start_custom_auth' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_DISCONNECT, array( Npcink_Cloud_Settings_Actions::class, 'handle_disconnect' ) );
+			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_CHANGE_ACCOUNT, array( Npcink_Cloud_Settings_Actions::class, 'handle_change_account' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_UPDATE_LOCAL_PERMISSION, array( Npcink_Cloud_Settings_Actions::class, 'handle_update_local_permission' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_DISMISS_MONITORING_PROMPT, array( Npcink_Cloud_Settings_Actions::class, 'handle_dismiss_monitoring_prompt' ) );
 			add_action( 'admin_post_' . Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE, array( Npcink_Cloud_Settings_Actions::class, 'handle_refresh_site_knowledge' ) );
@@ -293,15 +294,19 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<div class="wrap npcink-cloud-addon">
 				<h1><?php esc_html_e( 'Npcink Cloud Addon', 'npcink-cloud-addon' ); ?></h1>
-				<p><?php esc_html_e( 'Cloud connector status and access settings for this WordPress site.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description npcink-cloud-subtitle"><?php esc_html_e( 'Connect this site to Npcink Cloud to use AI features.', 'npcink-cloud-addon' ); ?></p>
 				<?php self::render_admin_notice(); ?>
 
-				<div data-npcink-connection-summary><?php self::render_connection_summary( $settings, $state, $entitlement, $site_knowledge ); ?></div>
-				<?php self::render_tab_navigation( $active_tab, $is_verified, $state ); ?>
+				<div data-npcink-connection-summary><?php if ( $is_verified ) { self::render_connection_summary( $settings, $state, $entitlement, $site_knowledge ); } ?></div>
+				<?php if ( $is_verified ) : // Before verification the status card is the whole page; no single-tab bar. ?>
+					<?php self::render_tab_navigation( $active_tab, $is_verified, $state ); ?>
+				<?php elseif ( 'connection' === $active_tab ) : ?>
+					<p class="npcink-cloud-back-link"><a href="<?php echo esc_url( self::tab_url( 'connect' ) ); ?>">&larr; <?php esc_html_e( 'Back', 'npcink-cloud-addon' ); ?></a></p>
+				<?php endif; ?>
 
 				<?php if ( 'connect' === $active_tab ) : ?>
 					<section class="npcink-cloud-section npcink-cloud-tab-panel">
-						<h2><?php esc_html_e( 'Connect this site', 'npcink-cloud-addon' ); ?></h2>
+						<h2 class="screen-reader-text"><?php esc_html_e( 'Connect this site', 'npcink-cloud-addon' ); ?></h2>
 						<?php self::render_cloud_authorization_panel( $settings, $state ); ?>
 					</section>
 				<?php elseif ( 'permissions' === $active_tab ) : ?>
@@ -432,7 +437,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'connect' => __( 'Connect', 'npcink-cloud-addon' ),
 			);
 			if ( self::should_show_unverified_advanced_tab( $state ) ) {
-				$tabs['connection'] = __( 'Connection', 'npcink-cloud-addon' );
+				// "Connect" and "Connection" both read 连接 in Chinese; label the
+				// unverified troubleshooting tab distinctly so only one 连接 shows.
+				$tabs['connection'] = __( 'Advanced settings', 'npcink-cloud-addon' );
 			}
 
 			return $tabs;
@@ -564,16 +571,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<?php endif; ?>
 				</div>
 				<?php if ( $is_configured && ! $is_verified ) : ?>
-					<div class="npcink-cloud-summary__grid">
-						<div class="npcink-cloud-summary__item">
-							<span class="npcink-cloud-summary__label"><?php esc_html_e( 'Cloud Base URL', 'npcink-cloud-addon' ); ?></span>
-							<span class="npcink-cloud-summary__value"><?php echo esc_html( self::format_setting_value( $display_base_url, __( 'Not set', 'npcink-cloud-addon' ) ) ); ?></span>
-						</div>
-						<div class="npcink-cloud-summary__item">
-							<span class="npcink-cloud-summary__label"><?php esc_html_e( 'Last verified', 'npcink-cloud-addon' ); ?></span>
-							<span class="npcink-cloud-summary__value"><?php echo esc_html( self::format_datetime_value( (string) $settings['verified_at'], __( 'Never', 'npcink-cloud-addon' ) ) ); ?></span>
-						</div>
-					</div>
+					<details class="npcink-cloud-summary__more">
+						<summary><?php esc_html_e( 'More information', 'npcink-cloud-addon' ); ?></summary>
+						<p class="description"><?php esc_html_e( 'Service address', 'npcink-cloud-addon' ); ?>: <code><?php echo esc_html( self::format_setting_value( $display_base_url, __( 'Not set', 'npcink-cloud-addon' ) ) ); ?></code></p>
+						<p class="description"><?php esc_html_e( 'Last checked', 'npcink-cloud-addon' ); ?>: <?php echo esc_html( self::format_datetime_value( (string) $settings['verified_at'], __( 'Never', 'npcink-cloud-addon' ) ) ); ?></p>
+						<?php self::render_reverify_form( $settings, __( 'Check again', 'npcink-cloud-addon' ) ); ?>
+					</details>
 				<?php endif; ?>
 			</section>
 			<?php
@@ -723,15 +726,16 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<div class="npcink-cloud-summary__actions">
 				<?php if ( $activation_required ) : ?>
-					<a class="button button-primary" href="<?php echo esc_url( self::portal_url( $settings ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Activate this site in Cloud', 'npcink-cloud-addon' ); ?></a>
-					<?php self::render_reverify_form( $settings, __( 'Check activation again', 'npcink-cloud-addon' ) ); ?>
+					<a class="button button-primary" href="<?php echo esc_url( self::portal_url( $settings ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Npcink Cloud', 'npcink-cloud-addon' ); ?></a>
 				<?php elseif ( $is_verified ) : ?>
 					<?php if ( $service_needs_attention ) : ?>
 						<?php self::render_reverify_form( $settings ); ?>
 					<?php endif; ?>
 					<?php self::render_portal_link( $settings, 'icon' ); ?>
+				<?php elseif ( '' !== (string) ( $settings['last_verification_error'] ?? '' ) ) : ?>
+					<?php self::render_reverify_form( $settings, __( 'Check again', 'npcink-cloud-addon' ), 'button button-primary' ); ?>
 				<?php else : ?>
-					<?php self::render_reverify_form( $settings ); ?>
+					<?php self::render_authorization_form( __( 'Reconnect', 'npcink-cloud-addon' ), 'button button-primary' ); ?>
 				<?php endif; ?>
 			</div>
 			<?php
@@ -798,24 +802,123 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param array<string,mixed> $settings Stored settings.
 		 * @return void
 		 */
-		private static function render_connection_management( array $settings, bool $service_needs_attention = false ): void {
+		private static function render_connection_management( array $settings, bool $service_needs_attention = false, bool $close_card = false ): void {
 			if ( empty( $settings['base_url'] ) ) {
 				return;
 			}
 			?>
 			<h3 class="screen-reader-text"><?php esc_html_e( 'Connection management', 'npcink-cloud-addon' ); ?></h3>
-			<p class="description"><?php esc_html_e( 'Change the connected Cloud account in Cloud.', 'npcink-cloud-addon' ); ?></p>
 			<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
-				<?php if ( ! Npcink_Cloud_Addon_Settings::is_verified() || $service_needs_attention ) : ?>
+				<?php if ( Npcink_Cloud_Addon_Settings::is_verified() && $service_needs_attention ) : ?>
 					<?php self::render_reverify_form( $settings, __( 'Check connection', 'npcink-cloud-addon' ) ); ?>
 				<?php endif; ?>
-				<?php self::render_authorization_form( __( 'Change Cloud account', 'npcink-cloud-addon' ), Npcink_Cloud_Addon_Settings::is_verified() ? 'button button-primary' : 'button button-secondary' ); ?>
+				<?php self::render_change_account_form( 'button button-secondary' ); ?>
 			</div>
+			<p class="description"><?php esc_html_e( 'Switching accounts disconnects this site first.', 'npcink-cloud-addon' ); ?></p>
+			<?php if ( $close_card ) : ?>
+				</div>
+				<?php self::render_connection_more( $settings ); ?>
+			<?php endif; ?>
 			<div class="npcink-cloud-connection-danger">
 				<h4><?php esc_html_e( 'Disconnect this site', 'npcink-cloud-addon' ); ?></h4>
 				<p class="description"><?php esc_html_e( 'Cloud features will stop on this WordPress site and its local connection data will be cleared. The site and its data will remain in Cloud.', 'npcink-cloud-addon' ); ?></p>
 				<?php self::render_disconnect_form(); ?>
 			</div>
+			<?php
+		}
+
+		/**
+		 * Renders a non-secret projection of the current Cloud connection identity.
+		 *
+		 * Shows status, endpoint, last verified time, and plan label only.
+		 * Does not expose site_id, key_id, or secret identifiers.
+		 *
+		 * @param array<string,mixed> $settings Stored settings.
+		 * @param array<string,mixed> $state Credential state.
+		 * @param array<string,mixed> $entitlement Cached entitlement summary.
+		 * @return void
+		 */
+		private static function render_connection_identity( array $settings, array $state, array $entitlement ): void {
+			$configured = ! empty( $state['configured'] );
+			if ( ( ! $configured && empty( $settings['base_url'] ) ) || ( $configured && empty( $state['verified'] ) ) ) {
+				return; // Top summary already shows the single status line.
+			}
+
+			$base_url = $configured
+				? (string) ( $settings['base_url'] ?? '' )
+				: Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings );
+			$verified_at = self::format_datetime_value( (string) ( $settings['verified_at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) );
+			$package_label = self::format_overview_package_label( $entitlement );
+			?>
+			<section class="npcink-cloud-connection-identity" aria-label="<?php esc_attr_e( 'Connected Cloud identity', 'npcink-cloud-addon' ); ?>">
+				<?php self::render_status_line( (string) ( $state['label'] ?? '' ), 'ok' ); ?>
+				<p class="npcink-cloud-card__meta">
+					<?php esc_html_e( 'Last checked', 'npcink-cloud-addon' ); ?>: <?php echo esc_html( $verified_at ); ?>
+					<?php if ( '' !== $package_label ) : ?>
+						&middot; <?php esc_html_e( 'Plan', 'npcink-cloud-addon' ); ?>: <?php echo esc_html( $package_label ); ?>
+					<?php endif; ?>
+				</p>
+			</section>
+			<?php
+		}
+
+		/**
+		 * Renders the folded non-essential connection details below the card.
+		 *
+		 * @param array<string,mixed> $settings Stored settings.
+		 * @return void
+		 */
+		private static function render_connection_more( array $settings ): void {
+			?>
+			<details class="npcink-cloud-connection-identity__more npcink-cloud-fold">
+				<summary><?php esc_html_e( 'More information', 'npcink-cloud-addon' ); ?></summary>
+				<p class="description"><?php esc_html_e( 'Free credits belong to the account you chose when connecting, not to this site.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Service address', 'npcink-cloud-addon' ); ?>: <code><?php echo esc_html( self::format_setting_value( (string) ( $settings['base_url'] ?? '' ), __( 'Not set', 'npcink-cloud-addon' ) ) ); ?></code></p>
+				<?php self::render_portal_link( $settings ); ?>
+			</details>
+			<?php
+		}
+
+		/**
+		 * Renders the single status sentence used at the top of each card.
+		 *
+		 * @param string $text Status text.
+		 * @param string $tone ok|warn|bad|muted.
+		 * @return void
+		 */
+		private static function render_status_line( string $text, string $tone ): void {
+			?>
+			<p class="npcink-cloud-card__status"><span class="npcink-cloud-status-dot npcink-cloud-status-dot--<?php echo esc_attr( $tone ); ?>" aria-hidden="true"></span><strong><?php echo esc_html( $text ); ?></strong></p>
+			<?php
+		}
+
+		/**
+		 * Renders the change-account action that clears local credentials then starts Cloud auth.
+		 *
+		 * @param string $class_name Button classes.
+		 * @return void
+		 */
+		private static function render_change_account_form( string $class_name ): void {
+			?>
+			<form class="npcink-cloud-change-account-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( Npcink_Cloud_Settings_Actions::ACTION_CHANGE_ACCOUNT ) ); ?>" />
+				<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_CHANGE_ACCOUNT ); ?>" />
+				<input type="hidden" name="js_confirmation" value="0" />
+				<button
+					type="submit"
+					class="<?php echo esc_attr( $class_name ); ?>"
+					onclick="if (!window.confirm('<?php echo esc_js( __( 'Change account? This site will be disconnected first, then Npcink Cloud opens so you can pick an account. Cancel keeps everything as it is.', 'npcink-cloud-addon' ) ); ?>')) { return false; } this.form.elements.namedItem('js_confirmation').value = '1'; return true;"
+				>
+					<?php esc_html_e( 'Change account', 'npcink-cloud-addon' ); ?>
+				</button>
+				<noscript>
+					<p class="description"><strong><?php esc_html_e( 'Confirm before changing the account.', 'npcink-cloud-addon' ); ?></strong></p>
+					<label>
+						<input type="checkbox" name="noscript_confirmation" value="1" required />
+						<?php esc_html_e( 'I understand this site will be disconnected first.', 'npcink-cloud-addon' ); ?>
+					</label>
+				</noscript>
+			</form>
 			<?php
 		}
 
@@ -827,10 +930,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 */
 		private static function render_manual_connection_disclosure( array $settings ): void {
 			?>
-			<details class="npcink-cloud-advanced-detail npcink-cloud-manual-fallback">
-				<summary><?php esc_html_e( 'Manual connection fallback', 'npcink-cloud-addon' ); ?></summary>
+			<details class="npcink-cloud-advanced-detail npcink-cloud-manual-fallback npcink-cloud-fold npcink-cloud-fold--bottom">
+				<summary><?php esc_html_e( 'Advanced settings', 'npcink-cloud-addon' ); ?> <small><?php esc_html_e( 'Usually not needed', 'npcink-cloud-addon' ); ?></small></summary>
 				<div class="npcink-cloud-advanced-detail__body">
-					<p class="description"><?php esc_html_e( 'Only when Cloud authorization is unavailable.', 'npcink-cloud-addon' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Only use this if support asks you to, or if connecting through Npcink Cloud does not work.', 'npcink-cloud-addon' ); ?></p>
 					<?php self::render_settings_form( $settings ); ?>
 				</div>
 			</details>
@@ -843,7 +946,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 * @param array<string,mixed> $settings Stored settings.
 		 * @return void
 		 */
-		private static function render_reverify_form( array $settings, string $label = '' ): void {
+		private static function render_reverify_form( array $settings, string $label = '', string $class_name = 'button button-secondary' ): void {
 			?>
 			<form class="npcink-cloud-verify-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( Npcink_Cloud_Settings_Actions::ACTION_SAVE ) ); ?>" />
@@ -855,7 +958,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<input type="hidden" name="site_knowledge_delivery_enabled" value="<?php echo esc_attr( ! empty( $settings['site_knowledge_delivery_enabled'] ) ? '1' : '0' ); ?>" />
 				<input type="hidden" name="site_knowledge_generation_reference_enabled" value="<?php echo esc_attr( ! empty( $settings['site_knowledge_generation_reference_enabled'] ) ? '1' : '0' ); ?>" />
 				<input type="hidden" name="wordpress_ai_connector_enabled" value="<?php echo esc_attr( ! empty( $settings['wordpress_ai_connector_enabled'] ) ? '1' : '0' ); ?>" />
-				<button type="submit" class="button button-secondary"><?php echo esc_html( '' !== $label ? $label : __( 'Check connection', 'npcink-cloud-addon' ) ); ?></button>
+				<button type="submit" class="<?php echo esc_attr( $class_name ); ?>"><?php echo esc_html( '' !== $label ? $label : __( 'Check connection', 'npcink-cloud-addon' ) ); ?></button>
 			</form>
 			<?php
 		}
@@ -1170,7 +1273,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			self::render_advanced_information( $state );
 			$service_health = self::get_current_service_health( $is_verified, $entitlement, $site_knowledge );
 			$service_needs_attention = $is_verified && 'warning' === (string) ( $service_health['severity'] ?? '' );
-			self::render_connection_management( $settings, $service_needs_attention );
+			$in_card = $is_verified && ! empty( $settings['base_url'] );
+			if ( $in_card ) {
+				echo '<div class="card npcink-cloud-card">';
+			}
+			self::render_connection_identity( $settings, $state, $entitlement );
+			self::render_connection_management( $settings, $service_needs_attention, $in_card );
 			self::render_manual_connection_disclosure( $settings );
 		}
 
@@ -1653,33 +1761,45 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private static function render_cloud_authorization_panel( array $settings, array $state ): void {
 			$base_url = Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings );
 			?>
-			<div class="npcink-cloud-connect-context" aria-label="<?php esc_attr_e( 'Connection context', 'npcink-cloud-addon' ); ?>">
-				<div class="npcink-cloud-connect-context__item">
-					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Connection', 'npcink-cloud-addon' ); ?></span>
-					<strong class="npcink-cloud-connect-context__value"><?php echo esc_html( (string) ( $state['label'] ?? '' ) ); ?></strong>
-				</div>
-				<div class="npcink-cloud-connect-context__item">
-					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Cloud', 'npcink-cloud-addon' ); ?></span>
-					<code class="npcink-cloud-connect-context__value"><?php echo esc_html( $base_url ); ?></code>
-				</div>
-				<div class="npcink-cloud-connect-context__item">
-					<span class="npcink-cloud-connect-context__label"><?php esc_html_e( 'Current site', 'npcink-cloud-addon' ); ?></span>
-					<span class="npcink-cloud-connect-context__value"><?php echo esc_html( home_url( '/' ) ); ?></span>
-				</div>
-				</div>
-				<div class="npcink-cloud-connect-actions">
-					<?php self::render_authorization_form( __( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary button-hero' ); ?>
-				<p class="description"><?php esc_html_e( 'Cloud will create or activate this site connection and return here with a one-time authorization code.', 'npcink-cloud-addon' ); ?></p>
-				<p class="description"><?php esc_html_e( 'After connection, the WordPress AI connector is enabled by default. Site Knowledge delivery can be turned on or off in Overview at any time.', 'npcink-cloud-addon' ); ?></p>
-				<p class="description"><a href="<?php echo esc_url( self::privacy_policy_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Review Cloud privacy and data retention information', 'npcink-cloud-addon' ); ?></a></p>
-				<p class="description"><?php esc_html_e( 'Free service and AI credits belong to the Cloud account selected during authorization, not this site. The same account may reconnect at any time; changing to another account is subject to the removal and cooldown requirements shown by Cloud.', 'npcink-cloud-addon' ); ?></p>
+			<?php $configured = ! empty( $state['configured'] ); ?>
+			<div class="card npcink-cloud-card">
+				<?php if ( $configured ) : ?>
+					<?php self::render_status_line( (string) ( $state['label'] ?? '' ), 'error' === (string) ( $state['severity'] ?? '' ) ? 'bad' : 'warn' ); ?>
+					<?php self::render_connection_actions( $settings, false ); ?>
+					<p class="description"><?php echo esc_html( (string) ( $state['message'] ?? '' ) ); ?></p>
+				<?php else : ?>
+					<?php self::render_status_line( __( 'This site is not connected yet.', 'npcink-cloud-addon' ), 'muted' ); ?>
+					<div class="npcink-cloud-connect-actions">
+						<?php self::render_authorization_form( __( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary button-hero' ); ?>
+					</div>
+					<p class="description"><?php esc_html_e( 'Npcink Cloud opens in a new tab. Choose your account there, then come back here.', 'npcink-cloud-addon' ); ?></p>
+				<?php endif; ?>
 			</div>
-			<details class="npcink-cloud-endpoint-advanced">
+			<details class="npcink-cloud-connect-more npcink-cloud-fold" aria-label="<?php esc_attr_e( 'Connection context', 'npcink-cloud-addon' ); ?>">
+				<summary><?php esc_html_e( 'More information', 'npcink-cloud-addon' ); ?></summary>
+				<?php if ( $configured ) : ?>
+					<p class="description"><?php esc_html_e( 'Last checked', 'npcink-cloud-addon' ); ?>: <?php echo esc_html( self::format_datetime_value( (string) ( $settings['verified_at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) ) ); ?></p>
+				<?php endif; ?>
+				<p class="description"><?php esc_html_e( 'This site', 'npcink-cloud-addon' ); ?>: <?php echo esc_html( home_url( '/' ) ); ?></p>
+				<p class="description"><?php esc_html_e( 'Service address', 'npcink-cloud-addon' ); ?>: <code><?php echo esc_html( $base_url ); ?></code></p>
+				<p class="description"><?php esc_html_e( 'Once connected, AI features turn on automatically. You can change them in Overview at any time.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Free credits belong to the account you choose when connecting, not to this site. To switch to another account later, follow the steps shown in Npcink Cloud.', 'npcink-cloud-addon' ); ?></p>
+				<p class="description"><a href="<?php echo esc_url( self::privacy_policy_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Review Cloud privacy and data retention information', 'npcink-cloud-addon' ); ?></a></p>
+				<?php if ( $configured && '' !== (string) ( $state['last_verification_error'] ?? '' ) ) : ?>
+					<p class="description"><?php esc_html_e( 'Details for support', 'npcink-cloud-addon' ); ?>: <code><?php echo esc_html( Npcink_Cloud_Settings_Actions::bound_admin_error_detail( (string) $state['last_verification_error'] ) ); ?></code></p>
+				<?php elseif ( $configured ) : ?>
+					<?php self::render_reverify_form( $settings, 'activation_required' === (string) ( $state['code'] ?? '' ) ? __( 'Check activation again', 'npcink-cloud-addon' ) : __( 'Check again', 'npcink-cloud-addon' ) ); ?>
+				<?php endif; ?>
+			</details>
+			<details class="npcink-cloud-endpoint-advanced npcink-cloud-fold npcink-cloud-fold--bottom">
 				<summary>
-					<span><?php esc_html_e( 'Advanced connection', 'npcink-cloud-addon' ); ?></span>
-					<small><?php esc_html_e( 'Self-hosted Cloud endpoint', 'npcink-cloud-addon' ); ?></small>
+					<span><?php esc_html_e( 'Advanced settings', 'npcink-cloud-addon' ); ?></span>
+					<small><?php esc_html_e( 'Usually not needed', 'npcink-cloud-addon' ); ?></small>
 				</summary>
 				<div class="npcink-cloud-endpoint-advanced__body">
+					<?php if ( self::should_show_unverified_advanced_tab( $state ) ) : ?>
+						<p><a href="<?php echo esc_url( self::tab_url( 'connection' ) ); ?>"><?php esc_html_e( 'Change account, disconnect, or connect manually', 'npcink-cloud-addon' ); ?></a></p>
+					<?php endif; ?>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<?php wp_nonce_field( Npcink_Cloud_Settings_Actions::ACTION_START_CUSTOM_AUTH ); ?>
 						<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_START_CUSTOM_AUTH ); ?>" />

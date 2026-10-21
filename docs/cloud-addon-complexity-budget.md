@@ -86,7 +86,7 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-runtime-media-payloads.php` — 280 lines (static
   multipart assembly and exact upload/delivery-ack response validation for
   the bounded media endpoints)
-- `includes/class-cloud-settings-page.php` — 2680 lines (was 3280 before the
+- `includes/class-cloud-settings-page.php` — 2800 lines (was 3280 before the
   2026-10-04 handler split into `class-cloud-settings-actions.php`; raised from
   2207 for the 2026-10-12 locale-aware privacy URL, no-JS disconnect confirmation,
   and removal of the retired Site Knowledge coverage renderer; raised again for
@@ -100,7 +100,7 @@ connector classes so they cannot grow unnoticed:
   updating while retaining failures in diagnostics and restoring attention after delivery fails;
   raised by 23 lines for shared escaped AJAX status fragments, stale-evidence gating,
   and failure-only retry feedback)
-- `includes/class-cloud-settings-actions.php` — 1175 lines (settings request
+- `includes/class-cloud-settings-actions.php` — 1230 lines (settings request
   handlers and their transient state; the render class stays a projection;
   raised from 1106 with reason: the 2026-10-11 first-connection verify-failure
   path keeps exchanged credentials in the unverified state instead of
@@ -484,3 +484,5 @@ actions, options, or public APIs are removed.
 2026-10-20 failure-alert CTAs: settings-page ceiling 2450→2600 for cause-specific Knowledge base repair links, readiness next-action markup, visible entitlement Retry, Checks delivery actions, and Connection-tab Check connection when service needs attention.
 2026-10-20 Checks generation-test modal: settings-page ceiling 2600→2680 for in-page invoke dialog (reuse AI Ability Explorer `ai_ability_explorer_invoke`), folded text actions, and Advanced Explorer corner link.
 
+2026-10-20 connection swap-account: settings-page ceiling 2680→2760 and settings-actions 1175→1230 for Connected Cloud identity projection, change-account confirmation that clears local credentials while preserving Base URL, and shared disconnect/change-account wipe helper. No Site ID / Key ID surfaces; account selection stays Cloud-owned.
+2026-10-21 connection layout: settings-page ceiling 2760→2800 for a single card per state (status line + one main action + one description), shared status-line helper, folded More information / bottom Advanced settings, and hiding the tab bar before verification.
