@@ -1207,3 +1207,34 @@ maca_assert(
 	&& false === strpos( $stale_fragments['knowledge'], 'npcink-cloud-badge--ok' ),
 	'Behavior: expired Cloud knowledge evidence cannot claim that all public content is current.'
 );
+
+$usage_with_used = Npcink_Cloud_Settings_Page::get_overview_entitlement_metrics( array( 'ai_credit_usage_detail' => array( 'available' => true, 'summary' => array( 'limit' => 20000, 'remaining' => 18170, 'used' => 1830 ) ) ) );
+$usage_without_used = Npcink_Cloud_Settings_Page::get_overview_entitlement_metrics( array( 'ai_credit_usage_detail' => array( 'available' => true, 'summary' => array( 'limit' => 20000, 'remaining' => 18170 ) ) ) );
+$usage_unavailable = Npcink_Cloud_Settings_Page::get_overview_entitlement_metrics( array() );
+maca_assert(
+	false !== strpos( (string) $usage_with_used['credits']['usage_line'], '1,830' )
+	&& false === strpos( (string) $usage_with_used['credits']['usage_line'], '18,170' )
+	&& '' === (string) $usage_without_used['credits']['usage_line']
+	&& '' === (string) $usage_unavailable['credits']['usage_line']
+	&& false === stripos( (string) $usage_with_used['credits']['usage_line'], 'about' )
+	&& false !== strpos( maca_read( dirname( __DIR__ ) . '/includes/class-cloud-settings-page.php' ), 'npcink-cloud-usage-line' ),
+	'Behavior: Overview usage line uses only Cloud-reported used/remaining credits, never estimates, and hides when unavailable.'
+);
+$low_balance_summary = static function ( $remaining ) {
+	return array( 'ai_credit_usage_detail' => array( 'available' => true, 'summary' => array( 'remaining' => $remaining, 'limit' => 20000, 'used' => 20000 - $remaining ) ) );
+};
+$low_metrics = Npcink_Cloud_Settings_Page::get_overview_entitlement_metrics( $low_balance_summary( 1500 ) );
+$ok_metrics = Npcink_Cloud_Settings_Page::get_overview_entitlement_metrics( $low_balance_summary( 2000 ) );
+$no_limit_metrics = Npcink_Cloud_Settings_Page::get_overview_entitlement_metrics( array( 'ai_credit_usage_detail' => array( 'available' => true, 'summary' => array( 'remaining' => 5 ) ) ) );
+$unavailable_metrics = Npcink_Cloud_Settings_Page::get_overview_entitlement_metrics( array() );
+$settings_page_source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/class-cloud-settings-page.php' );
+maca_assert(
+	true === $low_metrics['credits']['low']
+	&& false === $ok_metrics['credits']['low']
+	&& false === $no_limit_metrics['credits']['low']
+	&& false === $unavailable_metrics['credits']['low']
+	&& false !== strpos( $settings_page_source, "'AI credits are running low.'" )
+	&& false !== strpos( $settings_page_source, "'Top up on Npcink Cloud'" )
+	&& false === strpos( $settings_page_source, 'npcink-cloud-low-balance__action"><a class="button-primary' ),
+	'Behavior: low-balance reminder shows only under 10% of a Cloud-reported limit, as a plain text link inside the plugin page.'
+);

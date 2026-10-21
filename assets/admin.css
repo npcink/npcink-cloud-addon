@@ -1828,3 +1828,5 @@ button.npcink-cloud-gen-test-dialog__chip:focus {
 .npcink-cloud-overview .card.npcink-cloud-overview-status { margin: 0 0 24px !important; }
 .npcink-cloud-local-permission__desc { display: block; margin-top: 4px; }
 .npcink-cloud-monitoring-consent .npcink-cloud-fold { margin: 8px 0 16px; }
+.npcink-cloud-overview .npcink-cloud-usage-line { margin: 8px 0 16px; }
+.npcink-cloud-low-balance .npcink-cloud-low-balance__action { margin: 0 0 0 16px; }
