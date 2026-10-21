@@ -3111,3 +3111,6 @@ msgstr "给客服的信息"
 
 msgid "Switching accounts disconnects this site first."
 msgstr "换账号会先断开此站点。"
+
+msgid "Connected to Npcink Cloud."
+msgstr "已连接到 Npcink Cloud。"

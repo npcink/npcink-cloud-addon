@@ -2213,7 +2213,7 @@ maca_assert(
 	&& false !== strpos( $settings_actions, '/portal/v1/addon-connections/exchange' )
 	&& false !== strpos( $settings_page, 'Add this site in Npcink Cloud' )
 	&& false !== strpos( $settings_actions, 'persist_and_verify_settings' )
-	&& false !== strpos( $settings_actions, 'Cloud connection completed and verified.' ),
+	&& false !== strpos( $settings_actions, 'Connected to Npcink Cloud.' ),
 	'Settings page defaults to Cloud-side site authorization, exchanges the callback key, and verifies the saved connection immediately.'
 );
 

@@ -427,6 +427,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Plan' => '方案',
 				'More information' => '更多信息',
 				'Site connected' => '已连接',
+				'Connected to Npcink Cloud.' => '已连接到 Npcink Cloud。',
 				'This site is connected to Npcink Cloud.' => '此站点已连接到 Npcink Cloud。',
 				'This site needs to be turned on in Npcink Cloud' => '需要在 Npcink Cloud 中启用此站点',
 				'Open Npcink Cloud, turn this site on, then come back here.' => '打开 Npcink Cloud 启用此站点，然后回到这里。',

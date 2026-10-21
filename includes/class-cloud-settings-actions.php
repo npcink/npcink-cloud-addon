@@ -241,7 +241,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				self::redirect_to_page( 'status' );
 			}
 
-			self::persist_and_verify_settings( $settings, __( 'Cloud connection completed and verified.', 'npcink-cloud-addon' ) );
+			self::persist_and_verify_settings( $settings, __( 'Connected to Npcink Cloud.', 'npcink-cloud-addon' ) );
 			self::maybe_prompt_for_monitoring_consent( $was_verified );
 
 			// Land on Connection so the verified identity and success notice are
