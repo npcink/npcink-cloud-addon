@@ -784,3 +784,14 @@ function maca_ability_fixture(): array {
 function maca_future_expiry(): string {
 	return gmdate( 'c', time() + 3600 );
 }
+
+/**
+ * Editor AI errors carry no raw code; join the message with the code kept for Copy information.
+ *
+ * @param Throwable $error Thrown editor error.
+ * @return string
+ */
+function maca_ai_error_text( Throwable $error ): string {
+	$last = get_option( Npcink_Cloud_WordPress_AI_Connector::LAST_AI_ERROR_OPTION, array() );
+	return $error->getMessage() . ' ' . ( is_array( $last ) ? (string) ( $last['code'] ?? '' ) : '' );
+}

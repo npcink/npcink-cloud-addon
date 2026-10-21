@@ -1356,6 +1356,11 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				self::render_diagnostic_row( __( 'Connection', 'npcink-cloud-addon' ), $connection_ok ? __( 'Normal', 'npcink-cloud-addon' ) : __( 'Not connected', 'npcink-cloud-addon' ), $credentials_detail );
 				// Shown on the card already; kept visually hidden so Copy information still includes it.
 				?><div class="npcink-cloud-kv__row screen-reader-text"><dt><?php esc_html_e( 'Last checked', 'npcink-cloud-addon' ); ?></dt><dd><?php echo esc_html( self::format_datetime_value( (string) ( $settings['verified_at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) ) ); ?></dd></div><?php
+				$last_ai_error = get_option( Npcink_Cloud_WordPress_AI_Connector::LAST_AI_ERROR_OPTION, array() );
+				if ( is_array( $last_ai_error ) && '' !== sanitize_key( (string) ( $last_ai_error['code'] ?? '' ) ) ) :
+					// Raw AI error code: kept visually hidden so it only appears in Copy information.
+					?><div class="npcink-cloud-kv__row screen-reader-text"><dt><?php esc_html_e( 'Last AI error code', 'npcink-cloud-addon' ); ?></dt><dd><?php echo esc_html( sanitize_key( (string) $last_ai_error['code'] ) . ' (' . self::format_datetime_value( (string) ( $last_ai_error['at'] ?? '' ), __( 'Never', 'npcink-cloud-addon' ) ) . ')' ); ?></dd></div><?php
+				endif;
 				self::render_diagnostic_row( __( 'Reading credits', 'npcink-cloud-addon' ), self::format_entitlement_availability( $entitlement, $is_verified ), '' );
 				self::render_diagnostic_row( __( 'Nightly site check', 'npcink-cloud-addon' ), $hosted_runtime_ok ? __( 'Normal', 'npcink-cloud-addon' ) : __( 'Paused', 'npcink-cloud-addon' ), '' );
 				self::render_capability_diagnostics();
