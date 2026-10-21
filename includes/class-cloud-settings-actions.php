@@ -244,7 +244,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			self::persist_and_verify_settings( $settings, __( 'Cloud connection completed and verified.', 'npcink-cloud-addon' ) );
 			self::maybe_prompt_for_monitoring_consent( $was_verified );
 
-			self::redirect_to_page( 'permissions' );
+			// Land on Connection so the verified identity and success notice are
+			// visible right after (re)authorization. A pending monitoring prompt
+			// stays queued for Overview.
+			self::redirect_to_page( 'connection' );
 		}
 
 		/**
