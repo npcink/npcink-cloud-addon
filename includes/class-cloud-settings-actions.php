@@ -327,7 +327,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			self::clear_local_connection_preserving_base_url();
 			self::set_admin_notice(
 				'success',
-				__( 'Cloud connection disconnected locally. Stored credentials and addon-owned buffers were cleared.', 'npcink-cloud-addon' )
+				__( 'Disconnected. The site and its data remain in Npcink Cloud.', 'npcink-cloud-addon' )
 			);
 			self::redirect_to_page( 'status' );
 		}
@@ -364,7 +364,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			self::set_admin_notice(
 				'info',
-				__( 'This site was disconnected. Pick an account in Npcink Cloud to reconnect.', 'npcink-cloud-addon' )
+				__( 'The previous account was disconnected from this site.', 'npcink-cloud-addon' )
 			);
 			self::redirect_to_cloud_authorization( $base_url );
 		}

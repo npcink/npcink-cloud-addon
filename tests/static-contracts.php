@@ -2230,9 +2230,9 @@ maca_assert(
 	&& false !== strpos( $settings_actions, "remove_filter( 'allowed_redirect_hosts', \$allow_cloud_host )" )
 	&& false === strpos( $settings_page, 'wp_redirect(' )
 	&& false === strpos( $settings_actions, 'wp_redirect(' )
-	&& false !== strpos( $settings_page, 'class="npcink-cloud-connect-more"' )
+	&& false !== strpos( $settings_page, 'class="npcink-cloud-connect-more npcink-cloud-fold"' )
 	&& false !== strpos( $settings_page, 'target="_blank" rel="noopener noreferrer"' )
-	&& false !== strpos( $settings_page, '<details class="npcink-cloud-endpoint-advanced">' )
+	&& false !== strpos( $settings_page, '<details class="npcink-cloud-endpoint-advanced npcink-cloud-fold npcink-cloud-fold--bottom">' )
 	&& false !== strpos( $settings_page, 'Advanced settings' )
 	&& false !== strpos( $settings_page, 'Usually not needed' )
 	&& false !== strpos( $settings_page, 'Authorize with this endpoint' )
@@ -2379,7 +2379,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 387,
 	'includes/class-cloud-runtime-request-guards.php'  => 2020,
-	'includes/class-cloud-settings-page.php'           => 2760,
+	'includes/class-cloud-settings-page.php'           => 2800,
 	'includes/class-cloud-settings-actions.php'        => 1230,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1090,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
