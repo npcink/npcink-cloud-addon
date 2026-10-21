@@ -665,6 +665,20 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		}
 
 		/**
+		 * Returns the fixed Cloud portal page for plans and credits.
+		 *
+		 * Matches the Cloud portal route /portal/billing ("Package" in the
+		 * portal navigation), so the low-balance top-up link does not depend
+		 * on the entitlement payload carrying links.billing_url.
+		 *
+		 * @return string
+		 */
+		public static function get_portal_billing_url(): string {
+			$base_url = untrailingslashit( esc_url_raw( Npcink_Cloud_Addon_Settings::get_effective_base_url() ) );
+			return '' !== $base_url ? $base_url . '/portal/billing' : '';
+		}
+
+		/**
 		 * Renders the single Portal exit: text button when healthy, icon when an alert CTA is present.
 		 *
 		 * @param array<string,mixed> $settings Stored settings.
@@ -1097,7 +1111,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
 				<?php $first_connection = (bool) get_transient( Npcink_Cloud_Settings_Actions::FIRST_CONNECTION_TRANSIENT ); ?>
 				<?php if ( $first_connection ) { delete_transient( Npcink_Cloud_Settings_Actions::FIRST_CONNECTION_TRANSIENT ); } ?>
-				<?php $topup_url = (string) ( is_array( $entitlement['links'] ?? null ) ? ( $entitlement['links']['billing_url'] ?? '' ) : '' ); ?>
+				<?php $topup_url = self::get_portal_billing_url(); ?>
 				<?php if ( ! empty( $credit_metric['low'] ) ) : ?>
 					<div class="card npcink-cloud-card npcink-cloud-overview-status npcink-cloud-low-balance">
 						<?php self::render_status_line( __( 'AI credits are running low.', 'npcink-cloud-addon' ), 'warn' ); ?>

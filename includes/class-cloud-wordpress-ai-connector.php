@@ -845,7 +845,12 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			// pool" in an application error) and must not drive the family.
 			$haystack = strtolower( $error_code . ' ' . $diagnostic );
 			$friendly_key = 'runtime_failed';
-			if ( 1 === preg_match( '/(?:insufficient[_ ]credit|credits?[_ ]exhausted|quota[_ ]exhausted|payment[_ ]required|credit[_ ]balance)/', $haystack ) ) {
+			// Cloud upstream model-provider codes (provider.quota_exhausted,
+			// provider.rate_limited, ...) describe Npcink's provider, not the
+			// site's credits or request rate, so they are always "unavailable".
+			if ( 1 === preg_match( '/(?:^|[^a-z0-9_.])provider\./', $haystack ) ) {
+				$friendly_key = 'plain_service_unavailable';
+			} elseif ( 1 === preg_match( '/(?:commercial\.quota_exceeded|insufficient[_ ]credit|credits?[_ ]exhausted|quota[_ ]exhausted|payment[_ ]required|credit[_ ]balance)/', $haystack ) ) {
 				$friendly_key = 'plain_credits_exhausted';
 			} elseif ( 1 === preg_match( '/(?:site[_ ](?:inactive|not[_ ]active|disabled|suspended)|key[_ ]inactive|secret[_ ]inactive)/', $haystack ) ) {
 				$friendly_key = 'plain_site_inactive';

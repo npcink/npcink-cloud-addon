@@ -428,6 +428,11 @@ namespace {
 		array( 'cloud_site_inactive', '', 'turned off' ),
 		array( 'cloud_key_inactive', '', 'turned off' ),
 		array( 'cloud_rate_limited', '', 'Wait a minute' ),
+		array( 'commercial.quota_exceeded', 'commercial.quota_exceeded', 'run out' ),
+		array( 'cloud_runtime_error', 'commercial.quota_exceeded', 'run out' ),
+		array( 'provider.quota_exhausted', '', 'temporarily unavailable' ),
+		array( 'cloud_runtime_error', 'provider.rate_limited', 'temporarily unavailable' ),
+		array( 'provider.rate_limited', 'provider.rate_limited', 'temporarily unavailable' ),
 		array( 'cloud_service_unavailable', '', 'temporarily unavailable' ),
 	);
 	$plain_ok = true;
