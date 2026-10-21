@@ -1095,7 +1095,17 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<section class="npcink-cloud-section npcink-cloud-tab-panel npcink-cloud-overview">
 				<h2 class="screen-reader-text"><?php esc_html_e( 'Overview', 'npcink-cloud-addon' ); ?></h2>
+				<?php $topup_url = (string) ( is_array( $entitlement['links'] ?? null ) ? ( $entitlement['links']['billing_url'] ?? '' ) : '' ); ?>
+				<?php if ( ! empty( $credit_metric['low'] ) ) : ?>
+					<div class="card npcink-cloud-card npcink-cloud-overview-status npcink-cloud-low-balance">
+						<?php self::render_status_line( __( 'AI credits are running low.', 'npcink-cloud-addon' ), 'warn' ); ?>
+						<?php if ( '' !== $topup_url ) : ?>
+							<p class="npcink-cloud-low-balance__action"><a href="<?php echo esc_url( $topup_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Top up on Npcink Cloud', 'npcink-cloud-addon' ); ?></a></p>
+						<?php endif; ?>
+					</div>
+				<?php else : ?>
 				<div class="card npcink-cloud-card npcink-cloud-overview-status"><?php self::render_status_line( __( 'Connected. AI features are ready to use.', 'npcink-cloud-addon' ), 'ok' ); ?></div>
+				<?php endif; ?>
 				<?php self::render_generation_test_links( true ); ?>
 				<div class="npcink-cloud-overview-entitlements" aria-labelledby="npcink-cloud-entitlements-title">
 					<div class="npcink-cloud-section-title">
@@ -2365,6 +2375,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'percent' => null,
 				'tooltip' => '',
 				'usage_line' => '',
+				'low' => false,
 			);
 			$ai_credit_usage_detail = is_array( $summary['ai_credit_usage_detail'] ?? null ) ? $summary['ai_credit_usage_detail'] : array();
 			$credit_summary = is_array( $ai_credit_usage_detail['summary'] ?? null ) ? $ai_credit_usage_detail['summary'] : array();
@@ -2395,6 +2406,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							self::format_credit_amount( $credit_summary['used'] )
 						);
 					}
+					// Low-balance reminder: strictly from Cloud's remaining/limit projection.
+					$credits['low'] = ( (float) $remaining / $limit ) < 0.1;
 					$credits['tooltip'] = sprintf(
 						/* translators: 1: used credits, 2: remaining credits, 3: credit limit. */
 						__( 'Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits.', 'npcink-cloud-addon' ),
