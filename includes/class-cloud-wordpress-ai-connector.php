@@ -781,8 +781,18 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'runtime_unreachable'           => __( 'Npcink Cloud could not be reached from this site. Please try again in a moment.', 'npcink-cloud-addon' ),
 				'runtime_unauthorized'          => __( 'The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page.', 'npcink-cloud-addon' ),
 				'runtime_limit_reached'         => __( 'This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud.', 'npcink-cloud-addon' ),
+				'plain_credits_exhausted'       => __( 'Your AI credits have run out. Top up on Npcink Cloud, then try again.', 'npcink-cloud-addon' ),
+				'plain_not_connected'           => __( 'This site is no longer connected to Npcink Cloud. Reconnect it on the Npcink AI > Cloud Addon page, then try again.', 'npcink-cloud-addon' ),
+				'plain_site_inactive'           => __( 'This site is turned off in Npcink Cloud. Turn it on in Npcink Cloud, then try again.', 'npcink-cloud-addon' ),
+				'plain_rate_limited'            => __( 'Too many AI requests right now. Wait a minute, then try again.', 'npcink-cloud-addon' ),
+				'plain_service_unavailable'     => __( 'Npcink Cloud is temporarily unavailable. Try again in a few minutes.', 'npcink-cloud-addon' ),
 			);
 			$message = $messages[ $friendly_key ] ?? $messages['runtime_failed'];
+			self::remember_last_ai_error( $stable_code );
+			// Plain families: one sentence plus the next step; the raw code lives only in the copied support information.
+			if ( 0 === strpos( $friendly_key, 'plain_' ) ) {
+				return $message;
+			}
 			// Keep the code:stage separator readable; sanitize_key() strips ':'.
 			$stable_code = sanitize_key( str_replace( ':', '-', $stable_code ) );
 			if ( '' !== $stable_code ) {
@@ -813,6 +823,25 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		}
 
 		/**
+		 * Option holding the last AI request error code for the copied support information.
+		 */
+		public const LAST_AI_ERROR_OPTION = 'npcink_cloud_addon_last_ai_error';
+
+		/**
+		 * Stores the last AI request error code (code and time only; never content or secrets).
+		 *
+		 * @param string $stable_code Stable error code.
+		 * @return void
+		 */
+		private static function remember_last_ai_error( string $stable_code ): void {
+			$code = sanitize_key( str_replace( ':', '-', $stable_code ) );
+			if ( '' === $code || ! function_exists( 'update_option' ) ) {
+				return;
+			}
+			update_option( self::LAST_AI_ERROR_OPTION, array( 'code' => $code, 'at' => gmdate( 'Y-m-d H:i:s' ) . ' UTC' ), false );
+		}
+
+		/**
 		 * Classifies a runtime failure into a friendly message family.
 		 *
 		 * @param string $error_code Local WP_Error code.
@@ -826,7 +855,17 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			// pool" in an application error) and must not drive the family.
 			$haystack = strtolower( $error_code . ' ' . $diagnostic );
 			$friendly_key = 'runtime_failed';
-			if ( 1 === preg_match( '/(?:unauthorized|forbidden|authorization[_ ]expired)/', $haystack ) ) {
+			if ( 1 === preg_match( '/(?:insufficient[_ ]credit|credits?[_ ]exhausted|quota[_ ]exhausted|payment[_ ]required|credit[_ ]balance)/', $haystack ) ) {
+				$friendly_key = 'plain_credits_exhausted';
+			} elseif ( 1 === preg_match( '/(?:site[_ ](?:inactive|not[_ ]active|disabled|suspended)|key[_ ]inactive|secret[_ ]inactive)/', $haystack ) ) {
+				$friendly_key = 'plain_site_inactive';
+			} elseif ( 1 === preg_match( '/(?:not[_ ]connected|credential[_ ](?:expired|revoked|invalid)|signature[_ ]invalid|key[_ ]revoked|unauthenticated)/', $haystack ) ) {
+				$friendly_key = 'plain_not_connected';
+			} elseif ( 1 === preg_match( '/(?:rate.?limit|too[_ ]many[_ ]requests|throttl)/', $haystack ) ) {
+				$friendly_key = 'plain_rate_limited';
+			} elseif ( 1 === preg_match( '/(?:service[_ ]unavailable|cloud[_ ]unavailable|provider[_ ]unavailable|maintenance|overloaded)/', $haystack ) ) {
+				$friendly_key = 'plain_service_unavailable';
+			} elseif ( 1 === preg_match( '/(?:unauthorized|forbidden|authorization[_ ]expired)/', $haystack ) ) {
 				$friendly_key = 'runtime_unauthorized';
 			} elseif ( 1 === preg_match( '/(?:purged|artifact[_ ]expired)/', $haystack ) ) {
 				$friendly_key = 'artifact_expired';

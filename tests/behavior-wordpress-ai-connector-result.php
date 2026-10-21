@@ -420,6 +420,28 @@ namespace {
 		'Behavior: runtime failure classification keys off structured codes with a readable code-stage separator, and connector detail strips request URLs.'
 	);
 
+	$plain_cases = array(
+		array( 'cloud_insufficient_credits', 'cloud_insufficient_credits', 'run out' ),
+		array( 'cloud_quota_exhausted', '', 'run out' ),
+		array( 'cloud_credential_expired', '', 'Reconnect' ),
+		array( 'cloud_site_inactive', '', 'turned off' ),
+		array( 'cloud_key_inactive', '', 'turned off' ),
+		array( 'cloud_rate_limited', '', 'Wait a minute' ),
+		array( 'cloud_service_unavailable', '', 'temporarily unavailable' ),
+	);
+	$plain_ok = true;
+	foreach ( $plain_cases as $plain_case ) {
+		$plain_message = Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( $plain_case[0], $plain_case[1], 'raw upstream detail' );
+		$plain_ok = $plain_ok && str_contains( $plain_message, $plain_case[2] ) && false === strpos( $plain_message, 'cloud_' ) && false === strpos( $plain_message, 'raw upstream' ) && false === strpos( $plain_message, '(' );
+	}
+	$last_ai_error = get_option( Npcink_Cloud_WordPress_AI_Connector::LAST_AI_ERROR_OPTION, array() );
+	maca_assert(
+		$plain_ok
+		&& 'cloud_service_unavailable' === ( $last_ai_error['code'] ?? '' )
+		&& str_contains( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( 'cloud_upstream_error', '', '' ), 'cloud_upstream_error' ),
+		'Behavior: common Cloud AI errors map to one plain sentence plus the next step; the raw code is kept only for Copy information.'
+	);
+
 	maca_assert(
 		Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( array( 'status' => 'running' ) )
 		&& Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( array( 'data' => array( 'status' => 'queued' ) ) )
