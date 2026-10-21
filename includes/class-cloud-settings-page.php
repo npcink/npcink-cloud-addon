@@ -1733,10 +1733,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		private static function render_cloud_authorization_panel( array $settings, array $state ): void {
 			$base_url = Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings );
 			?>
+			<?php if ( empty( $state['configured'] ) ) : // Unverified state uses the top Reconnect action instead. ?>
 			<div class="npcink-cloud-connect-actions">
 				<?php self::render_authorization_form( __( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary button-hero' ); ?>
 				<p class="description"><?php esc_html_e( 'Npcink Cloud opens in a new tab. Choose your account there, then come back here.', 'npcink-cloud-addon' ); ?></p>
 			</div>
+			<?php endif; ?>
 			<details class="npcink-cloud-connect-more" aria-label="<?php esc_attr_e( 'Connection context', 'npcink-cloud-addon' ); ?>">
 				<summary><?php esc_html_e( 'More information', 'npcink-cloud-addon' ); ?></summary>
 				<p class="description"><?php esc_html_e( 'This site', 'npcink-cloud-addon' ); ?>: <?php echo esc_html( home_url( '/' ) ); ?></p>
