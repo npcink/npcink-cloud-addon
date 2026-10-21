@@ -2033,14 +2033,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$more_rows = array();
 
 			if ( '' !== (string) ( $entitlement['renews_at'] ?? '' ) ) {
-				$core_rows[] = array( __( 'Renews', 'npcink-cloud-addon' ), self::format_date_value( (string) $entitlement['renews_at'] ) );
+				$core_rows[] = array( __( 'Credits reset on', 'npcink-cloud-addon' ), self::format_date_value( (string) $entitlement['renews_at'] ) );
 			}
 
 			$period_start = (string) ( $credit_period['start_at'] ?? '' );
 			$period_end = (string) ( $credit_period['end_at'] ?? '' );
 			if ( '' !== $period_start || '' !== $period_end ) {
 				$core_rows[] = array(
-					__( 'AI credit period', 'npcink-cloud-addon' ),
+					__( 'Current credit cycle', 'npcink-cloud-addon' ),
 					sprintf(
 						/* translators: 1: credit period start, 2: credit period end. */
 						__( '%1$s to %2$s', 'npcink-cloud-addon' ),

@@ -427,6 +427,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Plan' => '方案',
 				'More information' => '更多信息',
 				': ' => '：',
+				'Credits reset on' => '额度重置日',
+				'Current credit cycle' => '本期额度时间',
 				'Plan and credits' => '套餐与额度',
 				'Saved. The site is connected.' => '已保存，站点已连接。',
 				'The connection link expired. Click Connect again.' => '连接链接已过期，请重新点击「连接」。',

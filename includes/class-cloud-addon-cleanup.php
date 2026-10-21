@@ -42,6 +42,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 
 			delete_option( 'npcink_cloud_addon_media_recognition_plan' );
 			delete_option( 'npcink_cloud_addon_media_recognition_plan_lock' );
+			delete_option( 'npcink_cloud_addon_monitoring_prompt_answered' );
 			delete_transient( 'npcink_cloud_addon_media_index_status' );
 			wp_clear_scheduled_hook( 'npcink_cloud_addon_continue_media_recognition' );
 			// The marker is final after the first completed run, so it rides

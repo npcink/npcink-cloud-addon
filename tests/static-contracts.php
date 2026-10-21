@@ -1377,7 +1377,7 @@ maca_assert(
 	&& false !== strpos( $settings_page, 'Plan and credits' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-overview-entitlements' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-section-title' )
-	&& false !== strpos( $settings_page, 'AI credit period' )
+	&& false !== strpos( $settings_page, 'Current credit cycle' )
 	&& false !== strpos( $settings_page, 'Tasks at the same time' )
 	&& 0 === substr_count( $settings_page, 'Plan image capacity' )
 	&& 0 === substr_count( $settings_page, '%1$s used / %2$s limit / %3$s remaining' )

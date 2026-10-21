@@ -29,6 +29,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		public const ACTION_CHANGE_ACCOUNT = 'npcink_cloud_addon_change_account';
 		public const ACTION_UPDATE_LOCAL_PERMISSION = 'npcink_cloud_addon_update_local_permission';
 		public const ACTION_DISMISS_MONITORING_PROMPT = 'npcink_cloud_addon_dismiss_monitoring_prompt';
+		public const MONITORING_PROMPT_ANSWERED_OPTION = 'npcink_cloud_addon_monitoring_prompt_answered';
 		public const ACTION_REFRESH_SITE_KNOWLEDGE = 'npcink_cloud_addon_refresh_site_knowledge';
 		public const ACTION_REFRESH_SITE_KNOWLEDGE_STATUS = 'npcink_cloud_addon_refresh_site_knowledge_status';
 		public const ACTION_MANAGE_SITE_KNOWLEDGE_INDEX = 'npcink_cloud_addon_manage_site_knowledge_index';
@@ -1043,7 +1044,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 * @return void
 		 */
 		private static function maybe_prompt_for_monitoring_consent( bool $was_verified ): void {
-			if ( $was_verified || ! Npcink_Cloud_Addon_Settings::is_verified() || Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+			if ( $was_verified || ! Npcink_Cloud_Addon_Settings::is_verified() || Npcink_Cloud_Addon_Settings::is_monitoring_enabled() || get_option( self::MONITORING_PROMPT_ANSWERED_OPTION ) ) {
 				return;
 			}
 
@@ -1109,6 +1110,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 */
 		private static function clear_monitoring_consent_prompt(): void {
 			delete_transient( self::monitoring_consent_prompt_transient_key() );
+			// The owner answered once (prompt or toggle); never ask again, even after reconnecting.
+			update_option( self::MONITORING_PROMPT_ANSWERED_OPTION, 1, false );
 		}
 
 		/**
