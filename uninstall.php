@@ -20,3 +20,4 @@ $npcink_cloud_addon_uninstall_settings = Npcink_Cloud_Addon_Settings::get_settin
 Npcink_Cloud_Addon_Cleanup::delete_all( $npcink_cloud_addon_uninstall_settings );
 delete_option( 'npcink_cloud_addon_monitoring_prompt_answered' );
 delete_option( 'npcink_cloud_addon_last_ai_error' );
+delete_transient( 'npcink_cloud_addon_first_connection' );
