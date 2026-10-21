@@ -1825,3 +1825,6 @@ button.npcink-cloud-gen-test-dialog__chip:focus {
 .npcink-cloud-kv dt { color: #646970; flex: 0 0 120px; margin: 0; }
 .npcink-cloud-kv dd { margin: 0; overflow-wrap: anywhere; }
 .npcink-cloud-kv code { font-size: 12px; }
+.npcink-cloud-overview-status { margin: 0 0 24px; }
+.npcink-cloud-local-permission__desc { display: block; margin-top: 4px; }
+.npcink-cloud-monitoring-consent .npcink-cloud-fold { margin: 8px 0 16px; }

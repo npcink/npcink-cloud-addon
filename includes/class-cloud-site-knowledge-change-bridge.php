@@ -444,7 +444,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			self::$post_document_memo = array();
 
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
-				return self::record_delivery_result( false, 0, __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ), 'cloud_addon_unverified' );
+				return self::record_delivery_result( false, 0, __( 'Connect this site first.', 'npcink-cloud-addon' ), 'cloud_addon_unverified' );
 			}
 
 			if ( ! self::is_enabled() ) {
@@ -488,7 +488,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
 				return new WP_Error(
 					'cloud_site_knowledge_unverified',
-					__( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ),
+					__( 'Connect this site first.', 'npcink-cloud-addon' ),
 					array( 'status' => 400 )
 				);
 			}

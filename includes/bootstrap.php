@@ -962,7 +962,7 @@ if ( ! function_exists( 'npcink_cloud_addon_render_activation_notice' ) ) {
 		<div class="notice notice-info npcink-cloud-addon-activation-notice">
 			<p>
 				<strong><?php esc_html_e( 'Npcink Cloud Addon', 'npcink-cloud-addon' ); ?></strong>
-				<?php esc_html_e( 'The plugin is active, but this site is not connected to Npcink Cloud yet. Connect the site to enable its AI features.', 'npcink-cloud-addon' ); ?>
+				<?php esc_html_e( 'Connect this site to Npcink Cloud to use AI features.', 'npcink-cloud-addon' ); ?>
 				<a class="button button-primary" href="<?php echo esc_url( $settings_url ); ?>"><?php esc_html_e( 'Connect this site', 'npcink-cloud-addon' ); ?></a>
 				<?php if ( '' !== $dismiss_url ) : ?>
 					<a class="npcink-cloud-addon-activation-notice__dismiss" href="<?php echo esc_url( $dismiss_url ); ?>"><?php esc_html_e( 'Do not show again', 'npcink-cloud-addon' ); ?></a>

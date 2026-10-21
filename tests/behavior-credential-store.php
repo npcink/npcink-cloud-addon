@@ -248,7 +248,7 @@ maca_assert(
 	0 === count( $GLOBALS['maca_http_requests'] )
 	&& $before_failed_write === get_option( Npcink_Cloud_Addon_Settings::option_name(), array() )
 	&& 'error' === (string) ( $last_notice['type'] ?? '' )
-	&& false !== strpos( (string) ( $last_notice['message'] ?? '' ), 'could not be stored securely' ),
+	&& false !== strpos( (string) ( $last_notice['message'] ?? '' ), 'could not be saved on this site' ),
 	'Behavior: admin persistence failure stops verification and reports a non-secret error.'
 );
 $GLOBALS['maca_wp_salt'] = 'maca-test-auth-salt';
@@ -269,7 +269,7 @@ maca_assert(
 	$stored_before_replacement_probe === get_option( Npcink_Cloud_Addon_Settings::option_name(), array() )
 	&& Npcink_Cloud_Addon_Settings::is_verified()
 	&& 'site_test' === (string) Npcink_Cloud_Addon_Settings::get_settings()['site_id']
-	&& false !== strpos( (string) ( $replacement_notice['message'] ?? '' ), 'existing connection was kept' ),
+	&& false !== strpos( (string) ( $replacement_notice['message'] ?? '' ), 'current one was kept' ),
 	'Behavior: a failed replacement credential probe leaves the verified existing connection unchanged.'
 );
 
@@ -290,7 +290,7 @@ maca_assert(
 	&& 'site_first' === (string) $first_connection_stored['site_id']
 	&& 'https://first.example.test' === (string) $first_connection_stored['base_url']
 	&& '' !== (string) $first_connection_stored['last_verification_error']
-	&& false !== strpos( (string) ( $first_connection_notice['message'] ?? '' ), 'use Check connection' ),
+	&& false !== strpos( (string) ( $first_connection_notice['message'] ?? '' ), 'Click Check again' ),
 	'Behavior: a failed first-connection probe keeps the exchanged credentials unverified for a Check connection retry.'
 );
 

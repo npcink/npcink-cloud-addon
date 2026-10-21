@@ -82,7 +82,7 @@ $unverified_index = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_index_ope
 maca_assert(
 	maca_has_site_knowledge_admin_result_shape( $unverified )
 	&& 'not_verified' === $unverified['code']
-	&& 'Cloud Addon settings are not verified.' === $unverified['message']
+	&& 'Connect this site first.' === $unverified['message']
 	&& 'not_verified' === $unverified_index['code']
 	&& 0 === Npcink_Cloud_Site_Knowledge_Change_Bridge::$buffer_calls
 	&& array() === Npcink_Cloud_Site_Knowledge_Change_Bridge::$index_calls,

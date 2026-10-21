@@ -403,7 +403,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 				return self::record_monitoring_state_projection(
 					false,
 					$enabled,
-					__( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' )
+					__( 'Connect this site first.', 'npcink-cloud-addon' )
 				);
 			}
 
@@ -484,7 +484,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		 */
 		public static function refresh_summary(): array {
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
-				return self::record_summary_result( false, array(), __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ) );
+				return self::record_summary_result( false, array(), __( 'Connect this site first.', 'npcink-cloud-addon' ) );
 			}
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
 			if ( empty( $settings['monitoring_enabled'] ) ) {
@@ -518,7 +518,7 @@ if ( ! class_exists( 'Npcink_Cloud_Observability_Collector' ) ) {
 		 */
 		public static function refresh_agent_feedback_summary(): array {
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
-				return self::record_agent_feedback_summary_result( false, array(), __( 'Cloud Addon settings are not verified.', 'npcink-cloud-addon' ) );
+				return self::record_agent_feedback_summary_result( false, array(), __( 'Connect this site first.', 'npcink-cloud-addon' ) );
 			}
 
 			$client = new Npcink_Cloud_Runtime_Client();

@@ -1235,7 +1235,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			if ( '' === $base_url ) {
 				return array(
 					'ok' => false,
-					'message' => __( 'Cloud Base URL is required.', 'npcink-cloud-addon' ),
+					'message' => __( 'Enter the service address.', 'npcink-cloud-addon' ),
 				);
 			}
 
@@ -1713,7 +1713,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		private function format_transport_error_message( string $message ): string {
 			$message = trim( wp_strip_all_tags( $message ) );
 			if ( '' === $message ) {
-				return __( 'Cannot connect to Npcink Cloud. Check the Cloud Base URL.', 'npcink-cloud-addon' );
+				return __( 'Cannot reach Npcink Cloud. Check the service address.', 'npcink-cloud-addon' );
 			}
 
 			return sprintf(

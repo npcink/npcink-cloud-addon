@@ -328,7 +328,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				if ( '' !== trim( (string) $payload['base_url'] ) && '' === $base_url ) {
 					return new WP_Error(
 						'invalid_cloud_base_url',
-						__( 'Cloud Base URL must use HTTPS unless it points to localhost or 127.0.0.1.', 'npcink-cloud-addon' )
+						__( 'The service address must start with https://.', 'npcink-cloud-addon' )
 					);
 				}
 				if ( $base_url !== (string) $next['base_url'] ) {
@@ -765,7 +765,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			if ( 0 !== strpos( $api_key, 'mak1_' ) ) {
 				return new WP_Error(
 					'invalid_cloud_api_key',
-					__( 'Manual Cloud API Key recovery must use a Cloud-issued mak1_ wrapper. Reconnect this site in Npcink Cloud to issue a new key.', 'npcink-cloud-addon' )
+					__( 'This recovery code is not valid. Reconnect this site in Npcink Cloud to get a new one.', 'npcink-cloud-addon' )
 				);
 			}
 
