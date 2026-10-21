@@ -1238,3 +1238,13 @@ maca_assert(
 	&& false === strpos( $settings_page_source, 'npcink-cloud-low-balance__action"><a class="button-primary' ),
 	'Behavior: low-balance reminder shows only under 10% of a Cloud-reported limit, as a plain text link inside the plugin page.'
 );
+$onboarding_actions_source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/class-cloud-settings-actions.php' );
+$onboarding_page_source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/class-cloud-settings-page.php' );
+maca_assert(
+	false !== strpos( $onboarding_actions_source, "self::redirect_to_page( \$first_connection ? '' : 'connection' );" )
+	&& false !== strpos( $onboarding_actions_source, "self::\$authorization_flow = 'change_account';" )
+	&& false !== strpos( $onboarding_actions_source, "'Connected. You can now use AI in the post editor.'" )
+	&& false === strpos( $onboarding_page_source, "admin-post.php' ) ); ?>\" target=\"_blank\">" )
+	&& false !== strpos( $onboarding_page_source, "'You will go to Npcink Cloud to confirm, then come back here automatically.'" ),
+	'Behavior: first connection opens Cloud in the same tab and lands on Overview; change-account and reconnect still land on Connection.'
+);

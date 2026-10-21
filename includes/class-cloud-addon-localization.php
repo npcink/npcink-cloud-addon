@@ -490,6 +490,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Too many AI requests right now. Wait a minute, then try again.' => 'AI 请求太频繁了。请等一分钟后再试。',
 				'Npcink Cloud is temporarily unavailable. Try again in a few minutes.' => 'Npcink Cloud 暂时不可用。请过几分钟再试。',
 				'Last AI error code' => '最近一次 AI 错误代码',
+				'You will go to Npcink Cloud to confirm, then come back here automatically.' => '将前往 Npcink Cloud 确认，完成后会自动回到这里。',
+				'Connected. You can now use AI in the post editor.' => '已连接。现在可以在文章编辑器中使用 AI 了。',
 				'What is sent' => '会发送哪些内容',
 				'Normal' => '正常',
 				'Reading credits' => '读取额度',

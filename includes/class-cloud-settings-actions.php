@@ -242,13 +242,16 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				self::redirect_to_page( 'status' );
 			}
 
-			self::persist_and_verify_settings( $settings, __( 'Connected to Npcink Cloud.', 'npcink-cloud-addon' ) );
+			$first_connection = ! $was_verified && 'change_account' !== (string) ( $auth_state['flow'] ?? '' );
+			self::persist_and_verify_settings(
+				$settings,
+				! $first_connection ? __( 'Connected to Npcink Cloud.', 'npcink-cloud-addon' ) : __( 'Connected. You can now use AI in the post editor.', 'npcink-cloud-addon' )
+			);
 			self::maybe_prompt_for_monitoring_consent( $was_verified );
 
-			// Land on Connection so the verified identity and success notice are
-			// visible right after (re)authorization. A pending monitoring prompt
-			// stays queued for Overview.
-			self::redirect_to_page( 'connection' );
+			// First connection lands on Overview (ready state + where to try AI);
+			// a reconnect or account change lands on Connection to show the identity.
+			self::redirect_to_page( $first_connection ? '' : 'connection' );
 		}
 
 		/**
@@ -367,6 +370,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				'info',
 				__( 'Disconnected from the previous account. Choose an account in Npcink Cloud.', 'npcink-cloud-addon' )
 			);
+			self::$authorization_flow = 'change_account';
 			self::redirect_to_cloud_authorization( $base_url );
 		}
 
@@ -693,6 +697,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		}
 
 		/**
+		 * Authorization flow tag stored with the state ('' or 'change_account').
+		 *
+		 * @var string
+		 */
+		private static $authorization_flow = '';
+
+		/**
 		 * Creates a short-lived local authorization state.
 		 *
 		 * @param string $base_url Cloud base URL.
@@ -705,6 +716,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				array(
 					'base_url' => $base_url,
 					'created'  => time(),
+					'flow'     => self::$authorization_flow,
 				),
 				self::AUTH_STATE_TTL_SECONDS
 			);

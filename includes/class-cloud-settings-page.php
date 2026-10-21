@@ -1686,7 +1686,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					<div class="npcink-cloud-connect-actions">
 						<?php self::render_authorization_form( __( 'Add this site in Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary button-hero' ); ?>
 					</div>
-					<p class="description"><?php esc_html_e( 'Npcink Cloud opens in a new tab. Choose your account there, then come back here.', 'npcink-cloud-addon' ); ?></p>
+					<p class="description"><?php esc_html_e( 'You will go to Npcink Cloud to confirm, then come back here automatically.', 'npcink-cloud-addon' ); ?></p>
 				<?php endif; ?>
 			</div>
 			<details class="npcink-cloud-connect-more npcink-cloud-fold" aria-label="<?php esc_attr_e( 'Connection context', 'npcink-cloud-addon' ); ?>">
@@ -1747,7 +1747,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 */
 		private static function render_authorization_form( string $label, string $class_name ): void {
 			?>
-			<form class="npcink-cloud-authorization-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" target="_blank">
+			<form class="npcink-cloud-authorization-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<?php wp_nonce_field( Npcink_Cloud_Settings_Actions::ACTION_START_AUTH ); ?>
 				<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_START_AUTH ); ?>" />
 				<button type="submit" class="<?php echo esc_attr( $class_name ); ?>"><?php echo esc_html( $label ); ?></button>
