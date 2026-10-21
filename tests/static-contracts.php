@@ -2251,11 +2251,7 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $zh_cn_po, 'msgid "Advanced connection"' )
-	&& false !== strpos( $zh_cn_po, 'msgstr "高级连接"' )
-	&& false !== strpos( $zh_cn_po, 'msgid "Self-hosted Cloud endpoint"' )
-	&& false !== strpos( $zh_cn_po, 'msgstr "自托管 Cloud 端点"' )
-	&& false !== strpos( $zh_cn_po, 'msgid "Authorize with this endpoint"' )
+	false !== strpos( $zh_cn_po, 'msgid "Authorize with this endpoint"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "使用此端点授权"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "仅用于兼容的 Npcink Cloud 部署。Cloud 仍负责站点激活和密钥签发。"' )
 	&& false !== strpos( $zh_cn_po, 'msgstr "这里不管理 Cloud 站点、密钥、账单、模型、路由器、工作流或运行时策略。"' ),

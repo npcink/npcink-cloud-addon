@@ -3064,16 +3064,16 @@ msgstr "已连接到 Npcink Cloud。"
 
 #: includes/class-cloud-settings-actions.php:330
 msgid "Disconnected. The site and its data remain in Npcink Cloud."
-msgstr ""
+msgstr "已断开。Npcink Cloud 中的站点和数据会保留。"
 
 #: includes/class-cloud-settings-actions.php:367
 msgid "The previous account was disconnected from this site."
-msgstr ""
+msgstr "已断开此站点之前的账号。"
 
 #: includes/class-cloud-settings-page.php:304
 msgid "Back"
-msgstr ""
+msgstr "返回"
 
 #: includes/class-cloud-settings-page.php:1801
 msgid "Change account, disconnect, or connect manually"
-msgstr ""
+msgstr "更换账号、断开或手动连接"
