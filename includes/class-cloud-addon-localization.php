@@ -481,6 +481,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Spending limit' => '费用上限',
 				'Connects this site to Npcink Cloud to use AI features.' => '把此站点连接到 Npcink Cloud，使用 AI 功能。',
 				'Connected. AI features are ready to use.' => '已连接，AI 功能可以使用。',
+				'AI credits are running low.' => 'AI 积分快用完了',
+				'Top up on Npcink Cloud' => '去 Npcink Cloud 充值',
 				'What is sent' => '会发送哪些内容',
 				'Normal' => '正常',
 				'Reading credits' => '读取额度',
