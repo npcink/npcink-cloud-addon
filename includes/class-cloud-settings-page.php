@@ -1187,6 +1187,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 							<span class="npcink-cloud-stat__value" data-npcink-entitlement-metric-label><?php echo esc_html( (string) ( $runtime_metric['label'] ?? '' ) ); ?></span>
 						</div>
 					</div>
+					<?php if ( '' !== (string) ( $credit_metric['usage_line'] ?? '' ) ) : ?>
+						<p class="description npcink-cloud-usage-line"><?php echo esc_html( (string) $credit_metric['usage_line'] ); ?></p>
+					<?php endif; ?>
 					<?php if ( $monitoring_needs_attention || $site_knowledge_needs_attention ) : ?>
 					<div class="npcink-cloud-overview-panel__notices">
 						<?php if ( $monitoring_needs_attention ) : ?>
@@ -2361,6 +2364,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				'status_label' => '',
 				'percent' => null,
 				'tooltip' => '',
+				'usage_line' => '',
 			);
 			$ai_credit_usage_detail = is_array( $summary['ai_credit_usage_detail'] ?? null ) ? $summary['ai_credit_usage_detail'] : array();
 			$credit_summary = is_array( $ai_credit_usage_detail['summary'] ?? null ) ? $ai_credit_usage_detail['summary'] : array();
@@ -2383,6 +2387,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						$percent
 					);
 					$credits['percent'] = $percent;
+					// Plain usage line: only when Cloud reports "used" itself (no WP-side estimates).
+					if ( is_numeric( $credit_summary['used'] ?? null ) ) {
+						$credits['usage_line'] = sprintf(
+							/* translators: %s: credits used this period. */
+							__( 'This period: %s credits used.', 'npcink-cloud-addon' ),
+							self::format_credit_amount( $credit_summary['used'] )
+						);
+					}
 					$credits['tooltip'] = sprintf(
 						/* translators: 1: used credits, 2: remaining credits, 3: credit limit. */
 						__( 'Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits.', 'npcink-cloud-addon' ),

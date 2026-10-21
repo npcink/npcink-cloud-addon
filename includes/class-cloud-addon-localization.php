@@ -426,6 +426,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Connected Cloud identity' => '当前连接',
 				'Plan' => '方案',
 				'More information' => '更多信息',
+				'This period: %s credits used.' => '本期已用 %s 积分',
 				': ' => '：',
 				'Credits reset on' => '额度重置日',
 				'Current credit cycle' => '本期额度时间',
