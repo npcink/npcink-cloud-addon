@@ -667,7 +667,7 @@ maca_assert(
 
 maca_assert(
 	false !== strpos( $zh_cn_po, 'msgstr "Cloud 基础 URL"' )
-	&& false !== strpos( $zh_cn_po, 'msgstr "托管运行时"' )
+	&& false !== strpos( $zh_cn_po, 'msgstr "夜间巡检"' )
 	&& false === strpos( $zh_cn_po, 'msgstr "高级与排查"' )
 		&& false !== strpos( $zh_cn_po, 'msgstr "同步"' )
 		&& false !== strpos( $zh_cn_po, 'msgstr "同步中"' )

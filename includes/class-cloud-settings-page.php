@@ -1473,9 +1473,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 		 *
 		 * @param string $label Row label.
 		 * @param string $status Row status.
-		 * @param string $detail Row detail.
-		 * @param string $badge Optional badge variant for the status cell.
-		 * @param bool   $mono_detail Render the detail in a monospace face.
+		 * @param string $detail Optional short code shown after the status.
 		 * @return void
 		 */
 		private static function render_diagnostic_row( string $label, string $status, string $detail = '' ): void {
