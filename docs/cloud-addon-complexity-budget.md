@@ -106,7 +106,7 @@ connector classes so they cannot grow unnoticed:
   path keeps exchanged credentials in the unverified state instead of
   discarding them; raised again for the 2026-10-12 server-side no-JS disconnect
   confirmation guard; raised by one line to distinguish scheduled recovery notices from completed delivery; raised by two lines to return current admin status fragments with existing authenticated reads; raised from 1170 with reason: the 2026-10-20 local disconnect remembers Cloud Base URL so reconnect does not fall back to localhost:8010)
-- `includes/class-cloud-wordpress-ai-connector.php` — 1090 lines (was 2767 before the
+- `includes/class-cloud-wordpress-ai-connector.php` — 1130 lines (raised from 1090 for plain Cloud AI error families and the last-AI-error support code) (was 2767 before the
   2026-10-06 per-class split into seven satellite files; raised from 1002 with
   reason: the 2026-10-11 in-progress run probe shares one
   `response_indicates_in_progress_run()` helper across the three models; raised

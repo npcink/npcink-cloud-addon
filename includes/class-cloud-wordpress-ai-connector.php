@@ -777,21 +777,21 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'artifact_verification_failed'  => __( 'The generated image could not be verified for safe delivery. Please try again.', 'npcink-cloud-addon' ),
 				'artifact_ack_invalid'          => __( 'Npcink Cloud could not confirm delivery of the generated image. Please try again.', 'npcink-cloud-addon' ),
 				'artifact_expired'              => __( 'The generated image is no longer available. Please generate it again.', 'npcink-cloud-addon' ),
-				'runtime_failed'                => __( 'Npcink Cloud could not complete this AI request. Please try again in a moment.', 'npcink-cloud-addon' ),
+				'runtime_failed'                => __( 'The AI request did not succeed. Try again later; if it keeps failing, copy the information on the Checks tab and contact support.', 'npcink-cloud-addon' ),
 				'runtime_unreachable'           => __( 'Npcink Cloud could not be reached from this site. Please try again in a moment.', 'npcink-cloud-addon' ),
 				'runtime_unauthorized'          => __( 'The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page.', 'npcink-cloud-addon' ),
 				'runtime_limit_reached'         => __( 'This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud.', 'npcink-cloud-addon' ),
+				'plain_credits_exhausted'       => __( 'Your AI credits have run out. Top up on Npcink Cloud, then try again.', 'npcink-cloud-addon' ),
+				'plain_not_connected'           => __( 'This site is no longer connected to Npcink Cloud. Reconnect it on the Npcink AI > Cloud Addon page, then try again.', 'npcink-cloud-addon' ),
+				'plain_site_inactive'           => __( 'This site is turned off in Npcink Cloud. Turn it on in Npcink Cloud, then try again.', 'npcink-cloud-addon' ),
+				'plain_rate_limited'            => __( 'Too many AI requests right now. Wait a minute, then try again.', 'npcink-cloud-addon' ),
+				'plain_service_unavailable'     => __( 'Npcink Cloud is temporarily unavailable. Try again in a few minutes.', 'npcink-cloud-addon' ),
 			);
 			$message = $messages[ $friendly_key ] ?? $messages['runtime_failed'];
-			// Keep the code:stage separator readable; sanitize_key() strips ':'.
-			$stable_code = sanitize_key( str_replace( ':', '-', $stable_code ) );
-			if ( '' !== $stable_code ) {
-				$message .= ' (' . $stable_code . ')';
-			}
-			$detail = self::bound_connector_error_detail( $detail );
-			if ( '' !== $detail ) {
-				$message .= ' ' . $detail;
-			}
+			// Editor text is one plain sentence plus the next step for every family;
+			// the raw code is kept only for Checks > Copy information.
+			self::remember_last_ai_error( $stable_code );
+			unset( $detail ); // Upstream detail is never shown in the editor.
 
 			return $message;
 		}
@@ -807,9 +807,28 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				return '';
 			}
 			$message = (string) $error->get_error_message();
-			$code = sanitize_key( (string) $error->get_error_code() );
+			self::remember_last_ai_error( (string) $error->get_error_code() );
 
-			return '' !== $code ? $message . ' (' . $code . ')' : $message;
+			return $message;
+		}
+
+		/**
+		 * Option holding the last AI request error code for the copied support information.
+		 */
+		public const LAST_AI_ERROR_OPTION = 'npcink_cloud_addon_last_ai_error';
+
+		/**
+		 * Stores the last AI request error code (code and time only; never content or secrets).
+		 *
+		 * @param string $stable_code Stable error code.
+		 * @return void
+		 */
+		private static function remember_last_ai_error( string $stable_code ): void {
+			$code = sanitize_key( str_replace( ':', '-', $stable_code ) );
+			if ( '' === $code || ! function_exists( 'update_option' ) ) {
+				return;
+			}
+			update_option( self::LAST_AI_ERROR_OPTION, array( 'code' => $code, 'at' => gmdate( 'Y-m-d H:i:s' ) . ' UTC' ), false );
 		}
 
 		/**
@@ -826,7 +845,17 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			// pool" in an application error) and must not drive the family.
 			$haystack = strtolower( $error_code . ' ' . $diagnostic );
 			$friendly_key = 'runtime_failed';
-			if ( 1 === preg_match( '/(?:unauthorized|forbidden|authorization[_ ]expired)/', $haystack ) ) {
+			if ( 1 === preg_match( '/(?:insufficient[_ ]credit|credits?[_ ]exhausted|quota[_ ]exhausted|payment[_ ]required|credit[_ ]balance)/', $haystack ) ) {
+				$friendly_key = 'plain_credits_exhausted';
+			} elseif ( 1 === preg_match( '/(?:site[_ ](?:inactive|not[_ ]active|disabled|suspended)|key[_ ]inactive|secret[_ ]inactive)/', $haystack ) ) {
+				$friendly_key = 'plain_site_inactive';
+			} elseif ( 1 === preg_match( '/(?:not[_ ]connected|credential[_ ](?:expired|revoked|invalid)|signature[_ ]invalid|key[_ ]revoked|unauthenticated)/', $haystack ) ) {
+				$friendly_key = 'plain_not_connected';
+			} elseif ( 1 === preg_match( '/(?:rate.?limit|too[_ ]many[_ ]requests|throttl)/', $haystack ) ) {
+				$friendly_key = 'plain_rate_limited';
+			} elseif ( 1 === preg_match( '/(?:service[_ ]unavailable|cloud[_ ]unavailable|provider[_ ]unavailable|maintenance|overloaded)/', $haystack ) ) {
+				$friendly_key = 'plain_service_unavailable';
+			} elseif ( 1 === preg_match( '/(?:unauthorized|forbidden|authorization[_ ]expired)/', $haystack ) ) {
 				$friendly_key = 'runtime_unauthorized';
 			} elseif ( 1 === preg_match( '/(?:purged|artifact[_ ]expired)/', $haystack ) ) {
 				$friendly_key = 'artifact_expired';
@@ -839,36 +868,6 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			$stable_code = '' !== $diagnostic ? $diagnostic : $error_code;
 
 			return self::user_facing_connector_error( $friendly_key, $stable_code, $detail );
-		}
-
-		/**
-		 * Bounds an upstream detail excerpt for one-line editor display.
-		 *
-		 * @param string $detail Raw detail text.
-		 * @return string
-		 */
-		private static function bound_connector_error_detail( string $detail ): string {
-			$detail = function_exists( 'sanitize_text_field' ) ? sanitize_text_field( $detail ) : trim( preg_replace( '/\s+/', ' ', $detail ) );
-			// Transport and upstream messages can embed request URLs with
-			// signed tokens; editors only need the surrounding text.
-			$detail = (string) preg_replace( '#https?://\S+#i', '[url]', $detail );
-			if ( function_exists( 'mb_substr' ) ) {
-				return mb_substr( $detail, 0, 160 );
-			}
-
-			// Multibyte-safe bound without mbstring: drop invalid UTF-8 bytes,
-			// slice with a UTF-8 regex, and strip a trailing partial sequence
-			// via wp_html_excerpt() when the regex cannot run.
-			if ( function_exists( 'mb_convert_encoding' ) ) {
-				$detail = mb_convert_encoding( $detail, 'UTF-8', 'UTF-8' );
-			}
-			$matches = array();
-			$matched = preg_match( '/\A.{0,160}/us', $detail, $matches );
-			if ( 1 === $matched ) {
-				return (string) $matches[0];
-			}
-
-			return function_exists( 'wp_html_excerpt' ) ? wp_html_excerpt( $detail, 160, '' ) : substr( $detail, 0, 160 );
 		}
 
 		/**

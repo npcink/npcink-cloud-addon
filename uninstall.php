@@ -19,3 +19,4 @@ require_once __DIR__ . '/includes/class-cloud-addon-cleanup.php';
 $npcink_cloud_addon_uninstall_settings = Npcink_Cloud_Addon_Settings::get_settings();
 Npcink_Cloud_Addon_Cleanup::delete_all( $npcink_cloud_addon_uninstall_settings );
 delete_option( 'npcink_cloud_addon_monitoring_prompt_answered' );
+delete_option( 'npcink_cloud_addon_last_ai_error' );
