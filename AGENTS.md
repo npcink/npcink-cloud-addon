@@ -165,4 +165,13 @@ SQLite/WASM compatibility gate, not a replacement for Local MySQL, Cloud,
 browser, or production evidence. For an unrelated change, state why this gate
 is not applicable in the handoff or PR verification record.
 
+WordPress AI compatibility CI lanes (`scripts/smoke-wordpress-ai-compatibility.sh`)
+may fail with `[fail] Blocking lane … did not reach its compatibility route`
+after ~120s polling `/wp-json/npcink-cloud-addon-playground/v1/compatibility`.
+A single-lane timeout that rotates across PHP versions on docs-only or otherwise
+unrelated PRs (and on master after merges) is Playground bootstrap flake:
+`gh run rerun <run_id> --failed` or re-run failed jobs in the GitHub UI. Do not
+widen the timeout, change product code, or admin-merge docs-only PRs for this.
+Repeated re-run failures are CI infra work, not a reason to rewrite the docs PR.
+
 Documentation may mention forbidden concepts only to describe what this addon must not own.
