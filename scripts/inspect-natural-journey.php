@@ -32,11 +32,17 @@ foreach ( is_array( $buffer ) ? array_slice( $buffer, 0, 20 ) : array() as $even
 $count = is_array( $buffer ) ? count( $buffer ) : 0;
 $enabled = class_exists( 'Npcink_Cloud_Addon_Settings' ) && method_exists( 'Npcink_Cloud_Addon_Settings', 'is_monitoring_enabled' )
 	? (bool) Npcink_Cloud_Addon_Settings::is_monitoring_enabled() : null;
-$state = $count > 0 ? 'real_event_pending_or_unclassified' : 'pending_no_real_event';
-if ( ! $enabled ) {
-	$state = 'monitoring_disabled_or_unverified';
-} elseif ( false === $next ) {
-	$state = 'cron_not_scheduled';
+$journey_status = get_option( 'npcink_cloud_addon_customer_journey_status', array() );
+$journey_status = is_array( $journey_status ) ? $journey_status : array();
+if ( class_exists( 'Npcink_Cloud_Customer_Journey' ) && method_exists( 'Npcink_Cloud_Customer_Journey', 'verification_state' ) ) {
+	$state = Npcink_Cloud_Customer_Journey::verification_state( $count, $next );
+} else {
+	$state = $count > 0 ? 'real_event_pending_or_unclassified' : 'pending_no_real_event';
+	if ( ! $enabled ) {
+		$state = 'monitoring_disabled_or_unverified';
+	} elseif ( false === $next ) {
+		$state = 'cron_not_scheduled';
+	}
 }
 $output = array(
 	'observed_at' => gmdate( 'c' ),
@@ -60,9 +66,19 @@ $output = array(
 		'total_sent' => absint( $status['total_sent'] ?? 0 ),
 		'error' => sanitize_text_field( (string) ( $status['last_upload_error'] ?? '' ) ),
 	),
+	'journey_flush' => array(
+		'ok' => ! empty( $journey_status['last_flush_ok'] ),
+		'at' => sanitize_text_field( (string) ( $journey_status['last_flush_at'] ?? '' ) ),
+		'sent_count' => absint( $journey_status['last_sent_count'] ?? 0 ),
+		'total_sent' => absint( $journey_status['total_sent'] ?? 0 ),
+		'last_real_upload_at' => sanitize_text_field( (string) ( $journey_status['last_real_upload_at'] ?? '' ) ),
+		'error' => sanitize_text_field( (string) ( $journey_status['last_flush_error'] ?? '' ) ),
+	),
 	'next_action' => $count > 0
 		? 'Wait for natural WP-Cron, then compare expected_cloud_event_id/run_id with Cloud storage.'
-		: 'Use the site normally to create one real event; do not run Cron or flush manually.',
+		: ( 'real_events_uploaded' === $state
+			? 'Real journey events already uploaded; compare Cloud storage with prior expected_cloud_event_id/run_id evidence.'
+			: 'Use the site normally to create one real event; do not run Cron or flush manually.' ),
 );
 if ( '' !== $expected_site_url && untrailingslashit( (string) $output['site_url'] ) !== untrailingslashit( $expected_site_url ) ) {
 	WP_CLI::error( 'Wrong WordPress target: expected ' . $expected_site_url . ', got ' . $output['site_url'] . '. Set WP_DB_SOCKET for the intended Local site.' );

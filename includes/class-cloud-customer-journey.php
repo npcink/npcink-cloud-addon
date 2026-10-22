@@ -230,23 +230,78 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 		}
 
 		/**
-		 * Persists only the latest bounded transport outcome so cron failures remain
-		 * diagnosable even though the scheduled caller discards the return value.
+		 * Persists the latest bounded transport outcome and a durable real-upload
+		 * signal so empty-buffer flushes do not look like "never integrated".
 		 *
 		 * @param array<string,mixed> $result Flush result.
 		 * @return array<string,mixed>
 		 */
 		private static function remember_flush_result( array $result ): array {
+			$previous = get_option( self::STATUS_OPTION, array() );
+			$previous = is_array( $previous ) ? $previous : array();
+			$ok = ! empty( $result['ok'] );
+			$sent = absint( $result['sent_count'] ?? 0 );
+			$total_sent = absint( $previous['total_sent'] ?? 0 ) + ( $ok ? $sent : 0 );
+			$last_real_upload_at = sanitize_text_field( (string) ( $previous['last_real_upload_at'] ?? '' ) );
+			if ( $ok && $sent > 0 ) {
+				$last_real_upload_at = gmdate( 'c' );
+			}
+
 			$status = array(
-				'last_flush_ok' => ! empty( $result['ok'] ),
+				'last_flush_ok' => $ok,
 				'last_flush_at' => gmdate( 'c' ),
-				'last_flush_error' => empty( $result['ok'] ) ? sanitize_text_field( (string) ( $result['error'] ?? '' ) ) : '',
-				'last_sent_count' => absint( $result['sent_count'] ?? 0 ),
+				'last_flush_error' => $ok ? '' : sanitize_text_field( (string) ( $result['error'] ?? '' ) ),
+				'last_sent_count' => $sent,
 				'buffer_count' => absint( $result['buffer_count'] ?? 0 ),
+				'total_sent' => $total_sent,
+				'last_real_upload_at' => $last_real_upload_at,
 			);
 			update_option( self::STATUS_OPTION, $status, false );
 
 			return $result;
+		}
+
+		/**
+		 * Read-only verification signal for local:journey:inspect.
+		 *
+		 * Empty buffer after a successful real upload must not look like
+		 * pending_no_real_event (never integrated).
+		 *
+		 * @param int|null $buffer_count Optional buffer size override for tests.
+		 * @param int|false|null $cron_next Optional wp_next_scheduled() result override.
+		 * @return string
+		 */
+		public static function verification_state( ?int $buffer_count = null, $cron_next = null ): string {
+			if ( ! Npcink_Cloud_Addon_Settings::is_monitoring_enabled() ) {
+				return 'monitoring_disabled_or_unverified';
+			}
+
+			if ( null === $cron_next ) {
+				$cron_next = function_exists( 'wp_next_scheduled' )
+					? wp_next_scheduled( Npcink_Cloud_Observability_Collector::CRON_HOOK )
+				: false;
+			}
+			if ( false === $cron_next ) {
+				return 'cron_not_scheduled';
+			}
+
+			if ( null === $buffer_count ) {
+				$buffer_count = count( self::buffer() );
+			}
+			if ( $buffer_count > 0 ) {
+				return 'real_event_pending_or_unclassified';
+			}
+
+			$status = get_option( self::STATUS_OPTION, array() );
+			$status = is_array( $status ) ? $status : array();
+			if (
+				absint( $status['total_sent'] ?? 0 ) > 0
+				|| '' !== trim( (string) ( $status['last_real_upload_at'] ?? '' ) )
+			) {
+				return 'real_events_uploaded';
+			}
+
+			return 'pending_no_real_event';
 		}
 
 		/**

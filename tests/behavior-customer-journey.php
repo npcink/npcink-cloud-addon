@@ -160,6 +160,66 @@ maca_assert(
 	'Behavior: a journey retry is content-addressed and removes only the accepted event prefix.'
 );
 
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body'     => wp_json_encode(
+		array(
+			'status' => 'ok',
+			'data'   => array(
+				'accepted_count'  => 1,
+				'stored_count'    => 1,
+				'duplicate_count' => 0,
+			),
+		)
+	),
+);
+$total_sent_before_drain = absint( ( get_option( Npcink_Cloud_Customer_Journey::STATUS_OPTION, array() )['total_sent'] ?? 0 ) );
+$drain = Npcink_Cloud_Customer_Journey::flush_buffer();
+$journey_status_after_real = get_option( Npcink_Cloud_Customer_Journey::STATUS_OPTION, array() );
+$drain_sent = absint( $drain['sent_count'] ?? 0 );
+$GLOBALS['maca_scheduled_events'][ Npcink_Cloud_Observability_Collector::CRON_HOOK ] = time() + 3600;
+maca_assert(
+	! empty( $drain['ok'] )
+	&& 0 === count( maca_customer_journey_events() )
+	&& ( $total_sent_before_drain + $drain_sent ) === absint( $journey_status_after_real['total_sent'] ?? 0 )
+	&& '' !== (string) ( $journey_status_after_real['last_real_upload_at'] ?? '' )
+	&& 'real_events_uploaded' === Npcink_Cloud_Customer_Journey::verification_state(),
+	'Behavior: after successful journey upload empties the buffer, verification_state stays real_events_uploaded (not pending_no_real_event).'
+);
+
+$total_sent_before_empty = absint( $journey_status_after_real['total_sent'] ?? 0 );
+$empty_flush = Npcink_Cloud_Customer_Journey::flush_buffer();
+$journey_status_after_empty = get_option( Npcink_Cloud_Customer_Journey::STATUS_OPTION, array() );
+maca_assert(
+	! empty( $empty_flush['ok'] )
+	&& 0 === absint( $empty_flush['sent_count'] ?? 0 )
+	&& 0 === absint( $journey_status_after_empty['last_sent_count'] ?? 0 )
+	&& $total_sent_before_empty === absint( $journey_status_after_empty['total_sent'] ?? 0 )
+	&& (string) ( $journey_status_after_real['last_real_upload_at'] ?? '' ) === (string) ( $journey_status_after_empty['last_real_upload_at'] ?? '' )
+	&& 'real_events_uploaded' === Npcink_Cloud_Customer_Journey::verification_state(),
+	'Behavior: a later empty successful flush must not wipe the durable real-upload signal or revert verification_state.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+maca_set_monitoring_enabled( true );
+$GLOBALS['maca_scheduled_events'][ Npcink_Cloud_Observability_Collector::CRON_HOOK ] = time() + 3600;
+maca_assert(
+	'pending_no_real_event' === Npcink_Cloud_Customer_Journey::verification_state(),
+	'Behavior: sites that never buffered a real journey event still report pending_no_real_event.'
+);
+
+Npcink_Cloud_Customer_Journey::capture_generation(
+	'content_summary',
+	'started',
+	'journey_session_pending_inspect'
+);
+maca_assert(
+	1 === count( maca_customer_journey_events() )
+	&& 'real_event_pending_or_unclassified' === Npcink_Cloud_Customer_Journey::verification_state(),
+	'Behavior: a buffered real journey event reports real_event_pending_or_unclassified before upload.'
+);
+
 $client = new Npcink_Cloud_Runtime_Client();
 $before_invalid = count( $GLOBALS['maca_http_requests'] );
 $invalid = $client->get_customer_journey_summary( 24, 'invalid cohort/value' );

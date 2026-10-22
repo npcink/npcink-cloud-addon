@@ -122,9 +122,14 @@ maca_assert(
 	false !== strpos( $natural_journey_inspector, "'expected_cloud_event_id'" )
 	&& false !== strpos( $natural_journey_inspector, "hash( 'sha256', \$site_id . '|' . \$event_id )" )
 	&& false !== strpos( $natural_journey_inspector, 'expected_cloud_event_id/run_id' )
+	&& false !== strpos( $natural_journey_inspector, 'Npcink_Cloud_Customer_Journey::verification_state' )
+	&& false !== strpos( $natural_journey_inspector, "'journey_flush'" )
+	&& false !== strpos( $customer_journey, "'last_real_upload_at'" )
+	&& false !== strpos( $customer_journey, "'total_sent'" )
+	&& false !== strpos( $customer_journey, 'public static function verification_state' )
 	&& false === strpos( $natural_journey_inspector, "'site_id' =>" )
 	&& false === strpos( $natural_journey_inspector, "'secret' =>" ),
-	'Static: natural journey inspector projects the expected site-scoped Cloud event hash without exposing site identity or credentials.'
+	'Static: natural journey inspector uses durable journey upload evidence for verification_state and never exposes site identity or credentials.'
 );
 
 maca_assert(
