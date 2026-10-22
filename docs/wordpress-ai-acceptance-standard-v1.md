@@ -89,6 +89,14 @@ IDs as `SHA-256(site_id|event_id)` and does not persist the raw value. Empty
 buffer, an hourly schedule, or a previous manual flush is not natural-delivery
 evidence.
 
+Empty-buffer `verification_state` is two-valued after `#327`:
+`pending_no_real_event` (never uploaded — create one real editor AI event, wait
+WP-Cron, re-inspect; do not seed or treat manual flush as the happy path) versus
+`real_events_uploaded` (prior successful upload persisted — empty buffer is
+expected; compare Cloud with prior `expected_cloud_event_id`/`run_id`). Cron only
+flushes; it does not create events. See
+`docs/customer-journey-transport-v1.md` § Empty-buffer verification states.
+
 ## WordPress AI Acceptance and Quality Report
 
 ### Read-only quota preflight

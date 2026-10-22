@@ -64,6 +64,25 @@ existing Cloud summary only when investigating a concrete acceptance session.
 Passing the same opaque cohort id isolates the declared observation window from
 earlier technical smoke events without exposing editor identity.
 
+### Empty-buffer verification states (`local:journey:inspect`)
+
+When the local journey buffer is empty, `verification_state` (persisted after
+`#327`) distinguishes two operator-facing cases. Cron only flushes buffered
+events; it does not create them.
+
+- `pending_no_real_event` — `total_sent == 0` and no `last_real_upload_at`: this
+  site has never uploaded a real journey event. Use the site normally to create
+  one real editor AI event, wait for ordinary WP-Cron, then re-inspect. Do not
+  invent seed helpers or a manual flush as the happy path. Inspect
+  `next_action` then reads: "Use the site normally to create one real event;
+  do not run Cron or flush manually."
+- `real_events_uploaded` — a prior successful upload is persisted
+  (`total_sent > 0` or `last_real_upload_at` set): an empty buffer is expected.
+  Compare Cloud storage with prior `expected_cloud_event_id` / `run_id`
+  evidence. Inspect `next_action` then reads: "Real journey events already
+  uploaded; compare Cloud storage with prior expected_cloud_event_id/run_id
+  evidence."
+
 ## Ownership Boundary
 
 Cloud owns metadata ingestion and read-only aggregation. WordPress continues to
