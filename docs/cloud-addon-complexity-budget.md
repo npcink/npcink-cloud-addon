@@ -490,3 +490,5 @@ actions, options, or public APIs are removed.
 2026-10-21 checks-simple on connection layout: settings-page ceiling 2800→2840 so the Checks status reuses the shared card and status-line helper.
 
 2026-10-21 first-connection onboarding: settings-actions 1230→1250 for the authorization flow tag that keeps change-account landing on Connection while a first connection lands on Overview.
+
+Normative UI copy for those 2026-10-21 surfaces (status card, usage 本期已用, consent ask-once, commercial.* vs provider.* errors, handoff self-check) lives in `docs/admin-surface-standard.md`; this file only tracks line ceilings.

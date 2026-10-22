@@ -29,9 +29,11 @@ runtime truth rules here beyond addon-owned connector contracts.
 - Do not make the settings page a second control plane.
 - Before changing the settings page or Site Knowledge operator surface, read
   `docs/admin-simplification-and-delivery-engineering-standard-2026-08-25.md`
-  and `docs/admin-surface-standard.md`. Keep healthy automatic behavior quiet,
-  expose recovery only after a real failure, and keep Runtime Runs and index
-  lifecycle detail in Cloud.
+  and `docs/admin-surface-standard.md` (status card = one sentence + one primary
+  action; Overview usage = 本期已用 only, never 「约可再生成」; consent ask-once;
+  commercial.* vs provider.* errors; self-check layout before handoff). Keep
+  healthy automatic behavior quiet, expose recovery only after a real failure,
+  and keep Runtime Runs and index lifecycle detail in Cloud.
 - Read `docs/cloud-addon-complexity-budget.md` before expanding addon scope;
   keep security/boundary checks, but do not add product-control complexity.
 - For WordPress AI plugin zh_CN compatibility strings, follow
