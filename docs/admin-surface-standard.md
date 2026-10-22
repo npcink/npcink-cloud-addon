@@ -109,6 +109,75 @@ Do not copy Cloud observability aggregates, Agent quality breakdowns, contract
 reuse matrices, worker phases, retryability flags, or Site Knowledge ownership
 matrices into this local connector UI. Link to Cloud when that detail is useful.
 
+## Status Card Pattern (2026-10-21)
+
+Every admin state card (Overview connection row, Checks status, Connection
+account/disconnect, first-connection onboarding) follows one shape:
+
+- **One status sentence** that names the current state in plain language for an
+  ordinary site owner.
+- **One primary action** that is the next useful step for that state.
+- **Rare or destructive actions stay secondary** (text / secondary button, or
+  folded under More information). Do not compete with the primary action by
+  placing a second primary button on the same card.
+- Supporting description stays short; long diagnostics fold behind an explicit
+  disclosure.
+
+Healthy verified connections stay quiet: no extra success banners, no synonym
+health labels next to "Connected".
+
+## Overview Usage Copy (2026-10-21)
+
+Overview may show period credit usage as a fact only:
+
+- Prefer a single used figure such as **本期已用** (credits used this period).
+- **Never** invent or display estimates such as 「约可再生成 X 篇」or any
+  "about N more articles / images" extrapolation from remaining credits.
+- Remaining balance, if shown at all, is a Cloud-reported number — not a
+  generation forecast. Top-up / billing detail belongs in Cloud Portal.
+
+## Consent (ask once)
+
+Metadata-only monitoring and Site Knowledge delivery consent are asked once.
+After the administrator answers (accept or decline):
+
+- Do **not** re-prompt on reconnect, re-verify, or change-account / account swap.
+- Change-account clears local credentials and buffers but must preserve the
+  recorded consent answer so the popup does not return for the same site.
+- Re-prompt only when consent was never recorded, or when a future product
+  change explicitly resets that stored answer.
+
+## Quota and Provider Error Codes (2026-10-21)
+
+Editor and connector failures that carry a stable Cloud error code must keep
+the dotted code intact (`commercial.quota_exceeded`, `provider.quota_exhausted`).
+Persistence and display use `sanitize_error_code` (keep `.`); do not run those
+codes through `sanitize_key`, which strips dots and breaks matching.
+
+Mapping for site-owner copy:
+
+| Code family | Meaning | User-facing direction |
+| --- | --- | --- |
+| `commercial.quota_exceeded` | This Cloud account's credits / quota are used up | Point to top-up; billing URL is Cloud `base_url` + `/portal/billing` |
+| `provider.*` (e.g. `provider.quota_exhausted`) | Upstream / provider capacity or outage | Treat as **service unavailable** — do **not** say 「去充值」or send the owner to billing |
+
+Keep the friendly sentence first and the stable code in parentheses. Full
+history of the earlier mapping pass lives in
+`docs/user-facing-error-surfacing-closeout-2026-10-02.md` (see the 2026-10-21
+addendum).
+
+## Self-check Before Handoff
+
+Before asking the user to review an admin UI change:
+
+1. Open the local admin preview (or equivalent) for the touched surfaces.
+2. Verify **layout and typography**: spacing, hierarchy, orphan labels, mixed
+   quote styles, and competing primary buttons.
+3. Capture screenshots when the change is visual; fix layout issues yourself
+   before handoff.
+4. Prefer restrained UI for ordinary site owners — rare actions must not look
+   like the main next step.
+
 ## Layout and Copy Rules
 
 Admin panels should use utility copy and summary/detail separation:

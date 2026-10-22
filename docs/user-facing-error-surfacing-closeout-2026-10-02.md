@@ -99,3 +99,18 @@ zh_CN 本地化维护。
   本次未改动。
 - 请求日志写入失败新增了 `error_log` 兜底痕迹，但未建立本地替代
   日志存储（避免为诊断扩展产品面）。
+
+## 2026-10-21 addendum — quota vs provider codes
+
+Normative admin-copy rules for these codes now live in
+`docs/admin-surface-standard.md` (§ Quota and Provider Error Codes).
+
+Summary:
+
+- `commercial.quota_exceeded` → account credits used up → Cloud billing
+  (`base_url` + `/portal/billing`).
+- `provider.*` (including `provider.quota_exhausted`) → service unavailable;
+  never redirect to top-up.
+- Keep dotted codes via `sanitize_error_code`; do not strip `.` with
+  `sanitize_key`.
+
