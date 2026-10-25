@@ -3428,6 +3428,6 @@ msgstr "正在核对恢复结果"
 msgid "Automatic delivery"
 msgstr "自动投递"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1759
+#: includes/class-cloud-site-knowledge-change-bridge.php:1764
 msgid "Site Knowledge needs verification before this request can continue."
 msgstr "站点知识库需要核对后才能继续此请求。"

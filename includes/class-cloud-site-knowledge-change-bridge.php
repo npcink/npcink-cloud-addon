@@ -1428,6 +1428,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				}
 
 				$sent_fingerprint = (string) ( $sent_fingerprints[ $post_id ] ?? '' );
+				// A separate PHP writer cannot invalidate this request's object cache.
+				if ( function_exists( 'wp_cache_delete' ) ) {
+					wp_cache_delete( $post_id, 'posts' );
+					wp_cache_delete( $post_id, 'post_meta' );
+				}
 				$current_fingerprint = self::delivery_fingerprint( $post_id );
 				if ( '' === $sent_fingerprint || ! hash_equals( $sent_fingerprint, $current_fingerprint ) ) {
 					$remaining[] = $post_id;

@@ -10,7 +10,19 @@ if ( ! function_exists( 'wp_get_attachment_url' ) ) {
 	function wp_get_attachment_url( $id ) { return $GLOBALS['typed_media_urls'][ $id ] ?? false; }
 }
 if ( ! function_exists( 'get_post_meta' ) ) {
-	function get_post_meta( $id, $key, $single = false ) { return $GLOBALS['typed_media_alt'][ $id ] ?? ''; }
+	function get_post_meta( $id, $key, $single = false ) {
+		if ( ! empty( $GLOBALS['typed_meta_cache_enabled'] ) ) {
+			if ( ! isset( $GLOBALS['typed_meta_cache'][ $id ] ) ) { $GLOBALS['typed_meta_cache'][ $id ] = $GLOBALS['typed_media_alt'][ $id ] ?? ''; }
+			return $GLOBALS['typed_meta_cache'][ $id ];
+		}
+		return $GLOBALS['typed_media_alt'][ $id ] ?? '';
+	}
+}
+if ( ! function_exists( 'wp_cache_delete' ) ) {
+	function wp_cache_delete( $key, $group = '' ) {
+		if ( 'post_meta' === $group ) { unset( $GLOBALS['typed_meta_cache'][ $key ] ); }
+		return true;
+	}
 }
 if ( ! function_exists( 'get_comments' ) ) {
 	function get_comments( $args ) { return $GLOBALS['typed_public_comments'][ $args['post_id'] ] ?? array(); }
@@ -118,6 +130,8 @@ function typed_reset( bool $fresh = true ): TypedCloudFixture {
 	$GLOBALS['wpdb'] = new TypedOptionCAS();
 	$GLOBALS['typed_media_urls'] = array();
 	$GLOBALS['typed_media_alt'] = array();
+	$GLOBALS['typed_meta_cache_enabled'] = false;
+	$GLOBALS['typed_meta_cache'] = array();
 	$GLOBALS['typed_public_comments'] = array();
 	$cloud = new TypedCloudFixture(); $cloud->queue(); return $cloud;
 }
@@ -448,4 +462,26 @@ maca_run_site_knowledge_flush();
 $after_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
 maca_run_site_knowledge_flush();
 maca_assert( 1 === count( $cloud->mutations ) && empty( $after_buffer['post_ids'] ), 'Media revision: an in-flight hook with unchanged actual metadata is acknowledged normally without redundant delivery.' );
+unset( $GLOBALS['wpdb'] );
+
+// Another PHP request invalidates its own metadata cache, not this request's copy.
+$cloud = typed_reset(); maca_add_public_post_fixture( 42 ); typed_image();
+$GLOBALS['typed_meta_cache_enabled'] = true;
+$old_alt = get_post_meta( 501, '_wp_attachment_image_alt', true );
+$GLOBALS['typed_meta_cache'][777] = 'Unrelated cached metadata';
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_change( 501 );
+$cloud->during_send = static function () use ( $old_alt ): void {
+	// The backing store changes but the reader retains its old WordPress cache.
+	$GLOBALS['typed_media_alt'][501] = 'New ALT committed by an independent PHP writer';
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_meta_change( 1, 501, '_wp_attachment_image_alt' );
+	maca_assert( $old_alt === get_post_meta( 501, '_wp_attachment_image_alt', true ), 'Media cache: reader cache remains stale after the independent writer commits and buffers.' );
+};
+maca_run_site_knowledge_flush();
+$after_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert( array( 501 ) === ( $after_buffer['post_ids'] ?? array() ) && $old_alt === $cloud->mutations[0]['input']['media_items'][0]['alt'], 'Media cache: old HTTP completion reloads actual metadata and preserves the independently committed revision.' );
+maca_run_site_knowledge_flush();
+$after_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert( 2 === count( $cloud->mutations ) && $GLOBALS['typed_media_alt'][501] === $cloud->mutations[1]['input']['media_items'][0]['alt'] && empty( $after_buffer['post_ids'] ) && 'Unrelated cached metadata' === $GLOBALS['typed_meta_cache'][777], 'Media cache: next bounded flush delivers the new ALT, clears that revision, and leaves unrelated cached metadata alone.' );
+$GLOBALS['typed_meta_cache_enabled'] = false;
+$GLOBALS['typed_meta_cache'] = array();
 unset( $GLOBALS['wpdb'] );
