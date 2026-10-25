@@ -71,6 +71,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			add_action( self::RECONCILE_HOOK, array( __CLASS__, 'buffer_recent_public_content' ) );
 			add_action( 'npcink_cloud_site_knowledge_status_refreshed', array( __CLASS__, 'maybe_schedule_automatic_rebuild' ) );
 
+			add_action( 'add_attachment', array( __CLASS__, 'handle_attachment_change' ) );
+			add_action( 'edit_attachment', array( __CLASS__, 'handle_attachment_change' ) );
+			add_action( 'updated_post_meta', array( __CLASS__, 'handle_attachment_meta_change' ), 10, 3 );
+			add_action( 'added_post_meta', array( __CLASS__, 'handle_attachment_meta_change' ), 10, 3 );
 			self::sync_schedule();
 		}
 
@@ -201,7 +205,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		public static function delete_data(): void {
 			delete_option( self::BUFFER_OPTION );
 			delete_option( self::STATUS_OPTION );
-			delete_option( self::MAINTENANCE_OPTION );
+			if ( empty( self::delivery_state()['_lifecycle'] ) ) {
+				delete_option( self::MAINTENANCE_OPTION );
+			}
 			delete_option( self::RECONCILIATION_OPTION );
 			wp_clear_scheduled_hook( self::FLUSH_HOOK );
 			wp_clear_scheduled_hook( self::RECONCILE_HOOK );
@@ -447,6 +453,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return self::record_delivery_result( false, 0, __( 'Connect this site first.', 'npcink-cloud-addon' ), 'cloud_addon_unverified' );
 			}
 
+			if ( self::process_source_operations() ) {
+				return self::get_status();
+			}
 			if ( ! self::is_enabled() ) {
 				return self::record_delivery_result( false, 0, __( 'Site Knowledge delivery is disabled locally.', 'npcink-cloud-addon' ), 'cloud_site_knowledge_delivery_disabled' );
 			}
@@ -552,7 +561,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			$post_ids = self::all_public_post_ids();
-			if ( empty( $post_ids ) ) {
+			$typed_batches = self::full_typed_batches( $post_ids );
+			if ( empty( $typed_batches ) ) {
 				return new WP_Error(
 					'cloud_site_knowledge_no_public_content',
 					__( 'No public posts or pages were found for Site Knowledge indexing.', 'npcink-cloud-addon' ),
@@ -560,13 +570,14 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				);
 			}
 
-			$batch_count = max( 1, (int) ceil( count( $post_ids ) / self::MANUAL_INDEX_POSTS ) );
+			$batch_count = max( 1, count( $typed_batches ) );
 			$cursor = array(
 				'status' => 'queued',
 				'request_id' => sanitize_key( wp_generate_uuid4() ),
 				'operation' => $operation,
 				'operation_source' => 'admin_' . $operation,
 				'post_ids' => $post_ids,
+				'typed_batches' => $typed_batches,
 				'next_batch' => 0,
 				'batch_count' => $batch_count,
 				'attempts' => 0,
@@ -638,7 +649,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			$post_ids = self::all_public_post_ids();
-			$batch_count = max( 1, (int) ceil( count( $post_ids ) / self::MANUAL_INDEX_POSTS ) );
+			$typed_batches = self::full_typed_batches( $post_ids );
+			$batch_count = max( 1, count( $typed_batches ) );
 			$cursor = array(
 				'status' => 'queued',
 				'request_id' => $request_id,
@@ -646,6 +658,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				'operation_source' => 'automatic_rebuild',
 				'target_embedding_space_id' => sanitize_text_field( (string) ( $maintenance['target_embedding_space_id'] ?? '' ) ),
 				'post_ids' => $post_ids,
+				'typed_batches' => $typed_batches,
 				'next_batch' => 0,
 				'batch_count' => $batch_count,
 				'attempts' => 0,
@@ -722,7 +735,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return self::record_manual_operation_progress( $cursor, 'completed', 0, $status );
 			}
 
-			$batch = array_slice( $post_ids, $batch_index * self::MANUAL_INDEX_POSTS, self::MANUAL_INDEX_POSTS );
+			$typed_batch = $cursor['typed_batches'][ $batch_index ] ?? array();
+			$batch = empty( $typed_batch ) ? array_slice( $post_ids, $batch_index * self::MANUAL_INDEX_POSTS, self::MANUAL_INDEX_POSTS ) : array_column( $typed_batch, 'source_id' );
 			$raw_pending_run_id = $cursor['pending_run_id'] ?? '';
 			$pending_run_id = is_string( $raw_pending_run_id )
 				? self::normalize_cloud_run_id( $raw_pending_run_id )
@@ -788,7 +802,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				$operation_source,
 				$batch,
 				'site_knowledge_' . ( 'automatic_rebuild' === $operation_source ? 'automatic' : $operation_source ) . '_' . $request_id . '_' . $batch_index,
-				$maintenance
+				$maintenance,
+				$typed_batch
 			);
 			if ( is_wp_error( $result ) ) {
 				return self::record_full_index_delivery_failure( $cursor, $result->get_error_message() );
@@ -960,6 +975,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 					return;
 			}
 
+			self::initialize_delivery_coverage();
 			if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
 				wp_clear_scheduled_hook( self::FLUSH_HOOK );
 				wp_clear_scheduled_hook( self::RECONCILE_HOOK );
@@ -999,6 +1015,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			$clean = array_values( array_filter( array_map( 'absint', $post_ids ) ) );
+			$sources = self::source_lifecycle_summary()['items'];
+			$clean = array_values( array_filter( $clean, static function ( $id ) use ( $sources ) {
+				$post = get_post( $id );
+				$type = 'attachment' === ( $post->post_type ?? '' ) ? 'media' : ( $post->post_type ?? '' );
+				return ! isset( $sources[ $type . ':' . $id ] );
+			} ) );
 			if ( empty( $clean ) ) {
 				return true;
 			}
@@ -1072,12 +1094,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			global $wpdb;
 			$modified_gmt = (string) ( $cursor['modified_gmt'] ?? '' );
 			$post_id = absint( $cursor['post_id'] ?? 0 );
-			$post_types = self::post_types();
+			$post_types = array_merge( self::post_types(), array( 'attachment' ) );
 
 			if ( isset( $wpdb ) && is_object( $wpdb ) && method_exists( $wpdb, 'prepare' ) && method_exists( $wpdb, 'get_results' ) && ! empty( $post_types ) ) {
 				$type_placeholders = implode( ', ', array_fill( 0, count( $post_types ), '%s' ) );
-				$sql = "SELECT ID, post_modified_gmt FROM {$wpdb->posts} WHERE post_status = %s AND post_type IN ({$type_placeholders})";
-				$params = array_merge( array( 'publish' ), $post_types );
+				$sql = "SELECT ID, post_modified_gmt FROM {$wpdb->posts} WHERE post_status IN (%s, %s) AND post_type IN ({$type_placeholders})";
+				$params = array_merge( array( 'publish', 'inherit' ), $post_types );
 				if ( '' !== $modified_gmt ) {
 					$sql .= ' AND (post_modified_gmt > %s OR (post_modified_gmt = %s AND ID > %d))';
 					$params = array_merge( $params, array( $modified_gmt, $modified_gmt, $post_id ) );
@@ -1094,7 +1116,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 
 			$args = array(
 				'post_type' => $post_types,
-				'post_status' => 'publish',
+				'post_status' => array( 'publish', 'inherit' ),
 				'posts_per_page' => self::RECONCILE_POSTS,
 				'orderby' => 'modified ID',
 				'order' => 'ASC',
@@ -1119,7 +1141,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			 * @param string              $idempotency_key Stable batch idempotency key.
 		 * @return array<string,mixed>|WP_Error
 		 */
-			private static function request_site_knowledge_sync( string $sync_mode, array $post_ids, string $operation_source = 'change_bridge', ?array $document_post_ids = null, string $idempotency_key = '', array $maintenance = array() ) {
+			private static function request_site_knowledge_sync( string $sync_mode, array $post_ids, string $operation_source = 'change_bridge', ?array $document_post_ids = null, string $idempotency_key = '', array $maintenance = array(), array $typed_batch = array() ) {
 				$sync_mode = sanitize_key( $sync_mode );
 				if ( ! in_array( $sync_mode, array( 'refresh', 'rebuild', 'delete' ), true ) ) {
 					return new WP_Error(
@@ -1131,8 +1153,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				$post_ids = array_values( array_unique( array_filter( array_map( 'absint', $post_ids ) ) ) );
 				$document_post_ids = is_array( $document_post_ids ) ? $document_post_ids : $post_ids;
 				$document_post_ids = array_values( array_unique( array_filter( array_map( 'absint', $document_post_ids ) ) ) );
+				$media_ids = array_column( array_filter( $typed_batch, static function ( $item ) { return 'media' === $item['source_type']; } ), 'source_id' );
+				$post_ids = array_values( array_filter( $post_ids, static function ( $id ) use ( $media_ids ) {
+					return ! in_array( $id, $media_ids, true ) && 'attachment' !== ( get_post( $id )->post_type ?? '' );
+				} ) );
 				$limit    = 'change_bridge' === $operation_source ? self::MAX_BATCH_ITEMS : self::MANUAL_INDEX_POSTS;
-				$client  = new Npcink_Cloud_Runtime_Client();
 				$documents = 'delete' === $sync_mode ? array() : self::collect_documents( $document_post_ids, $limit );
 				$payload = array(
 					'ability_name' => 'npcink-cloud/site-knowledge-sync',
@@ -1157,6 +1182,30 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 						'allow_fallback' => true,
 					),
 				);
+				$media = array();
+				$sources = self::source_lifecycle_summary()['items'];
+				foreach ( $document_post_ids as $id ) {
+					if ( isset( $sources['media:' . $id] ) ) { continue; }
+					$post = get_post( $id );
+					if ( is_object( $post ) && 'attachment' === $post->post_type ) {
+						$item = self::public_source( array( 'source_type' => 'media', 'source_id' => $id ) );
+						if ( $item ) { $media[] = $item; }
+					}
+				}
+				if ( $media ) {
+					$payload['input']['media_items'] = $media;
+					$payload['input']['post_ids'] = array_values( array_filter( $post_ids, static function ( $id ) { return 'attachment' !== ( get_post( $id )->post_type ?? '' ); } ) );
+					if ( ! $documents ) {
+						unset( $payload['input']['post_ids'], $payload['input']['documents'] );
+					} elseif ( 'refresh' === $sync_mode ) {
+						// A normal mixed buffer splits before dispatch, preserving pure-media replacement.
+						$image_payload = $payload;
+						unset( $image_payload['input']['post_ids'], $image_payload['input']['documents'] );
+						$image_result = self::dispatch_mutation( $image_payload );
+						if ( is_wp_error( $image_result ) ) { return $image_result; }
+						unset( $payload['input']['media_items'] );
+					}
+				}
 				if ( ! empty( $maintenance ) ) {
 					$payload['input']['maintenance'] = $maintenance;
 				}
@@ -1164,11 +1213,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 					$idempotency_key = self::change_batch_idempotency_key( $payload['input'] );
 				}
 
-				return $client->execute_runtime(
-					$payload,
-					'trace_site_knowledge_' . sanitize_key( $operation_source ) . '_' . wp_generate_uuid4(),
-					'' !== $idempotency_key ? sanitize_key( $idempotency_key ) : 'site_knowledge_' . sanitize_key( $operation_source ) . '_' . wp_generate_uuid4()
-				);
+				return self::dispatch_mutation( $payload, $idempotency_key );
 			}
 
 			/**
@@ -1203,7 +1248,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				$documents = array();
 				foreach ( array_slice( array_values( array_unique( array_map( 'absint', $post_ids ) ) ), 0, max( 1, $limit ) ) as $post_id ) {
 					$post = get_post( $post_id );
-					if ( ! self::is_public_post( $post ) ) {
+					if ( ! self::is_public_post( $post ) || isset( self::source_lifecycle_summary()['items'][ $post->post_type . ':' . $post_id ] ) ) {
 						continue;
 				}
 
@@ -1660,14 +1705,619 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		/**
-		 * Returns the bounded full-index delivery cursor.
+		 * Replaces only the matching legacy full cursor, retaining durable typed records.
 		 *
-		 * @return array<string,mixed>
+		 * @return bool
 		 */
-		private static function get_maintenance_cursor(): array {
-			$cursor = get_option( self::MAINTENANCE_OPTION, array() );
+		private static function compare_and_swap_full_index_delivery_cursor( array $expected, ?array $replacement ): bool {
+			$current = self::delivery_state();
+			$full = $current;
+			unset( $full['_lifecycle'] );
+			if ( $full !== $expected ) {
+				return false;
+			}
+			$next = $replacement ?? array();
+			if ( isset( $current['_lifecycle'] ) ) {
+				$next['_lifecycle'] = $current['_lifecycle'];
+			}
+			return self::compare_and_swap_delivery_state( $current, empty( $next ) ? null : $next );
+		}
 
-			return is_array( $cursor ) ? $cursor : array();
+		/** One durable envelope shares the existing maintenance option and SQL CAS. */
+		private static function delivery_state(): array {
+			$value = get_option( self::MAINTENANCE_OPTION, array() );
+			return is_array( $value ) ? $value : array();
+		}
+
+		public static function lifecycle_scope(): string {
+			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			return hash( 'sha256', implode( '|', array( (string) ( $settings['base_url'] ?? '' ), (string) ( $settings['site_id'] ?? '' ), (string) ( $settings['key_id'] ?? '' ) ) ) );
+		}
+
+		/** Strict typed identities, bounded BEFORE deduplication; never absint(). */
+		public static function normalize_source_selection( $items ) {
+			if ( ! is_array( $items ) || array_values( $items ) !== $items || count( $items ) < 1 || count( $items ) > 100 ) {
+				return self::lifecycle_error( 'selection_invalid' );
+			}
+			$normalized = array();
+			foreach ( $items as $item ) {
+				if ( ! is_array( $item ) || count( $item ) !== 2 || ! isset( $item['source_type'], $item['source_id'] ) || ! in_array( $item['source_type'], array( 'post', 'page', 'media' ), true ) || ! is_int( $item['source_id'] ) || $item['source_id'] < 1 ) {
+					return self::lifecycle_error( 'selection_invalid' );
+				}
+				$normalized[ $item['source_type'] . ':' . $item['source_id'] ] = array( 'source_type' => $item['source_type'], 'source_id' => $item['source_id'] );
+			}
+			ksort( $normalized );
+			return array_values( $normalized );
+		}
+
+		private static function lifecycle_error( string $code ): WP_Error {
+			return new WP_Error( 'cloud_site_knowledge_' . $code, __( 'Site Knowledge needs verification before this request can continue.', 'npcink-cloud-addon' ), array( 'status' => 409 ) );
+		}
+
+		/** Metadata only; never exposes retained public payloads or credentials. */
+		public static function source_lifecycle_summary(): array {
+			$state = self::delivery_state();
+			$scope = $state['_lifecycle']['scopes'][ self::lifecycle_scope() ] ?? array();
+			return array( 'items' => $scope['sources'] ?? array(), 'operations' => array_map( static function ( $op ) { return array_intersect_key( $op, array_flip( array( 'id', 'action', 'status', 'reason', 'polls' ) ) ); }, $scope['operations'] ?? array() ) );
+		}
+
+		private static function source_key( array $item ): string {
+			return $item['source_type'] . ':' . $item['source_id'];
+		}
+
+		/** Pending intent may coexist with an HTTP owner; it never steals that owner. */
+		public static function request_source_operation( string $action, $selection ) {
+			$items = self::normalize_source_selection( $selection );
+			if ( is_wp_error( $items ) || ! in_array( $action, array( 'exclude', 'restore' ), true ) ) {
+				return is_wp_error( $items ) ? $items : self::lifecycle_error( 'action_invalid' );
+			}
+			if ( ! Npcink_Cloud_Addon_Settings::is_verified() || ( 'restore' === $action && ! self::is_enabled() ) ) {
+				return self::lifecycle_error( 'not_verified' );
+			}
+			foreach ( $items as $item ) {
+				if ( ! self::public_source( $item ) ) {
+					return self::lifecycle_error( 'source_not_public' );
+				}
+			}
+			$before = self::delivery_state();
+			$next = $before;
+			$namespace = self::lifecycle_scope();
+			$scope = $next['_lifecycle']['scopes'][ $namespace ] ?? array( 'sources' => array(), 'operations' => array(), 'dispatches' => array(), 'legacy_unknown' => empty( $before['_lifecycle']['coverage_started_without_credentials'] ) );
+			// Completed intents may retire; pending/blocked identities never age out.
+			foreach ( $scope['operations'] as $operation_id => $completed ) {
+				if ( 'completed' !== $completed['status'] ) { continue; }
+				unset( $scope['operations'][ $operation_id ] );
+				foreach ( $scope['dispatches'] as $dispatch_key => $entry ) {
+					if ( $operation_id === ( $entry['operation'] ?? '' ) && 'producer' !== $entry['purpose'] ) { unset( $scope['dispatches'][ $dispatch_key ] ); }
+				}
+			}
+			$added_sources = count( array_filter( $items, static function ( $item ) use ( $scope ) { return ! isset( $scope['sources'][ self::source_key( $item ) ] ); } ) );
+			if ( count( $scope['operations'] ) >= 100 || count( $scope['sources'] ) + $added_sources > 500 || count( $next['_lifecycle']['scopes'] ?? array() ) >= 8 && ! isset( $next['_lifecycle']['scopes'][ $namespace ] ) ) {
+				return self::lifecycle_error( 'durability_full' );
+			}
+			foreach ( $items as $item ) {
+				$prior = $scope['sources'][ self::source_key( $item ) ]['state'] ?? '';
+				if ( ( 'restore' === $action && 'excluded' !== $prior ) || ( 'exclude' === $action && '' !== $prior ) ) {
+					return self::lifecycle_error( 'source_operation_overlap' );
+				}
+			}
+			$id = sanitize_key( wp_generate_uuid4() );
+			$set_hash = hash( 'sha256', (string) wp_json_encode( $items ) );
+			$legacy = self::get_maintenance_cursor();
+			if ( 'restore' === $action && ! empty( $legacy ) ) { return self::lifecycle_error( 'full_delivery_unresolved' ); }
+			$old = array_keys( array_filter( $scope['dispatches'], static function ( $entry ) { return 'producer' === ( $entry['purpose'] ?? '' ); } ) );
+			$op = array( 'id' => $id, 'action' => $action, 'items' => $items, 'set_hash' => $set_hash, 'status' => 'pending', 'polls' => 0, 'old' => $old, 'legacy_unknown' => ( ! empty( $legacy ) && ! isset( $legacy['typed_batches'] ) ) || ! empty( $scope['legacy_unknown'] ) );
+			// Pre-upgrade cursor dispatches cannot be reconstructed from an empty buffer.
+			// Preserve the exact old cursor rather than asserting its worker is gone.
+			if ( ! empty( $legacy ) ) {
+				$op['legacy_cursor'] = $legacy;
+			}
+			$op['restores'] = 'restore' === $action ? array_values( array_unique( array_column( array_intersect_key( $scope['sources'], array_flip( array_map( array( self::class, 'source_key' ), $items ) ) ), 'operation' ) ) ) : array();
+			foreach ( $items as $item ) {
+				$scope['sources'][ self::source_key( $item ) ] = array( 'source_type' => $item['source_type'], 'source_id' => $item['source_id'], 'state' => 'restore' === $action ? 'restore_pending' : 'pending_delete', 'operation' => $id );
+			}
+			$scope['operations'][ $id ] = $op;
+			$next['_lifecycle']['scopes'][ $namespace ] = $scope;
+			if ( strlen( serialize( $next ) ) > 4194304 ) { return self::lifecycle_error( 'durability_full' ); }
+			if ( ! self::compare_and_swap_delivery_state( $before, $next ) ) {
+				return self::lifecycle_error( 'owner_changed' );
+			}
+			self::schedule_flush( 1 );
+			return array( 'operation_id' => $id, 'status' => 'pending', 'selected_count' => count( $items ) );
+		}
+
+		/** Every mutation path registers immutable payload/key BEFORE HTTP. */
+		public static function dispatch_mutation( array $payload, string $key = '', string $purpose = 'producer', string $operation = '' ) {
+			self::retire_terminal_deliveries();
+			$before = self::delivery_state();
+			$namespace = self::lifecycle_scope();
+			$scope = $before['_lifecycle']['scopes'][ $namespace ] ?? array( 'sources' => array(), 'operations' => array(), 'dispatches' => array(), 'legacy_unknown' => empty( $before['_lifecycle']['coverage_started_without_credentials'] ) );
+			if ( ! empty( $before['_lifecycle']['owner'] ) ) {
+				return self::lifecycle_error( 'dispatch_owned' );
+			}
+			if ( ! isset( $before['_lifecycle']['scopes'][ $namespace ] ) && count( $before['_lifecycle']['scopes'] ?? array() ) >= 8 ) { return self::lifecycle_error( 'durability_full' ); }
+			if ( 'producer' === $purpose ) {
+				$payload = self::suppress_payload( $payload, $scope['sources'] );
+				if ( is_wp_error( $payload ) ) {
+					return $payload;
+				}
+			} elseif ( ! isset( $scope['operations'][ $operation ] ) ) {
+				return self::lifecycle_error( 'operation_missing' );
+			}
+			$encoded = wp_json_encode( $payload );
+			if ( ! is_string( $encoded ) || '' === $encoded || strlen( $encoded ) > 900000 ) {
+				return self::lifecycle_error( 'payload_invalid' );
+			}
+			$fingerprint = hash( 'sha256', $encoded );
+			$key = '' !== $key ? $key : 'site_knowledge_delivery_' . hash( 'sha256', $namespace . '|' . ( $scope['producer_generation'] ?? '' ) . '|' . $fingerprint );
+			if ( 'producer' === $purpose && ! empty( $scope['producer_generation'] ) && 0 === strpos( $key, 'site_knowledge_change_' ) ) {
+				$key = 'site_knowledge_change_' . hash( 'sha256', $scope['producer_generation'] . '|' . $key );
+			}
+			if ( ! preg_match( '/\A[A-Za-z0-9._:-]{1,200}\z/', $key ) ) {
+				return self::lifecycle_error( 'key_invalid' );
+			}
+			$entry = $scope['dispatches'][ $key ] ?? array();
+			if ( ! empty( $entry ) && $entry['fingerprint'] !== $fingerprint ) {
+				return self::lifecycle_error( 'payload_changed' );
+			}
+			if ( empty( $entry ) && count( $scope['dispatches'] ) >= 500 ) {
+				return self::lifecycle_error( 'durability_full' );
+			}
+			if ( ! empty( $entry['run_id'] ) ) {
+				return array( 'data' => array( 'run_id' => $entry['run_id'], 'status' => 'accepted' ) );
+			}
+			$token = wp_generate_uuid4();
+			$next = $before;
+			$scope['dispatches'][ $key ] = array_merge( $entry, array( 'payload' => $payload, 'fingerprint' => $fingerprint, 'key' => $key, 'purpose' => $entry['purpose'] ?? $purpose, 'operation' => $entry['operation'] ?? $operation, 'send_state' => 'sending' ) );
+			$next['_lifecycle']['scopes'][ $namespace ] = $scope;
+			$next['_lifecycle']['owner'] = array( 'token' => $token, 'scope' => $namespace, 'key' => $key );
+			if ( strlen( serialize( $next ) ) > 4194304 ) { return self::lifecycle_error( 'durability_full' ); }
+			if ( ! self::compare_and_swap_delivery_state( $before, $next ) ) {
+				return self::lifecycle_error( 'owner_changed' );
+			}
+			// This CAS is the dispatch linearization point: a concurrent intent can
+			// retain this writer, but cannot erase it or authorize a new send owner.
+			if ( self::delivery_state() !== $next ) {
+				self::release_unsent_owner( $token, $namespace, $key );
+				return self::lifecycle_error( 'owner_changed' );
+			}
+			$client = new Npcink_Cloud_Runtime_Client();
+			$result = $client->execute_runtime( $payload, 'trace_site_knowledge_delivery_' . wp_generate_uuid4(), $key );
+			$current = self::delivery_state();
+			if ( ( $current['_lifecycle']['owner']['token'] ?? '' ) === $token ) {
+				$after = $current;
+				$record = &$after['_lifecycle']['scopes'][ $namespace ]['dispatches'][ $key ];
+				$record['send_state'] = 'uncertain';
+				if ( is_array( $result ) ) {
+					$run_id = self::cloud_run_id( $result );
+					if ( '' !== $run_id ) {
+						$record['run_id'] = $run_id;
+						$record['send_state'] = 'accepted';
+					}
+				}
+				unset( $record, $after['_lifecycle']['owner'] );
+				// Concurrent pending writes may win this CAS. Never discard the owner
+				// on a failed persistence attempt; it remains visibly blocked.
+				self::compare_and_swap_delivery_state( $current, $after );
+			}
+			return $result;
+		}
+
+		/** At pressure only, retire up to eight positively fenced unreferenced producers. */
+		private static function retire_terminal_deliveries(): void {
+			$before = self::delivery_state();
+			$namespace = self::lifecycle_scope();
+			$scope = $before['_lifecycle']['scopes'][ $namespace ] ?? array();
+			if ( empty( $scope['dispatches'] ) || ! empty( $before['_lifecycle']['owner'] ) || ( count( $scope['dispatches'] ) < 400 && strlen( serialize( $before ) ) < 2097152 ) ) { return; }
+			$full_request = (string) ( self::get_maintenance_cursor()['request_id'] ?? '' );
+			$protected = array();
+			foreach ( $scope['operations'] as $op ) {
+				if ( 'completed' !== $op['status'] ) { $protected = array_merge( $protected, $op['old'] ); }
+			}
+			$keys = array_keys( $scope['dispatches'] );
+			$start = (int) ( $scope['retire_cursor'] ?? 0 ) % count( $keys );
+			$checked = 0;
+			for ( $offset = 0; $offset < count( $keys ) && $checked < 8; $offset++ ) {
+				$key = $keys[ ( $start + $offset ) % count( $keys ) ];
+				$entry = $scope['dispatches'][ $key ];
+				if ( 'producer' !== $entry['purpose'] || in_array( $key, $protected, true ) || ( '' !== $full_request && false !== strpos( $key, '_' . $full_request . '_' ) ) ) { continue; }
+				$checked++;
+				if ( 'not_sent' === ( $entry['send_state'] ?? '' ) || ! is_wp_error( Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_writer_witness( $entry ) ) ) { unset( $scope['dispatches'][ $key ] ); }
+			}
+			$scope['retire_cursor'] = ( $start + $offset ) % count( $keys );
+			$next = $before;
+			$next['_lifecycle']['scopes'][ $namespace ] = $scope;
+			self::compare_and_swap_delivery_state( $before, $next );
+		}
+
+		private static function release_unsent_owner( string $token, string $namespace, string $key ): void {
+			$state = self::delivery_state();
+			if ( ( $state['_lifecycle']['owner']['token'] ?? '' ) !== $token ) {
+				return;
+			}
+			$next = $state;
+			$next['_lifecycle']['scopes'][ $namespace ]['dispatches'][ $key ]['send_state'] = 'not_sent';
+			unset( $next['_lifecycle']['owner'] );
+			self::compare_and_swap_delivery_state( $state, $next );
+		}
+
+		private static function suppress_payload( array $payload, array $sources ) {
+			$input = $payload['input'] ?? array();
+			if ( empty( $sources ) ) {
+				return $payload;
+			}
+			if ( 'refresh' !== ( $input['sync_mode'] ?? '' ) ) {
+				// A broad delete/rebuild must not race a bounded pending operation.
+				foreach ( $sources as $source ) {
+					if ( 'excluded' !== $source['state'] ) {
+						return self::lifecycle_error( 'pending_sources' );
+					}
+				}
+			}
+			foreach ( array( 'documents', 'media_items', 'comments' ) as $field ) {
+				if ( ! isset( $input[ $field ] ) || ! is_array( $input[ $field ] ) ) {
+					continue;
+				}
+				$input[ $field ] = array_values( array_filter( $input[ $field ], static function ( $item ) use ( $field, $sources ) {
+					if ( ! is_array( $item ) ) {
+						return false;
+					}
+					$media = 'media_items' === $field || isset( $item['attachment_id'] ) || 'media' === strtolower( trim( (string) ( $item['source_type'] ?? '' ) ) ) || 'attachment' === strtolower( trim( (string) ( $item['post_type'] ?? '' ) ) );
+					if ( $media ) {
+						return ! isset( $sources[ 'media:' . (int) ( $item['attachment_id'] ?? $item['post_id'] ?? 0 ) ] );
+					}
+					$id = (int) ( $item['post_id'] ?? 0 );
+					$comment = 'comments' === $field || isset( $item['comment_id'] ) || isset( $item['comment_status'] );
+					if ( $comment ) {
+						return ! isset( $sources[ 'post:' . $id ] ) && ! isset( $sources[ 'page:' . $id ] );
+					}
+					$type = strtolower( trim( (string) ( $item['post_type'] ?? 'post' ) ) );
+					return ! isset( $sources[ $type . ':' . $id ] );
+				} ) );
+			}
+			if ( isset( $input['post_ids'] ) && is_array( $input['post_ids'] ) ) {
+				$input['post_ids'] = array_values( array_filter( $input['post_ids'], static function ( $id ) use ( $sources ) {
+					// Legacy numeric cleanup is broad: don't let it erase protected media.
+					foreach ( $sources as $source ) {
+						if ( $source['source_id'] === (int) $id ) {
+							return false;
+						}
+					}
+					return true;
+				} ) );
+			}
+			if ( 'delete' === ( $input['sync_mode'] ?? '' ) && ! empty( $payload['input']['post_ids'] ) && empty( $input['post_ids'] ) ) { return self::lifecycle_error( 'empty_delete_after_suppression' ); }
+			$payload['input'] = $input;
+			return $payload;
+		}
+
+		/** Advances at most one operation per existing Cron callback. */
+		public static function process_source_operations(): bool {
+			$state = self::delivery_state();
+			$scope = $state['_lifecycle']['scopes'][ self::lifecycle_scope() ] ?? array();
+			foreach ( $scope['operations'] ?? array() as $op ) {
+				if ( 'pending' !== $op['status'] ) {
+					continue;
+				}
+				$next = $op;
+				$next['polls']++;
+				if ( $next['polls'] > self::MAX_RUN_POLLS ) {
+					$next['status'] = 'blocked';
+					$next['reason'] = 'poll_limit_writer_retained';
+				} else {
+					$outcome = self::advance_source_operation( $op, $scope );
+					if ( is_wp_error( $outcome ) ) {
+						$next['reason'] = $outcome->get_error_code();
+					} else {
+						$next = array_merge( $next, $outcome );
+					}
+				}
+				self::store_source_operation( $op, $next );
+				$remaining = self::source_lifecycle_summary()['operations'];
+				if ( array_filter( $remaining, static function ( $operation ) { return 'pending' === $operation['status']; } ) ) {
+					self::schedule_flush( 30 );
+				}
+				return true;
+			}
+			return false;
+		}
+
+		private static function store_source_operation( array $expected, array $next ): bool {
+			$before = self::delivery_state();
+			$namespace = self::lifecycle_scope();
+			if ( ( $before['_lifecycle']['scopes'][ $namespace ]['operations'][ $expected['id'] ] ?? null ) !== $expected ) {
+				return false;
+			}
+			$after = $before;
+			if ( 'completed' === $next['status'] ) {
+				unset( $next['restore_payloads'], $next['legacy_cursor'] );
+				foreach ( $after['_lifecycle']['scopes'][ $namespace ]['dispatches'] as &$entry ) {
+					if ( $expected['id'] === ( $entry['operation'] ?? '' ) || isset( $next['old_terminal'][ $entry['key'] ] ) ) { unset( $entry['payload'] ); }
+				}
+				unset( $entry );
+			}
+			$after['_lifecycle']['scopes'][ $namespace ]['operations'][ $expected['id'] ] = $next;
+			if ( strlen( serialize( $after ) ) > 4194304 ) {
+				$next = array_merge( $expected, array( 'status' => 'blocked', 'reason' => 'durability_full_writer_retained' ) );
+				$after['_lifecycle']['scopes'][ $namespace ]['operations'][ $expected['id'] ] = $next;
+			}
+			foreach ( $expected['items'] as $item ) {
+				$key = self::source_key( $item );
+				$source = &$after['_lifecycle']['scopes'][ $namespace ]['sources'][ $key ];
+				if ( ( $source['operation'] ?? '' ) !== $expected['id'] ) {
+					return false;
+				}
+				if ( 'completed' === $next['status'] && 'restore' === $next['action'] ) {
+					unset( $after['_lifecycle']['scopes'][ $namespace ]['sources'][ $key ] );
+				} elseif ( 'completed' === $next['status'] ) {
+					$source['state'] = 'excluded';
+				}
+				unset( $source );
+			}
+			if ( 'completed' === $next['status'] && 'restore' === $next['action'] ) {
+				$after['_lifecycle']['scopes'][ $namespace ]['producer_generation'] = $expected['id'];
+			}
+			return self::compare_and_swap_delivery_state( $before, $after );
+		}
+
+		private static function operation_payload( array $input ): array {
+			return array( 'ability_name' => 'npcink-cloud/site-knowledge-sync', 'contract_version' => 'site_knowledge_sync.v1', 'execution_pattern' => 'whole_run_offload', 'input' => array_merge( $input, array( 'contract_version' => 'site_knowledge_sync.v1', 'write_posture' => 'suggestion_only', 'direct_wordpress_write' => false ) ), 'data_classification' => 'public_site_content', 'storage_mode' => 'result_only', 'retention_ttl' => DAY_IN_SECONDS, 'timeout_seconds' => 60, 'retry_max' => 0, 'policy' => array( 'allow_fallback' => true ) );
+		}
+
+		private static function lifecycle_key( array $op, string $phase ): string {
+			return 'site_knowledge_source_' . hash( 'sha256', self::lifecycle_scope() . '|' . $op['id'] . '|' . $op['set_hash'] . '|' . $phase );
+		}
+
+		/** Returns a real Cloud writer witness, or durably replays a lost response. */
+		private static function operation_run( array $op, array $scope, string $phase, array $payload ) {
+			$key = self::lifecycle_key( $op, $phase );
+			$entry = $scope['dispatches'][ $key ] ?? array();
+			if ( empty( $entry['run_id'] ) ) {
+				$result = self::dispatch_mutation( $payload, $key, $op['action'], $op['id'] );
+				return is_wp_error( $result ) ? $result : self::lifecycle_error( 'awaiting_run' );
+			}
+			return Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_writer_witness( $entry );
+		}
+
+		private static function advance_source_operation( array $op, array $scope ) {
+			if ( 'restore' === $op['action'] ) {
+				return self::advance_source_restore( $op, $scope );
+			}
+			$payload = self::operation_payload( array( 'sync_mode' => 'delete', 'source_items' => $op['items'] ) );
+			$d0 = self::operation_run( $op, $scope, 'd0', $payload );
+			if ( is_wp_error( $d0 ) || ! $d0['succeeded'] ) {
+				return is_wp_error( $d0 ) ? $d0 : self::lifecycle_error( 'delete_failed' );
+			}
+			if ( ! empty( $op['legacy_unknown'] ) ) {
+				return self::lifecycle_error( 'legacy_writer_identity_unknown' );
+			}
+			$known = $op['old_terminal'] ?? array();
+			$checked = 0;
+			foreach ( $op['old'] as $key ) {
+				if ( isset( $known[ $key ] ) ) { continue; }
+				if ( $checked++ >= 4 ) { return array( 'old_terminal' => $known, 'reason' => 'checking_old_writers' ); }
+				$entry = $scope['dispatches'][ $key ] ?? array();
+				if ( 'not_sent' === ( $entry['send_state'] ?? '' ) ) {
+					$known[ $key ] = array( 'not_sent' => true );
+					continue;
+				}
+				if ( empty( $entry['run_id'] ) ) {
+					if ( ! empty( $entry['payload'] ) ) { self::dispatch_mutation( $entry['payload'], $key, 'old_replay', $op['id'] ); }
+					return array( 'old_terminal' => $known, 'reason' => 'old_writer_identity_unknown' );
+				}
+				$witness = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_writer_witness( $entry );
+				if ( is_wp_error( $witness ) ) { return array( 'old_terminal' => $known, 'reason' => $witness->get_error_code() ); }
+				$known[ $key ] = array( 'run_id' => $witness['run_id'], 'status' => $witness['status'] );
+			}
+			$terminal = array_values( array_filter( $known, static function ( $witness ) { return isset( $witness['run_id'] ); } ) );
+			usort( $terminal, static function ( $a, $b ) { return strcmp( $a['run_id'], $b['run_id'] ); } );
+			if ( ! empty( $terminal ) ) {
+				$phase = 'c1_' . hash( 'sha256', (string) wp_json_encode( $terminal ) );
+				if ( isset( $op['c1'] ) && $op['c1'] !== $phase ) {
+					return self::lifecycle_error( 'terminal_set_changed' );
+				}
+				if ( ! isset( $op['c1'] ) ) {
+					return array( 'c1' => $phase, 'terminal_writers' => $terminal, 'old_terminal' => $known );
+				}
+				$c1 = self::operation_run( $op, $scope, $phase, $payload );
+				if ( is_wp_error( $c1 ) || ! $c1['succeeded'] ) {
+					return is_wp_error( $c1 ) ? $c1 : self::lifecycle_error( 'compensation_failed' );
+				}
+			}
+			$presence = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_source_presence( $op['items'] );
+			if ( is_wp_error( $presence ) ) {
+				return $presence;
+			}
+			foreach ( $presence['items'] as $row ) {
+				if ( $row['document_present'] || $row['stored_chunk_count'] || $row['associated_comment_document_count'] || $row['associated_comment_stored_chunk_count'] ) {
+					return self::lifecycle_error( 'source_still_present' );
+				}
+			}
+			return array( 'status' => 'completed', 'reason' => '', 'observed_at' => $presence['observed_at'] );
+		}
+
+		private static function advance_source_restore( array $op, array $scope ) {
+			foreach ( $op['items'] as $item ) {
+				if ( ! self::public_source( $item ) || ! self::is_enabled() ) {
+					return self::lifecycle_error( 'restore_not_indexable' );
+				}
+			}
+			if ( ! isset( $op['restore_payloads'] ) ) {
+				$presence = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_source_presence( $op['items'] );
+				if ( is_wp_error( $presence ) || ! is_bool( $presence['comments_enabled'] ?? null ) ) {
+					return self::lifecycle_error( 'comments_configuration_unknown' );
+				}
+				$payloads = self::source_restore_payloads( $op['items'], $presence['comments_enabled'] );
+				return is_wp_error( $payloads ) ? $payloads : array( 'restore_payloads' => $payloads, 'restore_comments_enabled' => $presence['comments_enabled'] );
+			}
+			foreach ( $op['restore_payloads'] as $index => $payload ) {
+				$witness = self::operation_run( $op, $scope, 'restore_' . $index, $payload );
+				if ( is_wp_error( $witness ) || ! $witness['succeeded'] ) {
+					return is_wp_error( $witness ) ? $witness : self::lifecycle_error( 'restore_failed' );
+				}
+				$result = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_restore_result( $witness['run_id'], $payload );
+				if ( is_wp_error( $result ) ) { return $result; }
+			}
+			$presence = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_source_presence( $op['items'] );
+			if ( is_wp_error( $presence ) ) {
+				return $presence;
+			}
+			if ( $op['restore_comments_enabled'] !== $presence['comments_enabled'] ) { return self::lifecycle_error( 'comments_configuration_changed' ); }
+			$comments = array();
+			foreach ( $op['restore_payloads'] as $payload ) {
+				foreach ( $payload['input']['comments'] ?? array() as $comment ) { $comments[ $comment['post_id'] ] = 1 + ( $comments[ $comment['post_id'] ] ?? 0 ); }
+			}
+			foreach ( $presence['items'] as $row ) {
+				if ( ! $row['public_document_present'] || $row['public_chunk_count'] < 1 ) {
+					return self::lifecycle_error( 'restore_public_chunks_missing' );
+				}
+				$expected_comments = $comments[ $row['source_id'] ] ?? 0;
+				if ( 'media' !== $row['source_type'] && ( $row['associated_comment_document_count'] < $expected_comments || $row['associated_comment_stored_chunk_count'] < $expected_comments ) ) { return self::lifecycle_error( 'restore_comments_missing' ); }
+			}
+			return array( 'status' => 'completed', 'reason' => '', 'observed_at' => $presence['observed_at'] );
+		}
+
+		/** Real WordPress public identity; attachment inherit alone is never proof. */
+		public static function public_source( array $item ) {
+			$post = get_post( $item['source_id'] );
+			if ( 'media' !== $item['source_type'] ) {
+				unset( self::$post_document_memo[ $item['source_id'] ] );
+				return self::is_public_post( $post ) && $post->post_type === $item['source_type'] ? self::post_document( $post ) : null;
+			}
+			if ( ! is_object( $post ) || 'attachment' !== $post->post_type || ! in_array( $post->post_status, array( 'inherit', 'publish' ), true ) || ! empty( $post->post_password ) || ! in_array( $post->post_mime_type, array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif' ), true ) || ! self::is_public_post( get_post( (int) $post->post_parent ) ) ) {
+				return null;
+			}
+			$url = wp_get_attachment_url( $item['source_id'] );
+			$alt = (string) get_post_meta( $item['source_id'], '_wp_attachment_image_alt', true );
+			$title = self::bounded_text( (string) $post->post_title, 500 );
+			$caption = self::bounded_text( (string) $post->post_excerpt, 1000 );
+			$description = self::bounded_text( (string) $post->post_content, self::MAX_DOCUMENT_CHARS );
+			if ( ! is_string( $url ) || ! preg_match( '#\Ahttps?://#', $url ) || '' === trim( $title . $alt . $caption . $description ) ) {
+				return null;
+			}
+			$media = array( 'attachment_id' => $item['source_id'], 'mime_type' => $post->post_mime_type, 'url' => $url, 'title' => $title, 'alt' => self::bounded_text( $alt, 1000 ), 'caption' => $caption, 'description' => $description, 'modified_gmt' => $post->post_modified_gmt );
+			$encoded = wp_json_encode( $media );
+			if ( ! is_string( $encoded ) ) {
+				return null;
+			}
+			$media['media_fingerprint'] = hash( 'sha256', $encoded );
+			return $media;
+		}
+
+		private static function source_restore_payloads( array $items, bool $comments_enabled ) {
+			$documents = array();
+			$media = array();
+			$comments = array();
+			foreach ( $items as $item ) {
+				$source = self::public_source( $item );
+				if ( ! $source ) {
+					return self::lifecycle_error( 'restore_not_indexable' );
+				}
+				if ( 'media' === $item['source_type'] ) {
+					$media[] = $source;
+					continue;
+				}
+				$documents[] = $source;
+				if ( $comments_enabled ) {
+					if ( ! function_exists( 'get_comments' ) ) {
+						return self::lifecycle_error( 'comments_unavailable' );
+					}
+					foreach ( get_comments( array( 'post_id' => $item['source_id'], 'status' => 'approve', 'type' => 'comment', 'number' => 201 ) ) as $comment ) {
+						if ( (int) $comment->comment_post_ID !== $item['source_id'] || ! in_array( (string) $comment->comment_approved, array( '1', 'approve', 'approved' ), true ) ) {
+							return self::lifecycle_error( 'comments_invalid' );
+						}
+						$comments[] = array( 'comment_id' => (int) $comment->comment_ID, 'post_id' => $item['source_id'], 'comment_status' => 'approved', 'content_excerpt' => self::bounded_text( (string) $comment->comment_content, self::MAX_DOCUMENT_CHARS ), 'url' => get_comment_link( $comment ), 'created_gmt' => $comment->comment_date_gmt );
+					}
+				}
+			}
+			if ( count( $comments ) + count( $documents ) > self::MANUAL_INDEX_POSTS ) {
+				return self::lifecycle_error( 'comments_delivery_limit' );
+			}
+			$payloads = array();
+			if ( $documents ) {
+				$payloads[] = self::operation_payload( array( 'sync_mode' => 'refresh', 'documents' => $documents, 'comments' => $comments ) );
+			}
+			if ( $media ) {
+				$payloads[] = self::operation_payload( array( 'sync_mode' => 'refresh', 'media_items' => $media ) );
+			}
+			foreach ( $payloads as $payload ) {
+				$encoded = wp_json_encode( $payload );
+				if ( ! is_string( $encoded ) || strlen( $encoded ) > 900000 ) { return self::lifecycle_error( 'restore_payload_limit' ); }
+			}
+			return $payloads;
+		}
+
+		/** Public typed snapshot, with image-only batches after text batches. */
+		private static function full_typed_batches( array $post_ids ): array {
+			$posts = array();
+			$sources = self::source_lifecycle_summary()['items'];
+			foreach ( $post_ids as $id ) {
+				$post = get_post( $id );
+				if ( self::is_public_post( $post ) && ! isset( $sources[ $post->post_type . ':' . $id ] ) ) {
+					$posts[] = array( 'source_type' => $post->post_type, 'source_id' => $id );
+				}
+			}
+			$media = array();
+			$ids = get_posts( array( 'post_type' => 'attachment', 'post_status' => array( 'inherit', 'publish' ), 'posts_per_page' => self::MANUAL_MAX_POSTS, 'fields' => 'ids', 'orderby' => 'ID', 'order' => 'ASC', 'no_found_rows' => true ) );
+			$sources = self::source_lifecycle_summary()['items'];
+			foreach ( $ids as $id ) {
+				$item = array( 'source_type' => 'media', 'source_id' => (int) $id );
+				if ( count( $posts ) + count( $media ) >= self::MANUAL_MAX_POSTS ) {
+					break;
+				}
+				if ( ! isset( $sources[ self::source_key( $item ) ] ) && self::public_source( $item ) ) {
+					$media[] = $item;
+				}
+			}
+			return array_merge( array_chunk( $posts, self::MANUAL_INDEX_POSTS ), array_chunk( $media, self::MANUAL_INDEX_POSTS ) );
+		}
+
+		public static function handle_attachment_change( int $id ): void {
+			$item = array( 'source_type' => 'media', 'source_id' => $id );
+			if ( self::is_enabled() && self::public_source( $item ) ) {
+				self::buffer_post_ids( array( $id ) );
+			}
+		}
+
+		public static function handle_attachment_meta_change( $meta_id, $id, $key ): void {
+			if ( '_wp_attachment_image_alt' === $key ) {
+				self::handle_attachment_change( (int) $id );
+			}
+		}
+
+		public static function selection_candidates(): array {
+			$sources = self::source_lifecycle_summary()['items'];
+			$candidates = array();
+			if ( ! function_exists( 'get_posts' ) || ! function_exists( 'get_post' ) ) { return $candidates; }
+			foreach ( $sources as $key => $source ) {
+				$post = get_post( $source['source_id'] );
+				$candidates[ $key ] = array_merge( $source, array( 'title' => is_object( $post ) ? (string) $post->post_title : $key ) );
+			}
+			$ids = get_posts( array( 'post_type' => array( 'post', 'page', 'attachment' ), 'post_status' => array( 'publish', 'inherit' ), 'posts_per_page' => 100, 'fields' => 'ids', 'orderby' => 'modified', 'order' => 'DESC' ) );
+			foreach ( $ids as $id ) {
+				if ( count( $candidates ) >= 100 ) { break; }
+				$post = get_post( $id );
+				$type = 'attachment' === ( $post->post_type ?? '' ) ? 'media' : ( $post->post_type ?? '' );
+				$item = array( 'source_type' => $type, 'source_id' => (int) $id );
+				if ( self::public_source( $item ) && ! isset( $sources[ self::source_key( $item ) ] ) ) {
+					$candidates[ self::source_key( $item ) ] = array_merge( $item, array( 'title' => (string) $post->post_title, 'state' => '' ) );
+				}
+			}
+			return array_slice( $candidates, 0, 100, true );
+		}
+
+		private static function initialize_delivery_coverage(): void {
+			if ( Npcink_Cloud_Addon_Settings::is_configured() ) { return; }
+			$state = self::delivery_state();
+			if ( empty( $state ) ) {
+				self::compare_and_swap_delivery_state( $state, array( '_lifecycle' => array( 'coverage_started_without_credentials' => true ) ) );
+			}
+		}
+
+		private static function get_maintenance_cursor(): array {
+			$cursor = self::delivery_state();
+			unset( $cursor['_lifecycle'] );
+			return $cursor;
 		}
 
 		/**
@@ -1681,20 +2331,16 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @return bool
 		 */
 		private static function claim_full_index_delivery_cursor( array $cursor ): bool {
-			if ( add_option( self::MAINTENANCE_OPTION, $cursor, '', false ) ) {
-				return true;
+			$before = self::delivery_state();
+			$sources = $before['_lifecycle']['scopes'][ self::lifecycle_scope() ]['sources'] ?? array();
+			foreach ( $sources as $source ) {
+				if ( 'excluded' !== $source['state'] ) { return false; }
 			}
-
-			$current = self::get_maintenance_cursor();
-			if ( self::is_active_full_index_delivery( $current ) ) {
-				return false;
-			}
-
-			if ( self::compare_and_swap_full_index_delivery_cursor( $current, $cursor ) ) {
-				return true;
-			}
-
-			return add_option( self::MAINTENANCE_OPTION, $cursor, '', false );
+			$current = $before;
+			unset( $current['_lifecycle'] );
+			if ( self::is_active_full_index_delivery( $current ) ) { return false; }
+			if ( isset( $before['_lifecycle'] ) ) { $cursor['_lifecycle'] = $before['_lifecycle']; }
+			return self::compare_and_swap_delivery_state( $before, $cursor );
 		}
 
 		/**
@@ -1708,8 +2354,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @param array<string,mixed>|null $replacement Replacement cursor, or null to delete.
 		 * @return bool
 		 */
-		private static function compare_and_swap_full_index_delivery_cursor( array $expected, ?array $replacement ): bool {
+		private static function compare_and_swap_delivery_state( array $expected, ?array $replacement ): bool {
 			global $wpdb;
+			if ( null !== $replacement && strlen( serialize( $replacement ) ) > 4194304 && strlen( serialize( $replacement ) ) > strlen( serialize( $expected ) ) ) { return false; }
+			if ( array() === $expected && null !== $replacement && add_option( self::MAINTENANCE_OPTION, $replacement, '', false ) ) {
+				return true;
+			}
 
 			if (
 				isset( $wpdb )
@@ -1752,7 +2402,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return $changed;
 			}
 
-			if ( self::get_maintenance_cursor() !== $expected ) {
+			if ( self::delivery_state() !== $expected ) {
 				return false;
 			}
 

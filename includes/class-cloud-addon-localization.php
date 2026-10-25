@@ -164,6 +164,23 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 		 */
 		private static function translation_entries(): array {
 			return array(
+				'Choose knowledge sources' => '选择知识库内容',
+				'Exclude selected sources from Cloud and automatic delivery, or explicitly restore excluded sources. WordPress content and files stay unchanged.' => '从 Cloud 移除所选内容并停止自动投递，或明确恢复已排除内容。WordPress 内容和文件不会改变。',
+				'Select up to 100 sources' => '最多选择 100 项内容',
+				'Action' => '操作',
+				'Exclude selected sources' => '排除所选内容',
+				'Restore selected sources' => '恢复所选内容',
+				'Type EXCLUDE or RESTORE to confirm the selected action' => '输入 EXCLUDE 或 RESTORE 确认所选操作',
+				'Confirm selected sources' => '确认所选内容',
+				'Waiting for complete Cloud evidence. Automatic delivery remains suppressed for these sources.' => '正在等待完整的 Cloud 核对结果。这些内容仍暂停自动投递。',
+				'Confirm the selected sources and current site before continuing.' => '请确认所选内容和当前站点后继续。',
+				'Select between 1 and 100 public sources.' => '请选择 1 至 100 项公开内容。',
+				'Request saved. Sources stay excluded from automatic delivery while Cloud evidence is checked.' => '请求已保存。核对 Cloud 结果期间，这些内容仍暂停自动投递。',
+				'Site Knowledge needs verification before this request can continue.' => '站点知识库需要核对后才能继续此请求。',
+				'Checking removal' => '正在核对移除结果',
+				'Excluded' => '已排除',
+				'Checking restore' => '正在核对恢复结果',
+				'Automatic delivery' => '自动投递',
 				'Saving…' => '正在保存…',
 				'Cloud connector status and access settings for this WordPress site.' => '此 WordPress 站点的 Cloud 连接器状态和访问设置。',
 				'Connect' => '连接',

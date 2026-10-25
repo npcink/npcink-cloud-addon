@@ -12,6 +12,12 @@ require_once __DIR__ . '/helpers.php';
 maca_load_addon_classes();
 require_once MACA_TEST_ROOT . '/includes/class-cloud-site-knowledge-change-bridge.php';
 
+function maca_legacy_full_cursor(): array {
+	$value = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+	unset( $value['_lifecycle'] );
+	return $value;
+}
+
 $GLOBALS['maca_comments'] = array();
 $GLOBALS['maca_posts'] = array();
 $GLOBALS['maca_scheduled_events'] = array();
@@ -66,7 +72,7 @@ if ( ! function_exists( 'get_posts' ) ) {
 		$modified_after = strtotime( (string) ( $date_query['after'] ?? '' ) );
 		$ids   = array();
 		foreach ( $GLOBALS['maca_posts'] as $post_id => $post ) {
-			if ( 'publish' !== (string) ( $post->post_status ?? '' ) ) {
+			if ( ! in_array( (string) ( $post->post_status ?? '' ), (array) ( $args['post_status'] ?? array( 'publish' ) ), true ) ) {
 				continue;
 			}
 			if ( ! in_array( $post->post_type ?? '', (array) ( $args['post_type'] ?? array( 'post', 'page' ) ), true ) ) {
@@ -875,7 +881,7 @@ $GLOBALS['maca_post_terms'][801] = array(
 );
 $start_status = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'start' );
 $start_http_after_queue = count( $GLOBALS['maca_http_requests'] );
-$start_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$start_cursor = maca_legacy_full_cursor();
 $start_health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
 maca_queue_site_knowledge_inline_success();
 maca_run_site_knowledge_flush();
@@ -908,7 +914,7 @@ maca_assert(
 	&& 'queued' === (string) ( $start_status['last_index_action_status'] ?? '' )
 	&& 2 === absint( $start_status['last_index_action_selected_count'] ?? 0 )
 	&& 0 === absint( $start_status['last_index_action_sent_count'] ?? 99 )
-	&& array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() ),
+	&& array() === maca_legacy_full_cursor(),
 	'Behavior: administrator start queues zero-HTTP bounded delivery, then sends the canonical public document contract through Cron.'
 );
 
@@ -941,7 +947,7 @@ for ( $post_id = 10000; $post_id < 10605; $post_id++ ) {
 	$GLOBALS['maca_posts'][ $post_id ]->post_content = str_repeat( '中', 2000 );
 }
 $full_rebuild_status = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'rebuild' );
-$full_rebuild_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$full_rebuild_cursor = maca_legacy_full_cursor();
 $full_rebuild_http_increments = array();
 maca_queue_site_knowledge_inline_success( 4 );
 for ( $batch_index = 0; $batch_index < 4; $batch_index++ ) {
@@ -1021,7 +1027,7 @@ maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
 maca_add_public_post_fixture( 11001 );
 $active_status = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'start' );
-$active_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$active_cursor = maca_legacy_full_cursor();
 $overlap_rebuild = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'rebuild' );
 $overlap_delete = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'delete' );
 Npcink_Cloud_Site_Knowledge_Change_Bridge::maybe_schedule_automatic_rebuild(
@@ -1040,7 +1046,7 @@ maca_assert(
 	&& 'cloud_site_knowledge_delivery_in_progress' === $overlap_rebuild->get_error_code()
 	&& is_wp_error( $overlap_delete )
 	&& 'cloud_site_knowledge_delivery_in_progress' === $overlap_delete->get_error_code()
-	&& $active_cursor === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() )
+	&& $active_cursor === maca_legacy_full_cursor()
 	&& array() === $GLOBALS['maca_http_requests'],
 	'Behavior: active full-index delivery cannot be overwritten by manual or automatic operations.'
 );
@@ -1051,7 +1057,7 @@ for ( $post_id = 11010; $post_id <= 11210; $post_id++ ) {
 	maca_add_public_post_fixture( $post_id );
 }
 Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'start' );
-$stale_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$stale_cursor = maca_legacy_full_cursor();
 $replacement_cursor = array(
 	'status' => 'queued',
 	'request_id' => 'newer_admin_request',
@@ -1081,7 +1087,7 @@ $GLOBALS['maca_http_response_queue'][] = static function () use ( $replacement_c
 $stale_flush_status = maca_run_site_knowledge_flush();
 maca_assert(
 	2 === absint( $stale_cursor['batch_count'] ?? 0 )
-	&& $replacement_cursor === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() )
+	&& $replacement_cursor === maca_legacy_full_cursor()
 	&& false !== wp_next_scheduled( Npcink_Cloud_Site_Knowledge_Change_Bridge::FLUSH_HOOK )
 	&& 0 === absint( $stale_flush_status['last_index_action_sent_count'] ?? 0 ),
 	'Behavior: a stale Cron callback cannot overwrite a newer full-index cursor after Cloud returns.'
@@ -1101,7 +1107,7 @@ maca_assert(
 	'' !== $first_manual_key
 	&& $first_manual_key === $second_manual_key
 	&& 'completed' === (string) ( $manual_retry_status['last_index_action_status'] ?? '' )
-	&& array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() ),
+	&& array() === maca_legacy_full_cursor(),
 	'Behavior: uncertain manual full-index retries reuse the exact batch idempotency key.'
 );
 
@@ -1119,7 +1125,7 @@ $GLOBALS['maca_http_response_queue'][] = array(
 	),
 );
 maca_run_site_knowledge_flush();
-$accepted_run_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$accepted_run_cursor = maca_legacy_full_cursor();
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 200 ),
 	'body' => wp_json_encode(
@@ -1132,7 +1138,7 @@ $GLOBALS['maca_http_response_queue'][] = array(
 	),
 );
 $submitted_poll_status = maca_run_site_knowledge_flush();
-$submitted_poll_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$submitted_poll_cursor = maca_legacy_full_cursor();
 $submitted_poll_request = $GLOBALS['maca_http_requests'][1] ?? array();
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 200 ),
@@ -1146,7 +1152,7 @@ $GLOBALS['maca_http_response_queue'][] = array(
 	),
 );
 $running_poll_status = maca_run_site_knowledge_flush();
-$running_poll_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$running_poll_cursor = maca_legacy_full_cursor();
 $running_poll_scheduled = wp_next_scheduled( Npcink_Cloud_Site_Knowledge_Change_Bridge::FLUSH_HOOK );
 $running_poll_request = $GLOBALS['maca_http_requests'][2] ?? array();
 $GLOBALS['maca_http_response_queue'][] = array(
@@ -1174,7 +1180,7 @@ maca_assert(
 	&& 'delivering' === (string) ( $running_poll_status['last_index_action_status'] ?? '' )
 	&& 'https://cloud.example.test/v1/runs/Run.Manual_Mixed-Case.1' === (string) ( $running_poll_request['url'] ?? '' )
 	&& 'completed' === (string) ( $running_poll_final_status['last_index_action_status'] ?? '' )
-	&& array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() )
+	&& array() === maca_legacy_full_cursor()
 	&& 4 === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: submitted and running Cloud states preserve a mixed-case run id until the bounded poll completes.'
 );
@@ -1183,11 +1189,11 @@ maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
 maca_add_public_post_fixture( 1110151 );
 Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'start' );
-$invalid_pending_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$invalid_pending_cursor = maca_legacy_full_cursor();
 $invalid_pending_cursor['pending_run_id'] = 'Run/ABC';
 update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, $invalid_pending_cursor, false );
 $invalid_pending_status = maca_run_site_knowledge_flush();
-$invalid_pending_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$invalid_pending_cursor = maca_legacy_full_cursor();
 maca_assert(
 	array() === $GLOBALS['maca_http_requests']
 	&& 'retrying' === (string) ( $invalid_pending_cursor['status'] ?? '' )
@@ -1211,7 +1217,7 @@ $GLOBALS['maca_http_response_queue'][] = array(
 	),
 );
 $invalid_response_status = maca_run_site_knowledge_flush();
-$invalid_response_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$invalid_response_cursor = maca_legacy_full_cursor();
 maca_assert(
 	1 === count( $GLOBALS['maca_http_requests'] )
 	&& 'retrying' === (string) ( $invalid_response_cursor['status'] ?? '' )
@@ -1249,7 +1255,7 @@ $GLOBALS['maca_http_response_queue'][] = $bounded_run_acceptance;
 maca_run_site_knowledge_flush();
 $max_run_polls = absint( Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['max_run_polls'] ?? 0 );
 for ( $attempt = 1; $attempt <= 3; $attempt++ ) {
-	$never_finishes_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+	$never_finishes_cursor = maca_legacy_full_cursor();
 	$never_finishes_cursor['poll_generation'] = max( 0, $max_run_polls - 1 );
 	update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, $never_finishes_cursor, false );
 	$GLOBALS['maca_http_response_queue'][] = $bounded_running_response;
@@ -1259,7 +1265,7 @@ for ( $attempt = 1; $attempt <= 3; $attempt++ ) {
 		maca_run_site_knowledge_flush();
 	}
 }
-$never_finishes_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$never_finishes_cursor = maca_legacy_full_cursor();
 maca_assert(
 	$max_run_polls > 0
 	&& 'blocked' === (string) ( $never_finishes_cursor['status'] ?? '' )
@@ -1288,7 +1294,7 @@ for ( $attempt = 1; $attempt <= 3; $attempt++ ) {
 	maca_run_site_knowledge_flush();
 	$poll_failure_status = maca_run_site_knowledge_flush();
 }
-$poll_failure_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$poll_failure_cursor = maca_legacy_full_cursor();
 $poll_failure_post_keys = array_map(
 	static fn( array $request ): string => (string) ( $request['args']['headers']['Idempotency-Key'] ?? '' ),
 	array_values(
@@ -1376,7 +1382,7 @@ Npcink_Cloud_Site_Knowledge_Change_Bridge::maybe_schedule_automatic_rebuild(
 		),
 	)
 );
-$automatic_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$automatic_cursor = maca_legacy_full_cursor();
 Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
 Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
 Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
@@ -1428,7 +1434,7 @@ maca_assert(
 	&& 'refresh' === (string) ( $automatic_bodies[2]['input']['sync_mode'] ?? '' )
 	&& 2 === absint( $automatic_bodies[2]['input']['maintenance']['batch_index'] ?? 0 )
 	&& true === (bool) ( $automatic_bodies[2]['input']['maintenance']['is_final'] ?? false )
-	&& array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() ),
+	&& array() === maca_legacy_full_cursor(),
 	'Behavior: Cloud maintenance intent becomes an automatic bounded full-sync cursor and completes without a site-admin action.'
 );
 
@@ -1458,7 +1464,7 @@ Npcink_Cloud_Site_Knowledge_Change_Bridge::maybe_schedule_automatic_rebuild(
 		),
 	)
 );
-$blocked_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$blocked_cursor = maca_legacy_full_cursor();
 maca_assert(
 	'blocked' === (string) ( $blocked_cursor['status'] ?? '' )
 	&& 3 === absint( $blocked_cursor['attempts'] ?? 0 )
@@ -1525,17 +1531,19 @@ $GLOBALS['wpdb'] = new class() {
 };
 maca_queue_site_knowledge_inline_success();
 $delete_with_failed_release = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'delete' );
-$orphaned_delete_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() );
+$orphaned_delete_cursor = maca_legacy_full_cursor();
 $delete_cleanup_scheduled = wp_next_scheduled( Npcink_Cloud_Site_Knowledge_Change_Bridge::FLUSH_HOOK );
 unset( $GLOBALS['wpdb'] );
 $delete_cleanup_status = maca_run_site_knowledge_flush();
 maca_assert(
-	is_array( $delete_with_failed_release )
+	is_wp_error( $delete_with_failed_release )
 	&& 'delete' === (string) ( $orphaned_delete_cursor['operation'] ?? '' )
 	&& 'admin_delete' === (string) ( $orphaned_delete_cursor['operation_source'] ?? '' )
 	&& false !== $delete_cleanup_scheduled
-	&& 1 === count( $GLOBALS['maca_http_requests'] )
-	&& array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, array() )
+	&& 0 === count( $GLOBALS['maca_http_requests'] )
+	&& array() === maca_legacy_full_cursor()
 	&& true === (bool) ( $delete_cleanup_status['last_delivery_ok'] ?? false ),
 	'Behavior: a failed manual-delete cursor release retries local cleanup without starting a rebuild or another Cloud request.'
 );
+
+require_once __DIR__ . '/behavior-site-knowledge-typed-presence.php';

@@ -106,7 +106,6 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			);
 		}
 
-
 		/**
 		 * Requests a refresh for one currently public article.
 		 *
@@ -191,6 +190,34 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			}
 
 			return self::result( true, $code, $message, $operation, 0, $selected, $batch_count );
+		}
+
+		/** Existing authorized admin-post handler delegates strict bounded parsing here. */
+		public static function handle_index_request( array $request ): array {
+			$action = is_string( $request['site_knowledge_index_action'] ?? null ) ? $request['site_knowledge_index_action'] : '';
+			$confirmation = is_string( $request['site_knowledge_confirmation'] ?? null ) ? $request['site_knowledge_confirmation'] : '';
+			if ( ! in_array( $action, array( 'exclude', 'restore' ), true ) ) {
+				return self::request_index_operation( $action, $confirmation );
+			}
+			if ( ! hash_equals( Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope(), ( is_string( $request['site_knowledge_scope'] ?? null ) ? $request['site_knowledge_scope'] : '' ) ) || strtoupper( $action ) !== $confirmation ) {
+				return self::result( false, 'confirmation_required', __( 'Confirm the selected sources and current site before continuing.', 'npcink-cloud-addon' ), $action );
+			}
+			$values = $request['site_knowledge_sources'] ?? null;
+			if ( ! is_array( $values ) || count( $values ) < 1 || count( $values ) > 100 || array_values( $values ) !== $values ) {
+				return self::result( false, 'selection_invalid', __( 'Select between 1 and 100 public sources.', 'npcink-cloud-addon' ), $action );
+			}
+			$items = array();
+			foreach ( $values as $value ) {
+				if ( ! is_string( $value ) || ! preg_match( '/\A(post|page|media):([1-9][0-9]*)\z/', $value, $parts ) || strlen( $parts[2] ) > strlen( (string) PHP_INT_MAX ) || (string) (int) $parts[2] !== $parts[2] ) {
+					return self::result( false, 'selection_invalid', __( 'Select between 1 and 100 public sources.', 'npcink-cloud-addon' ), $action );
+				}
+				$items[] = array( 'source_type' => $parts[1], 'source_id' => (int) $parts[2] );
+			}
+			$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( $action, $items );
+			if ( is_wp_error( $result ) ) {
+				return self::result( false, 'source_operation_blocked', $result->get_error_message(), $action, 0, 0, 0, $result->get_error_code() );
+			}
+			return self::result( true, 'source_operation_pending', __( 'Request saved. Sources stay excluded from automatic delivery while Cloud evidence is checked.', 'npcink-cloud-addon' ), $action, 0, (int) $result['selected_count'] );
 		}
 
 		/**

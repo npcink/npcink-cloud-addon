@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-21T08:59:31+00:00\n"
+"POT-Creation-Date: 2026-10-25T14:42:28+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -313,7 +313,7 @@ msgstr ""
 #: includes/class-cloud-entitlement-summary.php:227
 #: includes/class-cloud-settings-actions.php:80
 #: includes/class-cloud-settings-page.php:125
-#: includes/class-cloud-settings-page.php:2350
+#: includes/class-cloud-settings-page.php:2383
 msgid "Plan and entitlement are temporarily unavailable."
 msgstr ""
 
@@ -647,10 +647,10 @@ msgstr ""
 #: includes/class-cloud-observability-collector.php:521
 #: includes/class-cloud-settings-actions.php:391
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
-#: includes/class-cloud-site-knowledge-admin-actions.php:118
-#: includes/class-cloud-site-knowledge-admin-actions.php:147
-#: includes/class-cloud-site-knowledge-change-bridge.php:447
-#: includes/class-cloud-site-knowledge-change-bridge.php:491
+#: includes/class-cloud-site-knowledge-admin-actions.php:117
+#: includes/class-cloud-site-knowledge-admin-actions.php:146
+#: includes/class-cloud-site-knowledge-change-bridge.php:453
+#: includes/class-cloud-site-knowledge-change-bridge.php:500
 msgid "Connect this site first."
 msgstr ""
 
@@ -1253,7 +1253,7 @@ msgid "You do not have permission to refresh Site Knowledge usage."
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:115
-#: includes/class-cloud-site-knowledge-admin-projection.php:32
+#: includes/class-cloud-site-knowledge-admin-projection.php:42
 msgid "Enable Site Knowledge delivery before reading Cloud index usage."
 msgstr ""
 
@@ -1339,15 +1339,15 @@ msgid "%1$s %2$s."
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:427
-#: includes/class-cloud-settings-page.php:2186
-#: includes/class-cloud-settings-page.php:2495
+#: includes/class-cloud-settings-page.php:2219
+#: includes/class-cloud-settings-page.php:2528
 msgid "enabled"
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:427
-#: includes/class-cloud-settings-page.php:2186
-#: includes/class-cloud-settings-page.php:2496
-#: includes/class-cloud-settings-page.php:2570
+#: includes/class-cloud-settings-page.php:2219
+#: includes/class-cloud-settings-page.php:2529
+#: includes/class-cloud-settings-page.php:2603
 msgid "disabled"
 msgstr ""
 
@@ -1766,8 +1766,8 @@ msgid "Reconnect"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:750
-#: includes/class-cloud-settings-page.php:2309
-#: includes/class-cloud-settings-page.php:2341
+#: includes/class-cloud-settings-page.php:2342
+#: includes/class-cloud-settings-page.php:2374
 msgid "Not checked"
 msgstr ""
 
@@ -1817,7 +1817,7 @@ msgstr ""
 #: includes/class-cloud-settings-page.php:957
 #: includes/class-cloud-settings-page.php:1144
 #: includes/class-cloud-settings-page.php:1908
-#: includes/class-cloud-settings-page.php:2040
+#: includes/class-cloud-settings-page.php:2073
 msgid "Check connection"
 msgstr ""
 
@@ -1940,7 +1940,7 @@ msgid "Available knowledge documents"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1174
-#: includes/class-cloud-site-knowledge-admin-projection.php:30
+#: includes/class-cloud-site-knowledge-admin-projection.php:40
 msgid "Loading Site Knowledge usage…"
 msgstr ""
 
@@ -1959,7 +1959,7 @@ msgstr ""
 #. translators: 1: remaining image capacity, 2: image capacity limit.
 #. translators: 1: indexed chunks, 2: chunk limit.
 #: includes/class-cloud-settings-page.php:1203
-#: includes/class-cloud-site-knowledge-admin-projection.php:98
+#: includes/class-cloud-site-knowledge-admin-projection.php:108
 #, php-format
 msgid "%1$s / %2$s"
 msgstr ""
@@ -1977,7 +1977,7 @@ msgid "Runtime allowance"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1222
-#: includes/class-cloud-settings-page.php:2167
+#: includes/class-cloud-settings-page.php:2200
 msgid "Monitoring needs attention"
 msgstr ""
 
@@ -2218,13 +2218,13 @@ msgid "Open settings"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1574
-#: includes/class-cloud-settings-page.php:2079
-#: includes/class-cloud-settings-page.php:2080
-#: includes/class-cloud-settings-page.php:2329
-#: includes/class-cloud-settings-page.php:2598
-#: includes/class-cloud-settings-page.php:2609
-#: includes/class-cloud-settings-page.php:2648
-#: includes/class-cloud-settings-page.php:2680
+#: includes/class-cloud-settings-page.php:2112
+#: includes/class-cloud-settings-page.php:2113
+#: includes/class-cloud-settings-page.php:2362
+#: includes/class-cloud-settings-page.php:2631
+#: includes/class-cloud-settings-page.php:2642
+#: includes/class-cloud-settings-page.php:2681
+#: includes/class-cloud-settings-page.php:2713
 msgid "unavailable"
 msgstr ""
 
@@ -2337,7 +2337,7 @@ msgid "Syncing"
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1866
-#: includes/class-cloud-settings-page.php:2035
+#: includes/class-cloud-settings-page.php:2068
 msgid "Sync"
 msgstr ""
 
@@ -2361,7 +2361,7 @@ msgid "Automatic updates are delayed. Check the site scheduler in Checks."
 msgstr ""
 
 #: includes/class-cloud-settings-page.php:1892
-#: includes/class-cloud-settings-page.php:1959
+#: includes/class-cloud-settings-page.php:1960
 msgid "View checks"
 msgstr ""
 
@@ -2399,289 +2399,325 @@ msgstr ""
 msgid "Last updated: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1957
+#: includes/class-cloud-settings-page.php:1958
 msgid "Site Knowledge is off."
 msgstr ""
 
+#: includes/class-cloud-settings-page.php:1977
+msgid "Choose knowledge sources"
+msgstr ""
+
+#: includes/class-cloud-settings-page.php:1978
+msgid "Exclude selected sources from Cloud and automatic delivery, or explicitly restore excluded sources. WordPress content and files stay unchanged."
+msgstr ""
+
+#: includes/class-cloud-settings-page.php:1983
+msgid "Select up to 100 sources"
+msgstr ""
+
+#: includes/class-cloud-settings-page.php:1989
+msgid "Action"
+msgstr ""
+
+#: includes/class-cloud-settings-page.php:1990
+msgid "Exclude selected sources"
+msgstr ""
+
+#: includes/class-cloud-settings-page.php:1990
+msgid "Restore selected sources"
+msgstr ""
+
+#: includes/class-cloud-settings-page.php:1992
+msgid "Type EXCLUDE or RESTORE to confirm the selected action"
+msgstr ""
+
 #: includes/class-cloud-settings-page.php:1993
+msgid "Confirm selected sources"
+msgstr ""
+
+#: includes/class-cloud-settings-page.php:1996
+msgid "Waiting for complete Cloud evidence. Automatic delivery remains suppressed for these sources."
+msgstr ""
+
+#: includes/class-cloud-settings-page.php:2026
 msgid "Knowledge base delivery"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:1997
+#: includes/class-cloud-settings-page.php:2030
 msgid "Last success"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2002
+#: includes/class-cloud-settings-page.php:2035
 msgid "Dropped updates"
 msgstr ""
 
 #. translators: 1: dropped update count, 2: drop time.
-#: includes/class-cloud-settings-page.php:2005
+#: includes/class-cloud-settings-page.php:2038
 #, php-format
 msgid "%1$d (last at %2$s)"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2013
+#: includes/class-cloud-settings-page.php:2046
 msgid "Last error code"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2017
+#: includes/class-cloud-settings-page.php:2050
 msgid "Last error time"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2023
+#: includes/class-cloud-settings-page.php:2056
 msgid "WP-Cron disabled"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2024
+#: includes/class-cloud-settings-page.php:2057
 msgid "yes"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2027
+#: includes/class-cloud-settings-page.php:2060
 msgid "Manual flush command"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2038
+#: includes/class-cloud-settings-page.php:2071
 msgid "Open Knowledge base on Overview"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2068
+#: includes/class-cloud-settings-page.php:2101
 msgid "Credits reset on"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2075
+#: includes/class-cloud-settings-page.php:2108
 msgid "Current credit cycle"
 msgstr ""
 
 #. translators: 1: credit period start, 2: credit period end.
-#: includes/class-cloud-settings-page.php:2078
+#: includes/class-cloud-settings-page.php:2111
 #, php-format
 msgid "%1$s to %2$s"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2087
+#: includes/class-cloud-settings-page.php:2120
 msgid "Run limit"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2088
+#: includes/class-cloud-settings-page.php:2121
 msgid "Text usage limit"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2089
+#: includes/class-cloud-settings-page.php:2122
 msgid "Sites you can connect"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2090
+#: includes/class-cloud-settings-page.php:2123
 msgid "Tasks at the same time"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2091
+#: includes/class-cloud-settings-page.php:2124
 msgid "Items per batch"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2104
+#: includes/class-cloud-settings-page.php:2137
 msgid "Spending limit"
 msgstr ""
 
 #. translators: %s: USD cost limit.
-#: includes/class-cloud-settings-page.php:2107
+#: includes/class-cloud-settings-page.php:2140
 #, php-format
 msgid "%s USD"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2117
+#: includes/class-cloud-settings-page.php:2150
 msgid "AI credits belong to your Npcink Cloud account, not this site."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2133
+#: includes/class-cloud-settings-page.php:2166
 msgid "More limits"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2167
+#: includes/class-cloud-settings-page.php:2200
 msgid "Monitoring upload state"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2185
+#: includes/class-cloud-settings-page.php:2218
 msgid "Collection"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2189
+#: includes/class-cloud-settings-page.php:2222
 msgid "Buffered events"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2193
+#: includes/class-cloud-settings-page.php:2226
 msgid "Last upload status"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2199
+#: includes/class-cloud-settings-page.php:2232
 msgid "never"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2201
-#: includes/class-cloud-settings-page.php:2574
+#: includes/class-cloud-settings-page.php:2234
+#: includes/class-cloud-settings-page.php:2607
 msgid "ok"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2201
+#: includes/class-cloud-settings-page.php:2234
 msgid "failed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2208
+#: includes/class-cloud-settings-page.php:2241
 msgid "Last upload error"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2229
+#: includes/class-cloud-settings-page.php:2262
 msgid "Connection status"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2233
+#: includes/class-cloud-settings-page.php:2266
 msgid "Cloud error classification"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2237
+#: includes/class-cloud-settings-page.php:2270
 msgid "Last failure"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2255
+#: includes/class-cloud-settings-page.php:2288
 msgid "The Cloud connection is not configured yet."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2257
+#: includes/class-cloud-settings-page.php:2290
 msgid "The Cloud connection is healthy."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2259
+#: includes/class-cloud-settings-page.php:2292
 msgid "This site still needs to be activated in Cloud."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2261
+#: includes/class-cloud-settings-page.php:2294
 msgid "Cloud could not be reached or refused the connection."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2263
+#: includes/class-cloud-settings-page.php:2296
 msgid "The Cloud credentials have not been verified yet."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2266
+#: includes/class-cloud-settings-page.php:2299
 msgid "The last Cloud verification did not complete."
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2313
+#: includes/class-cloud-settings-page.php:2346
 msgid "available"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2318
+#: includes/class-cloud-settings-page.php:2351
 msgid "not refreshed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2322
-#: includes/class-cloud-settings-page.php:2568
+#: includes/class-cloud-settings-page.php:2355
+#: includes/class-cloud-settings-page.php:2601
 msgid "not configured"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2326
+#: includes/class-cloud-settings-page.php:2359
 msgid "read failed"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2346
+#: includes/class-cloud-settings-page.php:2379
 msgid "Loading plan and entitlement…"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2355
+#: includes/class-cloud-settings-page.php:2388
 msgid "Available"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2370
+#: includes/class-cloud-settings-page.php:2403
 msgid "Free plan"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2371
+#: includes/class-cloud-settings-page.php:2404
 msgid "Pro plan"
 msgstr ""
 
 #. translators: 1: remaining credits, 2: credit limit, 3: remaining percentage.
-#: includes/class-cloud-settings-page.php:2416
+#: includes/class-cloud-settings-page.php:2449
 #, php-format
 msgid "%1$s / %2$s · %3$d%% remaining"
 msgstr ""
 
 #. translators: %s: credits used this period.
-#: includes/class-cloud-settings-page.php:2426
+#: includes/class-cloud-settings-page.php:2459
 #, php-format
 msgid "This period: %s credits used."
 msgstr ""
 
 #. translators: 1: used credits, 2: remaining credits, 3: credit limit.
-#: includes/class-cloud-settings-page.php:2434
+#: includes/class-cloud-settings-page.php:2467
 #, php-format
 msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
 msgstr ""
 
 #. translators: %s: remaining credits.
-#: includes/class-cloud-settings-page.php:2442
+#: includes/class-cloud-settings-page.php:2475
 #, php-format
 msgid "%s remaining"
 msgstr ""
 
 #. translators: 1: remaining runtime runs, 2: runtime run limit.
-#: includes/class-cloud-settings-page.php:2465
+#: includes/class-cloud-settings-page.php:2498
 #, php-format
 msgid "%1$d of %2$d runs remaining"
 msgstr ""
 
 #. translators: 1: monitoring state, 2: buffered event count.
-#: includes/class-cloud-settings-page.php:2501
+#: includes/class-cloud-settings-page.php:2534
 #, php-format
 msgid "%1$s, %2$d buffered"
 msgstr ""
 
 #. translators: %d: dropped content update count.
-#: includes/class-cloud-settings-page.php:2518
+#: includes/class-cloud-settings-page.php:2551
 #, php-format
 msgid "%d content updates were dropped"
 msgstr ""
 
 #. translators: %s: machine-readable delivery error code.
-#: includes/class-cloud-settings-page.php:2529
+#: includes/class-cloud-settings-page.php:2562
 #, php-format
 msgid "Delivery error: %s"
 msgstr ""
 
 #. translators: %d: buffered public change count.
-#: includes/class-cloud-settings-page.php:2546
+#: includes/class-cloud-settings-page.php:2579
 #, php-format
 msgid "%d public changes awaiting delivery"
 msgstr ""
 
 #. translators: 1: bridge status, 2: buffered public change count.
-#: includes/class-cloud-settings-page.php:2553
+#: includes/class-cloud-settings-page.php:2586
 #, php-format
 msgid "%1$s, %2$d public changes buffered"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2567
+#: includes/class-cloud-settings-page.php:2600
 msgid "idle"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2569
+#: includes/class-cloud-settings-page.php:2602
 msgid "unverified"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2571
+#: includes/class-cloud-settings-page.php:2604
 msgid "error"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2572
+#: includes/class-cloud-settings-page.php:2605
 msgid "pending"
 msgstr ""
 
-#: includes/class-cloud-settings-page.php:2573
+#: includes/class-cloud-settings-page.php:2606
 msgid "queued"
 msgstr ""
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:29
-#: includes/class-cloud-site-knowledge-change-bridge.php:427
-#: includes/class-cloud-site-knowledge-change-bridge.php:451
+#: includes/class-cloud-site-knowledge-change-bridge.php:433
+#: includes/class-cloud-site-knowledge-change-bridge.php:460
 msgid "Site Knowledge delivery is disabled locally."
 msgstr ""
 
@@ -2726,191 +2762,224 @@ msgstr ""
 msgid "Site Knowledge refresh requested. Public content items sent: %d."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:121
+#: includes/class-cloud-site-knowledge-admin-actions.php:120
 msgid "Choose a valid published article to refresh."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:132
+#: includes/class-cloud-site-knowledge-admin-actions.php:131
 msgid "Article refresh requested. Check its index status again after Cloud finishes processing."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:150
-#: includes/class-cloud-site-knowledge-change-bridge.php:500
+#: includes/class-cloud-site-knowledge-admin-actions.php:149
+#: includes/class-cloud-site-knowledge-change-bridge.php:509
 msgid "The requested Site Knowledge index action is not supported."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:153
+#: includes/class-cloud-site-knowledge-admin-actions.php:152
 msgid "Type the confirmation word before running this Site Knowledge index action."
 msgstr ""
 
 #. translators: 1: public content item count, 2: bounded delivery batch count.
-#: includes/class-cloud-site-knowledge-admin-actions.php:168
+#: includes/class-cloud-site-knowledge-admin-actions.php:167
 #, php-format
 msgid "Site Knowledge indexing delivery scheduled: %1$d public content items in %2$d batches."
 msgstr ""
 
 #. translators: 1: public content item count, 2: bounded delivery batch count.
-#: includes/class-cloud-site-knowledge-admin-actions.php:177
+#: includes/class-cloud-site-knowledge-admin-actions.php:176
 #, php-format
 msgid "Site Knowledge rebuild delivery scheduled: %1$d public content items in %2$d batches."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:184
+#: includes/class-cloud-site-knowledge-admin-actions.php:183
 msgid "Site Knowledge index deletion requested. WordPress content was not changed."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:190
+#: includes/class-cloud-site-knowledge-admin-actions.php:189
 msgid "Site Knowledge index action requested."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:31
+#: includes/class-cloud-site-knowledge-admin-actions.php:203
+msgid "Confirm the selected sources and current site before continuing."
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-admin-actions.php:207
+#: includes/class-cloud-site-knowledge-admin-actions.php:212
+msgid "Select between 1 and 100 public sources."
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-admin-actions.php:220
+msgid "Request saved. Sources stay excluded from automatic delivery while Cloud evidence is checked."
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-admin-projection.php:24
+msgid "Checking removal"
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-admin-projection.php:25
+msgid "Excluded"
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-admin-projection.php:26
+msgid "Checking restore"
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-admin-projection.php:28
+msgid "Automatic delivery"
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-admin-projection.php:41
 msgid "Verify the Cloud connection before reading Site Knowledge usage."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:33
+#: includes/class-cloud-site-knowledge-admin-projection.php:43
 msgid "A Site Knowledge usage refresh is already running. Wait briefly, then retry."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:34
+#: includes/class-cloud-site-knowledge-admin-projection.php:44
 msgid "Cloud did not return complete Site Knowledge usage. Check this site in Cloud and report the validation time."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:36
+#: includes/class-cloud-site-knowledge-admin-projection.php:46
 msgid "Site Knowledge usage could not be read. Check the Cloud connection and this site in Cloud before retrying."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:52
+#: includes/class-cloud-site-knowledge-admin-projection.php:62
 msgid "Indexed chunks"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:53
+#: includes/class-cloud-site-knowledge-admin-projection.php:63
 msgid "Per-sync limit"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:54
+#: includes/class-cloud-site-knowledge-admin-projection.php:64
 msgid "Truncated documents"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:55
+#: includes/class-cloud-site-knowledge-admin-projection.php:65
 msgid "Skipped documents"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:56
+#: includes/class-cloud-site-knowledge-admin-projection.php:66
 msgid "Last Cloud sync"
 msgstr ""
 
 #. translators: 1: indexed documents, 2: remaining documents, 3: document limit.
-#: includes/class-cloud-site-knowledge-admin-projection.php:81
+#: includes/class-cloud-site-knowledge-admin-projection.php:91
 #, php-format
 msgid "Indexed %1$s documents; remaining %2$s documents; limit %3$s documents."
 msgstr ""
 
 #. translators: 1: per-sync document limit, 2: per-sync chunk limit.
-#: includes/class-cloud-site-knowledge-admin-projection.php:110
+#: includes/class-cloud-site-knowledge-admin-projection.php:120
 #, php-format
 msgid "%1$s documents / %2$s chunks"
 msgstr ""
 
 #. translators: 1: skipped documents, 2: documents skipped due to quota.
-#: includes/class-cloud-site-knowledge-admin-projection.php:121
+#: includes/class-cloud-site-knowledge-admin-projection.php:131
 #, php-format
 msgid "%1$s skipped / %2$s due to quota"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:144
+#: includes/class-cloud-site-knowledge-admin-projection.php:154
 msgid "Passed automatically"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:145
+#: includes/class-cloud-site-knowledge-admin-projection.php:155
 msgid "Expected document was not matched"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:146
+#: includes/class-cloud-site-knowledge-admin-projection.php:156
 msgid "Automatic retrieval failed"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:147
+#: includes/class-cloud-site-knowledge-admin-projection.php:157
 msgid "No public document is available for validation"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:148
+#: includes/class-cloud-site-knowledge-admin-projection.php:158
 msgid "Waiting for automatic validation"
 msgstr ""
 
 #. translators: %s: formatted date and time of the last Site Knowledge verification.
-#: includes/class-cloud-site-knowledge-admin-projection.php:161
+#: includes/class-cloud-site-knowledge-admin-projection.php:171
 #, php-format
 msgid "Last verified: %s"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:432
+#: includes/class-cloud-site-knowledge-change-bridge.php:438
 msgid "Only published posts and pages can be refreshed in Site Knowledge."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:508
+#: includes/class-cloud-site-knowledge-change-bridge.php:517
 msgid "Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:517
-#: includes/class-cloud-site-knowledge-change-bridge.php:537
-#: includes/class-cloud-site-knowledge-change-bridge.php:578
+#: includes/class-cloud-site-knowledge-change-bridge.php:526
+#: includes/class-cloud-site-knowledge-change-bridge.php:546
+#: includes/class-cloud-site-knowledge-change-bridge.php:589
 msgid "A Site Knowledge full-index delivery is already in progress."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:558
+#: includes/class-cloud-site-knowledge-change-bridge.php:568
 msgid "No public posts or pages were found for Site Knowledge indexing."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:685
+#: includes/class-cloud-site-knowledge-change-bridge.php:698
 msgid "Site Knowledge delete cleanup is waiting for a local retry."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:693
+#: includes/class-cloud-site-knowledge-change-bridge.php:706
 msgid "Site Knowledge full-index delivery is blocked after bounded retries."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:733
-#: includes/class-cloud-site-knowledge-change-bridge.php:802
+#: includes/class-cloud-site-knowledge-change-bridge.php:747
+#: includes/class-cloud-site-knowledge-change-bridge.php:817
 msgid "Cloud Site Knowledge run identifier is invalid."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:748
+#: includes/class-cloud-site-knowledge-change-bridge.php:762
 msgid "Cloud Site Knowledge run did not finish within the bounded polling window."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:765
+#: includes/class-cloud-site-knowledge-change-bridge.php:779
 msgid "Cloud Site Knowledge maintenance run failed."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1127
+#: includes/class-cloud-site-knowledge-change-bridge.php:1149
 msgid "Site Knowledge sync mode must be refresh, rebuild, or delete."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:557
+#: includes/class-cloud-site-knowledge-change-bridge.php:1754
+msgid "Site Knowledge needs verification before this request can continue."
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:668
 msgid "Site Knowledge runtime requests require a supported ability and contract pair."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:566
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:677
 msgid "Site Knowledge runtime requests require the expected execution pattern."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:579
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:690
 msgid "Site Knowledge runtime requests must be suggestion-only and no-write."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:590
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:701
 msgid "Site Knowledge sync transport only accepts public refresh requests. Rebuild, delete, and collection lifecycle operations belong in Cloud Site Knowledge."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:599
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:710
 msgid "Site Knowledge runtime requests must not include credentials or signing fields."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:617
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:728
 msgid "Site Knowledge runtime payload could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:624
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:735
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr ""
 

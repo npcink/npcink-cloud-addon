@@ -861,7 +861,7 @@ maca_assert(
 		&& false === strpos( $site_knowledge_rendered, 'Knowledge base status' )
 		&& false !== strpos( $site_knowledge_rendered, '<h2 id="npcink-cloud-site-knowledge-status-title">Knowledge base' )
 		&& false !== strpos( $site_knowledge_rendered, 'Open Npcink Cloud' )
-		&& false !== strpos( $site_knowledge_rendered, '>Sync<' )
+		&& false === strpos( $site_knowledge_rendered, '>Sync<' )
 		&& false !== strpos( $site_knowledge_rendered, 'npcink-cloud-site-knowledge-heading__title' )
 		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-site-knowledge-summary__status' )
 		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-info-hint' )
@@ -890,7 +890,19 @@ maca_assert(
 		&& false === strpos( $site_knowledge_rendered, 'View recognition details' )
 		&& false === strpos( $site_knowledge_rendered, 'npcink-cloud-inline-info' )
 		&& $http_before_site_knowledge === count( $GLOBALS['maca_http_requests'] ),
-	'Behavior: healthy Site Knowledge keeps maintenance and Cloud links, removes the duplicate Settings link, and hides manual recovery without Cloud HTTP.'
+	'Behavior: healthy Site Knowledge keeps Cloud detail, hides Sync and manual recovery, with zero Cloud HTTP.'
+);
+
+maca_assert(
+	false !== strpos( $site_knowledge_rendered, '<details class="npcink-cloud-disclosure">' )
+	&& false !== strpos( $site_knowledge_rendered, '<summary>Choose knowledge sources</summary>' )
+	&& false === strpos( $site_knowledge_rendered, '<details class="npcink-cloud-disclosure" open' )
+	&& false !== strpos( $site_knowledge_rendered, 'name="site_knowledge_scope"' )
+	&& false !== strpos( $site_knowledge_rendered, 'name="site_knowledge_confirmation"' )
+	&& false !== strpos( $site_knowledge_rendered, 'name="_wpnonce"' )
+	&& false !== strpos( $site_knowledge_rendered, 'class="button button-secondary">Confirm selected sources' )
+	&& $http_before_site_knowledge === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: bounded source utility is collapsed, scoped, nonce-protected and secondary with zero render HTTP.'
 );
 
 $status_cache_key = 'npcink_cloud_site_knowledge_status_' . md5(
@@ -1181,7 +1193,7 @@ maca_assert(
 	'' === trim( $healthy_fragments['connection'] )
 	&& false !== strpos( $healthy_fragments['knowledge'], 'Up to date' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'All public content is up to date' )
-	&& false !== strpos( $healthy_fragments['knowledge'], '>Sync<' )
+	&& false === strpos( $healthy_fragments['knowledge'], '>Sync<' )
 	&& false !== strpos( $healthy_fragments['knowledge'], 'Open Npcink Cloud' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'Update again' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'npcink-cloud-info-hint' )

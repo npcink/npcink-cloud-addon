@@ -1845,7 +1845,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			// Blocked / failed attention still offers Sync; only active delivery shows Syncing.
 			$sync_busy = $recovery_in_progress
 				|| ( $update_in_progress && ! $local_delivery_needs_attention && ! $capacity_needs_attention );
-			$show_sync_action = $delivery_enabled && ! $show_start_indexing;
+			$show_sync_action = $delivery_enabled && ! $show_start_indexing && ( $local_delivery_needs_attention || $capacity_needs_attention || $sync_busy );
 			?>
 			<section id="npcink-cloud-site-knowledge" class="npcink-cloud-site-knowledge-summary" aria-labelledby="npcink-cloud-site-knowledge-status-title">
 						<div class="npcink-cloud-section-heading npcink-cloud-site-knowledge-heading npcink-cloud-section-title">
@@ -1953,6 +1953,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 						<p hidden data-npcink-site-knowledge-read-status role="status"></p>
 						<button hidden type="button" class="button button-secondary npcink-cloud-icon-button" data-npcink-site-knowledge-status-retry aria-label="<?php echo esc_attr__( 'Retry', 'npcink-cloud-addon' ); ?>" title="<?php echo esc_attr__( 'Retry', 'npcink-cloud-addon' ); ?>"><span class="dashicons dashicons-update" aria-hidden="true"></span></button>
 					</section>
+				<?php self::render_source_delivery_utility(); ?>
 				<?php if ( ! $delivery_enabled ) : ?>
 					<p class="description npcink-cloud-site-knowledge-disabled-note"><?php esc_html_e( 'Site Knowledge is off.', 'npcink-cloud-addon' ); ?></p>
 						<?php if ( $local_delivery_needs_attention ) : ?>
@@ -1964,6 +1965,38 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 					?>
 					<span hidden data-npcink-site-knowledge-refresh data-npcink-site-knowledge-state="<?php echo esc_attr( (string) ( $cloud_usage['state'] ?? 'not_refreshed' ) ); ?>"></span>
 		<?php
+		}
+
+		/** Bounded server POST, closed by default; no render-time Cloud HTTP. */
+		private static function render_source_delivery_utility(): void {
+			if ( ! current_user_can( 'manage_options' ) ) { return; }
+			$summary = Npcink_Cloud_Site_Knowledge_Change_Bridge::source_lifecycle_summary();
+			$candidates = Npcink_Cloud_Site_Knowledge_Change_Bridge::selection_candidates();
+			?>
+			<details class="npcink-cloud-disclosure">
+				<summary><?php esc_html_e( 'Choose knowledge sources', 'npcink-cloud-addon' ); ?></summary>
+				<p><?php esc_html_e( 'Exclude selected sources from Cloud and automatic delivery, or explicitly restore excluded sources. WordPress content and files stay unchanged.', 'npcink-cloud-addon' ); ?></p>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( Npcink_Cloud_Settings_Actions::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>
+					<input type="hidden" name="action" value="<?php echo esc_attr( Npcink_Cloud_Settings_Actions::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX ); ?>" />
+					<input type="hidden" name="site_knowledge_scope" value="<?php echo esc_attr( Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope() ); ?>" />
+					<fieldset><legend><?php esc_html_e( 'Select up to 100 sources', 'npcink-cloud-addon' ); ?></legend>
+					<?php foreach ( $candidates as $key => $item ) : ?>
+						<p><label><input type="checkbox" name="site_knowledge_sources[]" value="<?php echo esc_attr( $key ); ?>" <?php disabled( in_array( $item['state'], array( 'pending_delete', 'restore_pending' ), true ) ); ?> />
+						<?php echo esc_html( $item['title'] . ' · ' . $item['source_type'] . ' · ' . Npcink_Cloud_Site_Knowledge_Admin_Projection::source_state_label( $item['state'] ) ); ?></label></p>
+					<?php endforeach; ?>
+					</fieldset>
+					<p><label><?php esc_html_e( 'Action', 'npcink-cloud-addon' ); ?>
+						<select name="site_knowledge_index_action"><option value="exclude"><?php esc_html_e( 'Exclude selected sources', 'npcink-cloud-addon' ); ?></option><option value="restore"><?php esc_html_e( 'Restore selected sources', 'npcink-cloud-addon' ); ?></option></select>
+					</label></p>
+					<p><label><?php esc_html_e( 'Type EXCLUDE or RESTORE to confirm the selected action', 'npcink-cloud-addon' ); ?> <input name="site_knowledge_confirmation" type="text" autocomplete="off" required /></label></p>
+					<button type="submit" class="button button-secondary"><?php esc_html_e( 'Confirm selected sources', 'npcink-cloud-addon' ); ?></button>
+				</form>
+				<?php foreach ( $summary['operations'] as $operation ) : ?>
+					<?php if ( ! empty( $operation['reason'] ) ) : ?><p role="status"><?php esc_html_e( 'Waiting for complete Cloud evidence. Automatic delivery remains suppressed for these sources.', 'npcink-cloud-addon' ); ?></p><?php endif; ?>
+				<?php endforeach; ?>
+			</details>
+			<?php
 		}
 
 		/** Renders the recovery-only full knowledge base update action. */

@@ -150,7 +150,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 			$trace_id = 'trace_site_knowledge_toolbox_' . $operation_id;
 			$idempotency_key = 'site_knowledge_' . str_replace( '.', '_', $contract_version ) . '_' . $operation_id;
 
-			$result = $client->execute_runtime( $payload, $trace_id, $idempotency_key );
+			$result = 'site_knowledge_sync.v1' === $contract_version
+				? Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload )
+				: $client->execute_runtime( $payload, $trace_id, $idempotency_key );
 			if ( is_wp_error( $result ) || ! is_array( $result ) ) {
 				return $result;
 			}
@@ -540,6 +542,115 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		private static function is_site_knowledge_request( string $ability_name, string $contract_version ): bool {
 			return isset( self::ALLOWED_CONTRACTS[ $ability_name ] )
 				&& self::ALLOWED_CONTRACTS[ $ability_name ] === $contract_version;
+		}
+
+		/** Fresh, selector-complete SQL evidence; never consult the summary transient. */
+		public static function read_source_presence( array $items ) {
+			$items = Npcink_Cloud_Site_Knowledge_Change_Bridge::normalize_source_selection( $items );
+			if ( is_wp_error( $items ) ) {
+				return $items;
+			}
+			$result = self::dispatch_runtime( array(
+				'ability_name' => 'npcink-cloud/site-knowledge-status',
+				'contract_version' => 'site_knowledge_status.v1',
+				'execution_pattern' => 'inline',
+				'input' => array( 'contract_version' => 'site_knowledge_status.v1', 'source_items' => $items, 'write_posture' => 'suggestion_only', 'direct_wordpress_write' => false ),
+				'timeout_seconds' => 20, 'retry_max' => 0,
+			), 'npcink-cloud/site-knowledge-status', 'site_knowledge_status.v1' );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			$source = self::runtime_result_payload( $result );
+			$presence = $source['source_presence'] ?? array();
+			if ( 'complete' !== ( $presence['status'] ?? '' ) || 'relational_index' !== ( $presence['storage_scope'] ?? '' ) || count( $items ) !== ( $presence['requested_count'] ?? null ) || ! is_string( $presence['observed_at'] ?? null ) || false === strtotime( $presence['observed_at'] ) || abs( time() - (int) strtotime( $presence['observed_at'] ) ) > 300 || ! is_array( $presence['items'] ?? null ) || count( $presence['items'] ) !== count( $items ) ) {
+				return new WP_Error( 'cloud_site_knowledge_presence_incomplete' );
+			}
+			$expected = array();
+			foreach ( $items as $item ) {
+				$expected[ $item['source_type'] . ':' . $item['source_id'] ] = true;
+			}
+			$rows = array();
+			foreach ( $presence['items'] as $row ) {
+				if ( ! is_array( $row ) || ! is_string( $row['source_type'] ?? null ) || ! is_int( $row['source_id'] ?? null ) ) {
+					return new WP_Error( 'cloud_site_knowledge_presence_incomplete' );
+				}
+				$key = $row['source_type'] . ':' . $row['source_id'];
+				if ( ! isset( $expected[ $key ] ) || isset( $rows[ $key ] ) || ! is_bool( $row['document_present'] ?? null ) || ! is_bool( $row['public_document_present'] ?? null ) ) {
+					return new WP_Error( 'cloud_site_knowledge_presence_incomplete' );
+				}
+				foreach ( array( 'stored_chunk_count', 'public_chunk_count', 'associated_comment_document_count', 'associated_comment_stored_chunk_count' ) as $field ) {
+					if ( ! is_int( $row[ $field ] ?? null ) || $row[ $field ] < 0 ) {
+						return new WP_Error( 'cloud_site_knowledge_presence_incomplete' );
+					}
+				}
+				if ( ( $row['public_document_present'] && ! $row['document_present'] ) || $row['public_chunk_count'] > $row['stored_chunk_count'] || ( $row['public_chunk_count'] > 0 && ! $row['public_document_present'] ) || ( 'media' === $row['source_type'] && ( $row['associated_comment_document_count'] > 0 || $row['associated_comment_stored_chunk_count'] > 0 ) ) ) {
+					return new WP_Error( 'cloud_site_knowledge_presence_inconsistent' );
+				}
+				$rows[ $key ] = array_intersect_key( $row, array_flip( array( 'source_type', 'source_id', 'document_present', 'public_document_present', 'stored_chunk_count', 'public_chunk_count', 'associated_comment_document_count', 'associated_comment_stored_chunk_count' ) ) );
+			}
+			return array( 'items' => $rows, 'observed_at' => $presence['observed_at'], 'comments_enabled' => $source['comments_enabled'] ?? null );
+		}
+
+		/** Cloud66 executor markers plus exact identity and explicit failure provenance. */
+		public static function read_writer_witness( array $entry ) {
+			$id = $entry['run_id'] ?? '';
+			if ( ! is_string( $id ) || ! preg_match( '/\A[A-Za-z0-9._:-]+\z/', $id ) ) {
+				return new WP_Error( 'cloud_site_knowledge_writer_identity_unknown' );
+			}
+			$client = new Npcink_Cloud_Runtime_Client();
+			$response = $client->get_run( $id, 'trace_site_knowledge_witness_' . wp_generate_uuid4() );
+			if ( is_wp_error( $response ) || ! is_array( $response ) ) {
+				return new WP_Error( 'cloud_site_knowledge_writer_unknown' );
+			}
+			$run = $response['data']['run'] ?? $response['data'] ?? $response;
+			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			if ( ! is_array( $run ) || $id !== ( $run['run_id'] ?? '' ) || ( $settings['site_id'] ?? '' ) !== ( $run['site_id'] ?? '' ) || 'npcink-cloud/site-knowledge-sync' !== ( $run['ability_name'] ?? '' ) || 'site_knowledge_sync.v1' !== ( $run['contract_version'] ?? '' ) || $entry['key'] !== ( $run['idempotency_key'] ?? '' ) || 'knowledge' !== ( $run['execution_kind'] ?? '' ) || 'site_knowledge' !== ( $run['provider_id'] ?? '' ) || 'site-knowledge-managed' !== ( $run['model_id'] ?? '' ) || 'cloud-runtime' !== ( $run['instance_id'] ?? '' ) || empty( $run['finished_at'] ) || false === strtotime( (string) $run['finished_at'] ) ) {
+				return new WP_Error( 'cloud_site_knowledge_writer_unknown' );
+			}
+			$status = $run['status'] ?? '';
+			$error = $run['error_code'] ?? '';
+			// These are emitted only by SiteKnowledgeService contract/backend raises
+			// caught after execute unwinds in Cloud66 _execute_site_knowledge_run.
+			$normal_failure = in_array( $error, array(
+				'site_knowledge.source_items_invalid', 'site_knowledge.source_identity_conflict',
+				'site_knowledge.source_selector_conflict', 'site_knowledge.zilliz_probe_failed',
+				'site_knowledge.zilliz_delete_failed', 'site_knowledge.zilliz_upsert_failed',
+				'site_knowledge.embedding_provider_missing', 'site_knowledge.embedding_budget_context_missing', 'site_knowledge.embedding_invalid',
+				'site_knowledge.embedding_dimension_mismatch',
+			), true );
+			if ( 'succeeded' === $status && '' === $error ) {
+				return array( 'run_id' => $id, 'status' => $status, 'succeeded' => true );
+			}
+			if ( 'failed' === $status && $normal_failure ) {
+				return array( 'run_id' => $id, 'status' => $status, 'succeeded' => false, 'error_code' => $error );
+			}
+			return new WP_Error( 'cloud_site_knowledge_writer_unknown' );
+		}
+
+		/** A terminal run may still report skipped/failed items: require every approved input. */
+		public static function read_restore_result( string $run_id, array $payload ) {
+			$client = new Npcink_Cloud_Runtime_Client();
+			$response = $client->get_run_result( $run_id, 'trace_site_knowledge_restore_' . wp_generate_uuid4() );
+			if ( is_wp_error( $response ) || ! is_array( $response ) ) {
+				return new WP_Error( 'cloud_site_knowledge_restore_result_unknown' );
+			}
+			$data = $response['data'] ?? $response;
+			$result = $data['result'] ?? array();
+			$sync = $result['sync'] ?? array();
+			if ( $run_id !== ( $data['run_id'] ?? '' ) || 'succeeded' !== ( $data['status'] ?? '' ) || $run_id !== ( $result['run_id'] ?? '' ) || 'site_knowledge_sync.v1' !== ( $result['contract_version'] ?? '' ) || 'completed' !== ( $result['status'] ?? '' ) || 'refresh' !== ( $sync['sync_mode'] ?? '' ) ) {
+				return new WP_Error( 'cloud_site_knowledge_restore_result_unknown' );
+			}
+			foreach ( array( 'accepted_documents', 'indexed_documents', 'unchanged_documents', 'failed_documents', 'skipped_documents', 'skipped_due_to_quota' ) as $field ) {
+				if ( ! is_int( $sync[ $field ] ?? null ) || $sync[ $field ] < 0 ) {
+					return new WP_Error( 'cloud_site_knowledge_restore_result_unknown' );
+				}
+			}
+			$input = $payload['input'];
+			$expected = count( $input['documents'] ?? array() ) + count( $input['comments'] ?? array() ) + count( $input['media_items'] ?? array() );
+			if ( $expected < 1 || $expected !== $sync['accepted_documents'] || $expected !== $sync['indexed_documents'] + $sync['unchanged_documents'] || $sync['failed_documents'] || $sync['skipped_documents'] || $sync['skipped_due_to_quota'] ) {
+				return new WP_Error( 'cloud_site_knowledge_restore_incomplete' );
+			}
+			return true;
 		}
 
 		/**

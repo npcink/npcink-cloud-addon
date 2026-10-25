@@ -472,9 +472,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			check_admin_referer( self::ACTION_MANAGE_SITE_KNOWLEDGE_INDEX );
 
-			$operation = isset( $_POST['site_knowledge_index_action'] ) ? sanitize_key( wp_unslash( $_POST['site_knowledge_index_action'] ) ) : '';
-			$confirmation = isset( $_POST['site_knowledge_confirmation'] ) ? sanitize_text_field( wp_unslash( $_POST['site_knowledge_confirmation'] ) ) : '';
-			$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::request_index_operation( $operation, $confirmation );
+			$operation = isset( $_POST['site_knowledge_index_action'] ) && is_string( $_POST['site_knowledge_index_action'] ) ? sanitize_key( wp_unslash( $_POST['site_knowledge_index_action'] ) ) : '';
+			$confirmation = isset( $_POST['site_knowledge_confirmation'] ) && is_string( $_POST['site_knowledge_confirmation'] ) ? sanitize_text_field( wp_unslash( $_POST['site_knowledge_confirmation'] ) ) : '';
+			$result = in_array( $operation, array( 'exclude', 'restore' ), true ) ? Npcink_Cloud_Site_Knowledge_Admin_Actions::handle_index_request( wp_unslash( $_POST ) ) : Npcink_Cloud_Site_Knowledge_Admin_Actions::request_index_operation( $operation, $confirmation );
 			self::set_admin_notice( ! empty( $result['ok'] ) ? 'info' : 'error', (string) $result['message'] );
 			self::redirect_to_page( 'permissions' );
 		}

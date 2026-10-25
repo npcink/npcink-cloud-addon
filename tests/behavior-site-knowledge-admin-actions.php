@@ -13,6 +13,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 	/** Controlled bridge double; real transport behavior has separate coverage. */
 	final class Npcink_Cloud_Site_Knowledge_Change_Bridge {
 		public static int $buffer_calls = 0;
+		public static array $source_calls = array();
 		public static int $flush_calls = 0;
 		public static array $index_calls = array();
 		public static array $article_calls = array();
@@ -21,6 +22,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		public static $index_result = array();
 		public static $article_result = array();
 		public static bool $reschedule_result = false;
+
+		public static function lifecycle_scope(): string { return str_repeat( 'a', 64 ); }
+		public static function request_source_operation( string $action, $items ) {
+			self::$source_calls[] = array( $action, $items );
+			return array( 'selected_count' => count( $items ) );
+		}
 
 		public static function buffer_recent_public_content(): void {
 			self::$buffer_calls++;
@@ -301,3 +308,24 @@ maca_assert(
 	&& 'A delivery is already in progress.' === $bridge_error['message'],
 	'Behavior: index action WP_Error preserves the bridge message and source error code.'
 );
+
+
+maca_reset_site_knowledge_admin_actions();
+$strict_request = array( 'site_knowledge_index_action' => 'exclude', 'site_knowledge_confirmation' => 'EXCLUDE', 'site_knowledge_scope' => Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope(), 'site_knowledge_sources' => array( 'post:42', 'page:43', 'media:501' ) );
+foreach ( array(
+	array( 'site_knowledge_scope' => 'wrong' ),
+	array( 'site_knowledge_scope' => array() ),
+	array( 'site_knowledge_confirmation' => 'exclude' ),
+	array( 'site_knowledge_sources' => array() ),
+	array( 'site_knowledge_sources' => array( 'post:-42' ) ),
+	array( 'site_knowledge_sources' => array( 'media:0' ) ),
+	array( 'site_knowledge_sources' => array( 'post:042' ) ),
+	array( 'site_knowledge_sources' => array( 'post:42:site_other' ) ),
+	array( 'site_knowledge_sources' => array( 'text:42' ) ),
+	array( 'site_knowledge_sources' => array_fill( 0, 101, 'post:42' ) ),
+) as $bad ) {
+	$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::handle_index_request( array_replace( $strict_request, $bad ) );
+	maca_assert( maca_has_site_knowledge_admin_result_shape( $result ) && ! $result['ok'] && ! Npcink_Cloud_Site_Knowledge_Change_Bridge::$source_calls && ! $GLOBALS['maca_http_requests'], 'Typed administrator request rejects malformed scope/selection/confirmation before bridge or HTTP.' );
+}
+$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::handle_index_request( $strict_request );
+maca_assert( $result['ok'] && 3 === $result['selected_count'] && array( array( 'source_type' => 'post', 'source_id' => 42 ), array( 'source_type' => 'page', 'source_id' => 43 ), array( 'source_type' => 'media', 'source_id' => 501 ) ) === Npcink_Cloud_Site_Knowledge_Change_Bridge::$source_calls[0][1] && ! $GLOBALS['maca_http_requests'], 'Typed administrator parser preserves true post/page/media identities in the bounded saved intent, without dispatch.' );
