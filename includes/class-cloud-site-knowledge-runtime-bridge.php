@@ -588,7 +588,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				}
 				$rows[ $key ] = array_intersect_key( $row, array_flip( array( 'source_type', 'source_id', 'document_present', 'public_document_present', 'stored_chunk_count', 'public_chunk_count', 'associated_comment_document_count', 'associated_comment_stored_chunk_count' ) ) );
 			}
-			return array( 'items' => $rows, 'observed_at' => $presence['observed_at'], 'comments_enabled' => $source['comments_enabled'] ?? null );
+			return array( 'items' => $rows, 'observed_at' => $presence['observed_at'], 'comments_enabled' => is_array( $source['coverage'] ?? null ) && is_bool( $source['coverage']['comments_enabled'] ?? null ) ? $source['coverage']['comments_enabled'] : null );
 		}
 
 		/** Cloud66 executor markers plus exact identity and explicit failure provenance. */

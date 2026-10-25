@@ -67,6 +67,7 @@ final class TypedCloudFixture {
 	public bool $malformed_presence = false;
 	public bool $restore_empty = false;
 	public bool $comments_enabled = false;
+	public $status_result_filter = null;
 	public int $delete_calls = 0;
 	public int $replays = 0;
 	public $during_send = null;
@@ -89,7 +90,9 @@ final class TypedCloudFixture {
 				$associated = 'media' === $item['source_type'] ? 0 : count( array_filter( $this->comment_parents, static function ( $parent ) use ( $item ) { return $parent === $item['source_id']; } ) );
 				$rows[] = array_merge( $item, array( 'document_present' => $present, 'stored_chunk_count' => $present ? 1 : 0, 'public_document_present' => $present, 'public_chunk_count' => $present ? 1 : 0, 'associated_comment_document_count' => $associated, 'associated_comment_stored_chunk_count' => $associated ) );
 			}
-			return $this->response( array( 'result' => array( 'contract_version' => 'site_knowledge_status.v1', 'comments_enabled' => $this->comments_enabled, 'source_presence' => array( 'status' => 'complete', 'storage_scope' => 'relational_index', 'observed_at' => gmdate( 'c' ), 'requested_count' => count( $rows ), 'items' => $this->malformed_presence ? array() : $rows ) ) ) );
+			$result = array( 'contract_version' => 'site_knowledge_status.v1', 'coverage' => array( 'comments_enabled' => $this->comments_enabled ), 'source_presence' => array( 'status' => 'complete', 'storage_scope' => 'relational_index', 'observed_at' => gmdate( 'c' ), 'requested_count' => count( $rows ), 'items' => $this->malformed_presence ? array() : $rows ) );
+			if ( $this->status_result_filter ) { $result = call_user_func( $this->status_result_filter, $result ); }
+			return $this->response( array( 'run_id' => 'typed-status-run', 'status' => 'succeeded', 'result' => $result ) );
 		}
 		$key = $args['headers']['Idempotency-Key'] ?? '';
 		maca_assert( '' !== $key, 'Typed fixture receives the signed transport idempotency header.' );
@@ -144,6 +147,39 @@ function typed_image( int $id = 501, int $parent = 42 ): void {
 	$post = $GLOBALS['maca_posts'][ $id ]; $post->post_status = 'inherit'; $post->post_parent = $parent; $post->post_mime_type = 'image/jpeg';
 	$GLOBALS['typed_media_urls'][ $id ] = 'https://example.test/image-' . $id . '.jpg';
 	$GLOBALS['typed_media_alt'][ $id ] = 'A public landscape';
+}
+
+// Cloud821 and the real restore-comments-contract receipt place this bool in data.result.coverage.
+foreach ( array( false, true ) as $comments_enabled ) {
+	$cloud = typed_reset(); $cloud->comments_enabled = $comments_enabled;
+	$cloud->status_result_filter = static function ( array $result ) use ( $comments_enabled ): array {
+		$result['comments_enabled'] = ! $comments_enabled; // A misplaced legacy field must not override coverage.
+		return $result;
+	};
+	$presence = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_source_presence( typed_selection() );
+	maca_assert( ! is_wp_error( $presence ) && $comments_enabled === $presence['comments_enabled'], 'Coverage contract: fresh presence reads the exact bool from data.result.coverage, ignoring a conflicting top-level field.' );
+}
+$cloud = typed_reset(); maca_add_public_post_fixture( 42 ); typed_image(); $cloud->comments_enabled = true;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'exclude', typed_selection( 'media', 501 ) ); typed_tick( 5 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'restore', typed_selection( 'media', 501 ) ); typed_tick( 7 );
+$input = end( $cloud->mutations )['input'];
+maca_assert( ! isset( typed_scope()['sources']['media:501'] ) && isset( $cloud->sources['media:501'] ) && 501 === $input['media_items'][0]['attachment_id'] && empty( $input['documents'] ) && empty( $input['comments'] ), 'Coverage contract: comments-enabled Cloud envelope allows explicit media restore to finish using media_items only.' );
+
+foreach ( array( 'missing_coverage', 'missing_flag', 'root_only', 'scalar_coverage', 'null', 'zero', 'one', 'string_true', 'string_false', 'array' ) as $fault ) {
+	$cloud = typed_reset(); maca_add_public_post_fixture( 42 );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'exclude', typed_selection() ); typed_tick( 5 );
+	$cloud->status_result_filter = static function ( array $result ) use ( $fault ): array {
+		if ( 'missing_coverage' === $fault || 'root_only' === $fault ) { unset( $result['coverage'] ); }
+		elseif ( 'missing_flag' === $fault ) { $result['coverage'] = array(); }
+		elseif ( 'scalar_coverage' === $fault ) { $result['coverage'] = 'invalid'; }
+		else { $values = array( 'null' => null, 'zero' => 0, 'one' => 1, 'string_true' => 'true', 'string_false' => 'false', 'array' => array() ); $result['coverage']['comments_enabled'] = $values[ $fault ]; }
+		if ( 'root_only' === $fault ) { $result['comments_enabled'] = true; }
+		return $result;
+	};
+	$mutations = count( $cloud->mutations );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'restore', typed_selection() ); typed_tick( 3 );
+	$operation = end( typed_scope()['operations'] );
+	maca_assert( 'restore_pending' === typed_scope()['sources']['post:42']['state'] && 'cloud_site_knowledge_comments_configuration_unknown' === $operation['reason'] && count( $cloud->mutations ) === $mutations, 'Coverage contract: ' . $fault . ' remains unknown and blocks restore without defaulting false or dispatching.' );
 }
 
 $cloud = typed_reset(); maca_add_public_post_fixture( 42 );
