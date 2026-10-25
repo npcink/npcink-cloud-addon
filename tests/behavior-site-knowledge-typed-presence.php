@@ -547,3 +547,84 @@ maca_assert( 2 === count( $cloud->mutations ) && $GLOBALS['typed_media_alt'][501
 $GLOBALS['typed_meta_cache_enabled'] = false;
 $GLOBALS['typed_meta_cache'] = array();
 unset( $GLOBALS['wpdb'] );
+
+// G1: media suppression applies to the full snapshot and final producer dispatch.
+foreach ( array( 'pending_delete', 'excluded', 'restore_pending' ) as $state ) {
+	$cloud = typed_reset(); maca_add_public_post_fixture( 42 ); maca_add_public_post_fixture( 43, 'page' ); typed_image(); typed_image( 502 );
+	$cloud->sources = array( 'post:42' => true, 'page:43' => true, 'media:501' => true, 'media:502' => true );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'exclude', typed_selection( 'media', 501 ) );
+	if ( 'pending_delete' !== $state ) { typed_tick( 4 ); }
+	if ( 'restore_pending' === $state ) { Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'restore', typed_selection( 'media', 501 ) ); }
+	maca_assert( $state === typed_scope()['sources']['media:501']['state'], 'G1 public intent establishes media ' . $state . ' without fabricating lifecycle state.' );
+	$snapshot = new ReflectionMethod( Npcink_Cloud_Site_Knowledge_Change_Bridge::class, 'full_typed_batches' ); $snapshot->setAccessible( true );
+	$selected = array_merge( ...$snapshot->invoke( null, array( 42, 43 ) ) );
+	maca_assert( ! in_array( typed_selection( 'media', 501 )[0], $selected, true ) && in_array( typed_selection( 'media', 502 )[0], $selected, true ), 'G1 full snapshot omits ' . $state . ' media and retains the unselected media neighbor.' );
+	$before = count( $cloud->mutations );
+	$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'rebuild' );
+	if ( 'excluded' === $state ) {
+		maca_assert( ! is_wp_error( $result ), 'G1 an excluded media tombstone permits a real full cursor.' );
+		for ( $i = 0; $i < 8; $i++ ) { maca_run_site_knowledge_flush(); }
+		$inputs = array_column( array_slice( $cloud->mutations, $before ), 'input' );
+		maca_assert( 2 === count( $inputs ) && 'rebuild' === $inputs[0]['sync_mode'] && 'refresh' === $inputs[1]['sync_mode'] && array( 502 ) === array_column( $inputs[1]['media_items'], 'attachment_id' ) && array() === maca_legacy_full_cursor(), 'G1 completed full cursor clears text once then sends only unselected media; excluded media never enters either payload.' );
+		maca_assert( ! isset( $cloud->sources['media:501'] ) && isset( $cloud->sources['media:502'], $cloud->sources['post:42'], $cloud->sources['page:43'] ) && 'excluded' === typed_scope()['sources']['media:501']['state'], 'G1 full completion does not reintroduce excluded media, erase the tombstone or lose unselected sources in the recording Cloud double.' );
+	} else {
+		maca_assert( is_wp_error( $result ) && array() === maca_legacy_full_cursor() && $before === count( $cloud->mutations ), 'G1 ' . $state . ' blocks full clear before HTTP; completing a competing full is not a new requirement.' );
+	}
+	$builder = new ReflectionMethod( Npcink_Cloud_Site_Knowledge_Change_Bridge::class, 'operation_payload' ); $builder->setAccessible( true );
+	$payload = $builder->invoke( null, array( 'sync_mode' => 'refresh', 'media_items' => array( Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( typed_selection( 'media', 501 )[0] ), Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( typed_selection( 'media', 502 )[0] ) ) ) );
+	$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload );
+	maca_assert( ! is_wp_error( $result ) && array( 502 ) === array_column( end( $cloud->mutations )['input']['media_items'], 'attachment_id' ) && $state === typed_scope()['sources']['media:501']['state'], 'G1 final guarded producer omits ' . $state . ' media even when the caller supplies a stale mixed payload.' );
+}
+
+// G2: errors after a possible send are not evidence of not_sent or a new replay identity.
+foreach ( array( 'http4xx', 'timeout', 'parse' ) as $fault ) {
+	foreach ( array( false, true ) as $known_run ) {
+		$cloud = typed_reset(); maca_add_public_post_fixture( 42 );
+		$cloud->hold_producers = true; $cloud->lose_next = ! $known_run;
+		Npcink_Cloud_Site_Knowledge_Change_Bridge::request_public_post_refresh( 42 );
+		$entry = reset( typed_scope()['dispatches'] ); $run_id = $cloud->keys[ $entry['key'] ];
+		maca_assert( ( $known_run ? 'accepted' : 'uncertain' ) === $entry['send_state'] && $known_run === isset( $entry['run_id'] ), 'G2 ' . $fault . ' starts with the actual ' . ( $known_run ? 'known' : 'unknown' ) . ' run identity, never a fabricated ID.' );
+		$error = 'timeout' === $fault ? new WP_Error( 'http_request_failed', 'cURL error 28: fixture timeout' ) : array( 'response' => array( 'code' => 'http4xx' === $fault ? 400 : 200 ), 'body' => 'http4xx' === $fault ? wp_json_encode( array( 'status' => 'error', 'error_code' => 'runtime.fixture_rejected' ) ) : '{malformed' );
+		$failed_calls = array(); $reply = null;
+		$reply = static function ( $url, $args ) use ( $cloud, $entry, $run_id, $known_run, $error, &$failed_calls, &$reply ) {
+			$matches = $known_run ? ( 'GET' === $args['method'] && basename( $url ) === $run_id ) : ( 'POST' === $args['method'] && ( $args['headers']['Idempotency-Key'] ?? '' ) === $entry['key'] );
+			if ( $matches ) { $failed_calls[] = array( 'url' => $url, 'args' => $args ); $result = $error; }
+			else { $result = $cloud->request( $url, $args ); }
+			$GLOBALS['maca_http_response_queue'] = array( $reply );
+			return $result;
+		};
+		$GLOBALS['maca_http_response_queue'] = array( $reply );
+		Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'exclude', typed_selection() ); typed_tick( 5 );
+		$scope = typed_scope(); $op = end( $scope['operations'] );
+		maca_assert( count( $failed_calls ) >= 2 && 'pending' === $op['status'] && 'pending_delete' === $scope['sources']['post:42']['state'] && $entry === $scope['dispatches'][ $entry['key'] ], 'G2 repeated ' . $fault . ' retains pending plus exact original run/key/payload/send_state for ' . ( $known_run ? 'known-run reads' : 'uncertain execute replay' ) . '.' );
+		maca_assert( array( $entry['key'] ) === $op['old'] && ! isset( $op['c1'] ) && 2 === count( $scope['dispatches'] ) && 1 === $cloud->delete_calls && 2 === count( $cloud->mutations ) && $run_id === $cloud->keys[ $entry['key'] ], 'G2 ' . $fault . ' creates only D0, no replacement producer key, C1 or C2 while the old writer is unresolved.' );
+		foreach ( $failed_calls as $call ) {
+			maca_assert( $known_run ? 'GET' === $call['args']['method'] : ( $entry['key'] === $call['args']['headers']['Idempotency-Key'] && $entry['payload'] === json_decode( $call['args']['body'], true ) ), 'G2 ' . $fault . ' uses the original known-run read or byte-equivalent immutable execute payload/key.' );
+		}
+	}
+}
+
+// G3: a usable summary transient is not a substitute for a fresh typed status read.
+foreach ( array( 'present', 'missing', 'unknown' ) as $fresh_state ) {
+	$cloud = typed_reset(); maca_add_public_post_fixture( 42 );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'exclude', typed_selection() ); typed_tick();
+	if ( 'present' === $fresh_state ) { $cloud->sources['post:42'] = true; }
+	$cache_method = new ReflectionMethod( Npcink_Cloud_Site_Knowledge_Runtime_Bridge::class, 'status_cache_key' ); $cache_method->setAccessible( true ); $cache_key = $cache_method->invoke( null );
+	$absent = array( 'source_type' => 'post', 'source_id' => 42, 'document_present' => false, 'public_document_present' => false, 'stored_chunk_count' => 0, 'public_chunk_count' => 0, 'associated_comment_document_count' => 0, 'associated_comment_stored_chunk_count' => 0 );
+	$cached = array( 'available' => true, 'fresh_until' => gmdate( 'c', time() + 600 ), 'indexed_documents' => 0, 'indexed_post_ids' => array(), 'items' => array( 'post:42' => $absent ), 'observed_at' => gmdate( 'c' ), 'comments_enabled' => false, 'source_presence' => array( 'status' => 'complete', 'storage_scope' => 'relational_index', 'requested_count' => 1, 'observed_at' => gmdate( 'c' ), 'items' => array( $absent ) ) );
+	set_transient( $cache_key, $cached, 600 );
+	maca_assert( ! Npcink_Cloud_Site_Knowledge_Runtime_Bridge::get_cached_status_summary()['stale'], 'G3 misleading absence/usage-zero summary is actually available, not ignored merely because it expired.' );
+	$reads = 0;
+	$cloud->status_result_filter = static function ( array $result ) use ( $fresh_state, &$reads ): array {
+		$reads++;
+		if ( 'missing' === $fresh_state ) { $result['source_presence']['items'] = array(); }
+		if ( 'unknown' === $fresh_state ) { $result['source_presence']['status'] = 'unknown'; }
+		return $result;
+	};
+	$before = count( $GLOBALS['maca_http_requests'] ); typed_tick( 3 );
+	$fresh_requests = array_values( array_filter( array_slice( $GLOBALS['maca_http_requests'], $before ), static function ( $request ) { $payload = json_decode( $request['args']['body'] ?? '', true ); return 'site_knowledge_status.v1' === ( $payload['contract_version'] ?? '' ) && typed_selection() === ( $payload['input']['source_items'] ?? null ); } ) );
+	$op = end( typed_scope()['operations'] );
+	maca_assert( 3 === $reads && 3 === count( $fresh_requests ) && $cached === get_transient( $cache_key ), 'G3 each reconciliation performs a real typed status transport call with the exact selector despite the unchanged summary transient: ' . $fresh_state . '.' );
+	maca_assert( 'pending_delete' === typed_scope()['sources']['post:42']['state'] && 'pending' === $op['status'] && ( 'present' === $fresh_state ? 'cloud_site_knowledge_source_still_present' : 'cloud_site_knowledge_presence_incomplete' ) === $op['reason'], 'G3 fresh ' . $fresh_state . ' evidence wins over cached absence and usage-zero; summary cannot release suppression.' );
+}
+unset( $GLOBALS['wpdb'] );
