@@ -405,3 +405,47 @@ Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'rebu
 $result = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'restore', typed_selection() );
 maca_assert( is_wp_error( $result ) && 'excluded' === typed_scope()['sources']['post:42']['state'], 'REG-01 unresolved full delivery prevents restore from racing a later site clear.' );
 unset( $GLOBALS['wpdb'] );
+
+// Old HTTP completion must acknowledge only the exact media revision it sent.
+foreach ( array( 'alt', 'title', 'caption', 'description', 'url' ) as $changed_field ) {
+	$cloud = typed_reset(); maca_add_public_post_fixture( 42 ); typed_image();
+	$before_media = Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( typed_selection( 'media', 501 )[0] );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_change( 501 );
+	$during_buffer = array();
+	$cloud->during_send = static function () use ( $changed_field, &$during_buffer ): void {
+		if ( 'alt' === $changed_field ) {
+			$GLOBALS['typed_media_alt'][501] = 'New public ALT edited during the old HTTP request';
+			Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_meta_change( 1, 501, '_wp_attachment_image_alt' );
+		} else {
+			if ( 'url' === $changed_field ) { $GLOBALS['typed_media_urls'][501] = 'https://example.test/replaced-image.jpg'; }
+			else {
+				$post_field = array( 'title' => 'post_title', 'caption' => 'post_excerpt', 'description' => 'post_content' )[ $changed_field ];
+				$GLOBALS['maca_posts'][501]->$post_field = 'New public ' . $changed_field . ' edited during the old HTTP request';
+			}
+			Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_change( 501 );
+		}
+		$during_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+	};
+	maca_run_site_knowledge_flush();
+	$new_media = Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( typed_selection( 'media', 501 )[0] );
+	$after_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+	maca_assert( $before_media === $cloud->mutations[0]['input']['media_items'][0] && array( 501 ) === $during_buffer['post_ids'], 'Media revision: old immutable payload is sent while the real ' . $changed_field . ' hook buffers the newer revision.' );
+	maca_assert( array( 501 ) === ( $after_buffer['post_ids'] ?? array() ), 'Media revision: old HTTP completion preserves the newer ' . $changed_field . ' revision in the bounded buffer.' );
+	maca_run_site_knowledge_flush();
+	$after_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+	$keys = array_keys( $cloud->keys );
+	maca_assert( 2 === count( $cloud->mutations ) && $new_media === $cloud->mutations[1]['input']['media_items'][0] && $before_media['media_fingerprint'] !== $new_media['media_fingerprint'] && $keys[0] !== $keys[1] && empty( $after_buffer['post_ids'] ), 'Media revision: next bounded flush sends the new ' . $changed_field . ' value with its own semantic key and then clears that revision.' );
+	maca_run_site_knowledge_flush();
+	maca_assert( 2 === count( $cloud->mutations ), 'Media revision: unchanged ' . $changed_field . ' does not create a third dispatch.' );
+}
+
+$cloud = typed_reset(); maca_add_public_post_fixture( 42 ); typed_image();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_change( 501 );
+$cloud->during_send = static function (): void {
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_meta_change( 1, 501, '_wp_attachment_image_alt' );
+};
+maca_run_site_knowledge_flush();
+$after_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_run_site_knowledge_flush();
+maca_assert( 1 === count( $cloud->mutations ) && empty( $after_buffer['post_ids'] ), 'Media revision: an in-flight hook with unchanged actual metadata is acknowledged normally without redundant delivery.' );
+unset( $GLOBALS['wpdb'] );

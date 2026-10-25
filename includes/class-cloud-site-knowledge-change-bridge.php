@@ -1386,7 +1386,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 */
 		private static function delivery_fingerprint( int $post_id ): string {
 			$post = function_exists( 'get_post' ) ? get_post( $post_id ) : null;
-			$document = self::is_public_post( $post ) ? self::post_document( $post ) : array( 'post_id' => $post_id, 'missing' => true );
+			if ( is_object( $post ) && 'attachment' === $post->post_type ) {
+				// ALT and other delivered media metadata can change without a post revision.
+				$document = self::public_source( array( 'source_type' => 'media', 'source_id' => $post_id ) ) ?? array( 'post_id' => $post_id, 'missing' => true );
+			} else {
+				$document = self::is_public_post( $post ) ? self::post_document( $post ) : array( 'post_id' => $post_id, 'missing' => true );
+			}
 			// Observational counters do not create a new semantic content revision.
 			unset( $document['delivery_evidence'] );
 			$encoded = wp_json_encode( $document );
