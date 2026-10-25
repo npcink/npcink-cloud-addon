@@ -18,6 +18,16 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Projection' ) ) {
 	final class Npcink_Cloud_Site_Knowledge_Admin_Projection {
 		private const DATETIME_DISPLAY_FORMAT = 'Y-m-d H:i:s';
 
+		/** Shallow local delivery intent only; usage remains a separate projection. */
+		public static function source_state_label( string $state ): string {
+			$labels = array(
+				'pending_delete' => __( 'Checking removal', 'npcink-cloud-addon' ),
+				'excluded' => __( 'Excluded', 'npcink-cloud-addon' ),
+				'restore_pending' => __( 'Checking restore', 'npcink-cloud-addon' ),
+			);
+			return $labels[ $state ] ?? __( 'Automatic delivery', 'npcink-cloud-addon' );
+		}
+
 		/**
 		 * Builds a bounded display projection from Cloud-owned Site Knowledge quota truth.
 		 *

@@ -110,6 +110,9 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 					'npcink_cloud_addon_runtime_callback_registration',
 				) as $owned_option
 			) {
+				if ( 'npcink_cloud_addon_site_knowledge_maintenance_cursor' === $owned_option && ! empty( get_option( $owned_option, array() )['_lifecycle'] ) ) {
+					continue;
+				}
 				delete_option( $owned_option );
 			}
 

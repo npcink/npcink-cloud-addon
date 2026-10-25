@@ -1,21 +1,21 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Npcink Cloud Addon 0.4.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/npcink-cloud-addon\n"
+"POT-Creation-Date: 2026-09-04T08:39:43+00:00\n"
+"PO-Revision-Date: 2026-06-21 00:00+0000\n"
 "Last-Translator: Npcink Project\n"
 "Language-Team: Chinese (China)\n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-04T08:39:43+00:00\n"
-"PO-Revision-Date: 2026-06-21 00:00+0000\n"
-"Language: zh_CN\n"
 "X-Domain: npcink-cloud-addon\n"
 "X-Generator: WP-CLI 2.12.0; lightweight project zh_CN draft\n"
 
 #. Plugin Name of the plugin
-#: npcink-cloud-addon.php
-#: includes/bootstrap.php:964
+#: npcink-cloud-addon.php includes/bootstrap.php:964
 #: includes/class-cloud-settings-page.php:239
 #: includes/class-cloud-settings-page.php:250
 #: includes/class-cloud-settings-page.php:251
@@ -28,28 +28,17 @@ msgstr "Npcink Cloud Addon"
 msgid "Npcink"
 msgstr "Npcink"
 
-#: includes/bootstrap.php:153
-#: includes/bootstrap.php:208
-#: includes/bootstrap.php:238
-#: includes/bootstrap.php:329
-#: includes/bootstrap.php:360
-#: includes/bootstrap.php:391
-#: includes/bootstrap.php:422
-#: includes/bootstrap.php:449
-#: includes/bootstrap.php:476
-#: includes/bootstrap.php:499
-#: includes/bootstrap.php:521
-#: includes/bootstrap.php:608
-#: includes/bootstrap.php:632
-#: includes/bootstrap.php:656
-#: includes/bootstrap.php:664
-#: includes/bootstrap.php:672
-#: includes/bootstrap.php:680
-#: includes/bootstrap.php:688
-#: includes/bootstrap.php:696
-#: includes/bootstrap.php:704
-#: includes/bootstrap.php:720
-#: includes/bootstrap.php:728
+#: includes/bootstrap.php:153 includes/bootstrap.php:208
+#: includes/bootstrap.php:238 includes/bootstrap.php:329
+#: includes/bootstrap.php:360 includes/bootstrap.php:391
+#: includes/bootstrap.php:422 includes/bootstrap.php:449
+#: includes/bootstrap.php:476 includes/bootstrap.php:499
+#: includes/bootstrap.php:521 includes/bootstrap.php:608
+#: includes/bootstrap.php:632 includes/bootstrap.php:656
+#: includes/bootstrap.php:664 includes/bootstrap.php:672
+#: includes/bootstrap.php:680 includes/bootstrap.php:688
+#: includes/bootstrap.php:696 includes/bootstrap.php:704
+#: includes/bootstrap.php:720 includes/bootstrap.php:728
 #: includes/class-cloud-runtime-client.php:1052
 #: includes/class-cloud-runtime-client.php:1171
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
@@ -89,12 +78,16 @@ msgid "Not configured"
 msgstr "未配置"
 
 #: includes/class-cloud-addon-settings.php:510
-msgid "Cloud verification completed, but the verified state could not be stored securely."
+msgid ""
+"Cloud verification completed, but the verified state could not be stored "
+"securely."
 msgstr "Cloud 验证已完成，但无法安全存储已验证状态。"
 
 #: includes/class-cloud-addon-settings.php:729
 #: includes/class-cloud-credential-store.php:197
-msgid "Cloud credentials could not be stored or read securely. Reconnect this site after checking the WordPress security salts."
+msgid ""
+"Cloud credentials could not be stored or read securely. Reconnect this site "
+"after checking the WordPress security salts."
 msgstr "无法安全存储或读取 Cloud 凭据。请检查 WordPress 安全盐后重新连接此站点。"
 
 #: includes/class-cloud-addon-settings.php:761
@@ -124,7 +117,9 @@ msgid "Entitlement is unavailable until Cloud settings verify successfully."
 msgstr "Cloud 设置验证成功前，权益信息不可用。"
 
 #: includes/class-cloud-entitlement-summary.php:185
-msgid "The latest Cloud summary is not available yet. Check the connection to try again."
+msgid ""
+"The latest Cloud summary is not available yet. Check the connection to try "
+"again."
 msgstr "暂时无法获取最新的 Cloud 摘要。请检查连接后重试。"
 
 #: includes/class-cloud-entitlement-summary.php:66
@@ -132,7 +127,7 @@ msgstr "暂时无法获取最新的 Cloud 摘要。请检查连接后重试。"
 #: includes/class-cloud-entitlement-summary.php:227
 #: includes/class-cloud-settings-actions.php:80
 #: includes/class-cloud-settings-page.php:125
-#: includes/class-cloud-settings-page.php:2350
+#: includes/class-cloud-settings-page.php:2383
 msgid "Plan and entitlement are temporarily unavailable."
 msgstr "暂时无法获取套餐与权益。"
 
@@ -157,7 +152,9 @@ msgid "Cloud media derivative statuses require a data envelope."
 msgstr "Cloud 媒体衍生状态需要 data 信封。"
 
 #: includes/class-cloud-media-derivative-transport.php:275
-msgid "Cloud media derivative statuses require a run id and canonical lifecycle status."
+msgid ""
+"Cloud media derivative statuses require a run id and canonical lifecycle "
+"status."
 msgstr "Cloud 媒体衍生状态需要运行 ID 和规范的生命周期状态。"
 
 #: includes/class-cloud-media-artifact-verification.php:50
@@ -165,11 +162,15 @@ msgid "Skipped media governance canaries do not publish derivative artifacts."
 msgstr "已跳过的媒体治理金丝雀测试不会发布衍生工件。"
 
 #: includes/class-cloud-media-artifact-verification.php:70
-msgid "Cloud media derivative results require the exact qualified media_derivative_result.v3 artifact envelope."
+msgid ""
+"Cloud media derivative results require the exact qualified "
+"media_derivative_result.v3 artifact envelope."
 msgstr "Cloud 媒体衍生结果需要精确且合格的 media_derivative_result.v3 工件信封。"
 
 #: includes/class-cloud-media-governance-validation.php:56
-msgid "Skipped automatic optimization results require the exact media_derivative_result.v3 decision envelope."
+msgid ""
+"Skipped automatic optimization results require the exact "
+"media_derivative_result.v3 decision envelope."
 msgstr "已跳过的自动优化结果需要精确的 media_derivative_result.v3 决策信封。"
 
 #: includes/class-cloud-media-governance-validation.php:87
@@ -189,7 +190,9 @@ msgid "Cloud derivative artifact mime type does not match the descriptor."
 msgstr "Cloud 衍生 artifact 的 MIME 类型与描述不匹配。"
 
 #: includes/class-cloud-media-artifact-verification.php:130
-msgid "Derivative artifact byte size does not match the descriptor and signed response."
+msgid ""
+"Derivative artifact byte size does not match the descriptor and signed "
+"response."
 msgstr "衍生工件的字节大小与描述符和签名响应不一致。"
 
 #: includes/class-cloud-media-artifact-verification.php:140
@@ -209,15 +212,20 @@ msgid "Derivative artifact decode facts do not match the Cloud descriptor."
 msgstr "衍生工件的解码信息与 Cloud 描述符不一致。"
 
 #: includes/class-cloud-media-artifact-verification.php:225
-msgid "Cloud media delivery acknowledgement does not bind to the verified transfer."
+msgid ""
+"Cloud media delivery acknowledgement does not bind to the verified transfer."
 msgstr "Cloud 媒体投递确认未绑定到已验证的传输。"
 
 #: includes/class-cloud-media-derivative-transport.php:343
-msgid "Npcink Cloud credentials must verify before dispatching media derivative jobs."
+msgid ""
+"Npcink Cloud credentials must verify before dispatching media derivative "
+"jobs."
 msgstr "派发媒体衍生任务前，Npcink Cloud 凭据必须先通过验证。"
 
 #: includes/class-cloud-media-plan-projection.php:418
-msgid "Local media derivative proposal building requires the exact Addon run-result projection."
+msgid ""
+"Local media derivative proposal building requires the exact Addon run-result"
+" projection."
 msgstr "构建本地媒体衍生提案需要精确的 Addon 运行结果投影。"
 
 #: includes/class-cloud-media-plan-projection.php:619
@@ -229,7 +237,8 @@ msgid "Media derivative request must be read-only and proposal-only."
 msgstr "媒体衍生请求必须是只读且仅生成提案。"
 
 #: includes/class-cloud-media-plan-projection.php:633
-msgid "Media derivative final write owner must remain the local WordPress host."
+msgid ""
+"Media derivative final write owner must remain the local WordPress host."
 msgstr "媒体衍生的最终写入所有者必须保留为本地 WordPress 主机。"
 
 #: includes/class-cloud-media-plan-projection.php:640
@@ -237,7 +246,9 @@ msgid "Media derivative request must not include WordPress writes."
 msgstr "媒体衍生请求不得包含 WordPress 写入。"
 
 #: includes/class-cloud-media-plan-projection.php:647
-msgid "Media derivative ability payload must not include credentials or signed headers."
+msgid ""
+"Media derivative ability payload must not include credentials or signed "
+"headers."
 msgstr "媒体衍生 ability payload 不得包含凭据或签名请求头。"
 
 #: includes/class-cloud-media-plan-projection.php:656
@@ -257,15 +268,20 @@ msgid "Automatic safe optimization requires the current fixed policy version."
 msgstr "自动安全优化需要使用当前固定策略版本。"
 
 #: includes/class-cloud-media-derivative-transport.php:379
-msgid "Watermark artifact transport requires a watermark plan in the ability response."
+msgid ""
+"Watermark artifact transport requires a watermark plan in the ability "
+"response."
 msgstr "水印 artifact 传输要求 ability response 中包含水印计划。"
 
 #: includes/class-cloud-media-derivative-transport.php:386
-msgid "Text watermark plans must not include a watermark upload or artifact id."
+msgid ""
+"Text watermark plans must not include a watermark upload or artifact id."
 msgstr "文本水印计划不得包含水印上传或 artifact id。"
 
 #: includes/class-cloud-media-derivative-transport.php:393
-msgid "Watermark plans require a watermark upload or artifact id before Cloud dispatch."
+msgid ""
+"Watermark plans require a watermark upload or artifact id before Cloud "
+"dispatch."
 msgstr "派发到 Cloud 前，水印计划需要水印上传或 artifact id。"
 
 #: includes/class-cloud-media-derivative-transport.php:400
@@ -273,15 +289,19 @@ msgid "Automatic safe optimization requires WebP output."
 msgstr "自动安全优化需要输出 WebP。"
 
 #: includes/class-cloud-media-derivative-transport.php:405
-msgid "Media derivative request must include a bounded target format from the ability response."
+msgid ""
+"Media derivative request must include a bounded target format from the "
+"ability response."
 msgstr "媒体衍生请求必须包含 ability response 提供的受限目标格式。"
 
 #: includes/class-cloud-media-derivative-transport.php:414
-msgid "Media derivative request must include max_width from the ability response."
+msgid ""
+"Media derivative request must include max_width from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 中的 max_width。"
 
 #: includes/class-cloud-media-derivative-transport.php:423
-msgid "Media derivative request must include quality from the ability response."
+msgid ""
+"Media derivative request must include quality from the ability response."
 msgstr "媒体衍生请求必须包含 ability response 中的 quality。"
 
 #: includes/class-cloud-media-derivative-transport.php:436
@@ -289,7 +309,9 @@ msgid "Media derivative resize mode is invalid."
 msgstr "媒体衍生缩放模式无效。"
 
 #: includes/class-cloud-media-derivative-transport.php:441
-msgid "Automatic safe optimization does not accept quality, crop, watermark, or custom width parameters."
+msgid ""
+"Automatic safe optimization does not accept quality, crop, watermark, or "
+"custom width parameters."
 msgstr "自动安全优化不接受质量、裁剪、水印或自定义宽度参数。"
 
 #: includes/class-cloud-media-derivative-transport.php:455
@@ -297,11 +319,14 @@ msgid "Media derivative source media type must be a supported image type."
 msgstr "媒体衍生源媒体类型必须是受支持的图片类型。"
 
 #: includes/class-cloud-media-derivative-transport.php:493
-msgid "Media governance canaries require exact governance and batch context fields."
+msgid ""
+"Media governance canaries require exact governance and batch context fields."
 msgstr "媒体治理金丝雀测试需要准确的治理和批次上下文字段。"
 
 #: includes/class-cloud-media-derivative-transport.php:533
-msgid "Media governance canaries require WebP preserve previews, no crop or watermark, and at most ten items."
+msgid ""
+"Media governance canaries require WebP preserve previews, no crop or "
+"watermark, and at most ten items."
 msgstr "媒体治理金丝雀测试要求生成保留原尺寸的 WebP 预览，不得裁剪或添加水印，且最多包含十项。"
 
 #: includes/class-cloud-media-derivative-transport.php:572
@@ -326,7 +351,9 @@ msgid "Media derivative upload file is not readable."
 msgstr "媒体衍生上传文件不可读。"
 
 #: includes/class-cloud-media-source-validation.php:110
-msgid "Media derivative upload files must come from the WordPress uploads directory or a local temporary directory."
+msgid ""
+"Media derivative upload files must come from the WordPress uploads directory"
+" or a local temporary directory."
 msgstr "Media derivative 上传文件必须来自 WordPress uploads 目录或本地临时目录。"
 
 #: includes/class-cloud-media-source-validation.php:118
@@ -343,7 +370,8 @@ msgid "Media derivative uploads require an allowed image mime type."
 msgstr "媒体衍生上传需要允许的图像 MIME 类型。"
 
 #: includes/class-cloud-media-source-validation.php:157
-msgid "Media derivative upload bytes do not match the declared image mime type."
+msgid ""
+"Media derivative upload bytes do not match the declared image mime type."
 msgstr "媒体衍生上传字节与声明的图像 MIME 类型不一致。"
 
 #: includes/class-cloud-media-source-validation.php:170
@@ -363,7 +391,8 @@ msgid "Media derivative runtime artifacts require a valid future expiry."
 msgstr "媒体衍生运行时工件需要有效的未来过期时间。"
 
 #: includes/class-cloud-media-artifact-verification.php:379
-msgid "Media derivative artifacts require the exact 13-field Cloud descriptor."
+msgid ""
+"Media derivative artifacts require the exact 13-field Cloud descriptor."
 msgstr "媒体衍生工件需要精确的 13 字段 Cloud 描述符。"
 
 #: includes/class-cloud-media-artifact-verification.php:388
@@ -379,7 +408,8 @@ msgid "Derivative Cloud artifacts require a canonical artifact id."
 msgstr "Cloud 衍生工件需要规范的工件 ID。"
 
 #: includes/class-cloud-media-artifact-verification.php:412
-msgid "Media derivative artifact reference must bind to the canonical artifact id."
+msgid ""
+"Media derivative artifact reference must bind to the canonical artifact id."
 msgstr "媒体衍生工件引用必须绑定到规范的工件 ID。"
 
 #: includes/class-cloud-media-artifact-verification.php:420
@@ -403,7 +433,9 @@ msgid "Media derivative processing warnings are invalid."
 msgstr "媒体衍生处理警告无效。"
 
 #: includes/class-cloud-media-artifact-verification.php:537
-msgid "Local media derivative artifacts require the exact 12-field proposal contract."
+msgid ""
+"Local media derivative artifacts require the exact 12-field proposal "
+"contract."
 msgstr "本地媒体衍生工件需要精确的 12 字段提案契约。"
 
 #: includes/class-cloud-media-artifact-verification.php:558
@@ -469,7 +501,9 @@ msgid "Cloud request target is not allowed by the local connector policy."
 msgstr "本地连接器策略不允许此 Cloud 请求目标。"
 
 #: includes/class-cloud-runtime-client.php:72
-msgid "Signed verification was not attempted because the Cloud service is not reachable."
+msgid ""
+"Signed verification was not attempted because the Cloud service is not "
+"reachable."
 msgstr "Cloud 服务不可达，因此未尝试签名验证。"
 
 #: includes/class-cloud-runtime-client.php:74
@@ -493,7 +527,9 @@ msgid "Media upload contents exceed the 25 MiB connector limit."
 msgstr "媒体上传内容超出连接器的 25 MiB 限制。"
 
 #: includes/class-cloud-runtime-client.php:484
-msgid "Media upload filename must be a nonempty safe filename of at most 160 characters."
+msgid ""
+"Media upload filename must be a nonempty safe filename of at most 160 "
+"characters."
 msgstr "媒体上传文件名必须是非空且安全的文件名，最多 160 个字符。"
 
 #: includes/class-cloud-runtime-client.php:493
@@ -501,19 +537,27 @@ msgid "Media uploads allow only AVIF, JPEG, PNG, or WebP images."
 msgstr "媒体上传仅允许 AVIF、JPEG、PNG 或 WebP 图像。"
 
 #: includes/class-cloud-runtime-client.php:557
-msgid "Media jobs require the exact artifact-referenced media_job_request.v1 contract."
+msgid ""
+"Media jobs require the exact artifact-referenced media_job_request.v1 "
+"contract."
 msgstr "媒体任务需要精确的工件引用型 media_job_request.v1 契约。"
 
 #: includes/class-cloud-runtime-client.php:587
-msgid "Media governance canary jobs require the exact bounded preserve-WebP contract."
+msgid ""
+"Media governance canary jobs require the exact bounded preserve-WebP "
+"contract."
 msgstr "媒体治理金丝雀任务需要严格遵循受限的保留原尺寸 WebP 契约。"
 
 #: includes/class-cloud-runtime-client.php:615
-msgid "Verify Npcink Cloud settings before uploading a WordPress AI alt-text source."
+msgid ""
+"Verify Npcink Cloud settings before uploading a WordPress AI alt-text "
+"source."
 msgstr "上传 WordPress AI 替代文本源之前，请先验证 Npcink Cloud 设置。"
 
 #: includes/class-cloud-runtime-client.php:627
-msgid "WordPress AI alt-text uploads require exact contents, filename, and mime_type fields."
+msgid ""
+"WordPress AI alt-text uploads require exact contents, filename, and "
+"mime_type fields."
 msgstr "WordPress AI 替代文本上传需要精确的 contents、filename 和 mime_type 字段。"
 
 #: includes/class-cloud-runtime-client.php:636
@@ -525,11 +569,14 @@ msgid "WordPress AI alt-text upload contents exceed the 8 MiB limit."
 msgstr "WordPress AI 替代文本上传内容超出 8 MiB 限制。"
 
 #: includes/class-cloud-runtime-client.php:651
-msgid "WordPress AI alt-text upload filename must be a nonempty safe filename."
+msgid ""
+"WordPress AI alt-text upload filename must be a nonempty safe filename."
 msgstr "WordPress AI 替代文本上传文件名必须是非空且安全的文件名。"
 
 #: includes/class-cloud-runtime-client.php:659
-msgid "WordPress AI alt-text upload filename must be a nonempty safe filename of at most 160 characters."
+msgid ""
+"WordPress AI alt-text upload filename must be a nonempty safe filename of at"
+" most 160 characters."
 msgstr "WordPress AI 替代文本上传文件名必须是非空且安全的文件名，最多 160 个字符。"
 
 #: includes/class-cloud-runtime-client.php:668
@@ -543,11 +590,14 @@ msgid "Cloud run_id is required."
 msgstr "Cloud run_id 为必填项。"
 
 #: includes/class-cloud-runtime-client.php:805
-msgid "Cloud media artifact_id must use the canonical art_<32 lowercase hex> shape."
+msgid ""
+"Cloud media artifact_id must use the canonical art_<32 lowercase hex> shape."
 msgstr "Cloud 媒体 artifact_id 必须使用规范的 art_<32 位小写十六进制> 格式。"
 
 #: includes/class-cloud-runtime-client.php:843
-msgid "Media delivery acknowledgement requires the exact verified-transfer contract."
+msgid ""
+"Media delivery acknowledgement requires the exact verified-transfer "
+"contract."
 msgstr "媒体投递确认需要精确的已验证传输契约。"
 
 #: includes/class-cloud-runtime-client.php:876
@@ -559,7 +609,8 @@ msgid "No observability events are ready to upload."
 msgstr "没有可上传的 observability 事件。"
 
 #: includes/class-cloud-runtime-client.php:930
-msgid "Customer journey upload requires between 1 and 100 metadata-only events."
+msgid ""
+"Customer journey upload requires between 1 and 100 metadata-only events."
 msgstr "客户旅程上传需要包含 1 到 100 条仅元数据事件。"
 
 #: includes/class-cloud-runtime-client.php:967
@@ -572,7 +623,8 @@ msgstr "客户旅程分组 ID 无效。"
 
 #: includes/class-cloud-runtime-client.php:1074
 #: includes/class-cloud-runtime-client.php:1180
-msgid "This Cloud endpoint is not allowed by the Cloud Addon runtime contract."
+msgid ""
+"This Cloud endpoint is not allowed by the Cloud Addon runtime contract."
 msgstr "Cloud Addon 运行时合同不允许此 Cloud 端点。"
 
 #: includes/class-cloud-runtime-client.php:1099
@@ -643,11 +695,15 @@ msgid "Cloud returned an invalid WordPress AI alt-text source artifact."
 msgstr "Cloud 返回了无效的 WordPress AI 替代文本源工件。"
 
 #: includes/class-cloud-runtime-request-guards.php:192
-msgid "WordPress AI connector requests require the cloud_connector_runtime.v1 contract."
+msgid ""
+"WordPress AI connector requests require the cloud_connector_runtime.v1 "
+"contract."
 msgstr "WordPress AI 连接器请求需要 cloud_connector_runtime.v1 合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:206
-msgid "WordPress AI connector requests require one wordpress_operation.v1 operation contract."
+msgid ""
+"WordPress AI connector requests require one wordpress_operation.v1 operation"
+" contract."
 msgstr "WordPress AI 连接器请求需要一个 wordpress_operation.v1 操作合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:228
@@ -659,7 +715,9 @@ msgid "WordPress AI connector requests require a supported site-task surface."
 msgstr "WordPress AI 连接器请求需要受支持的站点任务场景。"
 
 #: includes/class-cloud-runtime-request-guards.php:245
-msgid "WordPress AI connector requests do not support generic chat sessions, tool calls, streams, or credential fields."
+msgid ""
+"WordPress AI connector requests do not support generic chat sessions, tool "
+"calls, streams, or credential fields."
 msgstr "WordPress AI 连接器请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
 #: includes/class-cloud-runtime-request-guards.php:257
@@ -671,11 +729,15 @@ msgid "WordPress AI connector request exceeds the scene runtime size limit."
 msgstr "WordPress AI 连接器请求超过场景运行时大小限制。"
 
 #: includes/class-cloud-runtime-request-guards.php:281
-msgid "WordPress AI title, summary, and rewrite requests require source_text without legacy prompt or post fields."
+msgid ""
+"WordPress AI title, summary, and rewrite requests require source_text "
+"without legacy prompt or post fields."
 msgstr "WordPress AI 标题、摘要和改写请求必须使用 source_text，且不能包含旧版 prompt 或文章字段。"
 
 #: includes/class-cloud-runtime-request-guards.php:289
-msgid "WordPress AI title, summary, and rewrite requests require nonempty source_text."
+msgid ""
+"WordPress AI title, summary, and rewrite requests require nonempty "
+"source_text."
 msgstr "WordPress AI 标题、摘要和改写请求需要非空的 source_text。"
 
 #: includes/class-cloud-runtime-request-guards.php:297
@@ -699,7 +761,8 @@ msgid "WordPress AI connector requests require a verified Cloud site_id."
 msgstr "WordPress AI 连接器请求需要已验证的 Cloud site_id。"
 
 #: includes/class-cloud-runtime-request-guards.php:369
-msgid "WordPress AI connector requests require the canonical WordPress site URL."
+msgid ""
+"WordPress AI connector requests require the canonical WordPress site URL."
 msgstr "WordPress AI 连接器请求需要规范的 WordPress 站点 URL。"
 
 #: includes/class-cloud-runtime-request-guards.php:376
@@ -707,7 +770,9 @@ msgid "WordPress AI connector requests require the active addon version."
 msgstr "WordPress AI 连接器请求需要当前启用的插件版本。"
 
 #: includes/class-cloud-runtime-request-guards.php:463
-msgid "WordPress AI alt-text requests accept only an Artifact id and bounded text context."
+msgid ""
+"WordPress AI alt-text requests accept only an Artifact id and bounded text "
+"context."
 msgstr "WordPress AI 替代文本请求仅接受工件 ID 和有限文本上下文。"
 
 #: includes/class-cloud-runtime-request-guards.php:472
@@ -715,7 +780,9 @@ msgid "WordPress AI alt-text requests require a valid source_artifact_id."
 msgstr "WordPress AI 替代文本请求需要有效的 source_artifact_id。"
 
 #: includes/class-cloud-runtime-request-guards.php:481
-msgid "WordPress AI alt-text prompt must be a nonempty string of at most 500 characters."
+msgid ""
+"WordPress AI alt-text prompt must be a nonempty string of at most 500 "
+"characters."
 msgstr "WordPress AI 替代文本提示必须是非空字符串，最多 500 个字符。"
 
 #: includes/class-cloud-runtime-request-guards.php:514
@@ -747,19 +814,27 @@ msgid "WordPress AI Site Knowledge reference mode is not supported."
 msgstr "不支持此 WordPress AI 站点知识库参考模式。"
 
 #: includes/class-cloud-runtime-request-guards.php:609
-msgid "WordPress AI image generation requests require the image_generation_request.v1 contract."
+msgid ""
+"WordPress AI image generation requests require the "
+"image_generation_request.v1 contract."
 msgstr "WordPress AI 图片生成请求需要 image_generation_request.v1 合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:618
-msgid "WordPress AI image generation requests require the supported image_generation task surface."
+msgid ""
+"WordPress AI image generation requests require the supported "
+"image_generation task surface."
 msgstr "WordPress AI 图片生成请求需要受支持的 image_generation 任务界面。"
 
 #: includes/class-cloud-runtime-request-guards.php:626
-msgid "WordPress AI image generation requests may not select a provider response format."
+msgid ""
+"WordPress AI image generation requests may not select a provider response "
+"format."
 msgstr "WordPress AI 图像生成请求不得选择提供商响应格式。"
 
 #: includes/class-cloud-runtime-request-guards.php:635
-msgid "WordPress AI image generation requests do not support generic chat sessions, tool calls, streams, or credential fields."
+msgid ""
+"WordPress AI image generation requests do not support generic chat sessions,"
+" tool calls, streams, or credential fields."
 msgstr "WordPress AI 图片生成请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
 #: includes/class-cloud-runtime-request-guards.php:647
@@ -767,7 +842,8 @@ msgid "WordPress AI image generation request could not be encoded."
 msgstr "无法编码 WordPress AI 图片生成请求。"
 
 #: includes/class-cloud-runtime-request-guards.php:654
-msgid "WordPress AI image generation request exceeds the scene runtime size limit."
+msgid ""
+"WordPress AI image generation request exceeds the scene runtime size limit."
 msgstr "WordPress AI 图片生成请求超过场景 runtime 大小限制。"
 
 #: includes/class-cloud-runtime-request-guards.php:663
@@ -775,23 +851,31 @@ msgid "WordPress AI image generation requires text scene input."
 msgstr "WordPress AI 图片生成需要文本场景输入。"
 
 #: includes/class-cloud-runtime-request-guards.php:670
-msgid "WordPress AI image generation prompt exceeds the scene runtime size limit."
+msgid ""
+"WordPress AI image generation prompt exceeds the scene runtime size limit."
 msgstr "WordPress AI 图片生成提示词超过场景 runtime 大小限制。"
 
 #: includes/class-cloud-runtime-request-guards.php:724
-msgid "Toolbox image generation requests require the image_generation_request.v1 contract."
+msgid ""
+"Toolbox image generation requests require the image_generation_request.v1 "
+"contract."
 msgstr "Toolbox 图片生成请求需要 image_generation_request.v1 合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:733
-msgid "Toolbox image generation requests require the supported image_generation task surface."
+msgid ""
+"Toolbox image generation requests require the supported image_generation "
+"task surface."
 msgstr "Toolbox 图片生成请求需要受支持的 image_generation 任务面。"
 
 #: includes/class-cloud-runtime-request-guards.php:741
-msgid "Toolbox image generation requests may not select a provider response format."
+msgid ""
+"Toolbox image generation requests may not select a provider response format."
 msgstr "Toolbox 图像生成请求不得选择提供商响应格式。"
 
 #: includes/class-cloud-runtime-request-guards.php:750
-msgid "Toolbox image generation requests do not support generic chat sessions, tool calls, streams, or credential fields."
+msgid ""
+"Toolbox image generation requests do not support generic chat sessions, tool"
+" calls, streams, or credential fields."
 msgstr "Toolbox 图片生成请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
 #: includes/class-cloud-runtime-request-guards.php:762
@@ -811,15 +895,20 @@ msgid "Toolbox image generation prompt exceeds the scene runtime size limit."
 msgstr "Toolbox 图片生成提示词超过场景运行时大小限制。"
 
 #: includes/class-cloud-runtime-request-guards.php:858
-msgid "Toolbox audio generation requests require the audio_generation_request.v1 contract."
+msgid ""
+"Toolbox audio generation requests require the audio_generation_request.v1 "
+"contract."
 msgstr "Toolbox 音频生成请求需要 audio_generation_request.v1 合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:867
-msgid "Toolbox audio generation requests require a supported article audio intent."
+msgid ""
+"Toolbox audio generation requests require a supported article audio intent."
 msgstr "Toolbox 音频生成请求需要受支持的文章音频意图。"
 
 #: includes/class-cloud-runtime-request-guards.php:876
-msgid "Toolbox audio generation requests do not support generic chat sessions, tool calls, streams, or credential fields."
+msgid ""
+"Toolbox audio generation requests do not support generic chat sessions, tool"
+" calls, streams, or credential fields."
 msgstr "Toolbox 音频生成请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
 #: includes/class-cloud-runtime-request-guards.php:888
@@ -831,7 +920,9 @@ msgid "Toolbox audio generation request exceeds the scene runtime size limit."
 msgstr "Toolbox 音频生成请求超过场景运行时大小限制。"
 
 #: includes/class-cloud-runtime-request-guards.php:904
-msgid "Toolbox audio generation requires reviewed narration text or a summary script."
+msgid ""
+"Toolbox audio generation requires reviewed narration text or a summary "
+"script."
 msgstr "Toolbox 音频生成需要已审核的旁白文本或摘要脚本。"
 
 #: includes/class-cloud-runtime-request-guards.php:911
@@ -839,23 +930,33 @@ msgid "Toolbox audio generation text exceeds the scene runtime size limit."
 msgstr "Toolbox 音频生成文本超过场景运行时大小限制。"
 
 #: includes/class-cloud-runtime-request-guards.php:981
-msgid "Toolbox Site Check Cloud detail requests require the site_ops_cloud_analysis_request.v1 contract."
+msgid ""
+"Toolbox Site Check Cloud detail requests require the "
+"site_ops_cloud_analysis_request.v1 contract."
 msgstr "Toolbox 站点检查 Cloud 详情请求需要 site_ops_cloud_analysis_request.v1 合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:989
-msgid "Toolbox Site Check Cloud detail requests require the site_ops_cloud_analysis_result.v1 result contract."
+msgid ""
+"Toolbox Site Check Cloud detail requests require the "
+"site_ops_cloud_analysis_result.v1 result contract."
 msgstr "Toolbox 站点检查 Cloud 详情请求需要 site_ops_cloud_analysis_result.v1 结果合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:1003
-msgid "Toolbox Site Check Cloud detail requests must remain runtime-detail, suggestion-only, and no-write."
+msgid ""
+"Toolbox Site Check Cloud detail requests must remain runtime-detail, "
+"suggestion-only, and no-write."
 msgstr "Toolbox 站点检查 Cloud 详情请求必须保持为运行时详情、仅建议且不写入。"
 
 #: includes/class-cloud-runtime-request-guards.php:1011
-msgid "Toolbox Site Check Cloud detail requests require bounded local analysis input."
+msgid ""
+"Toolbox Site Check Cloud detail requests require bounded local analysis "
+"input."
 msgstr "Toolbox 站点检查 Cloud 详情请求需要有界的本地分析输入。"
 
 #: includes/class-cloud-runtime-request-guards.php:1020
-msgid "Toolbox Site Check Cloud detail requests do not support generic chat sessions, tool calls, streams, or credential fields."
+msgid ""
+"Toolbox Site Check Cloud detail requests do not support generic chat "
+"sessions, tool calls, streams, or credential fields."
 msgstr "Toolbox 站点检查 Cloud 详情请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
 #: includes/class-cloud-runtime-request-guards.php:1032
@@ -863,11 +964,13 @@ msgid "Toolbox Site Check Cloud detail request could not be encoded."
 msgstr "Toolbox 站点检查 Cloud 详情请求无法编码。"
 
 #: includes/class-cloud-runtime-request-guards.php:1039
-msgid "Toolbox Site Check Cloud detail request exceeds the runtime size limit."
+msgid ""
+"Toolbox Site Check Cloud detail request exceeds the runtime size limit."
 msgstr "Toolbox 站点检查 Cloud 详情请求超过运行时大小限制。"
 
 #: includes/class-cloud-runtime-request-guards.php:1087
-msgid "Media governance audits require the exact metadata-only request contract."
+msgid ""
+"Media governance audits require the exact metadata-only request contract."
 msgstr "媒体治理审计需要严格遵循仅含元数据的请求契约。"
 
 #: includes/class-cloud-runtime-request-guards.php:1115
@@ -899,7 +1002,9 @@ msgid "Toolbox web search requests require the web_search.v1 contract."
 msgstr "Toolbox 网页搜索请求需要 web_search.v1 合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:1232
-msgid "Toolbox web search requests do not support generic chat sessions, tool calls, streams, or credential fields."
+msgid ""
+"Toolbox web search requests do not support generic chat sessions, tool "
+"calls, streams, or credential fields."
 msgstr "Toolbox 网页搜索请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
 #: includes/class-cloud-runtime-request-guards.php:1244
@@ -915,11 +1020,15 @@ msgid "Toolbox web search requires a query."
 msgstr "Toolbox 网页搜索需要查询词。"
 
 #: includes/class-cloud-runtime-request-guards.php:1323
-msgid "Toolbox image-source requests require the image_source_cloud_request.v1 contract."
+msgid ""
+"Toolbox image-source requests require the image_source_cloud_request.v1 "
+"contract."
 msgstr "Toolbox 图片来源请求需要 image_source_cloud_request.v1 合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:1332
-msgid "Toolbox image-source requests do not support generic chat sessions, tool calls, streams, or credential fields."
+msgid ""
+"Toolbox image-source requests do not support generic chat sessions, tool "
+"calls, streams, or credential fields."
 msgstr "Toolbox 图片来源请求不支持通用聊天会话、工具调用、流式输出或凭据字段。"
 
 #: includes/class-cloud-runtime-request-guards.php:1344
@@ -935,7 +1044,9 @@ msgid "Toolbox image-source search requires a query."
 msgstr "Toolbox 图片来源搜索需要查询词。"
 
 #: includes/class-cloud-runtime-request-guards.php:1486
-msgid "Agent feedback may not carry approval, preflight, or WordPress write authority."
+msgid ""
+"Agent feedback may not carry approval, preflight, or WordPress write "
+"authority."
 msgstr "Agent 反馈不得携带批准、预检或 WordPress 写入权限。"
 
 #: includes/class-cloud-agent-feedback-metadata.php:31
@@ -981,19 +1092,26 @@ msgid "Agent feedback source_score must be an integer from 0 through 100."
 msgstr "Agent 反馈的 source_score 必须是 0 到 100 的整数。"
 
 #: includes/class-cloud-runtime-request-guards.php:1637
-msgid "Image context evidence requires a suggestion-only no-write request contract."
+msgid ""
+"Image context evidence requires a suggestion-only no-write request contract."
 msgstr "图片上下文证据需要仅建议、不写入的请求合同。"
 
 #: includes/class-cloud-runtime-request-guards.php:1658
-msgid "Image context evidence items must use either a source artifact or media URLs."
+msgid ""
+"Image context evidence items must use either a source artifact or media "
+"URLs."
 msgstr "图像上下文证据项必须使用源工件或媒体 URL 二者之一。"
 
 #: includes/class-cloud-runtime-request-guards.php:1686
-msgid "Background image recognition requires an attachment URL, media fingerprint, and image MIME type."
+msgid ""
+"Background image recognition requires an attachment URL, media fingerprint, "
+"and image MIME type."
 msgstr "后台图片识别需要附件链接、媒体指纹和图片 MIME 类型。"
 
 #: includes/class-cloud-runtime-request-guards.php:1720
-msgid "Image context evidence requires at least one bounded source artifact or media URL."
+msgid ""
+"Image context evidence requires at least one bounded source artifact or "
+"media URL."
 msgstr "图像上下文证据至少需要一个受限的源工件或媒体 URL。"
 
 #: includes/class-cloud-runtime-request-guards.php:1828
@@ -1001,7 +1119,9 @@ msgid "Cloud did not return usable image context evidence."
 msgstr "Cloud 未返回可用的图片上下文证据。"
 
 #: includes/class-cloud-runtime-client.php:1684
-msgid "Cloud request identifiers must use only letters, numbers, dot, underscore, colon, or hyphen and contain at most 128 characters."
+msgid ""
+"Cloud request identifiers must use only letters, numbers, dot, underscore, "
+"colon, or hyphen and contain at most 128 characters."
 msgstr "Cloud 请求标识符只能使用字母、数字、点、下划线、冒号或连字符，且最多 128 个字符。"
 
 #. translators: 1: Cloud base URL, 2: transport error.
@@ -1036,7 +1156,7 @@ msgid "You do not have permission to refresh Site Knowledge usage."
 msgstr "您没有权限刷新知识库用量。"
 
 #: includes/class-cloud-settings-actions.php:115
-#: includes/class-cloud-site-knowledge-admin-projection.php:32
+#: includes/class-cloud-site-knowledge-admin-projection.php:42
 msgid "Enable Site Knowledge delivery before reading Cloud index usage."
 msgstr "请先开启站点知识库投递，再读取 Cloud 索引用量。"
 
@@ -1065,20 +1185,19 @@ msgid "%1$s %2$s."
 msgstr "%1$s%2$s。"
 
 #: includes/class-cloud-settings-actions.php:427
-#: includes/class-cloud-settings-page.php:2186
-#: includes/class-cloud-settings-page.php:2495
+#: includes/class-cloud-settings-page.php:2219
+#: includes/class-cloud-settings-page.php:2528
 msgid "enabled"
 msgstr "已启用"
 
 #: includes/class-cloud-settings-actions.php:427
-#: includes/class-cloud-settings-page.php:2186
-#: includes/class-cloud-settings-page.php:2496
-#: includes/class-cloud-settings-page.php:2570
+#: includes/class-cloud-settings-page.php:2219
+#: includes/class-cloud-settings-page.php:2529
+#: includes/class-cloud-settings-page.php:2603
 msgid "disabled"
 msgstr "已禁用"
 
-#: includes/bootstrap.php:966
-#: includes/class-cloud-settings-page.php:307
+#: includes/bootstrap.php:966 includes/class-cloud-settings-page.php:307
 msgid "Connect this site"
 msgstr "连接此站点"
 
@@ -1124,7 +1243,8 @@ msgid "Enable Site Knowledge"
 msgstr "启用站点知识库"
 
 #: includes/class-cloud-settings-actions.php:1195
-msgid "Keep public posts and pages updated automatically so AI can reference them."
+msgid ""
+"Keep public posts and pages updated automatically so AI can reference them."
 msgstr "自动更新公开文章和页面，供 AI 在生成内容时参考。"
 
 #: includes/class-cloud-settings-actions.php:1198
@@ -1157,8 +1277,8 @@ msgid "Check activation again"
 msgstr "重新检查激活状态"
 
 #: includes/class-cloud-settings-page.php:750
-#: includes/class-cloud-settings-page.php:2309
-#: includes/class-cloud-settings-page.php:2341
+#: includes/class-cloud-settings-page.php:2342
+#: includes/class-cloud-settings-page.php:2374
 msgid "Not checked"
 msgstr "未检查"
 
@@ -1168,7 +1288,9 @@ msgid "Needs attention"
 msgstr "需要注意"
 
 #: includes/class-cloud-settings-page.php:759
-msgid "A recent Site Knowledge delivery could not reach or authenticate with Cloud. Re-check the connection or open Cloud for service detail."
+msgid ""
+"A recent Site Knowledge delivery could not reach or authenticate with Cloud."
+" Re-check the connection or open Cloud for service detail."
 msgstr "最近一次站点知识库投递无法连接或通过 Cloud 认证。请重新检查连接，或打开 Cloud 查看服务详情。"
 
 #: includes/class-cloud-settings-page.php:772
@@ -1184,7 +1306,9 @@ msgid "Temporarily unavailable"
 msgstr "暂时不可用"
 
 #: includes/class-cloud-settings-page.php:775
-msgid "The latest signed Cloud read did not complete. Re-check the connection or try again later."
+msgid ""
+"The latest signed Cloud read did not complete. Re-check the connection or "
+"try again later."
 msgstr "最近一次 Cloud 签名读取未完成。请重新检查连接，或稍后再试。"
 
 #: includes/class-cloud-settings-page.php:767
@@ -1200,7 +1324,7 @@ msgstr "需要确认当前服务状态时，请运行连接检查。"
 #: includes/class-cloud-settings-page.php:957
 #: includes/class-cloud-settings-page.php:1144
 #: includes/class-cloud-settings-page.php:1908
-#: includes/class-cloud-settings-page.php:2040
+#: includes/class-cloud-settings-page.php:2073
 msgid "Check connection"
 msgstr "检查连接"
 
@@ -1241,7 +1365,7 @@ msgid "Available knowledge documents"
 msgstr "可用文章数"
 
 #: includes/class-cloud-settings-page.php:1174
-#: includes/class-cloud-site-knowledge-admin-projection.php:30
+#: includes/class-cloud-site-knowledge-admin-projection.php:40
 msgid "Loading Site Knowledge usage…"
 msgstr "正在获取知识库用量…"
 
@@ -1260,7 +1384,7 @@ msgstr "无限制"
 #. translators: 1: remaining image capacity, 2: image capacity limit.
 #. translators: 1: indexed chunks, 2: chunk limit.
 #: includes/class-cloud-settings-page.php:1203
-#: includes/class-cloud-site-knowledge-admin-projection.php:98
+#: includes/class-cloud-site-knowledge-admin-projection.php:108
 #, php-format
 msgid "%1$s / %2$s"
 msgstr "%1$s / %2$s"
@@ -1278,7 +1402,7 @@ msgid "Runtime allowance"
 msgstr "运行额度"
 
 #: includes/class-cloud-settings-page.php:1222
-#: includes/class-cloud-settings-page.php:2167
+#: includes/class-cloud-settings-page.php:2200
 msgid "Monitoring needs attention"
 msgstr "监控需要处理"
 
@@ -1346,13 +1470,13 @@ msgid "Open settings"
 msgstr "打开设置"
 
 #: includes/class-cloud-settings-page.php:1574
-#: includes/class-cloud-settings-page.php:2079
-#: includes/class-cloud-settings-page.php:2080
-#: includes/class-cloud-settings-page.php:2329
-#: includes/class-cloud-settings-page.php:2598
-#: includes/class-cloud-settings-page.php:2609
-#: includes/class-cloud-settings-page.php:2648
-#: includes/class-cloud-settings-page.php:2680
+#: includes/class-cloud-settings-page.php:2112
+#: includes/class-cloud-settings-page.php:2113
+#: includes/class-cloud-settings-page.php:2362
+#: includes/class-cloud-settings-page.php:2631
+#: includes/class-cloud-settings-page.php:2642
+#: includes/class-cloud-settings-page.php:2681
+#: includes/class-cloud-settings-page.php:2713
 msgid "unavailable"
 msgstr "不可用"
 
@@ -1378,19 +1502,26 @@ msgid "Authorize with this endpoint"
 msgstr "使用此端点授权"
 
 #: includes/class-cloud-settings-page.php:1750
-msgid "For compatible Npcink Cloud deployments only. Cloud still owns site activation and key issuance."
+msgid ""
+"For compatible Npcink Cloud deployments only. Cloud still owns site "
+"activation and key issuance."
 msgstr "仅用于兼容的 Npcink Cloud 部署。Cloud 仍负责站点激活和密钥签发。"
 
 #: includes/class-cloud-settings-page.php:1751
-msgid "This does not manage Cloud sites, keys, billing, models, router, workflows, or runtime policy."
+msgid ""
+"This does not manage Cloud sites, keys, billing, models, router, workflows, "
+"or runtime policy."
 msgstr "这里不管理 Cloud 站点、密钥、账单、模型、路由器、工作流或运行时策略。"
 
 #: includes/class-cloud-settings-page.php:1785
-msgid "Site Knowledge delivery starts after the connector verifies successfully."
+msgid ""
+"Site Knowledge delivery starts after the connector verifies successfully."
 msgstr "连接器成功验证后才会开始站点知识库投递。"
 
 #: includes/class-cloud-settings-page.php:1844
-msgid "AI can reference your public posts and pages. WordPress content and search engine settings are not changed."
+msgid ""
+"AI can reference your public posts and pages. WordPress content and search "
+"engine settings are not changed."
 msgstr "AI 可以参考您网站的公开文章和页面，不会修改 WordPress 内容或搜索引擎设置。"
 
 #: includes/class-cloud-settings-page.php:1891
@@ -1398,7 +1529,7 @@ msgid "Automatic updates are delayed. Check the site scheduler in Checks."
 msgstr "自动更新已延迟，请在「检查」中查看站点计划任务。"
 
 #: includes/class-cloud-settings-page.php:1892
-#: includes/class-cloud-settings-page.php:1959
+#: includes/class-cloud-settings-page.php:1960
 msgid "View checks"
 msgstr "查看检查"
 
@@ -1408,7 +1539,8 @@ msgstr "查看检查"
 msgid "%d public items were not included. Review the plan details in Cloud."
 msgstr "%d 项公开内容未被收录，请在 Cloud 中查看套餐详情。"
 
-#. translators: %d: number of content updates waiting for automatic processing.
+#. translators: %d: number of content updates waiting for automatic
+#. processing.
 #: includes/class-cloud-settings-actions.php:139
 #: includes/class-cloud-settings-page.php:1940
 #, php-format
@@ -1421,36 +1553,38 @@ msgstr "待处理更新：%d"
 msgid "Last updated: %s"
 msgstr "最近更新：%s"
 
-#: includes/class-cloud-settings-page.php:1993
+#: includes/class-cloud-settings-page.php:2026
 msgid "Knowledge base delivery"
 msgstr "知识库投递"
 
-#: includes/class-cloud-settings-page.php:1997
+#: includes/class-cloud-settings-page.php:2030
 msgid "Last success"
 msgstr "上次成功"
 
-#: includes/class-cloud-settings-page.php:2013
+#: includes/class-cloud-settings-page.php:2046
 msgid "Last error code"
 msgstr "上次错误代码"
 
-#: includes/class-cloud-settings-page.php:2017
+#: includes/class-cloud-settings-page.php:2050
 msgid "Last error time"
 msgstr "上次错误时间"
 
-#: includes/class-cloud-settings-page.php:2023
+#: includes/class-cloud-settings-page.php:2056
 msgid "WP-Cron disabled"
 msgstr "WP-Cron 已禁用"
 
-#: includes/class-cloud-settings-page.php:2024
+#: includes/class-cloud-settings-page.php:2057
 msgid "yes"
 msgstr "是"
 
-#: includes/class-cloud-settings-page.php:2027
+#: includes/class-cloud-settings-page.php:2060
 msgid "Manual flush command"
 msgstr "手动刷新命令"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:508
-msgid "Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index."
+#: includes/class-cloud-site-knowledge-change-bridge.php:517
+msgid ""
+"Site Knowledge delivery is disabled locally. Enable delivery before starting"
+" or rebuilding the index."
 msgstr "站点知识库投递已在本地关闭。开始索引或重建索引前，请先启用投递。"
 
 #: includes/class-cloud-settings-page.php:1928
@@ -1458,154 +1592,156 @@ msgid "Start indexing"
 msgstr "开始索引"
 
 #. translators: 1: credit period start, 2: credit period end.
-#: includes/class-cloud-settings-page.php:2078
+#: includes/class-cloud-settings-page.php:2111
 #, php-format
 msgid "%1$s to %2$s"
 msgstr "%1$s 至 %2$s"
 
-#: includes/class-cloud-settings-page.php:2087
+#: includes/class-cloud-settings-page.php:2120
 msgid "Run limit"
 msgstr "运行次数上限"
 
 #. translators: %s: USD cost limit.
-#: includes/class-cloud-settings-page.php:2107
+#: includes/class-cloud-settings-page.php:2140
 #, php-format
 msgid "%s USD"
 msgstr "%s USD"
 
-#: includes/class-cloud-settings-page.php:2185
+#: includes/class-cloud-settings-page.php:2218
 msgid "Collection"
 msgstr "收集"
 
-#: includes/class-cloud-settings-page.php:2189
+#: includes/class-cloud-settings-page.php:2222
 msgid "Buffered events"
 msgstr "缓冲事件"
 
-#: includes/class-cloud-settings-page.php:2193
+#: includes/class-cloud-settings-page.php:2226
 msgid "Last upload status"
 msgstr "上次上传状态"
 
-#: includes/class-cloud-settings-page.php:2199
+#: includes/class-cloud-settings-page.php:2232
 msgid "never"
 msgstr "从未"
 
-#: includes/class-cloud-settings-page.php:2201
-#: includes/class-cloud-settings-page.php:2574
+#: includes/class-cloud-settings-page.php:2234
+#: includes/class-cloud-settings-page.php:2607
 msgid "ok"
 msgstr "正常"
 
-#: includes/class-cloud-settings-page.php:2201
+#: includes/class-cloud-settings-page.php:2234
 msgid "failed"
 msgstr "失败"
 
-#: includes/class-cloud-settings-page.php:2208
+#: includes/class-cloud-settings-page.php:2241
 msgid "Last upload error"
 msgstr "上次上传错误"
 
-#: includes/class-cloud-settings-page.php:2229
+#: includes/class-cloud-settings-page.php:2262
 msgid "Connection status"
 msgstr "连接状态"
 
-#: includes/class-cloud-settings-page.php:2233
+#: includes/class-cloud-settings-page.php:2266
 msgid "Cloud error classification"
 msgstr "Cloud 错误分类"
 
-#: includes/class-cloud-settings-page.php:2237
+#: includes/class-cloud-settings-page.php:2270
 msgid "Last failure"
 msgstr "上次失败"
 
-#: includes/class-cloud-settings-page.php:2313
+#: includes/class-cloud-settings-page.php:2346
 msgid "available"
 msgstr "可用"
 
-#: includes/class-cloud-settings-page.php:2318
+#: includes/class-cloud-settings-page.php:2351
 msgid "not refreshed"
 msgstr "尚未刷新"
 
-#: includes/class-cloud-settings-page.php:2322
-#: includes/class-cloud-settings-page.php:2568
+#: includes/class-cloud-settings-page.php:2355
+#: includes/class-cloud-settings-page.php:2601
 msgid "not configured"
 msgstr "尚未配置"
 
-#: includes/class-cloud-settings-page.php:2326
+#: includes/class-cloud-settings-page.php:2359
 msgid "read failed"
 msgstr "读取失败"
 
-#: includes/class-cloud-settings-page.php:2346
+#: includes/class-cloud-settings-page.php:2379
 msgid "Loading plan and entitlement…"
 msgstr "正在获取套餐与权益…"
 
-#: includes/class-cloud-settings-page.php:2355
+#: includes/class-cloud-settings-page.php:2388
 msgid "Available"
 msgstr "可用"
 
-#: includes/class-cloud-settings-page.php:2370
+#: includes/class-cloud-settings-page.php:2403
 msgid "Free plan"
 msgstr "免费版"
 
-#: includes/class-cloud-settings-page.php:2371
+#: includes/class-cloud-settings-page.php:2404
 msgid "Pro plan"
 msgstr "专业版"
 
-#. translators: 1: remaining credits, 2: credit limit, 3: remaining percentage.
-#: includes/class-cloud-settings-page.php:2416
+#. translators: 1: remaining credits, 2: credit limit, 3: remaining
+#. percentage.
+#: includes/class-cloud-settings-page.php:2449
 #, php-format
 msgid "%1$s / %2$s · %3$d%% remaining"
 msgstr "%1$s / %2$s · 剩余 %3$d%%"
 
 #. translators: 1: used credits, 2: remaining credits, 3: credit limit.
-#: includes/class-cloud-settings-page.php:2434
+#: includes/class-cloud-settings-page.php:2467
 #, php-format
-msgid "Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
+msgid ""
+"Used %1$s AI credits; remaining %2$s AI credits; limit %3$s AI credits."
 msgstr "已用 %1$s AI 积分；剩余 %2$s AI 积分；上限 %3$s AI 积分。"
 
 #. translators: %s: remaining credits.
-#: includes/class-cloud-settings-page.php:2442
+#: includes/class-cloud-settings-page.php:2475
 #, php-format
 msgid "%s remaining"
 msgstr "剩余 %s"
 
 #. translators: 1: remaining runtime runs, 2: runtime run limit.
-#: includes/class-cloud-settings-page.php:2465
+#: includes/class-cloud-settings-page.php:2498
 #, php-format
 msgid "%1$d of %2$d runs remaining"
 msgstr "剩余 %1$d / %2$d 次"
 
 #. translators: 1: monitoring state, 2: buffered event count.
-#: includes/class-cloud-settings-page.php:2501
+#: includes/class-cloud-settings-page.php:2534
 #, php-format
 msgid "%1$s, %2$d buffered"
 msgstr "%1$s，%2$d 条待发送"
 
 #. translators: %d: buffered public change count.
-#: includes/class-cloud-settings-page.php:2546
+#: includes/class-cloud-settings-page.php:2579
 #, php-format
 msgid "%d public changes awaiting delivery"
 msgstr "%d 条公开变更待投递"
 
 #. translators: 1: bridge status, 2: buffered public change count.
-#: includes/class-cloud-settings-page.php:2553
+#: includes/class-cloud-settings-page.php:2586
 #, php-format
 msgid "%1$s, %2$d public changes buffered"
 msgstr "%1$s，%2$d 条公开变更已缓冲"
 
-#: includes/class-cloud-settings-page.php:2567
+#: includes/class-cloud-settings-page.php:2600
 msgid "idle"
 msgstr "空闲"
 
-#: includes/class-cloud-settings-page.php:2569
+#: includes/class-cloud-settings-page.php:2602
 msgid "unverified"
 msgstr "未验证"
 
-#: includes/class-cloud-settings-page.php:2571
+#: includes/class-cloud-settings-page.php:2604
 msgid "error"
 msgstr "错误"
 
-#: includes/class-cloud-settings-page.php:2572
+#: includes/class-cloud-settings-page.php:2605
 msgid "pending"
 msgstr "等待中"
 
-#: includes/class-cloud-settings-page.php:2573
+#: includes/class-cloud-settings-page.php:2606
 msgid "queued"
 msgstr "排队中"
 
@@ -1619,206 +1755,232 @@ msgstr "站点知识库刷新请求失败。"
 msgid "Site Knowledge refresh requested. Public content items sent: %d."
 msgstr "已请求站点知识库刷新。已发送公开内容项：%d。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:121
+#: includes/class-cloud-site-knowledge-admin-actions.php:120
 msgid "Choose a valid published article to refresh."
 msgstr "请选择有效的已发布文章进行刷新。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:132
-msgid "Article refresh requested. Check its index status again after Cloud finishes processing."
+#: includes/class-cloud-site-knowledge-admin-actions.php:131
+msgid ""
+"Article refresh requested. Check its index status again after Cloud finishes"
+" processing."
 msgstr "已请求刷新文章。Cloud 处理完成后，请再次检查其索引状态。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:150
-#: includes/class-cloud-site-knowledge-change-bridge.php:500
+#: includes/class-cloud-site-knowledge-admin-actions.php:149
+#: includes/class-cloud-site-knowledge-change-bridge.php:509
 msgid "The requested Site Knowledge index action is not supported."
 msgstr "请求的站点知识库索引操作不受支持。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:153
-msgid "Type the confirmation word before running this Site Knowledge index action."
+#: includes/class-cloud-site-knowledge-admin-actions.php:152
+msgid ""
+"Type the confirmation word before running this Site Knowledge index action."
 msgstr "运行此站点知识库索引操作前，请输入确认词。"
 
 #. translators: 1: public content item count, 2: bounded delivery batch count.
-#: includes/class-cloud-site-knowledge-admin-actions.php:168
+#: includes/class-cloud-site-knowledge-admin-actions.php:167
 #, php-format
-msgid "Site Knowledge indexing delivery scheduled: %1$d public content items in %2$d batches."
+msgid ""
+"Site Knowledge indexing delivery scheduled: %1$d public content items in "
+"%2$d batches."
 msgstr "Site Knowledge 索引投递已安排：%1$d 项公开内容，共 %2$d 个批次。"
 
 #. translators: 1: public content item count, 2: bounded delivery batch count.
-#: includes/class-cloud-site-knowledge-admin-actions.php:177
+#: includes/class-cloud-site-knowledge-admin-actions.php:176
 #, php-format
-msgid "Site Knowledge rebuild delivery scheduled: %1$d public content items in %2$d batches."
+msgid ""
+"Site Knowledge rebuild delivery scheduled: %1$d public content items in %2$d"
+" batches."
 msgstr "Site Knowledge 重建投递已安排：%1$d 项公开内容，共 %2$d 个批次。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:184
-msgid "Site Knowledge index deletion requested. WordPress content was not changed."
+#: includes/class-cloud-site-knowledge-admin-actions.php:183
+msgid ""
+"Site Knowledge index deletion requested. WordPress content was not changed."
 msgstr "站点知识库索引删除请求已发送。WordPress 内容未被更改。"
 
-#: includes/class-cloud-site-knowledge-admin-actions.php:190
+#: includes/class-cloud-site-knowledge-admin-actions.php:189
 msgid "Site Knowledge index action requested."
 msgstr "站点知识库索引操作请求已发送。"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:52
+#: includes/class-cloud-site-knowledge-admin-projection.php:62
 msgid "Indexed chunks"
 msgstr "已索引分块"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:53
+#: includes/class-cloud-site-knowledge-admin-projection.php:63
 msgid "Per-sync limit"
 msgstr "单次同步上限"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:54
+#: includes/class-cloud-site-knowledge-admin-projection.php:64
 msgid "Truncated documents"
 msgstr "被截断的文章"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:55
+#: includes/class-cloud-site-knowledge-admin-projection.php:65
 msgid "Skipped documents"
 msgstr "已跳过的文章"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:56
+#: includes/class-cloud-site-knowledge-admin-projection.php:66
 msgid "Last Cloud sync"
 msgstr "上次 Cloud 同步"
 
-#. translators: 1: indexed documents, 2: remaining documents, 3: document limit.
-#: includes/class-cloud-site-knowledge-admin-projection.php:81
+#. translators: 1: indexed documents, 2: remaining documents, 3: document
+#. limit.
+#: includes/class-cloud-site-knowledge-admin-projection.php:91
 #, php-format
-msgid "Indexed %1$s documents; remaining %2$s documents; limit %3$s documents."
+msgid ""
+"Indexed %1$s documents; remaining %2$s documents; limit %3$s documents."
 msgstr "已索引 %1$s 篇；剩余 %2$s 篇；上限 %3$s 篇。"
 
 #. translators: 1: per-sync document limit, 2: per-sync chunk limit.
-#: includes/class-cloud-site-knowledge-admin-projection.php:110
+#: includes/class-cloud-site-knowledge-admin-projection.php:120
 #, php-format
 msgid "%1$s documents / %2$s chunks"
 msgstr "%1$s 篇文章 / %2$s 个分块"
 
 #. translators: 1: skipped documents, 2: documents skipped due to quota.
-#: includes/class-cloud-site-knowledge-admin-projection.php:121
+#: includes/class-cloud-site-knowledge-admin-projection.php:131
 #, php-format
 msgid "%1$s skipped / %2$s due to quota"
 msgstr "跳过 %1$s 篇 / 其中 %2$s 篇因配额限制"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:144
+#: includes/class-cloud-site-knowledge-admin-projection.php:154
 msgid "Passed automatically"
 msgstr "自动验收已通过"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:145
+#: includes/class-cloud-site-knowledge-admin-projection.php:155
 msgid "Expected document was not matched"
 msgstr "未命中预期文章"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:146
+#: includes/class-cloud-site-knowledge-admin-projection.php:156
 msgid "Automatic retrieval failed"
 msgstr "自动检索失败"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:147
+#: includes/class-cloud-site-knowledge-admin-projection.php:157
 msgid "No public document is available for validation"
 msgstr "没有可用于验收的公开文章"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:148
+#: includes/class-cloud-site-knowledge-admin-projection.php:158
 msgid "Waiting for automatic validation"
 msgstr "等待平台自动验收"
 
-#. translators: %s: formatted date and time of the last Site Knowledge verification.
-#: includes/class-cloud-site-knowledge-admin-projection.php:161
+#. translators: %s: formatted date and time of the last Site Knowledge
+#. verification.
+#: includes/class-cloud-site-knowledge-admin-projection.php:171
 #, php-format
 msgid "Last verified: %s"
 msgstr "最近验收：%s"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:29
-#: includes/class-cloud-site-knowledge-change-bridge.php:427
-#: includes/class-cloud-site-knowledge-change-bridge.php:451
+#: includes/class-cloud-site-knowledge-change-bridge.php:433
+#: includes/class-cloud-site-knowledge-change-bridge.php:460
 msgid "Site Knowledge delivery is disabled locally."
 msgstr "站点知识库投递已在本地关闭。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:432
+#: includes/class-cloud-site-knowledge-change-bridge.php:438
 msgid "Only published posts and pages can be refreshed in Site Knowledge."
 msgstr "只有已发布的文章和页面可以在 Site Knowledge 中刷新。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:517
-#: includes/class-cloud-site-knowledge-change-bridge.php:537
-#: includes/class-cloud-site-knowledge-change-bridge.php:578
+#: includes/class-cloud-site-knowledge-change-bridge.php:526
+#: includes/class-cloud-site-knowledge-change-bridge.php:546
+#: includes/class-cloud-site-knowledge-change-bridge.php:589
 msgid "A Site Knowledge full-index delivery is already in progress."
 msgstr "已有一个 Site Knowledge 全量索引投递正在进行。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:558
+#: includes/class-cloud-site-knowledge-change-bridge.php:568
 msgid "No public posts or pages were found for Site Knowledge indexing."
 msgstr "没有找到可用于站点知识库索引的公开文章或页面。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:685
+#: includes/class-cloud-site-knowledge-change-bridge.php:698
 msgid "Site Knowledge delete cleanup is waiting for a local retry."
 msgstr "Site Knowledge 删除清理正在等待本地重试。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:693
+#: includes/class-cloud-site-knowledge-change-bridge.php:706
 msgid "Site Knowledge full-index delivery is blocked after bounded retries."
 msgstr "Site Knowledge 全量索引投递已达到重试上限并暂停。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:733
-#: includes/class-cloud-site-knowledge-change-bridge.php:802
+#: includes/class-cloud-site-knowledge-change-bridge.php:747
+#: includes/class-cloud-site-knowledge-change-bridge.php:817
 msgid "Cloud Site Knowledge run identifier is invalid."
 msgstr "Cloud 站点知识库运行标识符无效。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:748
-msgid "Cloud Site Knowledge run did not finish within the bounded polling window."
+#: includes/class-cloud-site-knowledge-change-bridge.php:762
+msgid ""
+"Cloud Site Knowledge run did not finish within the bounded polling window."
 msgstr "Cloud Site Knowledge 运行未能在有限轮询窗口内完成。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:765
+#: includes/class-cloud-site-knowledge-change-bridge.php:779
 msgid "Cloud Site Knowledge maintenance run failed."
 msgstr "Cloud Site Knowledge 维护运行失败。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1127
+#: includes/class-cloud-site-knowledge-change-bridge.php:1149
 msgid "Site Knowledge sync mode must be refresh, rebuild, or delete."
 msgstr "站点知识库同步模式必须是 refresh、rebuild 或 delete。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:557
-msgid "Site Knowledge runtime requests require a supported ability and contract pair."
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:668
+msgid ""
+"Site Knowledge runtime requests require a supported ability and contract "
+"pair."
 msgstr "站点知识库运行时请求需要受支持的 ability 与 contract 组合。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:566
-msgid "Site Knowledge runtime requests require the expected execution pattern."
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:677
+msgid ""
+"Site Knowledge runtime requests require the expected execution pattern."
 msgstr "站点知识库运行时请求需要符合预期的执行模式。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:579
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:690
 msgid "Site Knowledge runtime requests must be suggestion-only and no-write."
 msgstr "站点知识库运行时请求必须是 suggestion-only 且不写入。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:590
-msgid "Site Knowledge sync transport only accepts public refresh requests. Rebuild, delete, and collection lifecycle operations belong in Cloud Site Knowledge."
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:701
+msgid ""
+"Site Knowledge sync transport only accepts public refresh requests. Rebuild,"
+" delete, and collection lifecycle operations belong in Cloud Site Knowledge."
 msgstr "站点知识库同步传输只接受公开刷新请求。重建、删除和集合生命周期操作属于 Cloud 站点知识库。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:599
-msgid "Site Knowledge runtime requests must not include credentials or signing fields."
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:710
+msgid ""
+"Site Knowledge runtime requests must not include credentials or signing "
+"fields."
 msgstr "站点知识库运行时请求不得包含凭据或签名字段。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:617
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:728
 msgid "Site Knowledge runtime payload could not be encoded."
 msgstr "无法编码站点知识库运行时 payload。"
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:624
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:735
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr "站点知识库运行时 payload 超过传输大小限制。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:399
-msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
+msgid ""
+"Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr "使用已验证的 Npcink Cloud 设置，为 WordPress AI 的固定编辑场景提供云端建议能力。"
 
 #: includes/class-cloud-wordpress-ai-provider.php:57
-msgid "Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
+msgid ""
+"Bounded WordPress AI scene tasks through verified Npcink Cloud settings."
 msgstr "通过已验证的 Npcink Cloud 设置处理受限的 WordPress AI 场景任务。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:62
-msgid "WordPress AI alt text generation requires verified Npcink Cloud settings."
+msgid ""
+"WordPress AI alt text generation requires verified Npcink Cloud settings."
 msgstr "WordPress AI 替代文本生成需要经过验证的 Npcink Cloud 设置。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:97
-msgid "Npcink Cloud did not return a valid source artifact for alt text generation."
+msgid ""
+"Npcink Cloud did not return a valid source artifact for alt text generation."
 msgstr "Npcink Cloud 未返回有效的替代文本生成源工件。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:265
-msgid "WordPress AI alt text generation requires a local WordPress attachment."
+msgid ""
+"WordPress AI alt text generation requires a local WordPress attachment."
 msgstr "WordPress AI 替代文本生成需要本地 WordPress 附件。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:266
-msgid "WordPress AI alt text generation requires one bounded attachment prompt."
+msgid ""
+"WordPress AI alt text generation requires one bounded attachment prompt."
 msgstr "WordPress AI 替代文本生成需要一个有边界的附件提示词。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:267
-msgid "You are not allowed to use this attachment for Cloud alt text generation."
+msgid ""
+"You are not allowed to use this attachment for Cloud alt text generation."
 msgstr "您无权使用此附件进行 Cloud 替代文本生成。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:268
@@ -1826,7 +1988,8 @@ msgid "WordPress AI alt text generation requires a local media attachment."
 msgstr "WordPress AI 替代文本生成需要本地媒体附件。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:269
-msgid "The local attachment file is unavailable for Cloud alt text generation."
+msgid ""
+"The local attachment file is unavailable for Cloud alt text generation."
 msgstr "本地附件文件无法用于 Cloud 替代文本生成。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:270
@@ -1838,11 +2001,15 @@ msgid "The local attachment could not be read for Cloud alt text generation."
 msgstr "无法读取本地附件以进行 Cloud 替代文本生成。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:272
-msgid "The local attachment changed before it could be read for Cloud alt text generation."
+msgid ""
+"The local attachment changed before it could be read for Cloud alt text "
+"generation."
 msgstr "本地附件在读取前已发生变化，无法进行 Cloud 替代文本生成。"
 
 #: includes/class-cloud-wordpress-ai-alt-text-handoff.php:273
-msgid "The local attachment image type is not supported for Cloud alt text generation."
+msgid ""
+"The local attachment image type is not supported for Cloud alt text "
+"generation."
 msgstr "本地附件图像类型不受 Cloud 替代文本生成支持。"
 
 #: includes/class-cloud-runtime-client.php:329
@@ -1854,8 +2021,15 @@ msgid "WordPress AI generation tests"
 msgstr "WordPress AI 生成测试"
 
 #: includes/class-cloud-settings-actions.php:1204
-msgid "Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time."
-msgstr "完整说明：仅含元数据的事件涵盖功能步骤、结果、耗时和机器可读错误码。绝不发送 Prompt、源内容或生成内容、原始 WordPress 用户或文章 ID、邮箱、URL、DOM 数据、凭据或自由文本错误消息。默认关闭；管理员可以随时关闭。"
+msgid ""
+"Full detail: metadata-only events cover feature steps, outcomes, timing, and"
+" machine-readable error codes. Never sent: prompts, source or generated "
+"content, raw WordPress user or post IDs, emails, URLs, DOM data, "
+"credentials, or free-form error messages. Off by default; administrators can"
+" turn it off at any time."
+msgstr ""
+"完整说明：仅含元数据的事件涵盖功能步骤、结果、耗时和机器可读错误码。绝不发送 Prompt、源内容或生成内容、原始 WordPress 用户或文章 "
+"ID、邮箱、URL、DOM 数据、凭据或自由文本错误消息。默认关闭；管理员可以随时关闭。"
 
 #: includes/class-cloud-settings-page.php:1822
 msgid "Updating"
@@ -1870,11 +2044,14 @@ msgid "Paused"
 msgstr "已暂停"
 
 #: includes/class-cloud-settings-page.php:1930
-msgid "Send a public post and page manifest so existing content enters the knowledge base."
+msgid ""
+"Send a public post and page manifest so existing content enters the "
+"knowledge base."
 msgstr "发送公开文章和页面清单，使现有内容进入知识库。"
 
 #: includes/class-cloud-runtime-request-guards.php:305
-msgid "WordPress AI existing_title context is supported only for title generation."
+msgid ""
+"WordPress AI existing_title context is supported only for title generation."
 msgstr "WordPress AI existing_title 上下文仅支持标题生成。"
 
 #: includes/class-cloud-runtime-request-guards.php:494
@@ -1895,7 +2072,9 @@ msgid "Do not show again"
 msgstr "不再显示"
 
 #: includes/class-cloud-observability-collector.php:330
-msgid "Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again."
+msgid ""
+"Cloud Addon settings are not verified. Monitoring uploads resume after the "
+"connection is verified again."
 msgstr "Cloud Addon 设置尚未通过验证。连接重新验证通过后，将自动恢复监控数据上传。"
 
 #: includes/class-cloud-settings-page.php:1597
@@ -1903,11 +2082,14 @@ msgstr "Cloud Addon 设置尚未通过验证。连接重新验证通过后，将
 msgid "All checks passed. No action is needed."
 msgstr "全部检查已通过，无需任何操作。"
 
-#. translators: 1: next action label or link, 2: owner label, 3: blocked reason.
+#. translators: 1: next action label or link, 2: owner label, 3: blocked
+#. reason.
 #: includes/class-cloud-settings-page.php:1603
 #: includes/class-cloud-settings-page.php:1669
 #, php-format
-msgid "The readiness check did not pass. Next step: %1$s (handled by %2$s). Reason: %3$s"
+msgid ""
+"The readiness check did not pass. Next step: %1$s (handled by %2$s). Reason:"
+" %3$s"
 msgstr "就绪检查未通过。下一步：%1$s（由%2$s处理）。原因：%3$s"
 
 #. translators: 1: next action label or link, 2: owner label.
@@ -1917,48 +2099,50 @@ msgstr "就绪检查未通过。下一步：%1$s（由%2$s处理）。原因：%
 msgid "Next step: %1$s (handled by %2$s)."
 msgstr "下一步：%1$s（由%2$s处理）。"
 
-#: includes/class-cloud-settings-page.php:2002
+#: includes/class-cloud-settings-page.php:2035
 msgid "Dropped updates"
 msgstr "被放弃的更新"
 
 #. translators: 1: dropped update count, 2: drop time.
-#: includes/class-cloud-settings-page.php:2005
+#: includes/class-cloud-settings-page.php:2038
 #, php-format
 msgid "%1$d (last at %2$s)"
 msgstr "%1$d（最近于 %2$s）"
 
-#: includes/class-cloud-settings-page.php:2167
+#: includes/class-cloud-settings-page.php:2200
 msgid "Monitoring upload state"
 msgstr "监控上传状态"
 
-#: includes/class-cloud-settings-page.php:2255
+#: includes/class-cloud-settings-page.php:2288
 msgid "The Cloud connection is not configured yet."
 msgstr "尚未配置 Cloud 连接。"
 
-#: includes/class-cloud-settings-page.php:2257
+#: includes/class-cloud-settings-page.php:2290
 msgid "The Cloud connection is healthy."
 msgstr "Cloud 连接正常。"
 
-#: includes/class-cloud-settings-page.php:2259
+#: includes/class-cloud-settings-page.php:2292
 msgid "This site still needs to be activated in Cloud."
 msgstr "本站点还需要在 Cloud 激活。"
 
-#: includes/class-cloud-settings-page.php:2261
+#: includes/class-cloud-settings-page.php:2294
 msgid "Cloud could not be reached or refused the connection."
 msgstr "无法连接 Cloud，或 Cloud 拒绝了本次连接。"
 
-#: includes/class-cloud-settings-page.php:2263
+#: includes/class-cloud-settings-page.php:2296
 msgid "The Cloud credentials have not been verified yet."
 msgstr "Cloud 凭据尚未通过验证。"
 
-#: includes/class-cloud-settings-page.php:2266
+#: includes/class-cloud-settings-page.php:2299
 msgid "The last Cloud verification did not complete."
 msgstr "最近一次 Cloud 验证未完成。"
 
 #. translators: %s: bounded delivery error detail from the last retry.
 #: includes/class-cloud-site-knowledge-admin-actions.php:68
 #, php-format
-msgid "The knowledge base update could not be delivered and will be retried automatically. Detail: %s"
+msgid ""
+"The knowledge base update could not be delivered and will be retried "
+"automatically. Detail: %s"
 msgstr "知识库更新未能投递，系统会自动重试。详情：%s"
 
 #: includes/class-cloud-wordpress-ai-connector.php:767
@@ -1966,11 +2150,14 @@ msgid "This request is not supported by the Npcink Cloud AI connection yet."
 msgstr "Npcink Cloud AI 连接暂不支持该请求。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:768
-msgid "The Npcink Cloud AI connection does not support conversation history for this request."
+msgid ""
+"The Npcink Cloud AI connection does not support conversation history for "
+"this request."
 msgstr "Npcink Cloud AI 连接不支持在此请求中使用对话历史。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:769
-msgid "The Npcink Cloud AI connection does not support tool calls or web search."
+msgid ""
+"The Npcink Cloud AI connection does not support tool calls or web search."
 msgstr "Npcink Cloud AI 连接不支持工具调用或网页搜索。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:770
@@ -1978,15 +2165,21 @@ msgid "The Npcink Cloud AI connection needs text input for this request."
 msgstr "此请求需要为 Npcink Cloud AI 连接提供文本输入。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:771
-msgid "Image-to-image refinement is not supported by the Npcink Cloud AI connection yet."
+msgid ""
+"Image-to-image refinement is not supported by the Npcink Cloud AI connection"
+" yet."
 msgstr "Npcink Cloud AI 连接暂不支持图生图细化。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:772
-msgid "This AI feature is not currently available through the Npcink Cloud connection."
+msgid ""
+"This AI feature is not currently available through the Npcink Cloud "
+"connection."
 msgstr "该 AI 功能当前无法通过 Npcink Cloud 连接使用。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:773
-msgid "Npcink Cloud did not return usable output for this request. Please try again."
+msgid ""
+"Npcink Cloud did not return usable output for this request. Please try "
+"again."
 msgstr "Npcink Cloud 未返回可用的结果，请重试。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:775
@@ -1994,15 +2187,21 @@ msgid "Npcink Cloud returned an unexpected image result. Please try again."
 msgstr "Npcink Cloud 返回了异常的图片结果，请重试。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:776
-msgid "The generated image previews are too large to show. Try generating fewer images at once."
+msgid ""
+"The generated image previews are too large to show. Try generating fewer "
+"images at once."
 msgstr "生成的图片预览过大，无法显示。请尝试一次生成更少的图片。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:777
-msgid "The generated image could not be verified for safe delivery. Please try again."
+msgid ""
+"The generated image could not be verified for safe delivery. Please try "
+"again."
 msgstr "生成的图片未能通过安全投递校验，请重试。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:778
-msgid "Npcink Cloud could not confirm delivery of the generated image. Please try again."
+msgid ""
+"Npcink Cloud could not confirm delivery of the generated image. Please try "
+"again."
 msgstr "Npcink Cloud 未能确认图片已投递，请重试。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:779
@@ -2010,35 +2209,48 @@ msgid "The generated image is no longer available. Please generate it again."
 msgstr "生成的图片已失效，请重新生成。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:781
-msgid "Npcink Cloud could not be reached from this site. Please try again in a moment."
+msgid ""
+"Npcink Cloud could not be reached from this site. Please try again in a "
+"moment."
 msgstr "本站点暂时无法连接 Npcink Cloud，请稍后重试。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:782
-msgid "The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page."
+msgid ""
+"The Npcink Cloud connection is no longer authorized. Please reconnect the "
+"site from the Cloud Addon settings page."
 msgstr "Npcink Cloud 连接的授权已失效。请在 Cloud Addon 设置页面重新连接站点。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:783
-msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
+msgid ""
+"This request reached a Npcink Cloud limit. Please wait a moment and try "
+"again, or review the plan usage in Cloud."
 msgstr "该请求已达到 Npcink Cloud 的限额。请稍后重试，或在 Cloud 中查看套餐用量。"
 
 #. translators: %s: bounded delivery error detail from the last retry.
 #: includes/class-cloud-site-knowledge-admin-actions.php:71
 #, php-format
-msgid "The knowledge base update could not be delivered and automatic retries have stopped. Update the knowledge base again. Detail: %s"
+msgid ""
+"The knowledge base update could not be delivered and automatic retries have "
+"stopped. Update the knowledge base again. Detail: %s"
 msgstr "知识库更新未能投递，且自动重试已停止。请再次更新知识库。详情：%s"
 
 #. translators: %s: bounded delivery error detail from the last retry.
 #: includes/class-cloud-site-knowledge-admin-actions.php:74
 #, php-format
-msgid "The knowledge base update could not be delivered. Check Overview for the next step. Detail: %s"
+msgid ""
+"The knowledge base update could not be delivered. Check Overview for the "
+"next step. Detail: %s"
 msgstr "知识库更新未能投递。请在概览查看下一步。详情：%s"
 
 #: includes/class-cloud-media-source-validation.php:77
-msgid "Media upload descriptors require the direct byte source to be a string."
+msgid ""
+"Media upload descriptors require the direct byte source to be a string."
 msgstr "媒体上传描述符的直接字节源必须是字符串。"
 
 #: includes/class-cloud-settings-actions.php:1191
-msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected."
+msgid ""
+"Allow WordPress AI to use Npcink Cloud. Enabled by default while this site "
+"stays connected."
 msgstr "允许 WordPress AI 使用 Npcink Cloud。站点保持连接期间默认启用。"
 
 #: includes/class-cloud-settings-page.php:1222
@@ -2050,11 +2262,14 @@ msgid "View Site Knowledge status"
 msgstr "查看站点知识库状态"
 
 #: includes/class-cloud-wordpress-ai-connector.php:774
-msgid "Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run."
+msgid ""
+"Npcink Cloud is still processing this request. Wait a moment and try again "
+"later to avoid a duplicate run."
 msgstr "Npcink Cloud 仍在处理此请求。请稍候再试，以免重复执行产生额外消耗。"
 
 #: includes/class-cloud-ai-task-contract.php:133
-msgid "A registered WordPress Ability is required for Cloud AI task execution."
+msgid ""
+"A registered WordPress Ability is required for Cloud AI task execution."
 msgstr "Cloud AI 任务执行需要已注册的 WordPress 能力。"
 
 #: includes/class-cloud-ai-task-contract.php:138
@@ -2082,15 +2297,20 @@ msgid "The Toolkit contract version or Ability identity is invalid."
 msgstr "Toolkit 契约版本或能力身份无效。"
 
 #: includes/class-cloud-ai-task-contract.php:219
-msgid "The Toolkit contract permission or write posture is incompatible with the local Ability."
+msgid ""
+"The Toolkit contract permission or write posture is incompatible with the "
+"local Ability."
 msgstr "Toolkit 契约权限或写入姿态与本地能力不兼容。"
 
 #: includes/class-cloud-ai-task-contract.php:224
-msgid "The Toolkit risk level does not match the registered WordPress Ability."
+msgid ""
+"The Toolkit risk level does not match the registered WordPress Ability."
 msgstr "Toolkit 风险级别与已注册 WordPress 能力不匹配。"
 
 #: includes/class-cloud-ai-task-contract.php:227
-msgid "The Toolkit approval requirement does not match the registered WordPress Ability."
+msgid ""
+"The Toolkit approval requirement does not match the registered WordPress "
+"Ability."
 msgstr "Toolkit 审批要求与已注册 WordPress 能力不匹配。"
 
 #: includes/class-cloud-ai-task-contract.php:241
@@ -2098,15 +2318,20 @@ msgid "AI task contracts require ai_task_contract.v1."
 msgstr "AI 任务契约必须使用 ai_task_contract.v1。"
 
 #: includes/class-cloud-ai-task-contract.php:256
-msgid "AI task contracts require a registered ability, task, and supported task family."
+msgid ""
+"AI task contracts require a registered ability, task, and supported task "
+"family."
 msgstr "AI 任务契约必须包含已注册能力、任务和受支持的任务类型。"
 
 #: includes/class-cloud-ai-task-contract.php:259
-msgid "AI task contract verification must be mapping_current before Cloud execution."
+msgid ""
+"AI task contract verification must be mapping_current before Cloud "
+"execution."
 msgstr "Cloud 执行前，AI 任务契约验证状态必须为 mapping_current。"
 
 #: includes/class-cloud-ai-task-contract.php:265
-msgid "AI task contracts contain an unsupported context requirement or constraint."
+msgid ""
+"AI task contracts contain an unsupported context requirement or constraint."
 msgstr "AI 任务契约包含不受支持的上下文要求或约束。"
 
 #: includes/class-cloud-ai-task-contract.php:272
@@ -2118,7 +2343,9 @@ msgid "The Ability output schema is too large for runtime projection."
 msgstr "能力输出架构过大，无法投影到运行时请求。"
 
 #: includes/class-cloud-ai-task-contract.php:281
-msgid "The AI task contract schema hash does not match its input and output schemas."
+msgid ""
+"The AI task contract schema hash does not match its input and output "
+"schemas."
 msgstr "AI 任务契约架构哈希与输入、输出架构不匹配。"
 
 #: includes/class-cloud-ai-task-contract.php:307
@@ -2143,7 +2370,9 @@ msgid "Confirm local disconnect before submitting."
 msgstr "提交前请确认要在本地断开连接。"
 
 #: includes/class-cloud-settings-page.php:984
-msgid "I understand that this clears only the WordPress-side connection and addon buffers."
+msgid ""
+"I understand that this clears only the WordPress-side connection and addon "
+"buffers."
 msgstr "我确认这只会清除 WordPress 端连接和插件缓冲区。"
 
 #: includes/class-cloud-wordpress-ai-model-metadata-directory.php:55
@@ -2151,28 +2380,37 @@ msgid "Npcink Cloud model metadata not found."
 msgstr "未找到 Npcink Cloud 模型元数据。"
 
 #: includes/class-cloud-settings-page.php:768
-msgid "The cached Cloud read is out of date. Re-check the connection to confirm current service status."
+msgid ""
+"The cached Cloud read is out of date. Re-check the connection to confirm "
+"current service status."
 msgstr "缓存的 Cloud 读取已过期。请重新检查连接以确认当前服务状态。"
 
 #: includes/class-cloud-settings-page.php:1920
-msgid "Public content is being re-sent to Cloud. The warning will clear when delivery finishes."
+msgid ""
+"Public content is being re-sent to Cloud. The warning will clear when "
+"delivery finishes."
 msgstr "正在向 Cloud 重新投递公开内容。投递完成后，警告将自动解除。"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:39
-msgid "A knowledge base update is already in progress. No new request was started."
+msgid ""
+"A knowledge base update is already in progress. No new request was started."
 msgstr "知识库正在更新中，本次未重复发起请求。"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:37
 #: includes/class-cloud-site-knowledge-admin-actions.php:48
-msgid "Knowledge base recovery has been scheduled. The warning will clear after all public content has been delivered to Cloud."
+msgid ""
+"Knowledge base recovery has been scheduled. The warning will clear after all"
+" public content has been delivered to Cloud."
 msgstr "已安排知识库恢复更新。全部公开内容投递到 Cloud 后，警告将自动解除。"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:94
-msgid "No pending public content changes were found. No content was sent to Cloud."
+msgid ""
+"No pending public content changes were found. No content was sent to Cloud."
 msgstr "未发现待投递的公开内容变更。本次未向 Cloud 发送内容。"
 
 #: includes/class-cloud-customer-journey.php:204
-msgid "Cloud customer journey response did not include an accepted event count."
+msgid ""
+"Cloud customer journey response did not include an accepted event count."
 msgstr "Cloud 客户旅程响应未返回已接受事件数量。"
 
 #: includes/class-cloud-observability-collector.php:371
@@ -2192,20 +2430,25 @@ msgstr "启用 WordPress 官方 AI 插件"
 msgid "Install the WordPress AI plugin"
 msgstr "安装 WordPress 官方 AI 插件"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:31
+#: includes/class-cloud-site-knowledge-admin-projection.php:41
 msgid "Verify the Cloud connection before reading Site Knowledge usage."
 msgstr "请先验证 Cloud 连接，再读取知识库用量。"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:33
-msgid "A Site Knowledge usage refresh is already running. Wait briefly, then retry."
+#: includes/class-cloud-site-knowledge-admin-projection.php:43
+msgid ""
+"A Site Knowledge usage refresh is already running. Wait briefly, then retry."
 msgstr "知识库用量正在刷新，请稍候再试。"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:34
-msgid "Cloud did not return complete Site Knowledge usage. Check this site in Cloud and report the validation time."
+#: includes/class-cloud-site-knowledge-admin-projection.php:44
+msgid ""
+"Cloud did not return complete Site Knowledge usage. Check this site in Cloud"
+" and report the validation time."
 msgstr "Cloud 未返回完整的知识库用量。请进入 Cloud 查看此站点，并反馈验证时间。"
 
-#: includes/class-cloud-site-knowledge-admin-projection.php:36
-msgid "Site Knowledge usage could not be read. Check the Cloud connection and this site in Cloud before retrying."
+#: includes/class-cloud-site-knowledge-admin-projection.php:46
+msgid ""
+"Site Knowledge usage could not be read. Check the Cloud connection and this "
+"site in Cloud before retrying."
 msgstr "无法读取知识库用量。请先检查 Cloud 连接及 Cloud 中的此站点状态，再重试。"
 
 #: includes/class-cloud-ai-task-contract.php:250
@@ -2215,11 +2458,16 @@ msgid "SEO/AEO/GEO specialist assistance is paused."
 msgstr "SEO/AEO/GEO 专项辅助功能已暂停。"
 
 #: includes/class-cloud-discoverability-pause.php:66
-msgid "Suggests short, readable permalink slugs from post title or content. Requires an AI connector that includes support for text generation models."
+msgid ""
+"Suggests short, readable permalink slugs from post title or content. "
+"Requires an AI connector that includes support for text generation models."
 msgstr "根据文章标题或内容生成简短、易读的永久链接别名建议。需要支持文本生成模型的 AI 连接器。"
 
 #: includes/class-cloud-discoverability-pause.php:69
-msgid "Adds editorial suggestions to posts block-by-block, covering Accessibility, Readability, and Grammar. Requires an AI connector that includes support for text generation models."
+msgid ""
+"Adds editorial suggestions to posts block-by-block, covering Accessibility, "
+"Readability, and Grammar. Requires an AI connector that includes support for"
+" text generation models."
 msgstr "按区块为文章添加编辑建议，覆盖无障碍、可读性和语法。需要支持文本生成模型的 AI 连接器。"
 
 #: includes/class-cloud-discoverability-pause.php:34
@@ -2230,7 +2478,7 @@ msgstr "此 Cloud 功能已暂时停用。"
 msgid "Ready to index"
 msgstr "可以开始索引"
 
-#: includes/class-cloud-settings-page.php:2133
+#: includes/class-cloud-settings-page.php:2166
 msgid "More limits"
 msgstr "更多限额"
 
@@ -2243,7 +2491,7 @@ msgid "Syncing"
 msgstr "同步中"
 
 #: includes/class-cloud-settings-page.php:1866
-#: includes/class-cloud-settings-page.php:2035
+#: includes/class-cloud-settings-page.php:2068
 msgid "Sync"
 msgstr "同步"
 
@@ -2254,7 +2502,9 @@ msgstr "打开连接"
 #. translators: %d: number of dropped content updates.
 #: includes/class-cloud-settings-page.php:1885
 #, php-format
-msgid "%d content updates could not be delivered and were dropped. Use Sync to include them again."
+msgid ""
+"%d content updates could not be delivered and were dropped. Use Sync to "
+"include them again."
 msgstr "有 %d 条内容更新未能投递并已丢弃。请使用「同步」重新纳入。"
 
 #: includes/class-cloud-settings-page.php:1888
@@ -2269,25 +2519,26 @@ msgstr "查看投递详情"
 #. translators: %s: machine-readable delivery error code.
 #: includes/class-cloud-settings-page.php:1901
 #, php-format
-msgid "Delivery failed (%s). Re-check the Cloud connection, then sync if needed."
+msgid ""
+"Delivery failed (%s). Re-check the Cloud connection, then sync if needed."
 msgstr "投递失败（%s）。请先检查 Cloud 连接，必要时再同步。"
 
 #: includes/class-cloud-settings-page.php:1905
 msgid "Delivery needs attention. Re-check the Cloud connection."
 msgstr "投递需要处理。请检查 Cloud 连接。"
 
-#: includes/class-cloud-settings-page.php:2038
+#: includes/class-cloud-settings-page.php:2071
 msgid "Open Knowledge base on Overview"
 msgstr "打开概览中的知识库"
 
 #. translators: %d: dropped content update count.
-#: includes/class-cloud-settings-page.php:2518
+#: includes/class-cloud-settings-page.php:2551
 #, php-format
 msgid "%d content updates were dropped"
 msgstr "有 %d 条内容更新被丢弃"
 
 #. translators: %s: machine-readable delivery error code.
-#: includes/class-cloud-settings-page.php:2529
+#: includes/class-cloud-settings-page.php:2562
 #, php-format
 msgid "Delivery error: %s"
 msgstr "投递错误：%s"
@@ -2349,11 +2600,15 @@ msgid "Context"
 msgstr "上下文"
 
 #: includes/class-cloud-settings-page.php:218
-msgid "WordPress AI can draft a short title from this sample paragraph about cloud-connected generation."
+msgid ""
+"WordPress AI can draft a short title from this sample paragraph about cloud-"
+"connected generation."
 msgstr "WordPress AI 可据此示例段落起草一个简短标题，内容与云端生成相关。"
 
 #: includes/class-cloud-settings-page.php:219
-msgid "A simple watercolor illustration of a notebook and a fountain pen on a wooden desk."
+msgid ""
+"A simple watercolor illustration of a notebook and a fountain pen on a "
+"wooden desk."
 msgstr "木桌上的笔记本与钢笔，简洁水彩插画。"
 
 #: includes/class-cloud-settings-page.php:1462
@@ -2390,7 +2645,9 @@ msgid "You need administrator access to run this test."
 msgstr "需要管理员权限才能运行此测试。"
 
 #: includes/class-cloud-settings-page.php:193
-msgid "This generation ability is not available. Open Ability Explorer or check the WordPress AI plugin."
+msgid ""
+"This generation ability is not available. Open Ability Explorer or check the"
+" WordPress AI plugin."
 msgstr "此生成能力不可用。请打开能力浏览器，或检查 WordPress AI 插件。"
 
 #: includes/class-cloud-settings-page.php:194
@@ -2512,8 +2769,7 @@ msgstr "重新连接"
 msgid "Check again"
 msgstr "重新检查"
 
-#: includes/bootstrap.php:965
-#: includes/class-cloud-settings-page.php:295
+#: includes/bootstrap.php:965 includes/class-cloud-settings-page.php:295
 msgid "Connect this site to Npcink Cloud to use AI features."
 msgstr "把此站点连接到 Npcink Cloud，即可使用 AI 功能。"
 
@@ -2533,11 +2789,16 @@ msgid "This site"
 msgstr "此站点"
 
 #: includes/class-cloud-settings-page.php:1715
-msgid "Once connected, AI features turn on automatically. You can change them in Overview at any time."
+msgid ""
+"Once connected, AI features turn on automatically. You can change them in "
+"Overview at any time."
 msgstr "连接后 AI 功能会自动开启，可随时在「概览」中调整。"
 
 #: includes/class-cloud-settings-page.php:1716
-msgid "Free credits belong to the account you choose when connecting, not to this site. To switch to another account later, follow the steps shown in Npcink Cloud."
+msgid ""
+"Free credits belong to the account you choose when connecting, not to this "
+"site. To switch to another account later, follow the steps shown in Npcink "
+"Cloud."
 msgstr "免费额度属于你连接时选择的账号，不属于此站点。以后要换账号，请按 Npcink Cloud 中的提示操作。"
 
 #: includes/class-cloud-settings-page.php:439
@@ -2552,7 +2813,9 @@ msgid "Usually not needed"
 msgstr "一般不需要"
 
 #: includes/class-cloud-settings-page.php:932
-msgid "Only use this if support asks you to, or if connecting through Npcink Cloud does not work."
+msgid ""
+"Only use this if support asks you to, or if connecting through Npcink Cloud "
+"does not work."
 msgstr "仅在客服要求，或通过 Npcink Cloud 连接不成功时使用。"
 
 #: includes/class-cloud-settings-page.php:908
@@ -2575,11 +2838,15 @@ msgid "Service address"
 msgstr "服务地址"
 
 #: includes/class-cloud-settings-page.php:871
-msgid "Free credits belong to the account you chose when connecting, not to this site."
+msgid ""
+"Free credits belong to the account you chose when connecting, not to this "
+"site."
 msgstr "免费额度属于你连接时选择的账号，不属于此站点。"
 
 #: includes/class-cloud-settings-page.php:906
-msgid "Change account? This site will be disconnected first, then Npcink Cloud opens so you can pick an account. Cancel keeps everything as it is."
+msgid ""
+"Change account? This site will be disconnected first, then Npcink Cloud "
+"opens so you can pick an account. Cancel keeps everything as it is."
 msgstr "要更换账号吗？此站点会先断开，然后打开 Npcink Cloud 让你选择账号。点「取消」则保持不变。"
 
 #: includes/class-cloud-settings-page.php:914
@@ -2607,7 +2874,9 @@ msgid "The connection has a problem"
 msgstr "连接出现问题"
 
 #: includes/class-cloud-addon-settings.php:307
-msgid "Click Check again. If it keeps happening, contact support with the details under More information."
+msgid ""
+"Click Check again. If it keeps happening, contact support with the details "
+"under More information."
 msgstr "点「重新检查」。如果一直这样，请联系客服并附上「更多信息」里的内容。"
 
 #: includes/class-cloud-settings-page.php:690
@@ -2654,7 +2923,8 @@ msgid "The service has a problem we cannot fix automatically."
 msgstr "服务暂时有问题，无法自动修复。"
 
 #: includes/class-cloud-settings-page.php:1338
-msgid "Please contact support and include the information under More information."
+msgid ""
+"Please contact support and include the information under More information."
 msgstr "请联系客服，并附上「更多信息」里的内容。"
 
 #: includes/class-cloud-settings-page.php:1341
@@ -2756,7 +3026,9 @@ msgid "The service address must start with https://."
 msgstr "服务地址必须以 https:// 开头。"
 
 #: includes/class-cloud-addon-settings.php:768
-msgid "This recovery code is not valid. Reconnect this site in Npcink Cloud to get a new one."
+msgid ""
+"This recovery code is not valid. Reconnect this site in Npcink Cloud to get "
+"a new one."
 msgstr "恢复码无效。请在 Npcink Cloud 重新连接此站点以获取新的恢复码。"
 
 #: includes/class-cloud-observability-collector.php:406
@@ -2764,10 +3036,10 @@ msgstr "恢复码无效。请在 Npcink Cloud 重新连接此站点以获取新�
 #: includes/class-cloud-observability-collector.php:521
 #: includes/class-cloud-settings-actions.php:391
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
-#: includes/class-cloud-site-knowledge-admin-actions.php:118
-#: includes/class-cloud-site-knowledge-admin-actions.php:147
-#: includes/class-cloud-site-knowledge-change-bridge.php:447
-#: includes/class-cloud-site-knowledge-change-bridge.php:491
+#: includes/class-cloud-site-knowledge-admin-actions.php:117
+#: includes/class-cloud-site-knowledge-admin-actions.php:146
+#: includes/class-cloud-site-knowledge-change-bridge.php:453
+#: includes/class-cloud-site-knowledge-change-bridge.php:500
 msgid "Connect this site first."
 msgstr "请先连接此站点。"
 
@@ -2791,13 +3063,17 @@ msgstr "连接链接已过期，请重新点击「连接」。"
 #: includes/class-cloud-settings-actions.php:548
 #: includes/class-cloud-settings-actions.php:564
 #: includes/class-cloud-settings-actions.php:606
-msgid "The connection could not be saved on this site. Ask your host to check the site security keys, then connect again."
+msgid ""
+"The connection could not be saved on this site. Ask your host to check the "
+"site security keys, then connect again."
 msgstr "无法在此站点保存连接。请让主机商检查站点安全密钥，然后重新连接。"
 
 #: includes/class-cloud-settings-actions.php:239
 #: includes/class-cloud-settings-actions.php:643
 #: includes/class-cloud-settings-actions.php:918
-msgid "Connected, but this site still needs to be turned on in Npcink Cloud. Turn it on there, then check again here."
+msgid ""
+"Connected, but this site still needs to be turned on in Npcink Cloud. Turn "
+"it on there, then check again here."
 msgstr "已连接，但还需要在 Npcink Cloud 中开启此站点。开启后回到这里重新检查。"
 
 #: includes/class-cloud-settings-actions.php:289
@@ -2818,7 +3094,8 @@ msgid "Please confirm before changing the account."
 msgstr "更换账号前请先确认。"
 
 #: includes/class-cloud-settings-actions.php:372
-msgid "Disconnected from the previous account. Choose an account in Npcink Cloud."
+msgid ""
+"Disconnected from the previous account. Choose an account in Npcink Cloud."
 msgstr "已断开原账号，请在 Npcink Cloud 中选择账号。"
 
 #: includes/class-cloud-settings-actions.php:398
@@ -2842,13 +3119,15 @@ msgstr "已连接，但暂时无法读取额度，请稍后重新检查。（%s�
 #. translators: %s: Cloud connectivity error.
 #: includes/class-cloud-settings-actions.php:614
 #, php-format
-msgid "The connection could not be checked (%s). Click Check again on this page."
+msgid ""
+"The connection could not be checked (%s). Click Check again on this page."
 msgstr "暂时无法完成连接检查（%s）。请在此页点击「重新检查」。"
 
 #. translators: %s: Cloud connectivity error.
 #: includes/class-cloud-settings-actions.php:624
 #, php-format
-msgid "The new account could not be connected, so the current one was kept. (%s)"
+msgid ""
+"The new account could not be connected, so the current one was kept. (%s)"
 msgstr "新账号未能连接，已保留当前账号。（%s）"
 
 #: includes/class-cloud-settings-actions.php:638
@@ -2870,13 +3149,17 @@ msgstr "连接失败，请重新点击「连接」。"
 #. translators: %s: stable Cloud error code.
 #: includes/class-cloud-settings-actions.php:853
 #, php-format
-msgid "Your account has no free site slots. Turn off another site or upgrade in Npcink Cloud, then connect again. (%s)"
+msgid ""
+"Your account has no free site slots. Turn off another site or upgrade in "
+"Npcink Cloud, then connect again. (%s)"
 msgstr "账号的可用站点已满。请在 Npcink Cloud 停用其他站点或升级，然后重新连接。（%s）"
 
 #. translators: %s: stable Cloud error code.
 #: includes/class-cloud-settings-actions.php:859
 #, php-format
-msgid "Your account has reached its site limit. Remove an unused site in Npcink Cloud, then connect again. (%s)"
+msgid ""
+"Your account has reached its site limit. Remove an unused site in Npcink "
+"Cloud, then connect again. (%s)"
 msgstr "账号的站点数已达上限。请在 Npcink Cloud 移除不用的站点，然后重新连接。（%s）"
 
 #. translators: %s: stable Cloud error code.
@@ -2908,7 +3191,9 @@ msgid "The connection check failed. Try again."
 msgstr "连接检查失败，请重试。"
 
 #: includes/class-cloud-settings-actions.php:1203
-msgid "Sends anonymous error reports to help us fix problems. Never includes your content."
+msgid ""
+"Sends anonymous error reports to help us fix problems. Never includes your "
+"content."
 msgstr "发送匿名错误报告，帮助我们修复问题，不含你的内容。"
 
 #: includes/class-cloud-settings-page.php:570
@@ -2928,7 +3213,9 @@ msgid "AI features will stop on this site. Your data stays in Npcink Cloud."
 msgstr "断开后此站点将不能使用 AI 功能，数据仍保留在 Npcink Cloud。"
 
 #: includes/class-cloud-settings-page.php:976
-msgid "Disconnect this site? AI features will stop here. Your data stays in Npcink Cloud."
+msgid ""
+"Disconnect this site? AI features will stop here. Your data stays in Npcink "
+"Cloud."
 msgstr "确定断开此站点吗？AI 功能将停用，数据仍保留在 Npcink Cloud。"
 
 #: includes/class-cloud-settings-page.php:1027
@@ -2968,51 +3255,53 @@ msgid "What is sent"
 msgstr "会发送哪些内容"
 
 #: includes/class-cloud-settings-page.php:1256
-msgid "We only send which feature ran, whether it worked, how long it took, and an error code. We never send your content, users, links, or passwords."
+msgid ""
+"We only send which feature ran, whether it worked, how long it took, and an "
+"error code. We never send your content, users, links, or passwords."
 msgstr "只发送用了哪个功能、是否成功、耗时和错误代码，绝不发送你的内容、用户、链接或密码。"
 
 #: includes/class-cloud-settings-page.php:1263
 msgid "Yes, share"
 msgstr "好，分享"
 
-#: includes/class-cloud-settings-page.php:1957
+#: includes/class-cloud-settings-page.php:1958
 msgid "Site Knowledge is off."
 msgstr "站点知识库未开启"
 
-#: includes/class-cloud-settings-page.php:2068
+#: includes/class-cloud-settings-page.php:2101
 msgid "Credits reset on"
 msgstr "额度重置日"
 
-#: includes/class-cloud-settings-page.php:2075
+#: includes/class-cloud-settings-page.php:2108
 msgid "Current credit cycle"
 msgstr "本期额度时间"
 
-#: includes/class-cloud-settings-page.php:2088
+#: includes/class-cloud-settings-page.php:2121
 msgid "Text usage limit"
 msgstr "文字用量上限"
 
-#: includes/class-cloud-settings-page.php:2089
+#: includes/class-cloud-settings-page.php:2122
 msgid "Sites you can connect"
 msgstr "可连接站点数"
 
-#: includes/class-cloud-settings-page.php:2090
+#: includes/class-cloud-settings-page.php:2123
 msgid "Tasks at the same time"
 msgstr "同时进行的任务"
 
-#: includes/class-cloud-settings-page.php:2091
+#: includes/class-cloud-settings-page.php:2124
 msgid "Items per batch"
 msgstr "每批数量"
 
-#: includes/class-cloud-settings-page.php:2104
+#: includes/class-cloud-settings-page.php:2137
 msgid "Spending limit"
 msgstr "费用上限"
 
-#: includes/class-cloud-settings-page.php:2117
+#: includes/class-cloud-settings-page.php:2150
 msgid "AI credits belong to your Npcink Cloud account, not this site."
 msgstr "AI 积分属于你的 Npcink Cloud 账号，不属于此站点。"
 
 #. translators: %s: credits used this period.
-#: includes/class-cloud-settings-page.php:2426
+#: includes/class-cloud-settings-page.php:2459
 #, php-format
 msgid "This period: %s credits used."
 msgstr "本期已用 %s 积分"
@@ -3030,7 +3319,9 @@ msgid "Last AI error code"
 msgstr "最近一次 AI 错误代码"
 
 #: includes/class-cloud-wordpress-ai-connector.php:780
-msgid "The AI request did not succeed. Try again later; if it keeps failing, copy the information on the Checks tab and contact support."
+msgid ""
+"The AI request did not succeed. Try again later; if it keeps failing, copy "
+"the information on the Checks tab and contact support."
 msgstr "AI 请求没有成功。请稍后再试，若一直失败请到「检查」页复制信息联系客服。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:784
@@ -3038,11 +3329,15 @@ msgid "Your AI credits have run out. Top up on Npcink Cloud, then try again."
 msgstr "AI 积分已用完。请去 Npcink Cloud 充值后再试。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:785
-msgid "This site is no longer connected to Npcink Cloud. Reconnect it on the Npcink AI > Cloud Addon page, then try again."
+msgid ""
+"This site is no longer connected to Npcink Cloud. Reconnect it on the Npcink"
+" AI > Cloud Addon page, then try again."
 msgstr "此站点已与 Npcink Cloud 断开。请在“Npcink AI > 云端扩展”页面重新连接后再试。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:786
-msgid "This site is turned off in Npcink Cloud. Turn it on in Npcink Cloud, then try again."
+msgid ""
+"This site is turned off in Npcink Cloud. Turn it on in Npcink Cloud, then "
+"try again."
 msgstr "此站点在 Npcink Cloud 中已停用。请在 Npcink Cloud 中启用后再试。"
 
 #: includes/class-cloud-wordpress-ai-connector.php:787
@@ -3058,5 +3353,81 @@ msgid "Connected. You can now use AI in the post editor."
 msgstr "已连接，现在可以在文章编辑器中使用 AI 了。"
 
 #: includes/class-cloud-settings-page.php:1705
-msgid "You will go to Npcink Cloud to confirm, then come back here automatically."
+msgid ""
+"You will go to Npcink Cloud to confirm, then come back here automatically."
 msgstr "将前往 Npcink Cloud 确认，完成后会自动回到这里。"
+
+#: includes/class-cloud-settings-page.php:1977
+msgid "Choose knowledge sources"
+msgstr "选择知识库内容"
+
+#: includes/class-cloud-settings-page.php:1978
+msgid ""
+"Exclude selected sources from Cloud and automatic delivery, or explicitly "
+"restore excluded sources. WordPress content and files stay unchanged."
+msgstr "从 Cloud 移除所选内容并停止自动投递，或明确恢复已排除内容。WordPress 内容和文件不会改变。"
+
+#: includes/class-cloud-settings-page.php:1983
+msgid "Select up to 100 sources"
+msgstr "最多选择 100 项内容"
+
+#: includes/class-cloud-settings-page.php:1989
+msgid "Action"
+msgstr "操作"
+
+#: includes/class-cloud-settings-page.php:1990
+msgid "Exclude selected sources"
+msgstr "排除所选内容"
+
+#: includes/class-cloud-settings-page.php:1990
+msgid "Restore selected sources"
+msgstr "恢复所选内容"
+
+#: includes/class-cloud-settings-page.php:1992
+msgid "Type EXCLUDE or RESTORE to confirm the selected action"
+msgstr "输入 EXCLUDE 或 RESTORE 确认所选操作"
+
+#: includes/class-cloud-settings-page.php:1993
+msgid "Confirm selected sources"
+msgstr "确认所选内容"
+
+#: includes/class-cloud-settings-page.php:1996
+msgid ""
+"Waiting for complete Cloud evidence. Automatic delivery remains suppressed "
+"for these sources."
+msgstr "正在等待完整的 Cloud 核对结果。这些内容仍暂停自动投递。"
+
+#: includes/class-cloud-site-knowledge-admin-actions.php:203
+msgid "Confirm the selected sources and current site before continuing."
+msgstr "请确认所选内容和当前站点后继续。"
+
+#: includes/class-cloud-site-knowledge-admin-actions.php:207
+#: includes/class-cloud-site-knowledge-admin-actions.php:212
+msgid "Select between 1 and 100 public sources."
+msgstr "请选择 1 至 100 项公开内容。"
+
+#: includes/class-cloud-site-knowledge-admin-actions.php:220
+msgid ""
+"Request saved. Sources stay excluded from automatic delivery while Cloud "
+"evidence is checked."
+msgstr "请求已保存。核对 Cloud 结果期间，这些内容仍暂停自动投递。"
+
+#: includes/class-cloud-site-knowledge-admin-projection.php:24
+msgid "Checking removal"
+msgstr "正在核对移除结果"
+
+#: includes/class-cloud-site-knowledge-admin-projection.php:25
+msgid "Excluded"
+msgstr "已排除"
+
+#: includes/class-cloud-site-knowledge-admin-projection.php:26
+msgid "Checking restore"
+msgstr "正在核对恢复结果"
+
+#: includes/class-cloud-site-knowledge-admin-projection.php:28
+msgid "Automatic delivery"
+msgstr "自动投递"
+
+#: includes/class-cloud-site-knowledge-change-bridge.php:1764
+msgid "Site Knowledge needs verification before this request can continue."
+msgstr "站点知识库需要核对后才能继续此请求。"
