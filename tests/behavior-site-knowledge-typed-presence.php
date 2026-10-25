@@ -149,6 +149,32 @@ function typed_image( int $id = 501, int $parent = 42 ): void {
 	$GLOBALS['typed_media_alt'][ $id ] = 'A public landscape';
 }
 
+// K03-02: aggregate quota usage is independent of the exact selected source's fresh presence.
+foreach ( array( 'usage_down_target_present', 'usage_flat_target_absent' ) as $case ) {
+	$cloud = typed_reset(); maca_add_public_post_fixture( 42 );
+	$cloud->sources = array( 'post:42' => true, 'page:43' => true );
+	$usage = 10; $observations = array();
+	$cloud->status_result_filter = static function ( array $result ) use ( &$usage, &$observations ): array {
+		$result['coverage']['quota'] = array( 'indexed_documents' => $usage, 'indexed_chunks' => 2 * $usage, 'max_indexed_documents_per_site' => 100 );
+		$observations[] = array( 'usage' => $result['coverage']['quota']['indexed_documents'], 'presence' => $result['source_presence'] );
+		return $result;
+	};
+	$before = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_source_presence( typed_selection() );
+	maca_assert( ! is_wp_error( $before ) && true === $before['items']['post:42']['document_present'] && 10 === end( $observations )['usage'], 'K03-02 baseline: selected target is present with aggregate indexed usage 10.' );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'exclude', typed_selection() ); typed_tick();
+	if ( 'usage_down_target_present' === $case ) { $usage = 5; $cloud->sources['post:42'] = true; }
+	typed_tick( 4 );
+	$operation = end( typed_scope()['operations'] ); $run = end( $cloud->runs ); $observed = end( $observations );
+	maca_assert( 1 === $cloud->delete_calls && 'succeeded' === $run['status'] && 'knowledge' === $run['execution_kind'] && 'site_knowledge' === $run['provider_id'] && 'site-knowledge-managed' === $run['model_id'] && 'cloud-runtime' === $run['instance_id'] && isset( $cloud->sources['page:43'] ), 'K03-02 both directions retain one successful known executor and an untouched neighbor.' );
+	if ( 'usage_down_target_present' === $case ) {
+		maca_assert( 5 === $observed['usage'] && true === $observed['presence']['items'][0]['document_present'] && 'complete' === $observed['presence']['status'] && 'relational_index' === $observed['presence']['storage_scope'], 'K03-02 falling usage fixture still reports complete fresh target presence.' );
+		maca_assert( 'pending_delete' === typed_scope()['sources']['post:42']['state'] && 'pending' === $operation['status'] && 'cloud_site_knowledge_source_still_present' === $operation['reason'], 'K03-02 usage decrease cannot complete exclusion while fresh target presence remains.' );
+	} else {
+		maca_assert( 10 === $observed['usage'] && false === $observed['presence']['items'][0]['document_present'] && 0 === $observed['presence']['items'][0]['stored_chunk_count'] && 'complete' === $observed['presence']['status'], 'K03-02 unchanged usage fixture reports complete fresh target absence.' );
+		maca_assert( 'excluded' === typed_scope()['sources']['post:42']['state'] && 'completed' === $operation['status'], 'K03-02 unchanged usage cannot block exclusion after a successful known executor and fresh target absence.' );
+	}
+}
+
 // Cloud821 and the real restore-comments-contract receipt place this bool in data.result.coverage.
 foreach ( array( false, true ) as $comments_enabled ) {
 	$cloud = typed_reset(); $cloud->comments_enabled = $comments_enabled;
