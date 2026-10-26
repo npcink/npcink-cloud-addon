@@ -113,7 +113,7 @@ jobs:
         # commit SHA because the action receives the LLM auth token - bump
         # deliberately and record the new tag->commit pair). action.yml inputs
         # are unchanged between v1.12.13 and v1.13.0.
-        uses: alibaba/open-code-review@1672852136fc87748249d22bce0819f33419ea79
+        uses: alibaba/open-code-review@375f64cd6f67a48a135da83cfcf59c52669a09cb
         with:
           llm_url: ${{ secrets.OCR_LLM_URL }}
           llm_auth_token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
