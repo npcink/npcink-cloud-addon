@@ -120,7 +120,7 @@ jobs:
       # never cached.
       - name: Cache WordPress and WordPress AI archives
         if: matrix.ai_version != 'develop'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.wordpress-playground
           key: wp-ai-archives-v1-wp${{ matrix.wordpress }}-ai${{ matrix.ai_version }}
