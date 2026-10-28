@@ -28,6 +28,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		private const DEFAULT_POST_TYPES = array( 'post', 'page' );
 		private const MAX_BUFFER_ITEMS = 500;
 		private const MAX_BATCH_ITEMS = 25;
+		private const MAX_COMMENT_CHANGES = 200;
 		private const DEBOUNCE_SECONDS = 180;
 		private const RETRY_SECONDS = 300;
 			private const MAX_DELIVERY_ATTEMPTS = 3;
@@ -281,7 +282,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			if ( 'approved' === $new_status || 'approved' === $old_status || '1' === $new_status || '1' === $old_status ) {
-				self::buffer_post_ids( array( $post_id ) );
+				self::buffer_comment_change( absint( $comment->comment_ID ?? 0 ), $post_id );
 			}
 		}
 
@@ -304,7 +305,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			if ( $post_id > 0 ) {
-				self::buffer_post_ids( array( $post_id ) );
+				self::buffer_comment_change( $comment_id, $post_id );
 			}
 		}
 
@@ -326,7 +327,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			if ( $post_id > 0 ) {
-				self::buffer_post_ids( array( $post_id ) );
+				self::buffer_comment_change( $comment_id, $post_id );
 			}
 		}
 
@@ -355,9 +356,40 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		public static function handle_removed_comment( int $comment_id ): void {
 			$context = self::$removed_comment_context[ $comment_id ] ?? array();
 			if ( ! empty( $context['approved'] ) && absint( $context['post_id'] ?? 0 ) > 0 ) {
-				self::buffer_post_ids( array( absint( $context['post_id'] ) ) );
+				self::buffer_comment_change( $comment_id, absint( $context['post_id'] ) );
 			}
 			unset( self::$removed_comment_context[ $comment_id ] );
+		}
+
+		/** Captures bounded delivery identity/revision, not comment content. */
+		private static function buffer_comment_change( int $comment_id, int $post_id ): void {
+			if ( ! self::buffer_post_ids( array( $post_id ) ) || $comment_id < 1 ) {
+				return;
+			}
+			$buffer = self::get_buffer();
+			if ( ! in_array( $post_id, $buffer['post_ids'], true ) ) {
+				return;
+			}
+			$changes = $buffer['comment_changes'];
+			$comment = function_exists( 'get_comment' ) ? get_comment( $comment_id ) : null;
+			$revision = hash( 'sha256', (string) wp_json_encode( array(
+				$post_id,
+				$comment->comment_post_ID ?? 0,
+				$comment->comment_approved ?? 'missing',
+				$comment->comment_content ?? '',
+			) ) );
+			$item = array( 'post_id' => $post_id, 'revision' => $revision );
+			if ( ( $changes[ $comment_id ] ?? null ) === $item ) {
+				return;
+			}
+			$changes[ $comment_id ] = $item;
+			if ( count( $changes ) > self::MAX_COMMENT_CHANGES ) {
+				self::record_dropped_changes( count( $changes ) - self::MAX_COMMENT_CHANGES );
+				$changes = array_slice( $changes, -self::MAX_COMMENT_CHANGES, null, true );
+			}
+			$raw = get_option( self::BUFFER_OPTION, array() );
+			$raw['comment_changes'] = $changes;
+			update_option( self::BUFFER_OPTION, $raw, false );
 		}
 
 		/**
@@ -1159,6 +1191,20 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				} ) );
 				$limit    = 'change_bridge' === $operation_source ? self::MAX_BATCH_ITEMS : self::MANUAL_INDEX_POSTS;
 				$documents = 'delete' === $sync_mode ? array() : self::collect_documents( $document_post_ids, $limit );
+				$withdrawn_posts = array();
+				if ( 'refresh' === $sync_mode ) {
+					$delivered = array_column( $documents, 'post_id' );
+					foreach ( $post_ids as $id ) {
+						$post = get_post( $id );
+						if ( ! self::is_public_post( $post ) ) {
+							$withdrawn_posts[] = $id;
+							continue;
+						}
+						if ( ! in_array( $id, $delivered, true ) && ! isset( self::source_lifecycle_summary()['items'][ $post->post_type . ':' . $id ] ) ) {
+							return new WP_Error( 'cloud_site_knowledge_incomplete_public_delivery', __( 'Public source collection is incomplete; retry without withdrawing existing indexes.', 'npcink-cloud-addon' ) );
+						}
+					}
+				}
 				$payload = array(
 					'ability_name' => 'npcink-cloud/site-knowledge-sync',
 					'contract_version' => 'site_knowledge_sync.v1',
@@ -1182,6 +1228,33 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 						'allow_fallback' => true,
 					),
 				);
+				if ( 'refresh' === $sync_mode ) {
+					$payload['input']['withdrawn_post_ids'] = $withdrawn_posts;
+					$payload['input']['withdrawn_comment_ids'] = array();
+					if ( 'change_bridge' === $operation_source ) {
+						foreach ( self::get_buffer()['comment_changes'] as $id => $change ) {
+							$parent_id = absint( $change['post_id'] ?? 0 );
+							if ( ! in_array( $parent_id, $post_ids, true ) || absint( $id ) < 1 ) {
+								continue;
+							}
+							$comment = function_exists( 'get_comment' ) ? get_comment( absint( $id ) ) : null;
+							if ( is_object( $comment ) && $parent_id !== absint( $comment->comment_post_ID ) ) {
+								return new WP_Error( 'cloud_site_knowledge_comment_parent_changed', __( 'Comment parent changed during collection; retry delivery.', 'npcink-cloud-addon' ) );
+							}
+							if ( ! is_object( $comment ) || ! in_array( (string) $comment->comment_approved, array( '1', 'approve', 'approved' ), true ) || ! self::is_public_post( get_post( $parent_id ) ) ) {
+								$payload['input']['withdrawn_comment_ids'][] = absint( $id );
+								continue;
+							}
+							$payload['input']['comments'][] = array(
+								'comment_id' => absint( $id ),
+								'post_id' => $parent_id,
+								'comment_status' => 'approved',
+								'content_excerpt' => self::bounded_text( (string) $comment->comment_content, self::MAX_DOCUMENT_CHARS ),
+								'url' => function_exists( 'get_comment_link' ) ? get_comment_link( $comment ) : '',
+							);
+						}
+					}
+				}
 				$media = array();
 				$sources = self::source_lifecycle_summary()['items'];
 				foreach ( $document_post_ids as $id ) {
@@ -1195,12 +1268,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				if ( $media ) {
 					$payload['input']['media_items'] = $media;
 					$payload['input']['post_ids'] = array_values( array_filter( $post_ids, static function ( $id ) { return 'attachment' !== ( get_post( $id )->post_type ?? '' ); } ) );
-					if ( ! $documents ) {
+					if ( ! $documents && empty( $payload['input']['comments'] ) && ! $withdrawn_posts && empty( $payload['input']['withdrawn_comment_ids'] ) ) {
 						unset( $payload['input']['post_ids'], $payload['input']['documents'] );
 					} elseif ( 'refresh' === $sync_mode ) {
 						// A normal mixed buffer splits before dispatch, preserving pure-media replacement.
 						$image_payload = $payload;
-						unset( $image_payload['input']['post_ids'], $image_payload['input']['documents'] );
+						unset( $image_payload['input']['post_ids'], $image_payload['input']['documents'], $image_payload['input']['comments'], $image_payload['input']['withdrawn_post_ids'], $image_payload['input']['withdrawn_comment_ids'] );
 						$image_result = self::dispatch_mutation( $image_payload );
 						if ( is_wp_error( $image_result ) ) { return $image_result; }
 						unset( $payload['input']['media_items'] );
@@ -1394,6 +1467,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 			// Observational counters do not create a new semantic content revision.
 			unset( $document['delivery_evidence'] );
+			$changes = array_filter( self::get_buffer()['comment_changes'], static function ( $item ) use ( $post_id ) { return $post_id === absint( $item['post_id'] ?? 0 ); } );
+			if ( $changes ) {
+				$document['comment_changes'] = $changes;
+			}
 			$encoded = wp_json_encode( $document );
 			if ( ! is_string( $encoded ) || '' === $encoded ) {
 				return 'unencodable_' . wp_generate_uuid4();
@@ -1675,6 +1752,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			return array(
 				'post_ids' => array_values( array_filter( array_map( 'absint', is_array( $post_ids ) ? $post_ids : array() ) ) ),
 				'attempts' => absint( $value['attempts'] ?? 0 ),
+				'comment_changes' => is_array( $value['comment_changes'] ?? null ) ? $value['comment_changes'] : array(),
 			);
 		}
 
@@ -1692,10 +1770,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return;
 			}
 
+			$changes = array_filter( self::get_buffer()['comment_changes'], static function ( $item ) use ( $post_ids ) { return in_array( absint( $item['post_id'] ?? 0 ), $post_ids, true ); } );
 			update_option(
 				self::BUFFER_OPTION,
 				array(
 					'post_ids' => $post_ids,
+					'comment_changes' => $changes,
 					'attempts' => max( 0, $attempts ),
 					'updated_at' => gmdate( 'c' ),
 				),

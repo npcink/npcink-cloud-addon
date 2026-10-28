@@ -1546,4 +1546,73 @@ maca_assert(
 	'Behavior: a failed manual-delete cursor release retries local cleanup without starting a rebuild or another Cloud request.'
 );
 
+// Refresh never uses omitted content as implicit withdrawal.
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 900 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_saved_post( 900, $GLOBALS['maca_posts'][900] );
+$GLOBALS['maca_posts'][900]->post_status = 'private';
+maca_queue_site_knowledge_inline_success();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
+$withdrawal = json_decode( $GLOBALS['maca_http_requests'][0]['args']['body'], true )['input'];
+maca_assert( array( 900 ) === $withdrawal['withdrawn_post_ids'] && array() === $withdrawal['documents'] && array( 900 ) === $withdrawal['post_ids'], 'Refresh: freshly private parent sends explicit withdrawal with legacy selector.' );
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+for ( $id = 1; $id <= 26; $id++ ) { maca_add_public_post_fixture( $id ); }
+$refresh_method = new ReflectionMethod( Npcink_Cloud_Site_Knowledge_Change_Bridge::class, 'request_site_knowledge_sync' );
+$incomplete = $refresh_method->invoke( null, 'refresh', range( 1, 26 ), 'change_bridge' );
+maca_assert( is_wp_error( $incomplete ) && 'cloud_site_knowledge_incomplete_public_delivery' === $incomplete->get_error_code() && array() === $GLOBALS['maca_http_requests'], 'Refresh: incomplete public collection fails before transport instead of deleting the omitted public source.' );
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 901 );
+$GLOBALS['maca_comments'][901] = (object) array( 'comment_ID' => 901, 'comment_post_ID' => 901, 'comment_approved' => '1', 'comment_content' => '<p>Approved advice editor@example.test ' . str_repeat( 'text ', 600 ) . '</p>' );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_edited_comment( 901 );
+$comment_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION );
+maca_assert( isset( $comment_buffer['comment_changes'][901]['revision'] ) && false === strpos( wp_json_encode( $comment_buffer ), 'editor@example.test' ), 'Refresh: durable comment buffer contains identity/revision without comment plaintext.' );
+$GLOBALS['maca_http_response_queue'][] = static function (): array {
+	$GLOBALS['maca_comments'][901]->comment_content = 'Changed during delivery';
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_edited_comment( 901 );
+	return array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'status' => 'succeeded' ) ) ) );
+};
+Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
+$comment_input = json_decode( $GLOBALS['maca_http_requests'][0]['args']['body'], true )['input'];
+$comment_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION );
+maca_assert( 901 === $comment_input['comments'][0]['comment_id'] && strlen( $comment_input['comments'][0]['content_excerpt'] ) <= 1800 && false === strpos( $comment_input['comments'][0]['content_excerpt'], '@' ) && array() === $comment_input['withdrawn_comment_ids'], 'Refresh: approved edited comment sends bounded redacted content and no withdrawal.' );
+maca_assert( array( 901 ) === $comment_buffer['post_ids'] && isset( $comment_buffer['comment_changes'][901] ), 'Refresh: comment revision changed during HTTP retains its parent and identity for the next delivery.' );
+maca_queue_site_knowledge_inline_success();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
+$comment_input = json_decode( $GLOBALS['maca_http_requests'][1]['args']['body'], true )['input'];
+maca_assert( 'Changed during delivery' === $comment_input['comments'][0]['content_excerpt'] && array() === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() ), 'Refresh: next delivery sends the current comment and drains the acknowledged revision.' );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::capture_comment_removal_context( 901 );
+unset( $GLOBALS['maca_comments'][901] );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_comment( 901 );
+maca_queue_site_knowledge_inline_success();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
+$comment_input = json_decode( $GLOBALS['maca_http_requests'][2]['args']['body'], true )['input'];
+maca_assert( array( 901 ) === $comment_input['withdrawn_comment_ids'] && array() === $comment_input['withdrawn_post_ids'] && 901 === $comment_input['documents'][0]['post_id'], 'Refresh: removed approved comment withdraws exactly its type while preserving same-number parent.' );
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 902 );
+$GLOBALS['maca_comments'][902] = (object) array( 'comment_ID' => 902, 'comment_post_ID' => 902, 'comment_approved' => '0', 'comment_content' => 'Visible again' );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_comment_status_transition( 'hold', 'approved', $GLOBALS['maca_comments'][902] );
+$GLOBALS['maca_comments'][902]->comment_approved = '1';
+maca_queue_site_knowledge_inline_success();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
+$comment_input = json_decode( $GLOBALS['maca_http_requests'][0]['args']['body'], true )['input'];
+maca_assert( array() === $comment_input['withdrawn_comment_ids'] && 902 === $comment_input['comments'][0]['comment_id'], 'Refresh: reapproved comment is re-read as public instead of sending a stale withdrawal.' );
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 903 );
+for ( $id = 1; $id <= 201; $id++ ) {
+	$GLOBALS['maca_comments'][$id] = (object) array( 'comment_ID' => $id, 'comment_post_ID' => 903, 'comment_approved' => '1', 'comment_content' => 'Public comment' );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_edited_comment( $id );
+}
+$comment_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION );
+$comment_health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+maca_assert( 200 === count( $comment_buffer['comment_changes'] ) && 1 === $comment_health['dropped_count'], 'Refresh: comment identity cap is bounded and overflow is exposed through existing loss diagnostics.' );
+
 require_once __DIR__ . '/behavior-site-knowledge-typed-presence.php';

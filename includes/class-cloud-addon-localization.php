@@ -746,6 +746,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				// localization behavior contract.
 				'%d change notification is no longer in the local delivery buffer. Request a public content refresh to reconcile it.' => '%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。',
 				'%d change notifications are no longer in the local delivery buffer. Request a public content refresh to reconcile them.' => '%d 条变更记录已不在本地投递缓冲区。请刷新公开内容以重新核对。',
+				'Public source collection is incomplete; retry without withdrawing existing indexes.' => '公开内容采集不完整，请重试；现有索引将保留。',
+				'Comment parent changed during collection; retry delivery.' => '采集期间评论所属文章发生变化，请重试投递。',
 				'Only published posts and pages can be refreshed in Site Knowledge.' => '只有已发布的文章和页面可以刷新到站点知识库。',
 				'Choose a valid published article to refresh.' => '请选择有效的已发布文章进行刷新。',
 				'Article refresh requested. Check its index status again after Cloud finishes processing.' => '已请求刷新文章。Cloud 处理完成后，请再次核对索引状态。',

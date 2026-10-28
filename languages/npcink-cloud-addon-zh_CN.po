@@ -3431,3 +3431,11 @@ msgstr "自动投递"
 #: includes/class-cloud-site-knowledge-change-bridge.php:1764
 msgid "Site Knowledge needs verification before this request can continue."
 msgstr "站点知识库需要核对后才能继续此请求。"
+
+#: includes/class-cloud-site-knowledge-change-bridge.php
+msgid "Public source collection is incomplete; retry without withdrawing existing indexes."
+msgstr "公开内容采集不完整，请重试；现有索引将保留。"
+
+#: includes/class-cloud-site-knowledge-change-bridge.php
+msgid "Comment parent changed during collection; retry delivery."
+msgstr "采集期间评论所属文章发生变化，请重试投递。"
