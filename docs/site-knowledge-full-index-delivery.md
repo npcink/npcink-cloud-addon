@@ -39,6 +39,41 @@ Cloud continues to own queued execution, index lifecycle, vector storage,
 embedding execution, freshness, and diagnostics. Every request remains
 `suggestion_only` and cannot write WordPress content.
 
+## Refresh replacement and explicit withdrawal (2026-10-28 candidate)
+
+Ordinary refresh sends prepared public sources for replacement. An omitted
+manifest is not deletion evidence. The paired Cloud safety candidate preserves
+old rows when collection, quota, embedding or processing limits prevent a
+replacement. Explicit rebuild remains destructive; it is not an atomic backup.
+
+On refresh the bridge re-reads each selected post/page. Missing, private,
+password-protected or otherwise non-public sources produce bounded
+`withdrawn_post_ids`; public sources missing from the collected batch fail
+before dispatch. These markers use the existing signed sync transport, not
+WordPress write authorization. The legacy `post_ids` selector is retained for
+older Cloud installations. A post withdrawal retains the existing legacy scope
+(post/page root and associated comments); media uses its separate typed lane.
+
+Comment hooks retain at most 200 comment identities and SHA-256 content/state
+revisions beside parent IDs in the existing change-buffer option. No comment
+plaintext, author or email is stored in that buffer. Before dispatch the bridge
+re-reads each comment: approved public content is sanitized and capped at 1,800
+UTF-8 bytes; missing/unapproved comments produce exact `withdrawn_comment_ids`.
+A parent mismatch fails collection. The revision participates in the existing
+in-flight fingerprint, so a new comment change cannot be acknowledged by an
+older payload. A normal batch contains at most 25 parents and 200 comments.
+Overflow uses the existing `dropped_count` attention diagnostic; this bounded
+bridge does not guarantee lossless capture under overflow or retry exhaustion.
+Comment and post withdrawals are excluded from a split pure-media payload.
+
+Migration order for this specific semantic change is **Addon first, then Cloud**.
+Install the explicit-withdrawal producer before enabling preserve-on-omission
+Cloud semantics. Other signed producers must also migrate legitimate withdrawals
+to explicit delete/withdrawal markers; older producers can still update public
+content, but omission no longer withdraws it. These are candidate source
+contracts until merged/runtime evidence is recorded, not a production receipt.
+No new option, queue, scheduler, ability or WordPress content write is introduced.
+
 ## Automatic reconciliation cursor
 
 The hourly change scan enumerates at most 50 published candidates in ascending
