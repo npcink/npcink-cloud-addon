@@ -1561,6 +1561,7 @@ maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
 for ( $id = 1; $id <= 26; $id++ ) { maca_add_public_post_fixture( $id ); }
 $refresh_method = new ReflectionMethod( Npcink_Cloud_Site_Knowledge_Change_Bridge::class, 'request_site_knowledge_sync' );
+$refresh_method->setAccessible( true );
 $incomplete = $refresh_method->invoke( null, 'refresh', range( 1, 26 ), 'change_bridge' );
 maca_assert( is_wp_error( $incomplete ) && 'cloud_site_knowledge_incomplete_public_delivery' === $incomplete->get_error_code() && array() === $GLOBALS['maca_http_requests'], 'Refresh: incomplete public collection fails before transport instead of deleting the omitted public source.' );
 
