@@ -295,3 +295,34 @@ maca_assert(
 	&& ! isset( $request_body['input']['operation_contract']['request']['site_knowledge_reference'] ),
 	'Behavior: the generic connector transports a registered task projection without adding unproven generation reference context.'
 );
+
+// Required factual evidence is local Ability metadata, never an Addon task registry.
+$GLOBALS['maca_abilities']['example/site-answer'] = new Maca_AI_Task_Test_Ability(
+	'example/site-answer',
+	array( 'npcink_ai_task_contract' => array(
+		'task' => 'site_answer', 'task_family' => 'analysis',
+		'context_requirements' => array( 'site_knowledge_evidence' ),
+		'constraints' => array( 'json_object', 'source_grounded' ),
+	) ),
+	array( 'type' => 'object', 'properties' => array(
+		'answer' => array( 'type' => 'string' ),
+		'citations' => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'properties' => array( 'id' => array( 'type' => 'string' ), 'quote' => array( 'type' => 'string' ) ) ) ),
+	) )
+);
+$factual_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( 'example/site-answer' );
+maca_assert( ! is_wp_error( $factual_contract ) && array( 'site_knowledge_evidence' ) === $factual_contract['context_requirements'], 'Factual evidence: registered Ability context survives the thin projection.' );
+$factual_reference = new ReflectionMethod( Npcink_Cloud_Runtime_Request_Guards::class, 'normalize_wordpress_ai_site_knowledge_reference' );
+$factual_reference->setAccessible( true );
+$factual_mode = $factual_reference->invoke( null, array( 'enabled' => true, 'mode' => 'site_factual_evidence' ), 'site_answer', $factual_contract );
+maca_assert( is_array( $factual_mode ) && 'site_factual_evidence' === $factual_mode['mode'], 'Factual evidence: factual mode stays distinct from historical writing style.' );
+foreach ( array( null, array( 'enabled' => false, 'mode' => 'site_factual_evidence' ), array( 'enabled' => true, 'mode' => 'site_title_style' ) ) as $bad_reference ) {
+	maca_assert( is_wp_error( $factual_reference->invoke( null, $bad_reference, 'site_answer', $factual_contract ) ), 'Factual evidence: required references cannot be disabled, omitted, or downgraded to style.' );
+}
+$factual_transport = Npcink_Cloud_Runtime_Request_Guards::normalize_wordpress_ai_connector_request(
+	array( 'contract_version' => 'cloud_connector_runtime.v1', 'operation_contract' => array(
+		'contract_version' => 'wordpress_operation.v1', 'task' => 'site_answer',
+		'request' => array( 'prompt' => 'When does the plan start?', 'task_contract' => $factual_contract,
+			'site_knowledge_reference' => array( 'enabled' => true, 'mode' => 'site_factual_evidence' ) ),
+	) ), 'site_alpha', 'https://alpha.example.test', '0.4.4'
+);
+maca_assert( ! is_wp_error( $factual_transport ), 'Factual evidence: full signed-runtime request guard accepts a registered task and its schema projection.' );

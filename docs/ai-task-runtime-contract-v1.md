@@ -70,3 +70,31 @@ budgets, and retry detail remain Cloud-owned runtime policy.
 The contract is not a task registry, prompt store, chat API, workflow registry,
 or WordPress write authorization. Generic messages, tools, streams,
 credentials, and direct writes remain forbidden.
+
+## Required factual evidence (2026-10-30 local candidate)
+
+A registered local Ability may declare `site_knowledge_evidence` in
+`context_requirements`, together with `json_object` and `source_grounded`
+constraints and its own object output schema defining `answer` (string) and
+`citations` (array of objects with string `id` / `quote`). This is distinct from
+optional `site_style_profile`; it does not add an Addon Ability/task registry.
+
+The existing registered-task transport helper supplies an enabled
+`site_factual_evidence` reference when omitted. An explicitly disabled reference,
+a missing reference in the lower-level transport, or a style-mode substitution
+is rejected. Local permission checks, task instructions, schema hashes, approval
+and writes remain with the Ability owner. Installing this Addon does not register
+a new customer task or enable paused features.
+
+Cloud requires public current post/page passages and validates returned citation
+identities and exact source quotes. Successful connector output includes
+`grounded_evidence` with server-produced source identities, URLs, revisions and
+`available` / `partial` status. No evidence, unavailable index and retrieval
+exception are separate failed-run codes under `grounded_answer.*`; consumers
+must not turn them into a general-knowledge answer. Full semantics are in the
+paired Cloud `docs/content-evidence-loop-v1.md`. Exact citation checks do not
+prove semantic answer correctness.
+
+Rollout order is **Cloud → Addon** for both the new context vocabulary and the
+48 KB body projection. Existing top-level contract versions are unchanged. A
+version number alone does not establish that both candidate commits are present.

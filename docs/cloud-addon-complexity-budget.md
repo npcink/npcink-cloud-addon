@@ -77,9 +77,11 @@ connector classes so they cannot grow unnoticed:
   `class-cloud-runtime-request-guards.php`,
   `class-cloud-runtime-diagnostics.php`, and
   `class-cloud-runtime-media-payloads.php`)
-- `includes/class-cloud-runtime-request-guards.php` — 2020 lines (pure
+- `includes/class-cloud-runtime-request-guards.php` — 2025 lines (pure
   `normalize_*` request validators, forbidden-key walkers, PII scan, and
-  bounded-text/sanitize helpers with zero instance state)
+  bounded-text/sanitize helpers with zero instance state; 2026-10-30 adds five
+  lines to require factual references and distinguish their mode from optional
+  style, with behavior coverage in `tests/behavior-ai-task-contract.php`)
 - `includes/class-cloud-runtime-diagnostics.php` — 387 lines (static readiness
   projection and secret redaction over probe arrays and the caller's
   configuration snapshot)

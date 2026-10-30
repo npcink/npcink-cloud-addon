@@ -376,13 +376,13 @@ for ( $i = 0; $i < 520; $i++ ) {
 	$GLOBALS['maca_posts'][42]->post_content = 'Continuous delivery ' . $i;
 	$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_public_post_refresh( 42 );
 	maca_assert( ! is_wp_error( $result ), 'Lifetime: actual producer dispatch succeeds at sequence ' . $i );
-	if ( 0 === $i ) { $entries = typed_scope()['dispatches']; $first_retired = end( $entries ); }
+	if ( 0 === $i ) { $entries = typed_scope()['dispatches']; $first_retired = end( $entries ); $first_retired_payload = end( $cloud->mutations ); maca_assert( ! isset( $first_retired['payload'] ) && isset( $first_retired['run_id'], $first_retired['fingerprint'] ), 'Lifetime: accepted writers retain identity and fingerprint without duplicating long bodies.' ); }
 	$max_bytes = max( $max_bytes, strlen( serialize( typed_state() ) ) );
 }
 maca_assert( count( $cloud->mutations ) === 521 && count( typed_scope()['dispatches'] ) < 400 && $unknown === typed_scope()['dispatches'][ $unknown['key'] ] && ! isset( typed_scope()['dispatches'][ $first_retired['key'] ] ) && $max_bytes <= 4194304, 'Lifetime: >500 real fixture producers retire only terminal records, retain unknown exact bytes and stay under total envelope budget.' );
 fwrite( STDOUT, '[metric] producer_lifetime=' . json_encode( array( 'actual_mutations' => count( $cloud->mutations ), 'retained_dispatches' => count( typed_scope()['dispatches'] ), 'max_serialized_bytes' => $max_bytes, 'final_serialized_bytes' => strlen( serialize( typed_state() ) ) ) ) . PHP_EOL );
 $before_replay = count( $cloud->mutations );
-$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $first_retired['payload'] );
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $first_retired_payload );
 maca_assert( ! is_wp_error( $result ) && $cloud->replays === 1 && count( $cloud->mutations ) === $before_replay && end( typed_scope()['dispatches'] )['key'] === $first_retired['key'], 'Lifetime: retired identical producer reuses exact deterministic key, Cloud replay causes no new execution.' );
 
 // >100 actual completed delete/restore cycles: no permanent operation cap, no old-run reuse after restore.
@@ -425,11 +425,14 @@ $cloud = typed_reset(); maca_add_public_post_fixture( 42 ); $cloud->hold_produce
 $large = str_repeat( 'x', 700000 ); $accepted = 0; $blocked = false;
 for ( $i = 0; $i < 8; $i++ ) {
 	$payload = $payload_builder->invoke( null, array( 'sync_mode' => 'refresh', 'documents' => array( array( 'post_id' => 42, 'post_type' => 'post', 'post_status' => 'publish', 'content_excerpt' => $large . $i ) ) ) );
+	$cloud->lose_next = true;
 	$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload );
-	if ( is_wp_error( $result ) ) { $blocked = true; break; }
+	if ( count( $cloud->mutations ) === $accepted ) { $blocked = true; break; }
 	$accepted++;
+	$entries = typed_scope()['dispatches']; $entry = end( $entries );
+	maca_assert( isset( $entry['payload'] ) && ! isset( $entry['run_id'] ), 'Lifetime: lost responses retain immutable bodies for exact replay.' );
 }
-maca_assert( $blocked && $accepted >= 4 && count( typed_scope()['dispatches'] ) === $accepted && count( $cloud->mutations ) === $accepted && strlen( serialize( typed_state() ) ) <= 4194304, 'Lifetime: 4 MiB total serialized cap refuses a new send while retaining every unresolved 700 KB payload/key/run.' );
+maca_assert( $blocked && $accepted >= 4 && count( typed_scope()['dispatches'] ) === $accepted && count( $cloud->mutations ) === $accepted && strlen( serialize( typed_state() ) ) <= 4194304, 'Lifetime: 4 MiB total serialized cap refuses a new send while retaining every unknown 700 KB payload/key.' );
 fwrite( STDOUT, '[metric] unresolved_byte_pressure=' . json_encode( array( 'accepted_mutations' => $accepted, 'payload_text_bytes' => 700000, 'serialized_bytes' => strlen( serialize( typed_state() ) ), 'budget' => 4194304 ) ) . PHP_EOL );
 unset( $GLOBALS['wpdb'] );
 

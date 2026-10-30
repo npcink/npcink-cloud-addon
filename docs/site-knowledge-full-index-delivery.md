@@ -8,19 +8,19 @@ The Addon remains a transport bridge:
 
 - WordPress is the source-content owner and selects at most 10,000 published
   typed post/page/media identities for one explicit administrator action.
-- The Addon sends batches of at most 200 public manifests through the existing
+- The Addon plans batches against 600,000 escaped JSON bytes and at most 200 public manifests through the existing
   `POST /v1/runtime/execute` contract.
 - The administrator request only records one bounded local delivery cursor and
   schedules the existing Site Knowledge flush hook. Each Cron invocation sends
   or polls at most one Cloud batch, so a large corpus does not hold the
-  administrator HTTP request open across as many as 50 Cloud calls.
+  administrator HTTP request open across many Cloud calls. Long bodies increase the batch count.
 - A rebuild's first batch uses `sync_mode=rebuild` with empty `post_ids`, so
   Cloud clears the site's previous index before indexing that batch. Remaining
   batches use `sync_mode=refresh`.
 - Each batch has a stable idempotency key. The full cursor records selected
   typed public IDs, current batch, bounded attempts, an optional Cloud run ID,
   and a bounded poll generation. The same maintenance option also retains
-  immutable in-flight delivery payloads and scoped administrator intents. One Cloud run may be polled at most 120 times before
+  immutable in-flight delivery payloads and scoped administrator intents. Once an exact run ID is persisted, the body snapshot is released while its key, fingerprint and run identity remain for writer fencing; lost responses retain exact payloads for replay. One Cloud run may be polled at most 120 times before
   consuming a delivery attempt; three exhausted attempts block the cursor.
   This does not create a local index job, queue, scheduler truth, workflow
   runtime, or vector truth.
@@ -31,7 +31,7 @@ The Addon remains a transport bridge:
 - Cursor advancement and deletion are conditional on the exact version read by
   the Cron callback, preventing an older overlapping callback from mutating a
   newer administrator request.
-- Public text is capped at 1,800 UTF-8 bytes per document. Incidental embedded
+- Post/page bodies use `wordpress_public_text_bytes.v2`, capped at 48,000 UTF-8 bytes after sanitization. Comments and image descriptions retain the 1,800-byte limit. Delivery evidence records exact sanitized source/delivered byte and character counts and explicit truncation. Incidental embedded
   URLs, email addresses, and phone-like sequences are removed before delivery;
   the canonical public permalink remains a separate allowlisted field.
 
@@ -186,3 +186,25 @@ restore 才更新 producer_generation，防止后来自动更新复用删除前�
 新 full cursor 的 claim 与 pending/restore_pending 检查属于同一个 raw serialized CAS；
 存在未决 source 时不先拍一个遗漏该 source 的新 full 快照。反向也一样：已有未决 full
 cursor 时暂不接受 restore，先完成原 full delivery，避免稍后的全站 clear 抹掉已恢复项。
+
+## Full-body projection rollout (2026-10-30 local candidate)
+
+Deploy the Cloud reader for `wordpress_public_text_bytes.v2` before enabling
+this Addon producer. The v1 excerpt reader remains compatible. The field name
+`content_excerpt` is retained on the wire; v2 carries a bounded body, not an
+assertion that every WordPress article fits. No index or model migration is
+triggered by installing this code. Existing sources need ordinary refresh.
+
+Full-index planning stores typed IDs, not a second content snapshot. Dispatch
+re-reads public state and enforces the final 900,000-byte limit. If many articles
+grow after planning, or comments/envelope exceed the reserved space, delivery
+fails visibly with the existing bounded retry/blocked state; it does not send
+an oversized request or acknowledge omitted sources. A new explicit full
+operation can plan a fresh manifest after the old operation is resolved.
+Large restore selections also retain the existing payload/durability guard.
+Rebuild is still explicitly destructive; prefer refresh for safe replacement.
+
+Local behavior covers 605 Chinese long bodies through byte-sized batches,
+late tail facts, UTF-8 boundaries, explicit partial delivery, accepted-run body
+compaction, and exact lost-response replay retention. This is local evidence,
+not CI, M4, production or customer relevance acceptance.
