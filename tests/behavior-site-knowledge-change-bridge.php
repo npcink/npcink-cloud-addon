@@ -948,51 +948,42 @@ for ( $post_id = 10000; $post_id < 10605; $post_id++ ) {
 }
 $full_rebuild_status = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_manual_index_operation( 'rebuild' );
 $full_rebuild_cursor = maca_legacy_full_cursor();
+$full_batch_count = absint( $full_rebuild_cursor['batch_count'] ?? 0 );
 $full_rebuild_http_increments = array();
-maca_queue_site_knowledge_inline_success( 4 );
-for ( $batch_index = 0; $batch_index < 4; $batch_index++ ) {
+for ( $batch_index = 0; $batch_index < $full_batch_count; $batch_index++ ) {
+	$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'data' => array( 'run_id' => 'long_body_' . $batch_index, 'status' => 'queued' ) ) ) );
+	$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'data' => array( 'run_id' => 'long_body_' . $batch_index, 'status' => 'succeeded' ) ) ) );
+}
+for ( $batch_index = 0; $batch_index < $full_batch_count * 2; $batch_index++ ) {
 	$request_count = count( $GLOBALS['maca_http_requests'] );
 	$full_rebuild_final_status = maca_run_site_knowledge_flush();
 	$full_rebuild_http_increments[] = count( $GLOBALS['maca_http_requests'] ) - $request_count;
 }
 $full_rebuild_bodies = array_map(
 	static function ( array $request ): array {
-		$body = json_decode( (string) ( $request['args']['body'] ?? '' ), true );
-		return is_array( $body ) ? $body : array();
+		return json_decode( (string) ( $request['args']['body'] ?? '' ), true );
 	},
-	$GLOBALS['maca_http_requests']
+	array_values( array_filter( $GLOBALS['maca_http_requests'], static function ( $request ) { return 'POST' === $request['args']['method']; } ) )
 );
 $full_rebuild_document_ids = array();
-$full_rebuild_body_sizes = array();
-foreach ( $full_rebuild_bodies as $body ) {
-	$full_rebuild_body_sizes[] = strlen( (string) wp_json_encode( $body ) );
-	foreach ( (array) ( $body['input']['documents'] ?? array() ) as $document ) {
-		$full_rebuild_document_ids[] = absint( $document['post_id'] ?? 0 );
+foreach ( $full_rebuild_bodies as $index => $body ) {
+	maca_assert( strlen( (string) wp_json_encode( $body ) ) < 900000, 'Full text: wire batch stays below the runtime byte limit.' );
+	maca_assert( ( 0 === $index ? 'rebuild' : 'refresh' ) === $body['input']['sync_mode'], 'Full text: bounded batches retain rebuild/refresh ordering.' );
+	foreach ( $body['input']['documents'] as $document ) {
+		maca_assert( str_repeat( '中', 2000 ) === $document['content_excerpt'] && false === $document['delivery_evidence']['truncated'], 'Full text: Chinese body beyond the old excerpt reaches Cloud.' );
+		$full_rebuild_document_ids[] = $document['post_id'];
 	}
 }
 maca_assert(
 	is_array( $full_rebuild_status )
 	&& array() === $GLOBALS['maca_http_response_queue']
-	&& 4 === absint( $full_rebuild_cursor['batch_count'] ?? 0 )
-	&& array( 1, 1, 1, 1 ) === $full_rebuild_http_increments
-	&& 4 === count( $full_rebuild_bodies )
-	&& 'rebuild' === (string) ( $full_rebuild_bodies[0]['input']['sync_mode'] ?? '' )
-	&& array() === (array) ( $full_rebuild_bodies[0]['input']['post_ids'] ?? array() )
-	&& 200 === count( (array) ( $full_rebuild_bodies[0]['input']['documents'] ?? array() ) )
-	&& 'refresh' === (string) ( $full_rebuild_bodies[1]['input']['sync_mode'] ?? '' )
-	&& 200 === count( (array) ( $full_rebuild_bodies[1]['input']['post_ids'] ?? array() ) )
-	&& 'refresh' === (string) ( $full_rebuild_bodies[2]['input']['sync_mode'] ?? '' )
-	&& 200 === count( (array) ( $full_rebuild_bodies[2]['input']['post_ids'] ?? array() ) )
-	&& 'refresh' === (string) ( $full_rebuild_bodies[3]['input']['sync_mode'] ?? '' )
-	&& 5 === count( (array) ( $full_rebuild_bodies[3]['input']['post_ids'] ?? array() ) )
+	&& $full_batch_count > 4
+	&& array_fill( 0, $full_batch_count * 2, 1 ) === $full_rebuild_http_increments
 	&& 605 === count( $full_rebuild_document_ids )
 	&& 605 === count( array_unique( $full_rebuild_document_ids ) )
-	&& max( $full_rebuild_body_sizes ) < 900000
-	&& 0 === absint( $full_rebuild_status['last_index_action_sent_count'] ?? 99 )
-	&& 605 === absint( $full_rebuild_final_status['last_index_action_sent_count'] ?? 0 )
-	&& 'completed' === (string) ( $full_rebuild_final_status['last_index_action_status'] ?? '' )
-	&& 4 === absint( $full_rebuild_final_status['last_index_action_batch_count'] ?? 0 ),
-	'Behavior: administrator rebuild covers the bounded full public corpus with at most one Cloud request per Cron invocation.'
+	&& 'completed' === $full_rebuild_final_status['last_index_action_status']
+	&& 605 === $full_rebuild_final_status['last_index_action_sent_count'],
+	'Behavior: byte-bounded full delivery covers every selected source once, one dispatch per Cron invocation.'
 );
 
 maca_reset_site_knowledge_bridge_state();
@@ -1617,3 +1608,33 @@ $comment_health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
 maca_assert( 200 === count( $comment_buffer['comment_changes'] ) && 1 === $comment_health['dropped_count'], 'Refresh: comment identity cap is bounded and overflow is exposed through existing loss diagnostics.' );
 
 require_once __DIR__ . '/behavior-site-knowledge-typed-presence.php';
+
+// The expanded post projection retains a fact at the end and reports its own cap.
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 71001 );
+$GLOBALS['maca_posts'][71001]->post_content = str_repeat( '正文段落。', 1500 ) . '最后的事实是蓝色。';
+$long_source = Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( array( 'source_type' => 'post', 'source_id' => 71001 ) );
+maca_assert( false !== strpos( $long_source['content_excerpt'], '最后的事实是蓝色。' ) && 'wordpress_public_text_bytes.v2' === $long_source['delivery_evidence']['projection_version'] && false === $long_source['delivery_evidence']['truncated'], 'Full text: tail facts and v2 completeness evidence survive delivery.' );
+$GLOBALS['maca_posts'][71001]->post_content = str_repeat( '汉', 18000 );
+$long_source = Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( array( 'source_type' => 'post', 'source_id' => 71001 ) );
+maca_assert( 48000 === strlen( $long_source['content_excerpt'] ) && true === $long_source['delivery_evidence']['truncated'] && 1 === preg_match( '//u', $long_source['content_excerpt'] ), 'Full text: over-limit bodies stay valid UTF-8 and explicitly report partial delivery.' );
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+for ( $id = 72001; $id <= 72025; $id++ ) {
+	maca_add_public_post_fixture( $id );
+	$GLOBALS['maca_posts'][$id]->post_content = str_repeat( '汉😀"', 5000 );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_saved_post( $id, $GLOBALS['maca_posts'][$id] );
+}
+$long_buffer_delivered = array();
+for ( $batch = 0; $batch < 25 && Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['buffer_count'] > 0; $batch++ ) {
+	$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'data' => array( 'run_id' => 'buffer_long_' . $batch, 'status' => 'queued' ) ) ) );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
+}
+foreach ( $GLOBALS['maca_http_requests'] as $request ) {
+	maca_assert( strlen( $request['args']['body'] ) < 900000, 'Full text: normal buffer uses escaped emoji/quote wire bytes when packing batches.' );
+	$body = json_decode( $request['args']['body'], true );
+	$long_buffer_delivered = array_merge( $long_buffer_delivered, array_column( $body['input']['documents'], 'post_id' ) );
+}
+maca_assert( 25 === count( $long_buffer_delivered ) && 25 === count( array_unique( $long_buffer_delivered ) ) && 0 === Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['buffer_count'], 'Full text: splitting normal changes acknowledges exactly the selected documents and retains later batches.' );

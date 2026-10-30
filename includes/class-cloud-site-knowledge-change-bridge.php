@@ -37,6 +37,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			private const MANUAL_INDEX_POSTS = 200;
 			private const MANUAL_MAX_POSTS = 10000;
 			private const MAX_DOCUMENT_CHARS = 1800;
+		private const MAX_POST_TEXT_BYTES = 48000;
 		private const MAX_TAXONOMY_TERMS = 10;
 		/** @var array<int,array{post_id:int,approved:bool}> */
 		private static array $removed_comment_context = array();
@@ -502,7 +503,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return self::record_delivery_result( true, 0, '' );
 			}
 
-			$post_ids = array_slice( $buffer['post_ids'], 0, self::MAX_BATCH_ITEMS );
+			$batches = self::byte_bounded_batches( array_map( static function ( $id ) { return array( 'source_id' => $id, 'source_type' => 'buffer' ); }, array_slice( $buffer['post_ids'], 0, self::MAX_BATCH_ITEMS ) ) );
+			$post_ids = array_column( $batches[0] ?? array(), 'source_id' );
 			$sent_fingerprints = self::delivery_fingerprints( $post_ids );
 			$result = self::request_site_knowledge_sync( 'refresh', $post_ids, 'change_bridge' );
 			if ( is_wp_error( $result ) ) {
@@ -1371,7 +1373,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			$delivery_evidence = array();
-			$content = self::bounded_text( (string) ( $post->post_content ?? '' ), self::MAX_DOCUMENT_CHARS, $delivery_evidence );
+			$content = self::bounded_text( (string) ( $post->post_content ?? '' ), self::MAX_POST_TEXT_BYTES, $delivery_evidence );
 
 			$document = array(
 				'id' => 'wp_post_' . $post_id,
@@ -1983,6 +1985,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 					if ( '' !== $run_id ) {
 						$record['run_id'] = $run_id;
 						$record['send_state'] = 'accepted';
+						// Exact run/key identity is sufficient for later writer witnesses.
+						// Only a lost response needs the immutable body for replay.
+						unset( $record['payload'] );
 					}
 				}
 				unset( $record, $after['_lifecycle']['owner'] );
@@ -1999,7 +2004,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$namespace = self::lifecycle_scope();
 			$scope = $before['_lifecycle']['scopes'][ $namespace ] ?? array();
 			if ( empty( $scope['dispatches'] ) || ! empty( $before['_lifecycle']['owner'] ) || ( count( $scope['dispatches'] ) < 400 && strlen( serialize( $before ) ) < 2097152 ) ) { return; }
-			$full_request = (string) ( self::get_maintenance_cursor()['request_id'] ?? '' );
+			$full_cursor = self::get_maintenance_cursor();
+			$full_request = (string) ( $full_cursor['request_id'] ?? '' );
 			$protected = array();
 			foreach ( $scope['operations'] as $op ) {
 				if ( 'completed' !== $op['status'] ) { $protected = array_merge( $protected, $op['old'] ); }
@@ -2010,7 +2016,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			for ( $offset = 0; $offset < count( $keys ) && $checked < 8; $offset++ ) {
 				$key = $keys[ ( $start + $offset ) % count( $keys ) ];
 				$entry = $scope['dispatches'][ $key ];
-				if ( 'producer' !== $entry['purpose'] || in_array( $key, $protected, true ) || ( '' !== $full_request && false !== strpos( $key, '_' . $full_request . '_' ) ) ) { continue; }
+				if ( 'producer' !== $entry['purpose'] || in_array( $key, $protected, true ) || ( '' !== $full_request && preg_match( '/_' . preg_quote( $full_request, '/' ) . '_(\d+)\z/', $key, $full_match ) && (int) $full_match[1] >= (int) ( $full_cursor['next_batch'] ?? 0 ) ) ) { continue; }
 				$checked++;
 				if ( 'not_sent' === ( $entry['send_state'] ?? '' ) || ! is_wp_error( Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_writer_witness( $entry ) ) ) { unset( $scope['dispatches'][ $key ] ); }
 			}
@@ -2359,7 +2365,32 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 					$media[] = $item;
 				}
 			}
-			return array_merge( array_chunk( $posts, self::MANUAL_INDEX_POSTS ), array_chunk( $media, self::MANUAL_INDEX_POSTS ) );
+			return array_merge( self::byte_bounded_batches( $posts ), self::byte_bounded_batches( $media ) );
+		}
+
+		/** Plan against escaped JSON bytes; dispatch rechecks the immutable payload. */
+		private static function byte_bounded_batches( array $items ): array {
+			$batches = array();
+			$batch = array();
+			$bytes = 0;
+			foreach ( $items as $item ) {
+				$post = get_post( $item['source_id'] );
+				$source = 'attachment' === ( $post->post_type ?? '' )
+					? self::public_source( array( 'source_type' => 'media', 'source_id' => $item['source_id'] ) )
+					: ( self::is_public_post( $post ) ? self::post_document( $post ) : array() );
+				$size = strlen( (string) wp_json_encode( $source ) ) + 32;
+				if ( 'buffer' !== $item['source_type'] ) { unset( self::$post_document_memo[ $item['source_id'] ] ); }
+				// Reserve 300 KB for the envelope, comments and revision changes.
+				if ( $batch && ( $bytes + $size > 600000 || count( $batch ) >= self::MANUAL_INDEX_POSTS ) ) {
+					$batches[] = $batch;
+					$batch = array();
+					$bytes = 0;
+				}
+				$batch[] = $item;
+				$bytes += $size;
+			}
+			if ( $batch ) { $batches[] = $batch; }
+			return $batches;
 		}
 
 		public static function handle_attachment_change( int $id ): void {
@@ -2606,7 +2637,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( null !== $delivery_evidence ) {
 				$delivery_evidence = array(
 					'contract_version' => 'site_knowledge_delivery_evidence.v1',
-					'projection_version' => 'wordpress_public_text_bytes.v1',
+					'projection_version' => self::MAX_POST_TEXT_BYTES === $limit ? 'wordpress_public_text_bytes.v2' : 'wordpress_public_text_bytes.v1',
 					'length_basis' => 'sanitized_public_text_before_byte_limit',
 					'source_bytes' => $source_bytes,
 					'source_chars' => (int) $source_chars,
