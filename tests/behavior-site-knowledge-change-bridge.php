@@ -677,6 +677,33 @@ maca_assert(
 
 maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
+maca_add_public_post_fixture( 1708 );
+$GLOBALS['maca_posts'][1708]->post_status = 'trash';
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_post_status_transition( 'trash', 'publish', $GLOBALS['maca_posts'][1708] );
+$GLOBALS['maca_http_response_queue'][] = new WP_Error( 'http_request_failed', 'Uncertain first withdrawal.' );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
+foreach ( array( 'trash', 'publish', 'trash' ) as $revision => $status ) {
+	$old_status = $GLOBALS['maca_posts'][1708]->post_status;
+	$GLOBALS['maca_posts'][1708]->post_status = $status;
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_post_status_transition( $status, $old_status, $GLOBALS['maca_posts'][1708] );
+	$GLOBALS['maca_http_response_queue'][] = array(
+		'response' => array( 'code' => 200 ),
+		'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'run_id' => 'run_repeat_' . $revision ) ) ),
+	);
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
+}
+$repeat_posts = array_values( array_filter( $GLOBALS['maca_http_requests'], static fn( array $request ): bool => 'POST' === ( $request['args']['method'] ?? '' ) ) );
+$repeat_keys = array_map( static fn( array $request ): string => $request['args']['headers']['Idempotency-Key'] ?? '', $repeat_posts );
+maca_assert(
+	4 === count( $repeat_posts ) && $repeat_keys[0] === $repeat_keys[1] && $repeat_keys[1] !== $repeat_keys[3],
+	'Behavior: uncertain withdrawal retries retain their key, but restore then withdraw creates a new delivery even with identical bytes.'
+);
+$first_withdrawal = json_decode( $repeat_posts[1]['args']['body'], true );
+$last_withdrawal = json_decode( $repeat_posts[3]['args']['body'], true );
+maca_assert( $first_withdrawal === $last_withdrawal, 'Behavior: repeat-withdrawal identity does not modify the Cloud content contract.' );
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
 maca_add_public_post_fixture( 708 );
 update_option(
 	Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION,

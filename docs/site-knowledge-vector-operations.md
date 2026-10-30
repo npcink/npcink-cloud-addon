@@ -20,6 +20,25 @@ Addon does not purge retained records or become a manifest registry.
 Observational counters are excluded from the change-buffer delivery fingerprint;
 adding them alone cannot create a new semantic content revision.
 
+## Repeated automatic deliveries
+
+Ordinary change buffering keeps a private `delivery_id` for one unresolved
+batch interval. The idempotency key binds both that identity and exact input
+bytes. Network-uncertain retries keep the same key; once delivery is accepted,
+remaining/new buffered changes receive a new identity. Legacy pending buffers
+without this field retain their original retry key until acceptance. This is
+bounded transport metadata, never Cloud index lifecycle truth or a new queue.
+
+This fixes the real Local sequence public → trash → restored public → trash:
+the second withdrawal previously reused the first completed withdrawal and
+left the restored Cloud document indexed. Repeated identical public content
+has the same requirement. The regression checks an uncertain withdrawal retry
+with the same key followed by restoration and a byte-identical withdrawal with
+a different key. Source payloads and existing consent remain unchanged.
+
+Rollback reverts this private buffer/key change; no Cloud migration is needed.
+Stop repeat-cycle acceptance after rollback because the prior collision returns.
+
 ## Local Permission
 
 The settings page actions that request content index work require
@@ -167,3 +186,12 @@ diagnostics.
 Disabling local delivery stops future public content delivery and disables
 start/rebuild requests. It does not delete existing Cloud index data. Delete site
 index remains available as an explicit cleanup path after typing `DELETE`.
+
+Development receipt, 2026-10-30: the Local `magick-ai.local` candidate repeated
+restore/withdraw on disposable post 282978. Cloud readback changed from
+1 document/4 chunks to 0 documents/0 chunks. The unrelated 2,131 documents and
+2,362 chunks retained identical row digests. The fixture is again in WordPress
+Trash; no production operation or whole-site rebuild occurred. Playground is
+not applicable: bootstrap, activation, credentials, public API and supported
+WordPress/PHP floors did not change. Transport behavior suites and the real
+Local-to-M4 loop supply the touched-surface evidence.
