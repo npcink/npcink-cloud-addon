@@ -280,6 +280,9 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_registered_ai_task_runtime' 
 		}
 
 		$request['task_contract'] = $task_contract;
+		if ( in_array( 'site_knowledge_evidence', $task_contract['context_requirements'] ?? array(), true ) && ! isset( $request['site_knowledge_reference'] ) ) {
+			$request['site_knowledge_reference'] = array( 'enabled' => true, 'mode' => 'site_factual_evidence' );
+		}
 		$supports_generation_reference = in_array(
 			(string) $task_contract['task'],
 			array( 'title_generation', 'content_summary' ),

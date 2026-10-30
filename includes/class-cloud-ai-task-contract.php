@@ -22,7 +22,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		private const TOOLKIT_CONTRACT_VERSION = 'v1';
 
 		private const ALLOWED_FAMILIES = array( 'generation', 'classification', 'transformation', 'analysis' );
-		private const ALLOWED_CONTEXTS = array( 'current_content', 'site_style_profile', 'taxonomy_candidates', 'none' );
+		private const ALLOWED_CONTEXTS = array( 'current_content', 'site_style_profile', 'site_knowledge_evidence', 'taxonomy_candidates', 'none' );
 		private const ALLOWED_CONSTRAINTS = array( 'single_value', 'source_grounded', 'no_new_numbers', 'json_object', 'existing_terms_only' );
 
 		/**

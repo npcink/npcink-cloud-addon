@@ -541,6 +541,10 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 		 * @return array<string,mixed>|null|WP_Error
 		 */
 		private static function normalize_wordpress_ai_site_knowledge_reference( $reference, string $task, array $task_contract = array() ) {
+			$evidence_required = in_array( 'site_knowledge_evidence', $task_contract['context_requirements'] ?? array(), true );
+			if ( $evidence_required && ( ! is_array( $reference ) || true !== ( $reference['enabled'] ?? null ) ) ) {
+				return new WP_Error( 'cloud_wp_ai_connector_factual_evidence_required' );
+			}
 			if ( null === $reference ) {
 				return null;
 			}
@@ -574,6 +578,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				'content_summary'  => 'site_summary_style',
 			);
 			$expected_mode = (string) ( $task_modes[ $task ] ?? '' );
+			if ( in_array( 'site_knowledge_evidence', $task_contract['context_requirements'] ?? array(), true ) ) {
+				$expected_mode = 'site_factual_evidence';
+			}
 			$mode = sanitize_key( (string) ( $reference['mode'] ?? ( '' !== $expected_mode ? $expected_mode : 'site_title_style' ) ) );
 			if ( $enabled && '' === $expected_mode ) {
 				return new WP_Error(
