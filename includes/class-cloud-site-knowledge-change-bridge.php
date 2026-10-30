@@ -513,7 +513,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 
 			$latest_buffer = self::get_buffer();
 			$remaining = self::remaining_after_delivery( $latest_buffer['post_ids'], $post_ids, $sent_fingerprints );
-			self::save_buffer( $remaining, 0 );
+			self::save_buffer( $remaining, 0, true );
 			if ( ! empty( $remaining ) ) {
 				self::schedule_flush( self::RETRY_SECONDS );
 			}
@@ -1077,7 +1077,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return true;
 			}
 
-			self::save_buffer( $merged, absint( $buffer['attempts'] ?? 0 ) );
+			self::save_buffer( $merged, absint( $buffer['attempts'] ?? 0 ), empty( $buffer['post_ids'] ) );
 			if ( ! $allow_eviction && ! empty( array_diff( $merged, self::get_buffer()['post_ids'] ) ) ) {
 				return false;
 			}
@@ -1292,16 +1292,18 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			/**
-			 * Builds a stable key for one exact change-bridge payload.
+			 * Builds a stable key for one exact payload within a delivery batch.
 			 *
-			 * Content changes produce a new payload and therefore a new key, while an
-			 * uncertain retry of the same payload remains safe to deduplicate in Cloud.
+			 * Uncertain retries retain the batch identity. A later accepted batch must
+			 * not reuse an earlier withdrawal merely because its bytes are identical.
 			 *
 			 * @param array<string,mixed> $input Bounded Site Knowledge input.
 			 * @return string
 			 */
 			private static function change_batch_idempotency_key( array $input ): string {
-				$encoded = wp_json_encode( $input );
+				$delivery_id = self::get_buffer()['delivery_id'];
+				// Legacy pending buffers retain their pre-upgrade retry key.
+				$encoded = wp_json_encode( '' === $delivery_id ? $input : array( 'delivery_id' => $delivery_id, 'input' => $input ) );
 				if ( ! is_string( $encoded ) || '' === $encoded ) {
 					return 'site_knowledge_change_' . wp_generate_uuid4();
 				}
@@ -1755,6 +1757,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				'post_ids' => array_values( array_filter( array_map( 'absint', is_array( $post_ids ) ? $post_ids : array() ) ) ),
 				'attempts' => absint( $value['attempts'] ?? 0 ),
 				'comment_changes' => is_array( $value['comment_changes'] ?? null ) ? $value['comment_changes'] : array(),
+				'delivery_id' => is_string( $value['delivery_id'] ?? null ) ? $value['delivery_id'] : '',
 			);
 		}
 
@@ -1763,9 +1766,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 *
 		 * @param array<int,int> $post_ids Post ids.
 		 * @param int            $attempts Delivery attempts.
+		 * @param bool           $new_delivery Start a new accepted-delivery interval.
 		 * @return void
 		 */
-		private static function save_buffer( array $post_ids, int $attempts ): void {
+		private static function save_buffer( array $post_ids, int $attempts, bool $new_delivery = false ): void {
 			$post_ids = array_values( array_unique( array_filter( array_map( 'absint', $post_ids ) ) ) );
 			if ( empty( $post_ids ) ) {
 				delete_option( self::BUFFER_OPTION );
@@ -1773,11 +1777,13 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			$changes = array_filter( self::get_buffer()['comment_changes'], static function ( $item ) use ( $post_ids ) { return in_array( absint( $item['post_id'] ?? 0 ), $post_ids, true ); } );
+			$delivery_id = $new_delivery ? wp_generate_uuid4() : self::get_buffer()['delivery_id'];
 			update_option(
 				self::BUFFER_OPTION,
 				array(
 					'post_ids' => $post_ids,
 					'comment_changes' => $changes,
+					'delivery_id' => $delivery_id,
 					'attempts' => max( 0, $attempts ),
 					'updated_at' => gmdate( 'c' ),
 				),

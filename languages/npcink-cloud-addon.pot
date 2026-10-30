@@ -2959,7 +2959,7 @@ msgstr ""
 msgid "Comment parent changed during collection; retry delivery."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1846
+#: includes/class-cloud-site-knowledge-change-bridge.php:1852
 msgid "Site Knowledge needs verification before this request can continue."
 msgstr ""
 
