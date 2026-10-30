@@ -51,7 +51,6 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 		private const TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_MAX_TIMEOUT_SECONDS = 90;
 		private const TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_MAX_RETENTION_TTL = 86400;
 		private const TOOLBOX_ARTICLE_REVIEW_CONTRACT = 'article_review_cloud_request.v1';
-		private const TOOLBOX_ARTICLE_REVIEW_RESULT_CONTRACT = 'article_review_cloud_result.v1';
 		private const TOOLBOX_ARTICLE_REVIEW_MAX_REQUEST_BYTES = 120000;
 		private const TOOLBOX_ARTICLE_REVIEW_MAX_TIMEOUT_SECONDS = 30;
 		private const TOOLBOX_MEDIA_GOVERNANCE_AUDIT_CONTRACT = 'media_governance_audit_request.v1';
@@ -1093,12 +1092,12 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				return new WP_Error( 'cloud_toolbox_article_review_shape_invalid', __( 'Article review requests must use the fixed read-only contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 			}
 
-			if ( self::TOOLBOX_ARTICLE_REVIEW_CONTRACT !== (string) $request['contract_version'] || 'zh-CN' !== (string) $request['language'] || array( 'language' ) !== $request['checks'] || 'utf16_code_units' !== (string) $request['offset_unit'] ) {
+			if ( self::TOOLBOX_ARTICLE_REVIEW_CONTRACT !== $request['contract_version'] || 'zh-CN' !== $request['language'] || array( 'language' ) !== $request['checks'] || 'utf16_code_units' !== $request['offset_unit'] ) {
 				return new WP_Error( 'cloud_toolbox_article_review_contract_invalid', __( 'Article review requests require the zh-CN language contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 			}
 
 			$blocks = $request['blocks'];
-			if ( ! is_array( $blocks ) || count( $blocks ) < 1 || count( $blocks ) > 80 ) {
+			if ( ! is_array( $blocks ) || count( $blocks ) < 1 || count( $blocks ) > 80 || array_keys( $blocks ) !== range( 0, count( $blocks ) - 1 ) ) {
 				return new WP_Error( 'cloud_toolbox_article_review_blocks_invalid', __( 'Article review requests require between 1 and 80 text blocks.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 			}
 
@@ -1117,10 +1116,10 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				if ( $allowed_block_keys !== $block_keys ) {
 					return new WP_Error( 'cloud_toolbox_article_review_block_shape_invalid', __( 'Article review blocks contain unsupported fields.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 				}
-				$ref = (string) $block['block_ref'];
-				$kind = (string) $block['kind'];
+				$ref = $block['block_ref'];
+				$kind = $block['kind'];
 				$text = $block['text'];
-				if ( ! is_string( $text ) || '' === $text || 1 !== preg_match( '//u', $text ) || ! preg_match( '/\Ab[1-9][0-9]{0,3}\z/', $ref ) || in_array( $ref, $seen_refs, true ) || ! in_array( $kind, array( 'title', 'excerpt', 'body' ), true ) ) {
+				if ( ! is_string( $ref ) || ! is_string( $kind ) || ! is_string( $text ) || 1 !== preg_match( '/\S/u', $text ) || ! preg_match( '/\Ab[1-9][0-9]{0,3}\z/', $ref ) || in_array( $ref, $seen_refs, true ) || ! in_array( $kind, array( 'title', 'excerpt', 'body' ), true ) ) {
 					return new WP_Error( 'cloud_toolbox_article_review_block_value_invalid', __( 'Article review block identity or text is invalid.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 				}
 				$units = self::utf16_units( $text );
@@ -1135,8 +1134,8 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 			}
 
 			$canonical = array( self::TOOLBOX_ARTICLE_REVIEW_CONTRACT, 'zh-CN', array( 'language' ), $canonical_blocks );
-			$encoded_canonical = json_encode( $canonical, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-			if ( ! is_string( $encoded_canonical ) || ! hash_equals( (string) $request['snapshot_sha256'], hash( 'sha256', $encoded_canonical ) ) ) {
+			$encoded_canonical = json_encode( $canonical, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS );
+			if ( ! is_string( $request['snapshot_sha256'] ) || ! is_string( $encoded_canonical ) || ! hash_equals( (string) $request['snapshot_sha256'], hash( 'sha256', $encoded_canonical ) ) ) {
 				return new WP_Error( 'cloud_toolbox_article_review_snapshot_invalid', __( 'Article review snapshot hash does not match the supplied text.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 			}
 
@@ -1145,6 +1144,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				return new WP_Error( 'cloud_toolbox_article_review_request_too_large', __( 'Article review request exceeds the runtime size limit.', 'npcink-cloud-addon' ), array( 'status' => 413 ) );
 			}
 
+			unset( $request['contract_version'] );
 			return array(
 				'ability_name'        => 'npcink-toolbox/review-article',
 				'contract_version'    => self::TOOLBOX_ARTICLE_REVIEW_CONTRACT,
@@ -2057,8 +2057,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 
 		/** @param string $value UTF-8 text. */
 		private static function utf16_units( string $value ): int {
-			$encoded = function_exists( 'mb_convert_encoding' ) ? mb_convert_encoding( $value, 'UTF-16LE', 'UTF-8' ) : $value;
-			return (int) ( strlen( $encoded ) / 2 );
+			$characters = preg_match_all( '/./us', $value );
+			$surrogates = preg_match_all( '/[\x{10000}-\x{10FFFF}]/u', $value );
+			return (int) $characters + (int) $surrogates;
 		}
 
 		/**

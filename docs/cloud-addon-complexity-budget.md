@@ -79,9 +79,9 @@ connector classes so they cannot grow unnoticed:
   `class-cloud-runtime-request-guards.php`,
   `class-cloud-runtime-diagnostics.php`, and
   `class-cloud-runtime-media-payloads.php`)
-- `includes/class-cloud-runtime-request-guards.php` — 2123 lines (raised by 98
+- `includes/class-cloud-runtime-request-guards.php` — 2124 lines (raised by 99
   lines for the fixed article-review snapshot guard, UTF-16/byte bounds and
-  behavior coverage; pure
+  behavior coverage, including strict Cloud envelope identity and portable UTF-16 counting; pure
   `normalize_*` request validators, forbidden-key walkers, PII scan, and
   bounded-text/sanitize helpers with zero instance state; 2026-10-30 adds five
   lines to require factual references and distinguish their mode from optional

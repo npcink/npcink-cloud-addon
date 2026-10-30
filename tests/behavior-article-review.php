@@ -26,6 +26,32 @@ maca_assert( 0 === count( $GLOBALS['maca_http_requests'] ), 'Invalid article rev
 $GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'result' => array() ) ) ) );
 $client->execute_toolbox_article_review_runtime( $request );
 $payload = json_decode( $GLOBALS['maca_http_requests'][0]['args']['body'], true );
-maca_assert( $payload['input'] === $request, 'Article review preserves the exact bounded editor snapshot.' );
+$expected_input = $request;
+unset( $expected_input['contract_version'] );
+maca_assert( $payload['input'] === $expected_input, 'Article review preserves the exact bounded editor snapshot.' );
 maca_assert( 'npcink-toolbox/review-article' === $payload['ability_name'] && 'article_review_cloud_request.v1' === $payload['contract_version'], 'Article review uses the fixed Cloud ability and request contract.' );
 maca_assert( 'pii' === $payload['data_classification'] && 'no_store' === $payload['storage_mode'] && 0 === $payload['retry_max'] && 0 === $payload['retention_ttl'] && false === $payload['policy']['allow_fallback'], 'Article review is inline, no-store, no-retry, and fallback-disabled.' );
+
+// Validate primitive types, list identity and non-BMP boundaries before transport.
+$invalid_requests = array();
+foreach ( array( 'contract_version', 'language', 'offset_unit', 'snapshot_sha256' ) as $key ) {
+	$bad = $request; $bad[ $key ] = array(); $invalid_requests[] = $bad;
+}
+$bad = $request; $bad['blocks'] = array( 'named' => $request['blocks'][0] ); $invalid_requests[] = $bad;
+$bad = $request; $bad['blocks'][] = $request['blocks'][0]; $invalid_requests[] = $bad;
+$bad = $request; $bad['blocks'][0]['text'] = "\xFF"; $invalid_requests[] = $bad;
+$bad = $request; $bad['blocks'][0]['text'] = " \t\n"; $invalid_requests[] = $bad;
+$bad = $request; $bad['blocks'][0]['text'] = "\u{00a0}\u{3000}"; $invalid_requests[] = $bad;
+foreach ( $invalid_requests as $bad ) {
+	maca_assert( is_wp_error( Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $bad ) ), 'Strict snapshot rejects malformed primitives, lists, duplicate refs, UTF-8 and empty text.' );
+}
+foreach ( array( str_repeat( '😀', 800 ), "原文  保留。\n<x>\u{2028}\u{2029}" ) as $text ) {
+	$good = $request;
+	$good['blocks'][0]['text'] = $text;
+	$canonical = json_encode( array( 'article_review_cloud_request.v1', 'zh-CN', array( 'language' ), array( array( 'b1', 'body', $text ) ) ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS );
+	$good['snapshot_sha256'] = hash( 'sha256', $canonical );
+	$normalized = Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $good );
+	maca_assert( ! is_wp_error( $normalized ) && $normalized['input']['blocks'][0]['text'] === $text && ! isset( $normalized['input']['contract_version'] ), 'Exact Unicode text and 1600 UTF-16 boundary match the strict Cloud input shape.' );
+}
+$good['blocks'][0]['text'] = str_repeat( '😀', 801 );
+maca_assert( is_wp_error( Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $good ) ), 'Non-BMP text above 1600 UTF-16 units is rejected.' );

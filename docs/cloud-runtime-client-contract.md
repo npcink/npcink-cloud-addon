@@ -63,7 +63,12 @@ The article-language review facade is a fixed read-only transport for Toolbox's
 editor report. It accepts only `article_review_cloud_request.v1` with a
 `zh-CN` language, `language` check, UTF-16 offset declaration, and bounded
 `b1`–`b9999` title/excerpt/body text blocks. The Addon verifies the canonical
-snapshot hash before signing and sends the request through `/v1/runtime/execute`
+snapshot hash before signing. The public facade accepts the contract name, but
+the Cloud runtime `input` excludes `contract_version`: that identity belongs
+only to the outer runtime envelope. Compact canonical JSON keeps literal Unicode
+(including U+2028/U+2029) and slashes; UTF-16 bounds work without mbstring.
+Each explicit call without a caller-supplied idempotency key gets a fresh key.
+It sends the request through `/v1/runtime/execute`
 with `profile_id=wp-ai.editorial`, `data_classification=pii`,
 `storage_mode=no_store`, `retention_ttl=0`, `retry_max=0`, and
 `allow_fallback=false`. Cloud returns evidence only; no replacement, apply,
