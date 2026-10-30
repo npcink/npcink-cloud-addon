@@ -50,6 +50,10 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 		private const TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_MAX_REQUEST_BYTES = 750000;
 		private const TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_MAX_TIMEOUT_SECONDS = 90;
 		private const TOOLBOX_SITE_OPS_CLOUD_ANALYSIS_MAX_RETENTION_TTL = 86400;
+		private const TOOLBOX_ARTICLE_REVIEW_CONTRACT = 'article_review_cloud_request.v1';
+		private const TOOLBOX_ARTICLE_REVIEW_RESULT_CONTRACT = 'article_review_cloud_result.v1';
+		private const TOOLBOX_ARTICLE_REVIEW_MAX_REQUEST_BYTES = 120000;
+		private const TOOLBOX_ARTICLE_REVIEW_MAX_TIMEOUT_SECONDS = 30;
 		private const TOOLBOX_MEDIA_GOVERNANCE_AUDIT_CONTRACT = 'media_governance_audit_request.v1';
 		private const TOOLBOX_MEDIA_GOVERNANCE_AUDIT_MAX_REQUEST_BYTES = 750000;
 		private const TOOLBOX_MEDIA_GOVERNANCE_AUDIT_MAX_ITEMS = 500;
@@ -1071,6 +1075,94 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 		}
 
 		/**
+		 * Normalizes the fixed, read-only article-language review request.
+		 *
+		 * The request contains only editor text and deterministic block identity.
+		 * It deliberately has no replacement, write, provider, or control fields.
+		 *
+		 * @param array<string,mixed> $request Raw article review request.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		public static function normalize_toolbox_article_review_request( array $request ) {
+			$expected_keys = array( 'contract_version', 'snapshot_sha256', 'language', 'checks', 'offset_unit', 'blocks' );
+			$keys = array_keys( $request );
+			sort( $keys );
+			$expected_sorted = $expected_keys;
+			sort( $expected_sorted );
+			if ( $expected_sorted !== $keys ) {
+				return new WP_Error( 'cloud_toolbox_article_review_shape_invalid', __( 'Article review requests must use the fixed read-only contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+			}
+
+			if ( self::TOOLBOX_ARTICLE_REVIEW_CONTRACT !== (string) $request['contract_version'] || 'zh-CN' !== (string) $request['language'] || array( 'language' ) !== $request['checks'] || 'utf16_code_units' !== (string) $request['offset_unit'] ) {
+				return new WP_Error( 'cloud_toolbox_article_review_contract_invalid', __( 'Article review requests require the zh-CN language contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+			}
+
+			$blocks = $request['blocks'];
+			if ( ! is_array( $blocks ) || count( $blocks ) < 1 || count( $blocks ) > 80 ) {
+				return new WP_Error( 'cloud_toolbox_article_review_blocks_invalid', __( 'Article review requests require between 1 and 80 text blocks.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+			}
+
+			$canonical_blocks = array();
+			$seen_refs = array();
+			$total_units = 0;
+			$total_bytes = 0;
+			foreach ( $blocks as $block ) {
+				if ( ! is_array( $block ) ) {
+					return new WP_Error( 'cloud_toolbox_article_review_block_invalid', __( 'Article review blocks must be structured text snapshots.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$block_keys = array_keys( $block );
+				sort( $block_keys );
+				$allowed_block_keys = array( 'block_ref', 'kind', 'text' );
+				sort( $allowed_block_keys );
+				if ( $allowed_block_keys !== $block_keys ) {
+					return new WP_Error( 'cloud_toolbox_article_review_block_shape_invalid', __( 'Article review blocks contain unsupported fields.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$ref = (string) $block['block_ref'];
+				$kind = (string) $block['kind'];
+				$text = $block['text'];
+				if ( ! is_string( $text ) || '' === $text || 1 !== preg_match( '//u', $text ) || ! preg_match( '/\Ab[1-9][0-9]{0,3}\z/', $ref ) || in_array( $ref, $seen_refs, true ) || ! in_array( $kind, array( 'title', 'excerpt', 'body' ), true ) ) {
+					return new WP_Error( 'cloud_toolbox_article_review_block_value_invalid', __( 'Article review block identity or text is invalid.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+				}
+				$units = self::utf16_units( $text );
+				$bytes = strlen( $text );
+				if ( 0 >= $units || $units > 1600 || $total_units + $units > 30000 || $total_bytes + $bytes > 100000 ) {
+					return new WP_Error( 'cloud_toolbox_article_review_text_too_large', __( 'Article review text exceeds the bounded review size.', 'npcink-cloud-addon' ), array( 'status' => 413 ) );
+				}
+				$seen_refs[] = $ref;
+				$total_units += $units;
+				$total_bytes += $bytes;
+				$canonical_blocks[] = array( $ref, $kind, $text );
+			}
+
+			$canonical = array( self::TOOLBOX_ARTICLE_REVIEW_CONTRACT, 'zh-CN', array( 'language' ), $canonical_blocks );
+			$encoded_canonical = json_encode( $canonical, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+			if ( ! is_string( $encoded_canonical ) || ! hash_equals( (string) $request['snapshot_sha256'], hash( 'sha256', $encoded_canonical ) ) ) {
+				return new WP_Error( 'cloud_toolbox_article_review_snapshot_invalid', __( 'Article review snapshot hash does not match the supplied text.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+			}
+
+			$encoded_request = wp_json_encode( $request );
+			if ( ! is_string( $encoded_request ) || strlen( $encoded_request ) > self::TOOLBOX_ARTICLE_REVIEW_MAX_REQUEST_BYTES ) {
+				return new WP_Error( 'cloud_toolbox_article_review_request_too_large', __( 'Article review request exceeds the runtime size limit.', 'npcink-cloud-addon' ), array( 'status' => 413 ) );
+			}
+
+			return array(
+				'ability_name'        => 'npcink-toolbox/review-article',
+				'contract_version'    => self::TOOLBOX_ARTICLE_REVIEW_CONTRACT,
+				'channel'             => 'toolbox_article_review',
+				'execution_kind'      => 'text',
+				'execution_pattern'   => 'inline',
+				'profile_id'          => 'wp-ai.editorial',
+				'input'               => $request,
+				'data_classification' => 'pii',
+				'storage_mode'        => 'no_store',
+				'retention_ttl'       => 0,
+				'timeout_seconds'     => self::TOOLBOX_ARTICLE_REVIEW_MAX_TIMEOUT_SECONDS,
+				'retry_max'           => 0,
+				'policy'              => array( 'allow_fallback' => false ),
+			);
+		}
+
+		/**
 		 * Normalizes one exact metadata-only media governance audit request.
 		 *
 		 * @param array<string,mixed> $request Raw request.
@@ -1961,6 +2053,12 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 			}
 
 			return strlen( $value ) > $max_chars ? substr( $value, 0, $max_chars ) : $value;
+		}
+
+		/** @param string $value UTF-8 text. */
+		private static function utf16_units( string $value ): int {
+			$encoded = function_exists( 'mb_convert_encoding' ) ? mb_convert_encoding( $value, 'UTF-16LE', 'UTF-8' ) : $value;
+			return (int) ( strlen( $encoded ) / 2 );
 		}
 
 		/**

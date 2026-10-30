@@ -40,6 +40,7 @@ execute_toolbox_audio_generation_runtime(array $request, string $trace_id = '', 
 execute_toolbox_site_ops_cloud_analysis_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 execute_toolbox_web_search_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 execute_toolbox_image_source_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+execute_toolbox_article_review_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 request_image_context_evidence(array $image_context_evidence_request, string $trace_id = '', string $idempotency_key = '')
 upload_media_artifact(array $file, string $trace_id = '', string $idempotency_key = '')
 create_media_job(array $payload, string $trace_id = '', string $idempotency_key = '')
@@ -57,6 +58,16 @@ get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '', str
 ```
 
 The low-level signed `request()` helper is private implementation detail. It must enforce the endpoint allowlist in this contract and must not be exposed as a generic public Cloud proxy.
+
+The article-language review facade is a fixed read-only transport for Toolbox's
+editor report. It accepts only `article_review_cloud_request.v1` with a
+`zh-CN` language, `language` check, UTF-16 offset declaration, and bounded
+`b1`–`b9999` title/excerpt/body text blocks. The Addon verifies the canonical
+snapshot hash before signing and sends the request through `/v1/runtime/execute`
+with `profile_id=wp-ai.editorial`, `data_classification=pii`,
+`storage_mode=no_store`, `retention_ttl=0`, `retry_max=0`, and
+`allow_fallback=false`. Cloud returns evidence only; no replacement, apply,
+save, publish, approval, or `version_compare` gate exists in this facade.
 
 Every runtime, liveness, artifact, and authorization-exchange request also
 passes through the shared Addon outbound policy. Non-local targets require
@@ -94,6 +105,7 @@ It returns a `WP_Error` until the addon settings have passed Save and Verify.
 | `execute_toolbox_site_ops_cloud_analysis_runtime()` | `POST /v1/runtime/execute` |
 | `execute_toolbox_web_search_runtime()` | `POST /v1/runtime/execute` |
 | `execute_toolbox_image_source_runtime()` | `POST /v1/runtime/execute` |
+| `execute_toolbox_article_review_runtime()` | `POST /v1/runtime/execute` |
 | `npcink_cloud_addon_dispatch_site_knowledge_runtime()` | `POST /v1/runtime/execute` |
 | `request_image_context_evidence()` | `POST /v1/runtime/execute` |
 | `upload_media_artifact()` | `POST /v1/runtime/media/uploads` |
