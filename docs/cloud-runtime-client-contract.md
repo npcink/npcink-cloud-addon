@@ -662,3 +662,15 @@ idempotency key, has scope `verified_transfer_only`, and must return
 `artifact_expires_at` exactly equal to the reviewed local 11-field descriptor
 expiry. It may neither shorten nor extend that expiry, including when the
 preserved artifact lifetime exceeds six minutes after acknowledgement.
+
+## Article review check selection (2026-11-01)
+
+The existing fixed `npcink_cloud_addon_execute_toolbox_article_review_runtime`
+facade accepts the nonempty unique ordered subset `language,logic,content_risk`
+in `checks`. The canonical snapshot SHA binds this selection. Old language-only
+requests remain unchanged; malformed order/duplicates/unknown checks fail before
+signing. Same inline pii/no_store/retry-zero/fallback-disabled runtime.
+Cloud owns analysis, Toolbox validates/display only, authors manually edit.
+No prompt, policy, registry, write or model selection moves into Addon.
+New combined clients need a compatible Cloud runtime; no automatic retry/fallback
+or Addon version gate is added.

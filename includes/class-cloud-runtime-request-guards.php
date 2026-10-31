@@ -1092,7 +1092,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				return new WP_Error( 'cloud_toolbox_article_review_shape_invalid', __( 'Article review requests must use the fixed read-only contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 			}
 
-			if ( self::TOOLBOX_ARTICLE_REVIEW_CONTRACT !== $request['contract_version'] || 'zh-CN' !== $request['language'] || array( 'language' ) !== $request['checks'] || 'utf16_code_units' !== $request['offset_unit'] ) {
+			if ( self::TOOLBOX_ARTICLE_REVIEW_CONTRACT !== $request['contract_version'] || 'zh-CN' !== $request['language'] || ! is_array( $request['checks'] ) || empty( $request['checks'] ) || array_filter( $request['checks'], 'is_string' ) !== $request['checks'] || array_values( array_intersect( array( 'language', 'logic', 'content_risk' ), $request['checks'] ) ) !== $request['checks'] || 'utf16_code_units' !== $request['offset_unit'] ) {
 				return new WP_Error( 'cloud_toolbox_article_review_contract_invalid', __( 'Article review requests require the zh-CN language contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 			}
 
@@ -1133,7 +1133,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				$canonical_blocks[] = array( $ref, $kind, $text );
 			}
 
-			$canonical = array( self::TOOLBOX_ARTICLE_REVIEW_CONTRACT, 'zh-CN', array( 'language' ), $canonical_blocks );
+			$canonical = array( self::TOOLBOX_ARTICLE_REVIEW_CONTRACT, 'zh-CN', $request['checks'], $canonical_blocks );
 			$encoded_canonical = json_encode( $canonical, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS );
 			if ( ! is_string( $request['snapshot_sha256'] ) || ! is_string( $encoded_canonical ) || ! hash_equals( (string) $request['snapshot_sha256'], hash( 'sha256', $encoded_canonical ) ) ) {
 				return new WP_Error( 'cloud_toolbox_article_review_snapshot_invalid', __( 'Article review snapshot hash does not match the supplied text.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
