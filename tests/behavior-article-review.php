@@ -7,7 +7,7 @@ maca_reset_test_state();
 maca_seed_settings( true );
 
 $blocks = array( array( 'b1', 'body', '中文AI工具。😀' ) );
-$canonical = json_encode( array( 'article_review_cloud_request.v1', 'zh-CN', array( 'language' ), $blocks ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+$canonical = json_encode( array( 'article_review_cloud_request.v1', 'zh-CN', array( 'language' ), $blocks ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS );
 $request = array(
 	'contract_version' => 'article_review_cloud_request.v1',
 	'snapshot_sha256' => hash( 'sha256', (string) $canonical ),

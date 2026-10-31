@@ -1119,7 +1119,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				$ref = $block['block_ref'];
 				$kind = $block['kind'];
 				$text = $block['text'];
-				if ( ! is_string( $ref ) || ! is_string( $kind ) || ! is_string( $text ) || 1 !== preg_match( '/\S/u', $text ) || ! preg_match( '/\Ab[1-9][0-9]{0,3}\z/', $ref ) || in_array( $ref, $seen_refs, true ) || ! in_array( $kind, array( 'title', 'excerpt', 'body' ), true ) ) {
+				if ( ! is_string( $ref ) || ! is_string( $kind ) || ! is_string( $text ) || 1 !== preg_match( '/\S/u', $text ) || ! preg_match( '/\Ab[1-9][0-9]{0,3}\z/', $ref ) || isset( $seen_refs[ $ref ] ) || ! in_array( $kind, array( 'title', 'excerpt', 'body' ), true ) ) {
 					return new WP_Error( 'cloud_toolbox_article_review_block_value_invalid', __( 'Article review block identity or text is invalid.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 				}
 				$units = self::utf16_units( $text );
@@ -1127,7 +1127,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				if ( 0 >= $units || $units > 1600 || $total_units + $units > 30000 || $total_bytes + $bytes > 100000 ) {
 					return new WP_Error( 'cloud_toolbox_article_review_text_too_large', __( 'Article review text exceeds the bounded review size.', 'npcink-cloud-addon' ), array( 'status' => 413 ) );
 				}
-				$seen_refs[] = $ref;
+				$seen_refs[ $ref ] = true;
 				$total_units += $units;
 				$total_bytes += $bytes;
 				$canonical_blocks[] = array( $ref, $kind, $text );
