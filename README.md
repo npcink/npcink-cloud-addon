@@ -585,6 +585,18 @@ stale-index policy, embedding-provider, and collection lifecycle operations
 belong in Cloud Site Knowledge. See
 [`docs/site-knowledge-vector-operations.md`](docs/site-knowledge-vector-operations.md).
 
+## Local image-understanding timeout
+
+For local Ollama development, a local `wp-config.php` or MU plugin may define
+`NPCINK_CLOUD_ADDON_DEV_VISION_TIMEOUT_SECONDS` as `180`. It applies only when
+WordPress reports `local`/`development` and the configured Cloud URL uses an
+exact loopback host. The image evidence execution budget is bounded to 30–180
+seconds, with ten extra seconds for HTTP completion when extended. Without the
+opt-in, image evidence retains its 30-second execution budget. Other abilities
+retain their existing limits. Cloud's development Provider connection and
+reverse proxy must also allow the longer wait; this does not change production
+configuration or model selection.
+
 ## Settings Page
 
 Admin path:

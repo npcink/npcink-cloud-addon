@@ -71,7 +71,7 @@ Is this transport/detail, or is it control/write truth?
 `tests/static-contracts.php` enforces a line-count ratchet on the four widest
 connector classes so they cannot grow unnoticed:
 
-- `includes/class-cloud-runtime-client.php` — 1727 lines (was 4314 before the
+- `includes/class-cloud-runtime-client.php` — 1741 lines (was 4314 before the
   2026-10-06 payload-guard split, then 2324 before the same-day diagnostics
   split, then 1968 before the same-day media-payload split into
   `class-cloud-runtime-request-guards.php`,
@@ -494,3 +494,7 @@ actions, options, or public APIs are removed.
 2026-10-21 first-connection onboarding: settings-actions 1230→1250 for the authorization flow tag that keeps change-account landing on Connection while a first connection lands on Overview.
 
 Normative UI copy for those 2026-10-21 surfaces (status card, usage 本期已用, consent ask-once, commercial.* vs provider.* errors, handoff self-check) lives in `docs/admin-surface-standard.md`; this file only tracks line ceilings.
+
+2026-10-31: runtime client adds 14 lines for an explicit local/development,
+loopback-only image timeout opt-in (30–180s), including HTTP completion margin.
+Production and other abilities retain their existing budgets.

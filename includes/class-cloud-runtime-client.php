@@ -412,7 +412,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				'data_classification' => $uses_artifacts ? 'internal' : 'public_site_media_metadata',
 				'storage_mode'        => 'result_only',
 				'retention_ttl'       => 86400,
-				'timeout_seconds'     => 30,
+				'timeout_seconds'     => $this->image_context_timeout(),
 				'retry_max'           => 0,
 				'policy'              => array(
 					'allow_fallback' => false,
@@ -1035,6 +1035,17 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			return $this->request( 'GET', $path, null, '', $trace_id );
 		}
 
+		/** Local Ollama development may explicitly opt into a longer image wait. */
+		private function image_context_timeout(): int {
+			$host = strtolower( (string) wp_parse_url( (string) ( $this->config['base_url'] ?? '' ), PHP_URL_HOST ) );
+			if ( ! defined( 'NPCINK_CLOUD_ADDON_DEV_VISION_TIMEOUT_SECONDS' )
+				|| ! in_array( wp_get_environment_type(), array( 'local', 'development' ), true )
+				|| ! in_array( $host, array( 'localhost', '127.0.0.1', '::1', '[::1]' ), true ) ) {
+				return 30;
+			}
+			return max( 30, min( 180, (int) NPCINK_CLOUD_ADDON_DEV_VISION_TIMEOUT_SECONDS ) );
+		}
+
 		/**
 		 * Executes one signed Cloud request.
 		 *
@@ -1110,6 +1121,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 						? Npcink_Cloud_Runtime_Request_Guards::WP_AI_IMAGE_GENERATION_MAX_TIMEOUT_SECONDS
 						: Npcink_Cloud_Runtime_Request_Guards::WP_AI_CONNECTOR_MAX_TIMEOUT_SECONDS;
 					$timeout = max( $timeout, min( $timeout_cap, $requested_timeout ) );
+					if ( 'npcink-cloud/image-context-evidence' === ( $payload['ability_name'] ?? '' ) && $this->image_context_timeout() > 30 ) {
+						$timeout = max( $timeout, min( $this->image_context_timeout(), $requested_timeout ) + 10 );
+					}
 				}
 			}
 

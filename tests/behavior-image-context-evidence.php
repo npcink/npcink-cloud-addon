@@ -346,3 +346,27 @@ maca_assert(
 	is_wp_error( $empty_cloud_result ) && 'cloud_image_context_evidence_empty' === $empty_cloud_result->get_error_code(),
 	'Behavior: image context evidence fails closed when Cloud returns no usable evidence.'
 );
+
+// Verify the signed execution budget and the outer HTTP wait together.
+maca_assert( 30 === $evidence_request_body['timeout_seconds'], 'Behavior: default image budget stays 30 seconds.' );
+define( 'NPCINK_CLOUD_ADDON_DEV_VISION_TIMEOUT_SECONDS', 180 );
+foreach ( array(
+	array( 'local', 'http://127.0.0.1:18010', 180, 190 ),
+	array( 'production', 'https://8.8.8.8', 30, 30 ),
+	array( 'local', 'https://cloud.example.test', 30, 30 ),
+) as $timeout_case ) {
+	maca_reset_test_state();
+	maca_seed_settings( true, $timeout_case[1] );
+	$GLOBALS['maca_wp_environment_type'] = $timeout_case[0];
+	$timeout_client = new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() );
+	$timeout_client->request_image_context_evidence( array(
+		'contract_version' => 'image_context_evidence_request.v1',
+		'write_posture' => 'suggestion_only', 'direct_wordpress_write' => false,
+		'no_local_model' => true, 'no_media_write' => true,
+		'items' => array( array( 'attachment_id' => 101, 'source_artifact_id' => 'art_0123456789abcdef0123456789abcdef' ) ),
+	) );
+	$timeout_request = end( $GLOBALS['maca_http_requests'] );
+	$timeout_body = json_decode( (string) ( $timeout_request['args']['body'] ?? '' ), true );
+	maca_assert( $timeout_case[2] === ( $timeout_body['timeout_seconds'] ?? null ) && $timeout_case[3] === ( $timeout_request['args']['timeout'] ?? null ), 'Behavior: extended image timeout requires both a development environment and loopback Cloud.' );
+}
+maca_reset_test_state();
