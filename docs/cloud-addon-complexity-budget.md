@@ -71,7 +71,10 @@ Is this transport/detail, or is it control/write truth?
 `tests/static-contracts.php` enforces a line-count ratchet on the four widest
 connector classes so they cannot grow unnoticed:
 
-- `includes/class-cloud-runtime-client.php` — 1739 lines (raised by twelve lines
+- `includes/class-cloud-runtime-client.php` — 1742 lines (three additional lines
+  give article review ten seconds of transport headroom to receive the existing
+  thirty-second runtime timeout receipt, without retries or a longer model budget;
+  previously raised by twelve lines
   for the fixed read-only article-language review facade and its transport
   behavior coverage; was 4314 before the
   2026-10-06 payload-guard split, then 2324 before the same-day diagnostics
