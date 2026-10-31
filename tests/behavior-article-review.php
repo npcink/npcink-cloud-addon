@@ -31,6 +31,14 @@ unset( $expected_input['contract_version'] );
 maca_assert( $payload['input'] === $expected_input, 'Article review preserves the exact bounded editor snapshot.' );
 maca_assert( 'npcink-toolbox/review-article' === $payload['ability_name'] && 'article_review_cloud_request.v1' === $payload['contract_version'], 'Article review uses the fixed Cloud ability and request contract.' );
 maca_assert( 'pii' === $payload['data_classification'] && 'no_store' === $payload['storage_mode'] && 0 === $payload['retry_max'] && 0 === $payload['retention_ttl'] && false === $payload['policy']['allow_fallback'], 'Article review is inline, no-store, no-retry, and fallback-disabled.' );
+maca_assert( 30 === $payload['timeout_seconds'] && 40 === $GLOBALS['maca_http_requests'][0]['args']['timeout'], 'Article HTTP wait leaves room for the unchanged Cloud execution deadline and timeout receipt.' );
+
+$before_timeout = count( $GLOBALS['maca_http_requests'] );
+$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 504 ), 'body' => wp_json_encode( array( 'status' => 'error', 'error_code' => 'provider.timeout', 'message' => 'Provider timed out.', 'data' => array( 'run_id' => 'run_article_timeout' ) ) ) );
+$timeout_error = $client->execute_toolbox_article_review_runtime( $request );
+$timeout_data = is_wp_error( $timeout_error ) ? $timeout_error->get_error_data() : array();
+maca_assert( is_wp_error( $timeout_error ) && 'provider.timeout' === ( $timeout_data['cloud_error_code'] ?? '' ) && 'run_article_timeout' === ( $timeout_data['cloud_error_data']['run_id'] ?? '' ), 'Cloud timeout reason and run identity survive the transport projection.' );
+maca_assert( count( $GLOBALS['maca_http_requests'] ) === $before_timeout + 1, 'An article timeout does not trigger another request.' );
 
 // Validate primitive types, list identity and non-BMP boundaries before transport.
 $invalid_requests = array();

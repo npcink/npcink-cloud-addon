@@ -74,6 +74,12 @@ with `profile_id=wp-ai.editorial`, `data_classification=pii`,
 `allow_fallback=false`. Cloud returns evidence only; no replacement, apply,
 save, publish, approval, or `version_compare` gate exists in this facade.
 
+Article review keeps its 30-second Cloud execution budget and zero retries.
+Its HTTP wait allows 40 seconds so the Cloud timeout envelope and `run_id` can
+arrive after that execution deadline. This transport margin neither extends
+model execution nor retries an unavailable review. A failed frozen quality case
+remains failed; a later successful diagnostic is separate evidence.
+
 Every runtime, liveness, artifact, and authorization-exchange request also
 passes through the shared Addon outbound policy. Non-local targets require
 HTTPS and public-only DNS results; redirects are disabled because signatures
