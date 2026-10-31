@@ -503,6 +503,22 @@ if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_content_format_runti
 	}
 }
 
+if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_article_review_runtime' ) ) {
+	/**
+	 * Executes the fixed read-only Toolbox article-language review runtime.
+	 * The addon transports the bounded snapshot only; it never edits or saves it.
+	 *
+	 * @param array<string,mixed> $request article_review_cloud_request.v1 request.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	function npcink_cloud_addon_execute_toolbox_article_review_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
+		$client = Npcink_Cloud_Runtime_Client_Factory::configured();
+		return $client
+			? $client->execute_toolbox_article_review_runtime( $request, $trace_id, $idempotency_key )
+			: new WP_Error( 'cloud_runtime_unconfigured', __( 'Npcink Cloud is not configured.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+	}
+}
+
 if ( ! function_exists( 'npcink_cloud_addon_execute_toolbox_image_source_runtime' ) ) {
 	/**
 	 * Executes a bounded Toolbox image-source candidate runtime request.

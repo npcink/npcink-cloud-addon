@@ -71,13 +71,17 @@ Is this transport/detail, or is it control/write truth?
 `tests/static-contracts.php` enforces a line-count ratchet on the four widest
 connector classes so they cannot grow unnoticed:
 
-- `includes/class-cloud-runtime-client.php` — 1727 lines (was 4314 before the
+- `includes/class-cloud-runtime-client.php` — 1739 lines (raised by twelve lines
+  for the fixed read-only article-language review facade and its transport
+  behavior coverage; was 4314 before the
   2026-10-06 payload-guard split, then 2324 before the same-day diagnostics
   split, then 1968 before the same-day media-payload split into
   `class-cloud-runtime-request-guards.php`,
   `class-cloud-runtime-diagnostics.php`, and
   `class-cloud-runtime-media-payloads.php`)
-- `includes/class-cloud-runtime-request-guards.php` — 2025 lines (pure
+- `includes/class-cloud-runtime-request-guards.php` — 2124 lines (raised by 99
+  lines for the fixed article-review snapshot guard, UTF-16/byte bounds and
+  behavior coverage, including strict Cloud envelope identity and portable UTF-16 counting; pure
   `normalize_*` request validators, forbidden-key walkers, PII scan, and
   bounded-text/sanitize helpers with zero instance state; 2026-10-30 adds five
   lines to require factual references and distinguish their mode from optional

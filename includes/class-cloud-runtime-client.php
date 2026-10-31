@@ -371,6 +371,18 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
 		}
 
+		/** Executes the fixed, read-only Toolbox article-language review facade. */
+		public function execute_toolbox_article_review_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
+			$payload = Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $request );
+			if ( is_wp_error( $payload ) ) {
+				return $payload;
+			}
+			if ( '' === $idempotency_key ) {
+				$idempotency_key = 'toolbox_article_review_' . wp_generate_uuid4();
+			}
+			return $this->request( 'POST', '/v1/runtime/execute', $payload, $idempotency_key, $trace_id );
+		}
+
 		/**
 		 * Requests Cloud-owned image context evidence for weak media metadata.
 		 *
