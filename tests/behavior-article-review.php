@@ -54,4 +54,7 @@ foreach ( array( str_repeat( '😀', 800 ), "原文  保留。\n<x>\u{2028}\u{20
 	maca_assert( ! is_wp_error( $normalized ) && $normalized['input']['blocks'][0]['text'] === $text && ! isset( $normalized['input']['contract_version'] ), 'Exact Unicode text and 1600 UTF-16 boundary match the strict Cloud input shape.' );
 }
 $good['blocks'][0]['text'] = str_repeat( '😀', 801 );
-maca_assert( is_wp_error( Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $good ) ), 'Non-BMP text above 1600 UTF-16 units is rejected.' );
+$canonical = json_encode( array( 'article_review_cloud_request.v1', 'zh-CN', array( 'language' ), array( array( 'b1', 'body', $good['blocks'][0]['text'] ) ) ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS );
+$good['snapshot_sha256'] = hash( 'sha256', $canonical );
+$too_large = Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $good );
+maca_assert( is_wp_error( $too_large ) && 'cloud_toolbox_article_review_text_too_large' === $too_large->get_error_code(), 'Non-BMP text above 1600 UTF-16 units is rejected by the size guard.' );
