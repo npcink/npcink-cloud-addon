@@ -58,3 +58,17 @@ $canonical = json_encode( array( 'article_review_cloud_request.v1', 'zh-CN', arr
 $good['snapshot_sha256'] = hash( 'sha256', $canonical );
 $too_large = Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $good );
 maca_assert( is_wp_error( $too_large ) && 'cloud_toolbox_article_review_text_too_large' === $too_large->get_error_code(), 'Non-BMP text above 1600 UTF-16 units is rejected by the size guard.' );
+
+// Check selection is canonical and hash-bound; old language-only callers remain valid.
+foreach ( array( array( 'logic' ), array( 'content_risk' ), array( 'language', 'logic', 'content_risk' ) ) as $checks ) {
+    $expanded = $request;
+    $expanded['checks'] = $checks;
+    $expanded['snapshot_sha256'] = hash( 'sha256', json_encode( array( 'article_review_cloud_request.v1', 'zh-CN', $checks, $blocks ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS ) );
+    $normalized = Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $expanded );
+    maca_assert( ! is_wp_error( $normalized ) && $normalized['input']['checks'] === $checks && 'no_store' === $normalized['storage_mode'], 'Extended checks retain exact canonical identity and privacy policy.' );
+}
+foreach ( array( array(), array( 'logic', 'language' ), array( 'language', 'language' ), array( 'unknown' ), array( array() ), array( 'named' => 'logic' ) ) as $checks ) {
+    $bad = $request; $bad['checks'] = $checks;
+    $error = Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $bad );
+    maca_assert( is_wp_error( $error ) && 'cloud_toolbox_article_review_contract_invalid' === $error->get_error_code(), 'Invalid check selection fails its contract guard before hash validation or signing.' );
+}
