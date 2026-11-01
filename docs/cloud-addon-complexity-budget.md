@@ -130,7 +130,7 @@ connector classes so they cannot grow unnoticed:
   verified media delivery)
 - `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
-- `includes/class-cloud-wordpress-ai-text-model.php` — 390 lines
+- `includes/class-cloud-wordpress-ai-text-model.php` — 394 lines (four lines reuse WordPress AI source normalization before short-text transport)
 - `includes/class-cloud-wordpress-ai-vision-text-model.php` — 126 lines
 - `includes/class-cloud-wordpress-ai-scene-model.php` — 159 lines (shared
   metadata/config plumbing, prompt/result projection helpers, and the

@@ -11,6 +11,13 @@ namespace WordPress\AiClient\Common\Exception {
 	class RuntimeException extends \RuntimeException {}
 }
 
+namespace WordPress\AI {
+	function normalize_content( string $content ): string {
+		$GLOBALS['maca_normalized_source'] = $content;
+		return html_entity_decode( strip_tags( $content ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	}
+}
+
 namespace WordPress\AI\Abilities\Suggest_Reply {
 	final class Suggest_Reply {
 		public function detected_scene_ability_name(): string {
@@ -165,6 +172,20 @@ namespace {
 		'excerpt_generation',
 		'Generate an excerpt from the supplied content.',
 		array()
+	);
+	$html_content = '<p data-layout="' . str_repeat( 'x', 25000 ) . '">引入资源。</p><p>标记 data-intro / data-step，再调用 introJs().start()。</p>';
+	$html_projection = $projection_method->invoke( $projection_model, 'excerpt_generation', 'Official excerpt instruction.', array( 'content' => $html_content ) );
+	maca_assert(
+		'引入资源。标记 data-intro / data-step，再调用 introJs().start()。' === $html_projection['source_text']
+			&& $html_content === ( $GLOBALS['maca_normalized_source'] ?? null )
+			&& 'Official excerpt instruction.' === $html_projection['system_instruction'],
+		'Behavior: excerpt projection delegates HTML normalization to WordPress AI without truncating later workflow steps or changing the prompt.'
+	);
+	$GLOBALS['maca_posts'][ 322 ] = (object) array( 'post_title' => '字段说明', 'post_content' => '<p>Context-backed <code>data-step</code> content.</p>' );
+	$html_meta = $projection_method->invoke( $projection_model, 'meta_description', 'Official meta instruction.', array( 'context' => 322 ) );
+	maca_assert(
+		"Title:\n字段说明\n\nContent:\nContext-backed data-step content." === $html_meta['source_text'],
+		'Behavior: context-backed meta descriptions use the same upstream content normalization.'
 	);
 	maca_assert(
 		'本文介绍 WordPress AI 连接器的运行边界。' === (string) ( $excerpt_projection['source_text'] ?? '' )
