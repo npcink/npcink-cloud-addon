@@ -299,6 +299,10 @@ if (
 				}
 			}
 
+			// Match the Ability's source cleanup before projecting raw editor HTML.
+			if ( '' !== $content && function_exists( 'WordPress\\AI\\normalize_content' ) ) {
+				$content = \WordPress\AI\normalize_content( $content );
+			}
 			if ( '' === $content ) {
 				return array( 'prompt' => $instruction );
 			}

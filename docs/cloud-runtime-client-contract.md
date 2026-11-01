@@ -483,6 +483,14 @@ Those three tasks reject legacy `prompt`, `post_title`, and `post_excerpt`
 fields; embedded content tags are transported as opaque text. Other bounded
 tasks such as alt text may keep their task-specific prompt field.
 
+Excerpt and meta-description source projection reuses the active WordPress AI
+`normalize_content()` helper when available, including content resolved through
+a post context. This matches the Ability's cleanup of editor HTML before model
+execution; it preserves the full normalized text and official instruction.
+Raw Gutenberg markup must not inflate an otherwise bounded short-text request.
+Existing byte/character limits and prompt ownership are unchanged. Without the
+upstream helper, existing source projection remains in effect.
+
 The method rejects generic chat or provider-control fields such as `messages`,
 `conversation_id`, `session_id`, `thread_id`, `tools`, `tool_calls`,
 `functions`, `function_call`, `stream`, credentials, cookies, nonces, and signed
