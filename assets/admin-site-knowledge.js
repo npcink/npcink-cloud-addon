@@ -77,7 +77,8 @@
 		}
 		const label = usage && usage.waiting_label ? String( usage.waiting_label ) : '';
 		waitingLabel.textContent = label;
-		waitingLabel.hidden = '' === label;
+		// Routine buffering stays quiet even after an asynchronous read.
+		waitingLabel.hidden = true;
 		const metaRow = waitingLabel.closest( '.npcink-cloud-site-knowledge-summary__meta' );
 		if ( metaRow ) {
 			const lastUpdated = metaRow.querySelector( '[data-npcink-site-knowledge-last-updated]' );

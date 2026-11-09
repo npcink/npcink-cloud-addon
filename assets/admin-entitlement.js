@@ -12,6 +12,7 @@
 	const retry = container.querySelector( '[data-npcink-entitlement-retry]' );
 	const spinner = container.querySelector( '.npcink-cloud-entitlement__spinner' );
 	const metricRows = document.querySelectorAll( '[data-npcink-entitlement-metric]' );
+	const usageFreshness = document.querySelector( '[data-npcink-usage-freshness]' );
 	const initialState = container.dataset.npcinkEntitlementState || '';
 	let retainedLabel = summary ? summary.textContent : '';
 	let hasRetainedSummary = 'stale' === initialState && '' !== retainedLabel;
@@ -20,6 +21,13 @@
 	if ( ! summary || ! retry ) {
 		return;
 	}
+
+	const markRetainedUsage = () => {
+		if ( usageFreshness ) {
+			usageFreshness.textContent = config.usageFailedLabel || config.updateFailedLabel || 'Update failed';
+			usageFreshness.hidden = false;
+		}
+	};
 
 	const setLoading = ( loading ) => {
 		requestInFlight = loading;
@@ -104,12 +112,18 @@
 			retainedLabel = payload.data.label;
 			hasRetainedSummary = true;
 			container.dataset.npcinkEntitlementState = payload.data.state || container.dataset.npcinkEntitlementState;
+			container.classList.remove( 'screen-reader-text' );
+			container.classList.toggle( 'npcink-cloud-entitlement--attention', [ 'unavailable', 'refreshing', 'stale' ].includes( container.dataset.npcinkEntitlementState ) );
+			if ( usageFreshness ) {
+				usageFreshness.hidden = ! [ 'unavailable', 'refreshing', 'stale' ].includes( container.dataset.npcinkEntitlementState );
+			}
 			retry.hidden = true;
 			try {
 				updateMetrics( payload.data.metrics || {} );
 			} catch ( renderError ) {
 				// A valid signed read remains successful if a replaced DOM node cannot
 				// render its optional metrics.
+				markRetainedUsage();
 			}
 			try {
 				if ( typeof window.npcinkCloudApplyStatusFragments === 'function' ) {
@@ -117,6 +131,7 @@
 				}
 			} catch ( fragmentError ) {
 				// Connection/service status stays as rendered server-side on initial load.
+				markRetainedUsage();
 			}
 		} catch ( error ) {
 			// Only server-provided messages are display-ready; a browser network
@@ -127,7 +142,10 @@
 				? retainedLabel + ' · ' + ( actionableMessage || config.updateFailedLabel || 'Update failed' )
 				: ( actionableMessage || config.failedLabel || 'Plan and entitlement are temporarily unavailable.' );
 			container.dataset.npcinkEntitlementState = 'unavailable';
+			container.classList.add( 'npcink-cloud-entitlement--attention' );
+			container.classList.remove( 'screen-reader-text' );
 			retry.hidden = false;
+			markRetainedUsage();
 		} finally {
 			setLoading( false );
 		}

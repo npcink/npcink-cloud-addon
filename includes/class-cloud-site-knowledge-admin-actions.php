@@ -199,7 +199,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Actions' ) ) {
 			if ( ! in_array( $action, array( 'exclude', 'restore' ), true ) ) {
 				return self::request_index_operation( $action, $confirmation );
 			}
-			if ( ! hash_equals( Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope(), ( is_string( $request['site_knowledge_scope'] ?? null ) ? $request['site_knowledge_scope'] : '' ) ) || strtoupper( $action ) !== $confirmation ) {
+			if ( ! hash_equals( Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope(), ( is_string( $request['site_knowledge_scope'] ?? null ) ? $request['site_knowledge_scope'] : '' ) ) || ( 'exclude' === $action && '1' !== ( $request['site_knowledge_confirmed'] ?? null ) ) ) {
 				return self::result( false, 'confirmation_required', __( 'Confirm the selected sources and current site before continuing.', 'npcink-cloud-addon' ), $action );
 			}
 			$values = $request['site_knowledge_sources'] ?? null;

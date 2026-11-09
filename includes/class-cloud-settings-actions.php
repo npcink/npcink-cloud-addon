@@ -156,6 +156,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			check_admin_referer( self::ACTION_SAVE );
 
 			$was_verified = Npcink_Cloud_Addon_Settings::is_verified();
+			$return_tab = is_string( $_POST['return_tab'] ?? null ) && in_array( $_POST['return_tab'], array( 'checks', 'connection' ), true ) ? $_POST['return_tab'] : '';
+
 			$base_url = isset( $_POST['base_url'] ) ? sanitize_text_field( wp_unslash( $_POST['base_url'] ) ) : '';
 			$api_key  = isset( $_POST['api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['api_key'] ) ) : '';
 			$timeout  = isset( $_POST['timeout'] ) ? absint( wp_unslash( $_POST['timeout'] ) ) : 8;
@@ -177,12 +179,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$settings = Npcink_Cloud_Addon_Settings::build_settings_from_admin_payload( $payload );
 			if ( is_wp_error( $settings ) ) {
 				self::set_admin_notice( 'error', $settings->get_error_message() );
-				self::redirect_to_page();
+				self::redirect_to_page( $return_tab );
 			}
 
 			self::persist_and_verify_settings( $settings, __( 'Saved. The site is connected.', 'npcink-cloud-addon' ) );
 			self::maybe_prompt_for_monitoring_consent( $was_verified );
-			self::redirect_to_page();
+			self::redirect_to_page( $return_tab );
 		}
 
 		/**
@@ -420,12 +422,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			self::set_local_permission_feedback(
 				'success',
-				sprintf(
-					/* translators: 1: local permission label, 2: enabled or disabled state. */
-					__( '%1$s %2$s.', 'npcink-cloud-addon' ),
-					(string) $definitions[ $permission ]['label'],
-					$enabled ? __( 'enabled', 'npcink-cloud-addon' ) : __( 'disabled', 'npcink-cloud-addon' )
-				),
+				$enabled ? __( 'Enabled.', 'npcink-cloud-addon' ) : __( 'Disabled.', 'npcink-cloud-addon' ),
 				$permission
 			);
 			self::redirect_to_local_permission( $permission );
@@ -476,7 +473,13 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$confirmation = isset( $_POST['site_knowledge_confirmation'] ) && is_string( $_POST['site_knowledge_confirmation'] ) ? sanitize_text_field( wp_unslash( $_POST['site_knowledge_confirmation'] ) ) : '';
 			$result = in_array( $operation, array( 'exclude', 'restore' ), true ) ? Npcink_Cloud_Site_Knowledge_Admin_Actions::handle_index_request( wp_unslash( $_POST ) ) : Npcink_Cloud_Site_Knowledge_Admin_Actions::request_index_operation( $operation, $confirmation );
 			self::set_admin_notice( ! empty( $result['ok'] ) ? 'info' : 'error', (string) $result['message'] );
-			self::redirect_to_page( 'permissions' );
+			if ( ! in_array( $operation, array( 'exclude', 'restore' ), true ) ) { self::redirect_to_page( 'permissions' ); }
+			$search = isset( $_POST['source_search'] ) && is_string( $_POST['source_search'] ) && strlen( $_POST['source_search'] ) <= 640 ? sanitize_text_field( wp_unslash( $_POST['source_search'] ) ) : '';
+			$page = isset( $_POST['source_page'] ) && is_scalar( $_POST['source_page'] ) ? max( 1, min( 10000, (int) $_POST['source_page'] ) ) : 1;
+			$view = 'restore' === $operation || ! empty( $result['ok'] ) ? 'knowledge_excluded' : 'knowledge_search';
+			$category = isset( $_POST['source_category'] ) && is_scalar( $_POST['source_category'] ) ? max( 0, (int) $_POST['source_category'] ) : 0;
+			$tag = isset( $_POST['source_tag'] ) && is_scalar( $_POST['source_tag'] ) ? max( 0, (int) $_POST['source_tag'] ) : 0;
+			self::redirect_to_page( 'permissions', $view, array( 'source_search' => rawurlencode( $search ), 'source_page' => ! empty( $result['ok'] ) ? 1 : $page, 'source_category' => $category, 'source_tag' => $tag ) );
 		}
 
 		/**
@@ -942,9 +945,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 * Redirects back to the page.
 		 *
 		 * @param string $view Optional tab subview.
+		 * @param array<string,mixed> $context Local search/page context.
 		 * @return void
 		 */
-		private static function redirect_to_page( string $tab = '', string $view = '' ): void {
+		private static function redirect_to_page( string $tab = '', string $view = '', array $context = array() ): void {
 			if ( 'advanced' === $tab ) {
 				if ( 'checks' === $view ) {
 					$tab = 'checks';
@@ -955,7 +959,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				}
 				$view = '';
 			}
-			$url = self::page_url();
+			$url = add_query_arg( $context, self::page_url() );
 			if ( '' !== $tab ) {
 				$url = add_query_arg( 'tab', sanitize_key( $tab ), $url );
 			}

@@ -2412,26 +2412,6 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 		}
 
-		public static function selection_candidates(): array {
-			$sources = self::source_lifecycle_summary()['items'];
-			$candidates = array();
-			if ( ! function_exists( 'get_posts' ) || ! function_exists( 'get_post' ) ) { return $candidates; }
-			foreach ( $sources as $key => $source ) {
-				$post = get_post( $source['source_id'] );
-				$candidates[ $key ] = array_merge( $source, array( 'title' => is_object( $post ) ? (string) $post->post_title : $key ) );
-			}
-			$ids = get_posts( array( 'post_type' => array( 'post', 'page', 'attachment' ), 'post_status' => array( 'publish', 'inherit' ), 'posts_per_page' => 100, 'fields' => 'ids', 'orderby' => 'modified', 'order' => 'DESC' ) );
-			foreach ( $ids as $id ) {
-				if ( count( $candidates ) >= 100 ) { break; }
-				$post = get_post( $id );
-				$type = 'attachment' === ( $post->post_type ?? '' ) ? 'media' : ( $post->post_type ?? '' );
-				$item = array( 'source_type' => $type, 'source_id' => (int) $id );
-				if ( self::public_source( $item ) && ! isset( $sources[ self::source_key( $item ) ] ) ) {
-					$candidates[ self::source_key( $item ) ] = array_merge( $item, array( 'title' => (string) $post->post_title, 'state' => '' ) );
-				}
-			}
-			return array_slice( $candidates, 0, 100, true );
-		}
 
 		private static function initialize_delivery_coverage(): void {
 			if ( Npcink_Cloud_Addon_Settings::is_configured() ) { return; }
