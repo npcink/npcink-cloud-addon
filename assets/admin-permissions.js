@@ -13,6 +13,9 @@
 			return;
 		}
 
+		var autosaveHint = form.querySelector( '[data-npcink-autosave-hint]' );
+		if ( autosaveHint ) { autosaveHint.hidden = false; }
+
 		checkbox.addEventListener( 'change', function() {
 			hiddenValue.value = checkbox.checked ? '1' : '0';
 			checkbox.removeAttribute( 'name' );

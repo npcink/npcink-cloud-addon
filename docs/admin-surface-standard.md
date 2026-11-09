@@ -66,24 +66,100 @@ console.
 
 Verified admin navigation should stay at three top-level entries:
 
-- `Overview`: usage metrics, compact entitlement / monitoring detail, embedded
-  Site Knowledge status (visible Knowledge base title, sync / configure /
-  recovery), one Site Knowledge feature switch, and folded privacy consent.
-  Entitlement keeps Renews and AI credit period visible; remaining limits fold
-  under More limits. Routine Site Knowledge delivery buffering remains silent;
-  only a recorded delivery error creates an attention row. Healthy Site Knowledge
+- `Overview`: period usage, folded capacity detail, embedded
+  Site Knowledge status and its feature switch in one section, and folded privacy consent.
+  Entitlement keeps the credit reset date visible and folds the full AI credit period; remaining limits fold
+  under Credit and capacity details together with Cloud-reported credit balance, knowledge document
+  capacity, and image capacity. Technical concurrency and batch limits belong in Cloud. Do not show remaining-capacity progress bars.
+  Routine Site Knowledge delivery buffering remains silent;
+  recorded delivery failures, delayed automatic updates and current Cloud capacity
+  warnings create attention rows. Healthy Site Knowledge
   has no manual refresh action; recovery update appears only after a delivery
   failure. Local error or WP-Cron facts remain on Checks.
-- `Checks`: Run checks hint and Run readiness test share one heading row;
-  Credentials and Cloud connection rows stay visible; Hosted Runtime, capability
-  rows, and readiness history fold under Check details.
-- `Connection`: account change, disconnect, and collapsed manual recovery.
+- `Checks`: stored connection verification and its date precede a recheck action;
+  Troubleshooting details shows a short configuration summary, exceptions and the
+  detailed-check action. Its closed Technical details disclosure owns connection,
+  capability, signed-read, readiness and monitoring facts. Real failures open the
+  parent and show their impact before technical evidence.
+  Expired Cloud evidence must ask for another check rather than claim current health.
+- `Connection`: verified connection summary, a site-scoped Cloud account entry,
+  folded account change/disconnect, and one Advanced connection disclosure for support.
 
 Do not reintroduce separate `Status`, `Troubleshooting`, `Advanced and
 troubleshooting`, `Details`, `Site Knowledge`, or `Runtime Runs` top-level tabs
 when the content fits one of the three entries above. Old `advanced&view=`,
 `details`, `status`, `site_knowledge`, `diagnostics`, and `runtime_runs` URLs
 normalize onto Overview / Checks / Connection for compatibility, but they must not render a local run surface.
+
+## Overview Focus (2026-11-04)
+
+- Healthy connection is a compact row, without success-card chrome. An existing
+  connection warning replaces that row; do not also claim that AI is ready.
+- The primary usage figure is Cloud-reported **账号本期已用（积分）**. Preserve zero;
+  hide absent usage rather than deriving it from balance. The figure refreshes
+  with the existing authenticated entitlement read.
+- The used figure and its label share one line, followed by a quiet credit reset
+  date. The full cycle, account ownership, capacity and operational limits share
+  one closed-by-default Credit and capacity details disclosure, rendered as aligned name/value
+  rows rather than a metric grid.
+- Knowledge title and its immediate-save feature switch share one stable header
+  outside the asynchronously replaced status summary. Description, quiet delivery
+  status/time and contextual actions follow below.
+  A quiet Manage excluded content link opens a nested content-selection page;
+  do not embed a content list on Overview. One status badge describes progress; do not add a disabled
+  “Syncing” button beside “Updating”. Only a recorded failure exposes recovery.
+- Label the last local delivery as content delivery, not Cloud indexing
+  completion. Routine pending counts stay out of the default view.
+- Privacy consent stays folded, with the current anonymous-diagnostics choice
+  in the summary. After changing it, reopen that disclosure and retain inline
+  save feedback. The ask-once consent lifecycle is unchanged.
+- Overview links upload failures to Checks. Checks and Connection own their
+  contextual status; do not repeat Overview's global warning above their tabs.
+- All three tabs share the same content-column edge. Keep Cloud lifecycle and
+  technical execution detail in contextual Cloud links.
+
+## Checks And Connection Focus (2026-11-04)
+
+- Match Overview's flat, compact column; healthy states have no success-card chrome.
+- Checks labels successful stored verification as historical and places its actual
+  connection-verification time before a secondary recheck action. Do not claim a
+  complete live health check from credential verification alone.
+- Troubleshooting details owns support evidence and anonymous diagnostics delivery;
+  genuine failures open the parent and show diagnostics failures inline. One
+  closed Technical details disclosure separates support-only evidence from the
+  beginner action; no further disclosure depth is allowed. Try AI features is a distinct,
+  explicit disclosure, retaining the existing pause and capability rules.
+- Connection shows verification context without mixing in plan labels. Current
+  transport has no account name/email projection; use a site-scoped Cloud entry
+  for account verification rather than inventing an identity or adding API fields.
+- Account change and local disconnect share a closed-by-default Connection
+  management disclosure. Keep consequences beside each revealed action, preserve
+  JS/no-JS confirmation and nonce checks, and distinguish disconnect in red.
+- Rechecking returns to its originating Checks or Connection tab; only those
+  two local return destinations are accepted.
+- Connection management and Advanced connection are the two low-frequency disclosures.
+  No new options, transport calls, or control-plane ownership are introduced.
+
+## Content Exclusions (2026-11-04)
+
+Keep this low-frequency choice below Overview, without adding a menu or a
+fourth top-level tab. The nested page has Search content and Excluded views.
+Search runs only after a name, #ID, category or tag is submitted. Names match
+titles only; #ID is an exact positive WordPress identity, with no numeric-title
+ambiguity. Category and tag filters intersect and apply to posts only; they are
+local search filters, never persistent exclusion rules. Keep filters folded
+until requested and open while active, with a clear-filters link. Search queries
+WordPress content, not a preloaded list of the latest 100 items. Both views paginate in bounded
+pages. Both the entry and nested tab count confirmed exclusions separately from
+pending removal/restoration;
+do not claim Cloud completion before evidence returns. Missing or non-public
+sources remain visible in Excluded but cannot be restored. Reuse the existing
+scoped, nonce-protected exclude/restore handler. Exclusion uses one short
+count-based confirmation, with a required confirmation checkbox when JavaScript
+is unavailable; restoration needs no duplicate confirmation. Never require an
+English confirmation word for these reversible source choices. Return notices
+to this page with the name/ID, taxonomy filters and page context. No render-time Cloud HTTP, new delivery state,
+or index lifecycle controls are introduced.
 
 ## Advanced / Low-Frequency Details
 
@@ -193,7 +269,8 @@ Admin panels should use utility copy and summary/detail separation:
 - use table headers for tabular diagnostics;
 - keep long explanatory text behind explicit detail affordances such as
   disclosure rows or a small `!` detail entry;
-- avoid nested disclosure controls inside another disclosure;
+- avoid nested disclosure controls inside another disclosure, except the single support-only Technical details
+  disclosure under Troubleshooting details; keep actionable failures outside it;
 - keep fixed admin terminology translated in zh_CN, while dynamic ability
   metadata, provider IDs, model IDs, slugs, and contract IDs remain owned by
   their source systems.
@@ -271,3 +348,75 @@ Regression and integration evidence for these rules is recorded in
 Checks should confirm that the page never prints the stored secret, never
 applies WordPress writes, and remains a connector/detail surface rather than a
 second local or cloud control plane.
+
+## Beginner Flow (2026-11-04)
+
+- After verification, the header describes status, usage and knowledge settings.
+  When the official AI settings page is registered and the administrator can edit
+  posts, offer the post editor as the next step. It is primary only on the first
+  healthy connection; later it is a quiet link. Respect unavailable host UI.
+- Checks uses Check connection, Run detailed checks and Try AI features as
+  distinct actions. Detailed checks/tests stay folded and tests disclose credit use.
+  Show connection/capability facts before support-copy actions. Paused nightly
+  inspection is omitted; its lifecycle remains Cloud-owned.
+- Usage this period leads with credits used. Credit and capacity details folds
+  balance, knowledge/image capacity and cycle dates, with a Cloud plan link.
+  Do not repeat technical concurrency/batch limits locally.
+- Failed anonymous diagnostic uploads identify that they do not block generation.
+  Knowledge delivery failures explain that new content may be missing from AI
+  references; technical error codes remain in Checks. Automatic updating says
+  no action is needed without inventing progress or completion estimates.
+- Switches disclose automatic saving only when JavaScript enables that behavior;
+  no-JS retains Save. Success/error feedback stays beside the control and a
+  failed write re-renders the stored value. Privacy explains its metadata-only
+  scope and that opting out does not disable AI.
+- The knowledge exclusion entry distinguishes confirmed excluded items from
+  pending exclusion/restore intents. Search explains the effect on Cloud knowledge
+  and preservation of WordPress content. Filters remain closed unless active.
+- Connection has only Connection management and Advanced connection disclosures;
+  the latter contains support guidance, ownership context and the existing manual
+  form. Disconnect remains last in management with its confirmation safeguards.
+
+## Expanded-State Acceptance (2026-11-04)
+
+Check default and expanded states independently in all three tabs. Passing tests,
+no overflow and closed-by-default controls do not prove readable hierarchy.
+Inspect the actual screenshots for repeated status claims, uniform label/value
+columns, technical codes drawing attention, action ordering and quiet support-copy
+controls. Check at 1440×900, 782×900 and 480×900, including long errors and URLs.
+
+Troubleshooting reads: configuration summary or exceptions, Run detailed checks,
+Cloud detail link, closed Technical details, Copy troubleshooting information.
+Configured capabilities are configuration evidence only, not completed generation.
+Routine monitoring buffers are technical facts, never an error count. Copying
+includes closed technical evidence and restores disclosure state afterward.
+
+## Visible Plan Identity (2026-11-04)
+
+Current plan is basic account context and stays beside Usage this period.
+Do not hide its summary after a successful asynchronous read. Detailed credits,
+capacities and cycle dates remain folded; unavailable reads retain their existing
+message/retry path instead of inventing a tier.
+
+## Important Information Visibility (2026-11-04)
+
+The main usage figure states its Cloud account scope. Current plan and credit
+reset date remain visible; detailed capacity and cycle facts may stay folded.
+
+Confirmed unavailable AI capabilities appear outside closed support details;
+Checks opens the affected information. Unknown or expired capability evidence
+is not a confirmed outage. Cloud-reported near-full or full Site Knowledge
+capacity is visible before documents are skipped and links to Cloud capacity
+management rather than offering a local resend as a quota fix.
+
+An overdue automatic update must have a visible Checks destination matching
+the Overview link. Zero credits say used up, separately from a low balance.
+The same cached signed read refreshes balance warnings, reset date, cycle and
+image capacity; failed reads retain context with an explicit last-data label.
+A first failed read without retained figures must not claim to show cached data.
+No additional Cloud read, settings, lifecycle control or billing ownership is
+introduced by these projections. Verify default disclosure ancestors and
+state transitions, not only whether text exists in rendered HTML.
+
+The historical problem inventory, rationale, evidence limits and dated Git
+closeout are recorded in [the 2026-11-04 admin review](admin-focus-review-2026-11-04.md).

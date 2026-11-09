@@ -5,6 +5,7 @@ assets/admin-entitlement.js
 assets/admin-generation-tests.js
 assets/admin-permissions.js
 assets/admin-site-knowledge.js
+assets/admin-source-selection.js
 assets/admin-status-fragments.js
 assets/admin.css
 assets/ai-plugin-localization.js

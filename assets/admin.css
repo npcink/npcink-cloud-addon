@@ -1830,3 +1830,283 @@ button.npcink-cloud-gen-test-dialog__chip:focus {
 .npcink-cloud-monitoring-consent .npcink-cloud-fold { margin: 8px 0 16px; }
 .npcink-cloud-overview .npcink-cloud-usage-line { margin: 8px 0 16px; }
 .npcink-cloud-low-balance .npcink-cloud-low-balance__action { margin: 0 0 0 16px; }
+
+/* Overview: primary usage and knowledge settings, with support detail disclosed. */
+.npcink-cloud-overview-status {
+	margin: 0 0 20px;
+}
+
+.npcink-cloud-overview-status .npcink-cloud-card__status {
+	color: #646970;
+	font-size: 13px;
+	font-weight: 400;
+	margin: 0;
+}
+
+.npcink-cloud-overview-status[data-npcink-overview-ready] strong { font-weight: 400; }
+.npcink-cloud-overview-status[data-npcink-overview-ready] .npcink-cloud-status-dot { height: 6px; width: 6px; }
+.npcink-cloud-overview .npcink-cloud-section-title h2,
+.npcink-cloud-knowledge-control h2 { font-size: 15px; }
+
+.npcink-cloud-period-usage {
+	align-items: baseline;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 12px 0 4px;
+}
+
+.npcink-cloud-period-usage[hidden] {
+	display: none;
+}
+
+.npcink-cloud-period-usage__value {
+	color: var(--npcink-ui-text-strong, #1d2327);
+	font-size: 28px;
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.npcink-cloud-overview .npcink-cloud-entitlement-grid {
+	gap: 0;
+	grid-template-columns: minmax(0, 1fr);
+	margin: 4px 0;
+}
+
+.npcink-cloud-overview .npcink-cloud-entitlement-grid__item {
+	align-items: baseline;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 4px 8px;
+	padding: 4px 0;
+}
+
+.npcink-cloud-overview .npcink-cloud-entitlement-grid__value {
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.npcink-cloud-addon .npcink-cloud-overview details.npcink-cloud-entitlement-more > summary { color: #50575e; }
+.npcink-cloud-overview .npcink-cloud-entitlement-more .npcink-cloud-stat__value {
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+	font-weight: 400;
+}
+.npcink-cloud-overview .npcink-cloud-overview-panel__metrics { display: block; }
+.npcink-cloud-overview .npcink-cloud-entitlement-more .npcink-cloud-stat,
+.npcink-cloud-overview .npcink-cloud-entitlement-more .npcink-cloud-entitlement-grid__item {
+	align-items: baseline;
+	display: grid;
+	gap: 4px 16px;
+	grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
+	padding: 6px 0;
+}
+.npcink-cloud-overview .npcink-cloud-entitlement-more [hidden] { display: none; }
+.npcink-cloud-overview .npcink-cloud-entitlement-block { margin: 0; }
+.npcink-cloud-overview .npcink-cloud-credit-ownership { font-size: 12px; margin: 12px 0; }
+.npcink-cloud-overview .npcink-cloud-entitlement-more .npcink-cloud-site-knowledge-usage,
+.npcink-cloud-overview .npcink-cloud-entitlement-more .npcink-cloud-site-knowledge-usage__main { gap: 4px; margin: 0; }
+
+.npcink-cloud-knowledge-area {
+	border-top: 1px solid var(--npcink-ui-border, #dcdcde);
+	margin-top: 24px;
+	padding-top: 20px;
+}
+
+.npcink-cloud-knowledge-control { align-items: center; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.npcink-cloud-knowledge-control h2 { margin: 0; }
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission { margin: 0; padding: 0; }
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission__control { display: block; padding: 0; }
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission__copy {
+	clip-path: inset(50%);
+	height: 1px;
+	overflow: hidden;
+	position: absolute;
+	white-space: nowrap;
+	width: 1px;
+}
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission__feedback,
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission__progress { margin: 8px 0 0; }
+.npcink-cloud-knowledge-area .npcink-cloud-site-knowledge-summary { margin-top: 8px; }
+.npcink-cloud-knowledge-description { margin: 0; }
+.npcink-cloud-knowledge-area .npcink-cloud-site-knowledge-summary__meta { gap: 12px; margin-top: 8px; }
+.npcink-cloud-knowledge-area .npcink-cloud-badge:not(.npcink-cloud-badge--pending) {
+	background: transparent;
+	color: #646970;
+	font-size: 12px;
+	font-weight: 400;
+	padding: 0;
+}
+.npcink-cloud-knowledge-area .npcink-cloud-summary__actions { gap: 8px 20px; justify-content: flex-start; margin-top: 16px; }
+.npcink-cloud-knowledge-area .npcink-cloud-source-entry { color: #646970; font-size: 12px; }
+.npcink-cloud-local-permissions .npcink-ai-switch { grid-column: 2; grid-row: 1; }
+.npcink-cloud-local-permissions .npcink-cloud-local-permission__copy { grid-column: 1; grid-row: 1; }
+
+.npcink-cloud-local-permissions .npcink-cloud-local-permission__control {
+	grid-template-columns: minmax(0, 1fr) 44px;
+}
+
+.npcink-cloud-local-permission__desc {
+	max-width: 60ch;
+}
+
+.npcink-cloud-addon .npcink-cloud-local-permissions > summary {
+	max-width: 100%;
+	width: auto;
+}
+
+.npcink-cloud-monitoring-detail table {
+	margin-top: 12px;
+}
+
+.npcink-cloud-monitoring-detail th {
+	width: 140px;
+}
+
+@media screen and (max-width: 782px) {
+	.npcink-cloud-overview .npcink-cloud-overview-panel__metrics,
+	.npcink-cloud-overview .npcink-cloud-entitlement-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.npcink-cloud-overview .npcink-cloud-stat {
+		padding: 8px 0;
+	}
+}
+
+.npcink-cloud-addon .npcink-cloud-tabs {
+	max-width: 720px;
+}
+
+.npcink-cloud-knowledge-area .npcink-cloud-site-knowledge-heading__title {
+	flex: 0 1 auto;
+}
+
+@media screen and (max-width: 782px) {
+	.npcink-cloud-knowledge-area .npcink-cloud-site-knowledge-heading .npcink-cloud-summary__actions {
+		display: flex;
+		justify-content: flex-start;
+		width: auto;
+	}
+}
+
+/* Low-frequency content exclusions live one level below Overview. */
+.npcink-cloud-source-entry { margin: 8px 0 0; }
+.npcink-cloud-source-tabs {
+	display: flex;
+	gap: 20px;
+	border-bottom: 1px solid var(--npcink-ui-border, #dcdcde);
+	margin: 20px 0;
+}
+.npcink-cloud-source-tabs a { padding: 8px 0; text-decoration: none; }
+.npcink-cloud-source-tabs a[aria-current="page"] {
+	border-bottom: 2px solid currentColor;
+	font-weight: 600;
+}
+.npcink-cloud-source-search label { display: block; margin-bottom: 6px; font-weight: 600; }
+.npcink-cloud-source-search > div { display: flex; gap: 8px; }
+.npcink-cloud-source-search input[type="search"] { flex: 1; min-width: 0; margin: 0; }
+.npcink-cloud-source-empty { margin: 24px 0; color: var(--npcink-ui-text-secondary, #50575e); }
+.npcink-cloud-source-list { margin: 20px 0; border-top: 1px solid var(--npcink-ui-border, #dcdcde); }
+.npcink-cloud-source-row {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+	padding: 14px 0;
+	border-bottom: 1px solid var(--npcink-ui-border, #dcdcde);
+	overflow-wrap: anywhere;
+}
+.npcink-cloud-source-row > input { flex-shrink: 0; margin: 3px 0 0; }
+.npcink-cloud-source-row > span:first-of-type { flex: 1; min-width: 0; }
+.npcink-cloud-source-row .description { display: block; margin-top: 4px; }
+.npcink-cloud-source-state { flex: 0 1 180px; color: var(--npcink-ui-text-secondary, #50575e); font-size: 12px; }
+.npcink-cloud-source-confirm label { display: block; margin: 12px 0; }
+.npcink-cloud-source-pagination { display: flex; gap: 24px; margin: 20px 0; }
+@media screen and (max-width: 480px) {
+	.npcink-cloud-source-row { flex-wrap: wrap; }
+	.npcink-cloud-source-state { flex-basis: 100%; margin-left: 28px; }
+}
+
+.npcink-cloud-source-filters { margin-top: 12px; }
+.npcink-cloud-source-filters > summary { cursor: pointer; color: var(--npcink-ui-link, #2271b1); }
+.npcink-cloud-source-filter-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.npcink-cloud-source-filter-fields select { display: block; width: 100%; max-width: 100%; margin-top: 6px; }
+@media screen and (max-width: 480px) {
+	.npcink-cloud-source-filter-fields { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media screen and (max-width: 480px) {
+	.npcink-cloud-overview .npcink-cloud-entitlement-more .npcink-cloud-stat,
+	.npcink-cloud-overview .npcink-cloud-entitlement-more .npcink-cloud-entitlement-grid__item { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Checks and Connection use the same compact column as Overview. */
+.npcink-cloud-addon .npcink-cloud-utility-panel { max-width: 720px; }
+.npcink-cloud-addon .npcink-cloud-utility-panel .npcink-cloud-checks-simple,
+.npcink-cloud-addon .npcink-cloud-utility-panel .npcink-cloud-connection-surface {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	margin: 0 0 24px;
+	padding: 0;
+}
+.npcink-cloud-addon .npcink-cloud-utility-panel .npcink-cloud-card__status { font-size: 14px; margin: 0; }
+.npcink-cloud-addon .npcink-cloud-utility-panel .npcink-cloud-card__meta,
+.npcink-cloud-addon .npcink-cloud-utility-panel .npcink-cloud-checks-simple > .description { color: #646970; font-size: 12px; margin: 8px 0 0; }
+.npcink-cloud-addon .npcink-cloud-utility-panel .npcink-cloud-status-dot--ok { height: 6px; width: 6px; }
+.npcink-cloud-addon .npcink-cloud-utility-panel .npcink-cloud-checks-simple--ok strong { font-weight: 400; }
+.npcink-cloud-addon .npcink-cloud-utility-panel .npcink-cloud-summary__actions,
+.npcink-cloud-account-entry { margin: 16px 0 0; }
+.npcink-cloud-addon .npcink-cloud-utility-panel details.npcink-cloud-fold > summary { color: #50575e; }
+.npcink-cloud-addon .npcink-cloud-utility-panel details.npcink-cloud-fold > summary:hover { color: #2271b1; }
+.npcink-cloud-addon .npcink-cloud-utility-panel details.npcink-cloud-fold--bottom { margin-top: 24px; padding-top: 16px; }
+.npcink-cloud-addon .npcink-cloud-utility-panel .npcink-cloud-connection-identity { margin: 0; }
+.npcink-cloud-connection-management .npcink-cloud-connection-change { margin-top: 16px; }
+.npcink-cloud-connection-management .npcink-cloud-connection-danger { border-top: 1px solid #dcdcde; margin-top: 16px; padding-top: 16px; }
+.npcink-cloud-connection-management .description { font-size: 12px; margin: 6px 0 0; }
+.npcink-cloud-connection-management .npcink-cloud-button-danger { color: #b32d2e; }
+.npcink-cloud-connection-management .npcink-cloud-button-danger:hover { color: #8a2424; }
+
+.npcink-cloud-utility-panel .npcink-cloud-monitoring-detail h3 { font-size: 13px; margin: 20px 0 12px; }
+
+/* Keep novice guidance beside its control, with results on a separate line. */
+.npcink-cloud-editor-entry { margin: 8px 0 0; }
+.npcink-cloud-editor-entry .npcink-cloud-text-action { font-size: 13px; }
+.npcink-cloud-autosave-hint { color: #646970; font-size: 12px; }
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission { display: grid; grid-template-columns: 44px auto; align-items: center; gap: 8px 12px; }
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission__feedback,
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission__progress,
+.npcink-cloud-knowledge-control noscript { grid-column: 1 / -1; }
+.npcink-cloud-local-permissions .npcink-cloud-autosave-hint { display: block; margin-top: 8px; }
+.npcink-cloud-addon .npcink-cloud-autosave-hint[hidden] { display: none; }
+
+/* Troubleshooting: one action before low-frequency technical evidence. */
+.npcink-cloud-checks-more > .npcink-cloud-advanced-detail__body { padding: 12px 0 0; }
+.npcink-cloud-checks-more .npcink-cloud-checks-cloud-link { margin: 12px 0 16px; }
+.npcink-cloud-checks-more .npcink-cloud-technical-details { margin: 0; }
+.npcink-cloud-technical-details h3 { font-size: 13px; margin: 20px 0 4px; }
+.npcink-cloud-checks-more .npcink-cloud-kv { max-width: none; margin: 12px 0; }
+.npcink-cloud-checks-more .npcink-cloud-kv__row { padding: 6px 0; gap: 16px; border: 0; }
+.npcink-cloud-checks-more .npcink-cloud-kv dt { flex: 0 0 136px; }
+.npcink-cloud-checks-more .npcink-cloud-kv dd { min-width: 0; flex: 1; }
+.npcink-cloud-checks-more .npcink-cloud-monitoring-detail p { overflow-wrap: anywhere; }
+.npcink-cloud-checks-more .npcink-cloud-checks-copy { margin: 16px 0 0; }
+.npcink-cloud-checks-copy .button-link { min-height: 32px; text-decoration: underline; }
+@media (max-width: 600px) {
+	.npcink-cloud-checks-more .npcink-cloud-kv dt { flex-basis: 104px; }
+	.npcink-cloud-checks-more .npcink-cloud-kv__row { gap: 12px; }
+}
+
+/* Plan identity stays beside usage; refresh must not hide it. */
+.npcink-cloud-overview-entitlements .npcink-cloud-section-title { justify-content: flex-start; flex-wrap: wrap; gap: 8px 16px; }
+.npcink-cloud-section-title .npcink-cloud-entitlement { color: #646970; font-size: 12px; gap: 0 4px; }
+.npcink-cloud-section-title .npcink-cloud-entitlement--attention { flex-basis: 100%; margin: 0; }
+.npcink-cloud-entitlement:not(.npcink-cloud-entitlement--attention) .npcink-cloud-entitlement__fix-link { display: none; }
+
+.npcink-cloud-usage-freshness { color: #996800; }
+.npcink-cloud-usage-freshness[hidden],
+.npcink-cloud-overview-status[data-npcink-overview-ready][hidden] { display: none; }
+.npcink-cloud-overview [data-npcink-credit-attention]:empty,
+.npcink-cloud-overview [data-npcink-capability-attention]:empty { display: none; }

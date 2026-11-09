@@ -29,6 +29,68 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Projection' ) ) {
 		}
 
 		/**
+		 * Reads one local content-selection page without contacting Cloud.
+		 *
+		 * @param string $search WordPress search text.
+		 * @param int $page One-based page number.
+		 * @param bool $excluded Whether to list suppressed sources instead of searching.
+		 * @return array{items: array<string,array<string,mixed>>, has_next: bool}
+		 */
+		public static function source_selection_page( string $search, int $page, bool $excluded, int $category = 0, int $tag = 0 ): array {
+			$sources = Npcink_Cloud_Site_Knowledge_Change_Bridge::source_lifecycle_summary()['items'];
+			$items = array();
+			$offset = ( max( 1, $page ) - 1 ) * 20;
+			if ( $excluded ) {
+				$selection = array_slice( $sources, $offset, 20, true );
+				$has_next = count( $sources ) > $offset + 20;
+			} else {
+				if ( '' === trim( $search ) && ! $category && ! $tag ) { return array( 'items' => array(), 'has_next' => false ); }
+				$exact_id = null;
+				if ( '#' === substr( $search, 0, 1 ) ) {
+					$id_text = substr( $search, 1 );
+					if ( ! preg_match( '/\A[1-9][0-9]*\z/', $id_text ) || strlen( $id_text ) > strlen( (string) PHP_INT_MAX ) || (string) (int) $id_text !== $id_text ) { return array( 'items' => array(), 'has_next' => false ); }
+					$exact_id = (int) $id_text;
+				}
+				// Read one extra identity to offer a next page without a full count query.
+				$query = array(
+					's' => null === $exact_id ? $search : '',
+					'search_columns' => array( 'post_title' ),
+					'post_type' => $category || $tag ? array( 'post' ) : array( 'post', 'page', 'attachment' ),
+					'cat' => max( 0, $category ),
+					'tag_id' => max( 0, $tag ),
+					'post_status' => array( 'publish', 'inherit' ),
+					'has_password' => false,
+					'post__not_in' => array_column( $sources, 'source_id' ),
+					'posts_per_page' => 21,
+					'offset' => $offset,
+					'fields' => 'ids',
+					'orderby' => array( 'modified' => 'DESC', 'ID' => 'DESC' ),
+					'no_found_rows' => true,
+				);
+				if ( null !== $exact_id ) { $query['post__in'] = array( $exact_id ); }
+				$ids = get_posts( $query );
+				$has_next = count( $ids ) > 20;
+				$selection = array();
+				foreach ( array_slice( $ids, 0, 20 ) as $id ) {
+					$post = get_post( $id );
+					$type = 'attachment' === ( $post->post_type ?? '' ) ? 'media' : ( $post->post_type ?? '' );
+					$selection[ $type . ':' . $id ] = array( 'source_type' => $type, 'source_id' => (int) $id, 'state' => '' );
+				}
+			}
+			foreach ( $selection as $key => $item ) {
+				$public = (bool) Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( $item );
+				if ( ! $excluded && ( ! $public || isset( $sources[ $key ] ) ) ) { continue; }
+				$post = get_post( $item['source_id'] );
+				$items[ $key ] = array_merge( $item, array(
+					'title' => is_object( $post ) ? (string) $post->post_title : $key,
+					'unavailable' => ! $public,
+					'selectable' => $public && ( ! $excluded || ( 'excluded' === $item['state'] && Npcink_Cloud_Site_Knowledge_Change_Bridge::is_enabled() ) ),
+				) );
+			}
+			return array( 'items' => $items, 'has_next' => $has_next );
+		}
+
+		/**
 		 * Builds a bounded display projection from Cloud-owned Site Knowledge quota truth.
 		 *
 		 * @param array<string,mixed> $summary Normalized Cloud status summary.
