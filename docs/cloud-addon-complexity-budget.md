@@ -109,7 +109,7 @@ connector classes so they cannot grow unnoticed:
   updating while retaining failures in diagnostics and restoring attention after delivery fails;
   raised by 23 lines for shared escaped AJAX status fragments, stale-evidence gating,
   and failure-only retry feedback)
-- `includes/class-cloud-settings-actions.php` — 1250 lines (settings request
+- `includes/class-cloud-settings-actions.php` — 1260 lines (settings request
   handlers and their transient state; the render class stays a projection;
   raised from 1106 with reason: the 2026-10-11 first-connection verify-failure
   path keeps exchanged credentials in the unverified state instead of
@@ -167,6 +167,10 @@ consent prompt); the page class renders and reads that state through the
 public accessor seam. Further paydown direction for the remaining render class
 is collapsing duplicated disclosure markup behind shared partials, keeping
 `docs/admin-surface-standard.md` tab and copy rules authoritative.
+
+2026-11-04 content exclusions: settings-actions ceiling 1250→1260 for retaining
+the bounded search/page context and returning exclude/restore feedback to the
+nested content page. No new transport or lifecycle state.
 
 ## PHPStan Baseline Classification (2026-10-06)
 

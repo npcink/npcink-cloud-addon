@@ -67,6 +67,7 @@ require __DIR__ . '/behavior-observability-collector.php';
 require __DIR__ . '/behavior-customer-journey.php';
 require __DIR__ . '/behavior-editor-assist-quality.php';
 require __DIR__ . '/behavior-site-knowledge-change-bridge.php';
+require __DIR__ . '/behavior-site-knowledge-source-selection.php';
 require __DIR__ . '/behavior-site-knowledge-runtime-bridge.php';
 
 require __DIR__ . '/behavior-wordpress-ai-provider-acceptance.php';

@@ -6,7 +6,7 @@ import { runInNewContext } from 'node:vm';
 const source = readFileSync( new URL( '../assets/admin-entitlement.js', import.meta.url ), 'utf8' );
 const fragmentsSource = readFileSync( new URL( '../assets/admin-status-fragments.js', import.meta.url ), 'utf8' );
 
-async function refreshFixture( { failure = false, deliveryFailure = false, state = 'fresh', missingFragments = false, severity = null, renderFailure = false } = {} ) {
+async function refreshFixture( { failure = false, deliveryFailure = false, state = 'fresh', missingFragments = false, severity = null, renderFailure = false, missingUsage = false, initialState = 'stale' } = {} ) {
 	const node = ( dataset = {}, classes = [] ) => {
 		const classNames = new Set( classes );
 		const element = {
@@ -32,6 +32,11 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 		};
 		return element;
 	};
+	const ready = node();
+	ready.hidden = true;
+	const usageValue = node();
+	const usageRow = node( { npcinkEntitlementMetric: 'usage' } );
+	usageRow.querySelector = selector => '[data-npcink-entitlement-metric-value]' === selector ? usageValue : null;
 	const summary = node();
 	summary.textContent = 'Pro · cached';
 	const retry = node();
@@ -42,12 +47,17 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 	const label = node();
 	label.className = 'npcink-cloud-overview-service npcink-cloud-overview-service--warning';
 	label.textContent = 'Before refresh';
-	const container = node( { npcinkEntitlementState: 'stale' } );
+	const usageFreshness = node();
+	usageFreshness.textContent = 'Refreshing retained figures';
+	usageFreshness.hidden = true;
+	const container = node( { npcinkEntitlementState: initialState }, [ 'npcink-cloud-entitlement--attention' ] );
 	const selectors = { '[data-npcink-entitlement-summary]': summary, '[data-npcink-entitlement-retry]': retry };
 	container.querySelector = ( selector ) => selectors[ selector ] || null;
 	const documentNodes = {
 		'[data-npcink-entitlement-state]': container,
+		'[data-npcink-usage-freshness]': usageFreshness,
 		'[data-npcink-connection-summary]': warning,
+		'[data-npcink-overview-ready]': ready,
 		'[data-npcink-service-connection-badge]': badge,
 		'.npcink-cloud-overview-service': label,
 	};
@@ -56,7 +66,7 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 		URLSearchParams,
 		document: {
 			querySelector: ( selector ) => documentNodes[ selector ] || null,
-			querySelectorAll: () => [],
+			querySelectorAll: () => [ usageRow ],
 		},
 		window: {
 			npcinkCloudEntitlement: { ajaxUrl: '/ajax', action: 'refresh', nonce: 'fixture', updateFailedLabel: '更新失败' },
@@ -79,7 +89,7 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 					connection: fragmentConnection,
 					service: { severity: fragmentSeverity, label: fragmentLabel },
 				};
-				return { ok: true, json: async () => ( { success: true, data: { label: 'Pro · available', state, status_fragments: statusFragments } } ) };
+				return { ok: true, json: async () => ( { success: true, data: { label: 'Pro · available', state, metrics: missingUsage ? {} : { usage: { available: true, value_label: '1,830' } }, status_fragments: statusFragments } } ) };
 			},
 		},
 	};
@@ -87,12 +97,15 @@ async function refreshFixture( { failure = false, deliveryFailure = false, state
 	if ( renderFailure ) { context.window.npcinkCloudApplyStatusFragments = () => { throw new Error( 'render failed' ); }; }
 	runInNewContext( source, context );
 	await new Promise( resolve => setImmediate( resolve ) );
-	return { warning, badge, label, summary, retry, container, requests };
+	return { warning, badge, label, summary, retry, container, requests, ready, usageValue, usageRow, usageFreshness };
 }
 
 test( 'fresh signed read clears entitlement warning and updates localized service badges', async () => {
 	const f = await refreshFixture();
 	assert.equal( f.requests, 1 );
+	assert.equal( f.ready.hidden, false );
+	assert.equal( f.usageRow.hidden, false );
+	assert.equal( f.usageValue.textContent, '1,830' );
 	assert.equal( f.warning.innerHTML, '' );
 	assert.equal( f.badge.classes.has( 'npcink-cloud-badge--warning' ), false );
 	assert.equal( f.badge.classes.has( 'npcink-cloud-badge--ok' ), true );
@@ -100,12 +113,16 @@ test( 'fresh signed read clears entitlement warning and updates localized servic
 	assert.equal( f.label.className, 'npcink-cloud-overview-service npcink-cloud-overview-service--ok' );
 	assert.equal( f.container.dataset.npcinkEntitlementState, 'fresh' );
 	assert.equal( f.retry.hidden, true );
+	assert.equal( f.container.classes.has( 'screen-reader-text' ), false );
+	assert.equal( f.summary.textContent, 'Pro · available' );
+	assert.equal( f.container.classes.has( 'npcink-cloud-entitlement--attention' ), false );
 } );
 
 for ( const scenario of [ { failure: true }, { state: 'stale' }, { state: null }, { deliveryFailure: true } ] ) {
 	test( `refresh preserves warnings for ${ JSON.stringify( scenario ) }`, async () => {
 		const f = await refreshFixture( scenario );
 		assert.equal( f.warning.innerHTML, scenario.failure ? 'Cached warning' : 'Server warning' );
+		assert.equal( f.ready.hidden, true );
 		assert.equal( f.badge.classes.has( 'npcink-cloud-badge--warning' ), true );
 		let expectedLabel = 'Not recently checked';
 		if ( scenario.failure ) { expectedLabel = 'Before refresh'; }
@@ -113,10 +130,13 @@ for ( const scenario of [ { failure: true }, { state: 'stale' }, { state: null }
 		assert.equal( f.label.textContent, expectedLabel );
 		if ( null === scenario.state ) {
 			assert.equal( f.container.dataset.npcinkEntitlementState, 'stale' );
+			assert.equal( f.container.classes.has( 'screen-reader-text' ), false );
 		}
 		if ( scenario.failure ) {
 			assert.equal( f.retry.hidden, false );
+			assert.equal( f.container.classes.has( 'screen-reader-text' ), false );
 			assert.equal( f.summary.textContent, 'Pro · cached · 更新失败' );
+			assert.equal( f.container.classes.has( 'npcink-cloud-entitlement--attention' ), true );
 		}
 	} );
 }
@@ -141,4 +161,22 @@ test( 'fragment render failure does not invalidate a successful entitlement read
 	assert.equal( f.summary.textContent, 'Pro · available' );
 	assert.equal( f.container.dataset.npcinkEntitlementState, 'fresh' );
 	assert.equal( f.retry.hidden, true );
+} );
+
+test( 'refresh hides missing reported period usage instead of retaining an invented value', async () => {
+	const f = await refreshFixture( { missingUsage: true } );
+	assert.equal( f.usageRow.hidden, true );
+	assert.equal( f.usageValue.textContent, '' );
+} );
+
+
+test( 'first-read failure does not claim cached figures, while stale failure does', async () => {
+	const empty = await refreshFixture( { initialState: 'not_refreshed', failure: true } );
+	assert.equal( empty.usageFreshness.hidden, true );
+	assert.equal( empty.retry.hidden, false );
+	const cached = await refreshFixture( { failure: true } );
+	assert.equal( cached.usageFreshness.hidden, false );
+	const recovered = await refreshFixture();
+	assert.equal( recovered.usageFreshness.hidden, true );
+	assert.equal( recovered.usageFreshness.textContent, 'Refreshing retained figures' );
 } );

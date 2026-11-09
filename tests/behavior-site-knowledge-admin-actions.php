@@ -311,11 +311,12 @@ maca_assert(
 
 
 maca_reset_site_knowledge_admin_actions();
-$strict_request = array( 'site_knowledge_index_action' => 'exclude', 'site_knowledge_confirmation' => 'EXCLUDE', 'site_knowledge_scope' => Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope(), 'site_knowledge_sources' => array( 'post:42', 'page:43', 'media:501' ) );
+$strict_request = array( 'site_knowledge_index_action' => 'exclude', 'site_knowledge_confirmed' => '1', 'site_knowledge_scope' => Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope(), 'site_knowledge_sources' => array( 'post:42', 'page:43', 'media:501' ) );
 foreach ( array(
 	array( 'site_knowledge_scope' => 'wrong' ),
 	array( 'site_knowledge_scope' => array() ),
-	array( 'site_knowledge_confirmation' => 'exclude' ),
+	array( 'site_knowledge_confirmed' => '' ),
+	array( 'site_knowledge_confirmed' => array( '1' ) ),
 	array( 'site_knowledge_sources' => array() ),
 	array( 'site_knowledge_sources' => array( 'post:-42' ) ),
 	array( 'site_knowledge_sources' => array( 'media:0' ) ),
@@ -329,3 +330,7 @@ foreach ( array(
 }
 $result = Npcink_Cloud_Site_Knowledge_Admin_Actions::handle_index_request( $strict_request );
 maca_assert( $result['ok'] && 3 === $result['selected_count'] && array( array( 'source_type' => 'post', 'source_id' => 42 ), array( 'source_type' => 'page', 'source_id' => 43 ), array( 'source_type' => 'media', 'source_id' => 501 ) ) === Npcink_Cloud_Site_Knowledge_Change_Bridge::$source_calls[0][1] && ! $GLOBALS['maca_http_requests'], 'Typed administrator parser preserves true post/page/media identities in the bounded saved intent, without dispatch.' );
+
+$restore_request = $strict_request; $restore_request['site_knowledge_index_action'] = 'restore'; unset( $restore_request['site_knowledge_confirmed'] );
+$result = Npcink_Cloud_Site_Knowledge_Admin_Actions::handle_index_request( $restore_request );
+maca_assert( $result['ok'] && 'restore' === Npcink_Cloud_Site_Knowledge_Change_Bridge::$source_calls[1][0], 'Restore uses the same scoped authorized parser without a typed or duplicate confirmation.' );

@@ -136,3 +136,65 @@ test('knowledge read failure offers a Chinese retry; retry replaces the whole ol
 	assert.equal(result.calls(), 2);
 	assert.match(result.requests[1].options.body, /action=read/);
 });
+
+test('usage refresh moves quota warnings, dates and image capacity together, and labels retained data on failure', async () => {
+	const container = node();
+	container.dataset.npcinkEntitlementState = 'stale';
+	const summary = node('Agency');
+	const retry = node();
+	container.querySelector = selector => ({ '[data-npcink-entitlement-summary]': summary, '[data-npcink-entitlement-retry]': retry }[selector] || null);
+	const freshness = node();
+	const ready = node();
+	const credit = node();
+	const capability = node();
+	credit.innerHTML = '';
+	capability.innerHTML = '';
+	const dates = node();
+	const cycle = node();
+	const images = node();
+	const nodes = {
+		'[data-npcink-entitlement-state]': container,
+		'[data-npcink-usage-freshness]': freshness,
+		'[data-npcink-overview-ready]': ready,
+		'[data-npcink-credit-attention]': credit,
+		'[data-npcink-capability-attention]': capability,
+		'[data-npcink-account-usage]': dates,
+		'[data-npcink-account-cycle]': cycle,
+		'[data-npcink-image-capacity-value]': images,
+	};
+	run('admin-entitlement.js', nodes, { npcinkCloudEntitlement: { ...config, usageFailedLabel: '显示上次数据' } }, [
+		{ success: true, data: { label: 'Agency', state: 'fresh', status_fragments: { service: { severity: 'ok' }, credit_attention: 'Credits used up', capability_attention: '', account_usage: 'Reset December 30', account_cycle: 'November 30 to December 30', image_capacity: '90 / 100' } } },
+		{ success: true, data: { label: 'Agency', state: 'fresh', status_fragments: { service: { severity: 'ok' }, credit_attention: '', capability_attention: '', account_usage: 'Reset January 30', account_cycle: 'December 30 to January 30', image_capacity: '100 / 100' } } },
+		new Error('Failed to fetch'),
+		{ success: true, data: { label: 'Agency', state: 'fresh', status_fragments: { service: { severity: 'ok' }, credit_attention: '', capability_attention: 'Vision is unavailable', account_usage: '', account_cycle: '', image_capacity: 'Not available yet' } } },
+	]);
+	await settle();
+	assert.equal(credit.innerHTML, 'Credits used up');
+	assert.equal(ready.hidden, true);
+	assert.equal(images.innerHTML, '90 / 100');
+	assert.equal(dates.innerHTML, 'Reset December 30');
+	assert.equal(cycle.innerHTML, 'November 30 to December 30');
+	assert.equal(freshness.hidden, true);
+	retry.listeners.click();
+	await settle();
+	assert.equal(credit.innerHTML, '');
+	assert.equal(ready.hidden, false);
+	assert.equal(images.innerHTML, '100 / 100');
+	assert.equal(dates.innerHTML, 'Reset January 30');
+	assert.equal(cycle.innerHTML, 'December 30 to January 30');
+	retry.listeners.click();
+	await settle();
+	assert.equal(freshness.textContent, '显示上次数据');
+	assert.equal(freshness.hidden, false);
+	assert.equal(dates.innerHTML, 'Reset January 30');
+	assert.equal(images.innerHTML, '100 / 100');
+	assert.equal(retry.hidden, false);
+	retry.listeners.click();
+	await settle();
+	assert.equal(freshness.hidden, true);
+	assert.equal(dates.innerHTML, '');
+	assert.equal(cycle.innerHTML, '');
+	assert.equal(images.innerHTML, 'Not available yet');
+	assert.equal(capability.innerHTML, 'Vision is unavailable');
+	assert.equal(ready.hidden, true);
+});

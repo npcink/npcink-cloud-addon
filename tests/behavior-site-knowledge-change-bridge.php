@@ -67,6 +67,7 @@ if ( ! function_exists( 'get_posts' ) ) {
 	 * @return array<int,int>
 	 */
 	function get_posts( array $args = array() ): array {
+		$GLOBALS['maca_post_queries'][] = $args;
 		$limit = absint( $args['posts_per_page'] ?? 50 );
 		$date_query = is_array( $args['date_query'][0] ?? null ) ? $args['date_query'][0] : array();
 		$modified_after = strtotime( (string) ( $date_query['after'] ?? '' ) );
@@ -78,6 +79,12 @@ if ( ! function_exists( 'get_posts' ) ) {
 			if ( ! in_array( $post->post_type ?? '', (array) ( $args['post_type'] ?? array( 'post', 'page' ) ), true ) ) {
 				continue;
 			}
+			if ( in_array( (int) $post_id, $args['post__not_in'] ?? array(), true ) || ( isset( $args['has_password'] ) && false === $args['has_password'] && ! empty( $post->post_password ) ) ) { continue; }
+			if ( isset( $args['post__in'] ) && ! in_array( (int) $post_id, $args['post__in'], true ) ) { continue; }
+			$search_text = array( 'post_title' ) === ( $args['search_columns'] ?? array() ) ? (string) ( $post->post_title ?? '' ) : (string) ( $post->post_title ?? '' ) . ' ' . (string) ( $post->post_content ?? '' );
+			if ( ! empty( $args['s'] ) && false === stripos( $search_text, $args['s'] ) ) { continue; }
+			if ( ! empty( $args['cat'] ) && ! in_array( $args['cat'], $post->fixture_categories ?? array(), true ) ) { continue; }
+			if ( ! empty( $args['tag_id'] ) && ! in_array( $args['tag_id'], $post->fixture_tags ?? array(), true ) ) { continue; }
 			$post_modified = strtotime( (string) ( $post->post_modified_gmt ?? '' ) . ' UTC' );
 			if ( false !== $modified_after && false !== $post_modified && ( $post_modified < $modified_after || ( $post_modified === $modified_after && empty( $date_query['inclusive'] ) ) ) ) {
 				continue;
@@ -90,7 +97,7 @@ if ( ! function_exists( 'get_posts' ) ) {
 					<=> array( $GLOBALS['maca_posts'][ $right ]->post_modified_gmt, $right );
 			} );
 		}
-		return array_slice( $ids, 0, max( 1, $limit ) );
+		return array_slice( $ids, (int) ( $args['offset'] ?? 0 ), max( 1, $limit ) );
 	}
 }
 
