@@ -13,6 +13,7 @@
 	const spinner = container.querySelector( '.npcink-cloud-entitlement__spinner' );
 	const metricRows = document.querySelectorAll( '[data-npcink-entitlement-metric]' );
 	const usageFreshness = document.querySelector( '[data-npcink-usage-freshness]' );
+	const usagePendingLabel = usageFreshness ? usageFreshness.textContent : '';
 	const initialState = container.dataset.npcinkEntitlementState || '';
 	let retainedLabel = summary ? summary.textContent : '';
 	let hasRetainedSummary = 'stale' === initialState && '' !== retainedLabel;
@@ -23,9 +24,11 @@
 	}
 
 	const markRetainedUsage = () => {
-		if ( usageFreshness ) {
+		if ( usageFreshness && hasRetainedSummary ) {
 			usageFreshness.textContent = config.usageFailedLabel || config.updateFailedLabel || 'Update failed';
 			usageFreshness.hidden = false;
+		} else if ( usageFreshness ) {
+			usageFreshness.hidden = true;
 		}
 	};
 
@@ -115,6 +118,7 @@
 			container.classList.remove( 'screen-reader-text' );
 			container.classList.toggle( 'npcink-cloud-entitlement--attention', [ 'unavailable', 'refreshing', 'stale' ].includes( container.dataset.npcinkEntitlementState ) );
 			if ( usageFreshness ) {
+				usageFreshness.textContent = usagePendingLabel;
 				usageFreshness.hidden = ! [ 'unavailable', 'refreshing', 'stale' ].includes( container.dataset.npcinkEntitlementState );
 			}
 			retry.hidden = true;

@@ -1959,6 +1959,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$search = self::source_search_from_request();
 			$page = max( 1, min( 10000, (int) self::request_query_arg( 'source_page' ) ) );
 			$summary = Npcink_Cloud_Site_Knowledge_Change_Bridge::source_lifecycle_summary();
+			$excluded_count = count( array_filter( $summary['items'], static function ( $item ) { return 'excluded' === $item['state']; } ) );
+			$pending_count = count( $summary['items'] ) - $excluded_count;
 			$category = max( 0, (int) self::request_query_arg( 'source_category' ) );
 			$tag = max( 0, (int) self::request_query_arg( 'source_tag' ) );
 			$result = Npcink_Cloud_Site_Knowledge_Admin_Projection::source_selection_page( $search, $page, $excluded, $category, $tag );
@@ -1970,7 +1972,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<p class="description"><?php esc_html_e( 'Excluded content is removed from the Cloud knowledge base and no longer sent automatically. Your WordPress content stays unchanged.', 'npcink-cloud-addon' ); ?></p>
 				<nav class="npcink-cloud-source-tabs" aria-label="<?php esc_attr_e( 'Knowledge content views', 'npcink-cloud-addon' ); ?>">
 					<a href="<?php echo esc_url( self::source_selection_url( false, $search, 1, $category, $tag ) ); ?>"<?php echo ! $excluded ? ' aria-current="page"' : ''; ?>><?php esc_html_e( 'Search content', 'npcink-cloud-addon' ); ?></a>
-					<a href="<?php echo esc_url( self::source_selection_url( true, $search, 1, $category, $tag ) ); ?>"<?php echo $excluded ? ' aria-current="page"' : ''; ?>><?php echo esc_html( sprintf( /* translators: %d: number of excluded or pending content items. */ __( 'Excluded (%d)', 'npcink-cloud-addon' ), count( $summary['items'] ) ) ); ?></a>
+					<a href="<?php echo esc_url( self::source_selection_url( true, $search, 1, $category, $tag ) ); ?>"<?php echo $excluded ? ' aria-current="page"' : ''; ?>><?php echo esc_html( sprintf( /* translators: %d: number of confirmed excluded content items. */ __( 'Excluded (%d)', 'npcink-cloud-addon' ), $excluded_count ) ); ?><?php if ( $pending_count ) { echo esc_html( sprintf( /* translators: %d: content exclusions or restores awaiting confirmation. */ __( ' · %d pending', 'npcink-cloud-addon' ), $pending_count ) ); } ?></a>
 				</nav>
 				<?php if ( ! $excluded ) : ?>
 				<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="npcink-cloud-source-search" role="search">
