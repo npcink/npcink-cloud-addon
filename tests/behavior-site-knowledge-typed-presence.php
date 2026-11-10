@@ -740,3 +740,18 @@ Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
 maca_assert(isset($cloud->sources['post:42'])&&isset($cloud->sources['media:501']),'Blocked media withdrawal leaves unrelated article delivery operational.');
 Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();$health=Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
 maca_assert('error'===$health['status']&&'media_withdrawal_blocked'===$health['last_error_code'],'Article success and an empty flush cannot hide blocked media withdrawal.');
+
+
+$cloud=media_reset();$status_key=Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION;
+$article_status=array('last_delivery_ok'=>false,'last_delivery_error'=>'Article delivery failed','last_error_code'=>'article_failure','total_sent'=>12,'last_sent_count'=>3);
+update_option($status_key,$article_status);$GLOBALS['wpdb']->fail_read=true;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();$GLOBALS['wpdb']->fail_read=false;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+maca_assert('article_failure'===Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['last_error_code'],'Recovered media scan preserves an unrelated article delivery failure.');
+$cloud->sources=array('media:501'=>true);Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();typed_tick(5);$status=get_option($status_key);
+maca_assert($article_status===array_intersect_key($status,$article_status),'Successful media withdrawal neither clears article failure nor inflates delivery timestamps or counters.');
+$cloud=media_reset();$GLOBALS['wpdb']->fail_read=true;Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();$GLOBALS['wpdb']->fail_read=false;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+maca_assert('error'!==Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['status'],'A healthy later media scan clears its own read failure without needing an unrelated buffer flush.');
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment(501);
+maca_assert(empty(typed_scope()['operations']),'A third-party one-argument deleted_post notification is harmless and is not absence evidence.');

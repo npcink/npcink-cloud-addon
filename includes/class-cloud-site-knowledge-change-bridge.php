@@ -98,12 +98,17 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		public static function health_snapshot(): array {
 			$buffer = self::get_buffer();
 			$status = self::get_status();
-			// An unrelated successful delivery must not hide blocked media cleanup.
+			$media_pending = false;
+			$media_error = (string) ( $status['media_reconcile_error'] ?? '' );
 			foreach ( self::source_lifecycle_summary()['operations'] as $op ) {
-				if ( 'withdraw_media' === $op['action'] && 'blocked' === $op['status'] ) {
-					$status = array_merge( $status, array( 'last_delivery_ok' => false, 'last_error_code' => 'media_withdrawal_blocked', 'last_delivery_error' => __( 'Site Knowledge delete cleanup is waiting for a local retry.', 'npcink-cloud-addon' ) ) );
-					break;
-				}
+				if ( 'withdraw_media' !== $op['action'] || 'completed' === $op['status'] ) { continue; }
+				$media_pending = true;
+				if ( 'blocked' === $op['status'] ) { $media_error = 'media_withdrawal_blocked'; break; }
+				if ( str_starts_with( (string) ( $op['reason'] ?? '' ), 'cloud_' ) ) { $media_error = $op['reason']; }
+			}
+			// Project cleanup failures without rewriting article delivery evidence or counters.
+			if ( '' !== $media_error && empty( $status['last_delivery_error'] ) ) {
+				$status = array_merge( $status, array( 'last_delivery_ok' => false, 'last_error_code' => $media_error, 'last_delivery_error' => __( 'Site Knowledge delete cleanup is waiting for a local retry.', 'npcink-cloud-addon' ) ) );
 			}
 			$maintenance = self::get_maintenance_cursor();
 			$next_flush = function_exists( 'wp_next_scheduled' ) ? wp_next_scheduled( self::FLUSH_HOOK ) : false;
@@ -114,9 +119,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$delivery_enabled = self::is_enabled();
 			$buffer_count = count( $buffer['post_ids'] );
 			$last_success_at = ! empty( $status['last_delivery_ok'] ) ? sanitize_text_field( (string) ( $status['last_delivered_at'] ?? '' ) ) : '';
-			$has_error = ! empty( $status['media_reconcile_error'] ) || empty( $status['last_delivery_ok'] ) && ( '' !== (string) ( $status['last_delivery_error'] ?? '' ) || '' !== (string) ( $status['last_error_code'] ?? '' ) );
+			$has_error = '' !== $media_error || empty( $status['last_delivery_ok'] ) && ( '' !== (string) ( $status['last_delivery_error'] ?? '' ) || '' !== (string) ( $status['last_error_code'] ?? '' ) );
 			$full_index_active = self::is_active_full_index_delivery( $maintenance );
-			$bridge_status = ! $configured ? 'not_configured' : ( ! $verified ? 'unverified' : ( ! $delivery_enabled ? 'disabled' : ( $has_error ? 'error' : ( $buffer_count > 0 || $full_index_active ? 'queued' : 'idle' ) ) ) );
+			$bridge_status = ! $configured ? 'not_configured' : ( ! $verified ? 'unverified' : ( ! $delivery_enabled ? 'disabled' : ( $has_error ? 'error' : ( $buffer_count > 0 || $full_index_active || $media_pending ? 'queued' : 'idle' ) ) ) );
 
 			return array(
 				'owner' => 'cloud_addon',
@@ -2137,10 +2142,6 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 					}
 				}
 				self::store_source_operation( $op, $next );
-				if ( 'withdraw_media' === $op['action'] ) {
-					$ok = 'completed' === $next['status'];
-					self::record_delivery_result( $ok, $ok ? count( $op['items'] ) : 0, $ok ? '' : __( 'Site Knowledge delete cleanup is waiting for a local retry.', 'npcink-cloud-addon' ), $ok ? '' : (string) ( $next['reason'] ?? 'media_withdrawal_pending' ) );
-				}
 
 				$remaining = self::source_lifecycle_summary()['operations'];
 				if ( array_filter( $remaining, static function ( $operation ) { return 'pending' === $operation['status']; } ) ) {
@@ -2434,7 +2435,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		/** Only successful WordPress attachment deletion supplies this event. */
-		public static function handle_deleted_attachment( int $id, $post ): void {
+		public static function handle_deleted_attachment( int $id, $post = null ): void {
 			if ( is_object( $post ) && 'attachment' === ( $post->post_type ?? '' ) && self::is_enabled() ) {
 				$result = self::queue_missing_media( array( $id ) );
 				if ( is_wp_error( $result ) ) { self::record_media_reconciliation( $result->get_error_code() ); }
@@ -2461,7 +2462,6 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		private static function record_media_reconciliation( string $error ): void {
-			if ( '' !== $error ) { self::record_delivery_result( false, 0, __( 'Site Knowledge delete cleanup is waiting for a local retry.', 'npcink-cloud-addon' ), $error ); }
 			update_option( self::STATUS_OPTION, array_merge( self::get_status(), array( 'media_reconcile_error' => sanitize_key( $error ), 'last_media_reconciled_at' => gmdate( 'c' ) ) ), false );
 		}
 
