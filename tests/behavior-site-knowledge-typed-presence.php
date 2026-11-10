@@ -32,7 +32,17 @@ if ( ! function_exists( 'get_comment_link' ) ) {
 }
 
 /** Executes the REAL serialized-CAS call branch against isolated option storage. */
-final class TypedOptionCAS {
+class TypedOptionCAS {
+ public string $posts = 'fixture_posts';
+ public string $last_error = '';
+ public bool $fail_read = false;
+ public function prepare( $sql, ...$args ) { $args = is_array( $args[0] ?? null ) ? $args[0] : $args; return vsprintf( $sql, $args ); }
+ public function get_col( $sql ) {
+  $this->last_error = $this->fail_read ? 'fixture database failure' : '';
+  if ( $this->fail_read ) { return array(); }
+  maca_assert( 1 === preg_match('/ID IN \(([0-9,]+)\)/', $sql, $matches), 'Media existence read stays an exact bounded ID query.' );
+  return array_values(array_filter(array_map('intval',explode(',',$matches[1])),static function($id){return 'attachment' === ($GLOBALS['maca_posts'][$id]->post_type ?? '');}));
+ }
 	public string $options = 'fixture_options';
 	public int $writes = 0;
 	public $after_update = null;
@@ -84,6 +94,14 @@ final class TypedCloudFixture {
 		$payload = json_decode( $args['body'], true );
 		$input = $payload['input'];
 		if ( 'site_knowledge_status.v1' === $payload['contract_version'] ) {
+			if ( isset( $input['media_source_page'] ) ) {
+				$after = $input['media_source_page']['after_source_id'];
+				$ids = array_map( static function ( $key ) { return (int) substr( $key, 6 ); }, array_keys( array_filter( $this->sources, static function ( $value, $key ) use ( $after ) { return 0 === strpos( $key, 'media:' ) && (int) substr( $key, 6 ) > $after; }, ARRAY_FILTER_USE_BOTH ) ) );
+				sort( $ids ); $more = count( $ids ) > 100; $ids = array_slice( $ids, 0, 100 );
+				$result = array( 'media_source_page' => array( 'status' => 'complete', 'storage_scope' => 'relational_index', 'observed_at' => gmdate( 'c' ), 'source_ids' => $ids, 'after_source_id' => $after, 'limit' => 100, 'has_more' => $more, 'next_after_source_id' => $more ? end( $ids ) : 0 ) );
+				if ( $this->status_result_filter ) { $result = call_user_func( $this->status_result_filter, $result ); }
+				return $this->response( array( 'run_id' => 'typed-media-page', 'status' => 'succeeded', 'result' => $result ) );
+			}
 			$rows = array();
 			foreach ( $input['source_items'] as $item ) {
 				$present = isset( $this->sources[ $item['source_type'] . ':' . $item['source_id'] ] );
@@ -631,3 +649,115 @@ foreach ( array( 'present', 'missing', 'unknown' ) as $fresh_state ) {
 	maca_assert( 'pending_delete' === typed_scope()['sources']['post:42']['state'] && 'pending' === $op['status'] && ( 'present' === $fresh_state ? 'cloud_site_knowledge_source_still_present' : 'cloud_site_knowledge_presence_incomplete' ) === $op['reason'], 'G3 fresh ' . $fresh_state . ' evidence wins over cached absence and usage-zero; summary cannot release suppression.' );
 }
 unset( $GLOBALS['wpdb'] );
+
+
+// Media deletion and missed-notification recovery use real connector/CAS code with isolated SQL/Cloud doubles.
+final class MediaSourceSQL extends TypedOptionCAS {
+
+}
+function media_reset(): TypedCloudFixture { $cloud=typed_reset(); $GLOBALS['wpdb']=new MediaSourceSQL(); return $cloud; }
+
+$cloud=media_reset(); maca_add_public_post_fixture(42); typed_image();
+$removed=clone $GLOBALS['maca_posts'][501];
+$cloud->sources=array('media:501'=>true,'post:501'=>true);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment(501,$removed);
+maca_assert(empty(typed_scope()['operations']),'A deletion event before real DB removal never withdraws an existing attachment.');
+unset($GLOBALS['maca_posts'][501]);
+update_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION,array('post_ids'=>array(501),'attempts'=>0));
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment(501,$removed);
+maca_assert(1===count(typed_scope()['operations'])&&!$cloud->mutations&&!get_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION,array()),'Permanent deletion durably queues exact media withdrawal and removes the obsolete untyped buffer ID before HTTP.');
+typed_tick(5);
+maca_assert(!isset($cloud->sources['media:501'])&&isset($cloud->sources['post:501'])&&!isset(typed_scope()['sources']['media:501']),'Media deletion confirms absence, preserves same-ID text and does not create a permanent user exclusion.');
+typed_image(); Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_change(501);
+maca_assert(in_array(501,get_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION)['post_ids'],true),'A later real attachment can be delivered again after withdrawal.');
+maca_assert(is_wp_error(Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation('withdraw_media',typed_selection('media',501))),'Automatic withdrawal is not an administrator selection action or arbitrary public bypass.');
+
+$cloud=media_reset(); typed_image(2); maca_add_public_post_fixture(1);
+for($id=1;$id<=205;$id++){$cloud->sources['media:'.$id]=true;}
+$cloud->sources['post:1']=true;
+for($page=1;$page<=3;$page++){
+ Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+ maca_assert(($page<3?$page*100:0)===typed_scope()['media_reconcile_after'],'Media reconciliation advances a stable bounded keyset and restarts after its last page.');
+}
+maca_assert(3===count(typed_scope()['operations'])&&!$cloud->mutations,'Three read-only pages retain missing identities before any cleanup request.');
+typed_tick(15);
+maca_assert(array('media:2','post:1')===array_keys($cloud->sources),'Missed notifications are repaired without deleting current attachments or same-ID text.');
+
+$cloud=media_reset(); $cloud->sources=array('media:501'=>true); $GLOBALS['wpdb']->fail_read=true;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+maca_assert(empty(typed_scope()['operations'])&&empty(typed_scope()['media_reconcile_after'])&&!$cloud->mutations&&!empty(Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['media_reconcile_error']),'DB failure is visible and never becomes absence or cursor progress.');
+$GLOBALS['wpdb']->fail_read=false;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+maca_assert(1===count(typed_scope()['operations']),'The next healthy reconciliation recovers the missed deletion.');
+
+foreach(array('missing','duplicate','partial','wrong_cursor','stale','string_id','next')as$fault){
+ $cloud=media_reset();$cloud->sources=array('media:501'=>true);
+ $cloud->status_result_filter=static function($result)use($fault){$p=&$result['media_source_page'];switch($fault){case'missing':unset($result['media_source_page']);break;case'duplicate':$p['source_ids']=array(501,501);break;case'partial':$p['has_more']=true;$p['next_after_source_id']=501;break;case'wrong_cursor':$p['after_source_id']=7;break;case'stale':$p['observed_at']='2000-01-01T00:00:00Z';break;case'string_id':$p['source_ids']=array('501');break;case'next':$p['next_after_source_id']=501;break;}return$result;};
+ Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+ maca_assert(empty(typed_scope()['operations'])&&!$cloud->mutations,'Malformed/unsupported Cloud page '.$fault.' fails closed without deletion.');
+}
+
+$cloud=media_reset();$cloud->sources=array('media:501'=>true);
+$cloud->during_send=static function(){$settings=Npcink_Cloud_Addon_Settings::get_settings();$settings['site_id']='changed-site';Npcink_Cloud_Addon_Settings::write_settings($settings);};
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+maca_assert(empty(typed_scope()['operations'])&&!$cloud->mutations,'Credential changes during enumeration cannot schedule deletes in a different site scope.');
+
+$cloud=media_reset();$cloud->sources=array('media:501'=>true);maca_set_site_knowledge_delivery_enabled(false);$http=count($GLOBALS['maca_http_requests']);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment(501,(object)array('post_type'=>'attachment'));
+maca_assert($http===count($GLOBALS['maca_http_requests'])&&empty(typed_scope()['operations']),'Disabled delivery schedules no automatic media reads or withdrawals.');
+
+$cloud=media_reset();maca_add_public_post_fixture(42);typed_image();$removed=clone$GLOBALS['maca_posts'][501];$cloud->hold_producers=true;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation(array('ability_name'=>'npcink-cloud/site-knowledge-sync','contract_version'=>'site_knowledge_sync.v1','execution_pattern'=>'whole_run_offload','input'=>array('contract_version'=>'site_knowledge_sync.v1','sync_mode'=>'refresh','media_items'=>array(Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source(typed_selection('media',501)[0])),'write_posture'=>'suggestion_only','direct_wordpress_write'=>false),'data_classification'=>'public_site_content','storage_mode'=>'result_only','timeout_seconds'=>60,'retry_max'=>0));
+$old_id=array_key_first($cloud->runs);unset($GLOBALS['maca_posts'][501]);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment(501,$removed);typed_tick(3);
+maca_assert(isset(typed_scope()['sources']['media:501']),'An old running media producer keeps withdrawal pending.');
+$cloud->runs[$old_id]['status']='succeeded';$cloud->runs[$old_id]['finished_at']=gmdate('c');$cloud->sources['media:501']=true;typed_tick(8);
+maca_assert(!isset($cloud->sources['media:501'])&&!isset(typed_scope()['sources']['media:501'])&&$cloud->delete_calls>=2,'Late media writer is fenced and compensated before withdrawal is acknowledged.');
+
+$cloud=media_reset();$cloud->sources=array('media:501'=>true);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();typed_image();typed_tick();
+maca_assert(!$cloud->mutations&&isset($cloud->sources['media:501']),'Attachment reappearing before dispatch prevents deletion and retains a visible unresolved operation.');
+
+
+$cloud=media_reset();$state=typed_state();$ns=Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope();
+$state['_lifecycle']['scopes'][$ns]=array('sources'=>array(),'operations'=>array(),'dispatches'=>array(),'legacy_unknown'=>true);update_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION,$state);
+$cloud->sources=array('media:501'=>true);Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();typed_tick(5);
+maca_assert(!isset($cloud->sources['media:501'])&&typed_scope()['legacy_unknown']&&!isset(typed_scope()['sources']['media:501']),'Legacy automatic cleanup confirms current absence without pretending historical writer coverage is known or weakening explicit exclusion.');
+$cloud->sources['media:501']=true;Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();typed_tick(5);
+maca_assert(!isset($cloud->sources['media:501'])&&$cloud->delete_calls>=2,'A later untracked legacy write is found and removed by the next automatic pass.');
+
+$cloud=media_reset();maca_add_public_post_fixture(42);typed_image();$source=Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source(typed_selection('media',501)[0]);unset($GLOBALS['maca_posts'][501]);
+$payload=array('ability_name'=>'npcink-cloud/site-knowledge-sync','contract_version'=>'site_knowledge_sync.v1','input'=>array('sync_mode'=>'refresh','media_items'=>array($source),'contract_version'=>'site_knowledge_sync.v1','write_posture'=>'suggestion_only','direct_wordpress_write'=>false),'storage_mode'=>'result_only');
+$result=Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation($payload);
+maca_assert(is_wp_error($result)&&!$cloud->mutations,'A late producer cannot newly register a payload for an attachment already missing from SQL.');
+
+
+$cloud=media_reset();maca_add_public_post_fixture(42);$cloud->sources=array('media:501'=>true);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();typed_image();typed_tick(121);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_saved_post(42,$GLOBALS['maca_posts'][42]);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
+maca_assert(isset($cloud->sources['post:42'])&&isset($cloud->sources['media:501']),'Blocked media withdrawal leaves unrelated article delivery operational.');
+Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();$health=Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+maca_assert('error'===$health['status']&&'media_withdrawal_blocked'===$health['last_error_code'],'Article success and an empty flush cannot hide blocked media withdrawal.');
+
+
+$cloud=media_reset();$status_key=Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION;
+$article_status=array('last_delivery_ok'=>false,'last_delivery_error'=>'Article delivery failed','last_error_code'=>'article_failure','total_sent'=>12,'last_sent_count'=>3);
+update_option($status_key,$article_status);$GLOBALS['wpdb']->fail_read=true;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();$GLOBALS['wpdb']->fail_read=false;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+maca_assert('article_failure'===Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['last_error_code'],'Recovered media scan preserves an unrelated article delivery failure.');
+$cloud->sources=array('media:501'=>true);Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();typed_tick(5);$status=get_option($status_key);
+maca_assert($article_status===array_intersect_key($status,$article_status),'Successful media withdrawal neither clears article failure nor inflates delivery timestamps or counters.');
+$cloud=media_reset();$GLOBALS['wpdb']->fail_read=true;Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();$GLOBALS['wpdb']->fail_read=false;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+maca_assert('error'!==Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['status'],'A healthy later media scan clears its own read failure without needing an unrelated buffer flush.');
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment(501);
+maca_assert(empty(typed_scope()['operations']),'A third-party one-argument deleted_post notification is harmless and is not absence evidence.');
+
+
+$cloud=media_reset();$cloud->sources=array('media:501'=>true);Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();typed_image();typed_tick(121);
+update_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,array('last_delivery_ok'=>false,'last_delivery_error'=>'Article delivery failed','last_error_code'=>'article_failure'));
+$health=Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+maca_assert('article_failure'===$health['last_error_code']&&'media_withdrawal_blocked'===$health['media_cleanup_error'],'Concurrent article and media failures remain independently observable.');

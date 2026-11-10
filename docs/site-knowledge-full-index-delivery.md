@@ -208,3 +208,65 @@ Local behavior covers 605 Chinese long bodies through byte-sized batches,
 late tail facts, UTF-8 boundaries, explicit partial delivery, accepted-run body
 compaction, and exact lost-response replay retention. This is local evidence,
 not CI, M4, production or customer relevance acceptance.
+
+
+## Missing attachment withdrawal (2026-11-10 candidate)
+
+WordPress remains the only source of attachment existence. After successful
+permanent deletion, the `deleted_post` hook checks `post_type=attachment` and
+persists an internal typed `withdraw_media` operation before any HTTP. The
+pre-delete event is insufficient evidence. This internal action is not added
+to the public administrator exclude/restore selector and creates no new UI,
+queue, table, scheduler or consent switch.
+
+The existing hourly reconciliation callback also reads one Cloud media identity
+page of at most 100 IDs. It queries WordPress SQL for those exact attachment IDs,
+bypassing object cache. Every existing attachment is retained regardless of file
+availability, parent, publication status or indexing eligibility. A same-ID
+post/page does not preserve an obsolete *media* identity, and typed deletion
+must preserve its text index. A complete Cloud page is not a whole-site snapshot
+or deletion authority; local SQL absence supplies that authority.
+
+The cursor is credential-scoped in the existing CAS envelope and advances only
+after the missing IDs are durably retained. The last page resets it to zero.
+A lost deletion event is therefore repaired in a later pass, including Cloud
+orphan SQL chunks. SQL errors, partial/old/unsupported Cloud responses and
+credential changes fail closed; errors remain in the existing health projection.
+The scan reads no pixels and calls no model. `media_cleanup_error` independently
+projects scan/withdrawal failure when an article delivery error also exists;
+cleanup never updates article delivery counters or clears an article failure. Disabled delivery makes no new
+automatic reconciliation request. A complete pass takes multiple hourly
+callbacks for more than 100 indexed media identities and depends on WP-Cron
+execution; this is not an immediate whole-site cleanup guarantee.
+
+Automatic withdrawal reuses immutable dispatch identities, pending source
+suppression, D0 deletion, known-writer terminal evidence, compensation and fresh
+typed relational presence checks. Current attachment absence is rechecked before
+advancement; a newly registered image producer is rejected if its attachment has
+already vanished from SQL. Completed withdrawal removes temporary suppression
+and changes `producer_generation`, allowing a genuinely reintroduced attachment
+to be delivered later. User-requested exclusion semantics remain unchanged.
+
+For upgraded installations, `legacy_unknown` remains recorded. Automatic source
+repair fences known writers, confirms current cleanup and rescans on later
+passes; an untracked historical writer can temporarily reintroduce a row until
+that next pass. It cannot promise permanent exclusion or prove all historical
+writers ended. Explicit user exclusion retains its stronger unknown-writer
+block. This is a bounded eventual repair exception to that stronger exclusion
+guarantee, not a way to clear the unknown flag.
+
+If an attachment reappears during an unresolved withdrawal, deletion stops and
+keeps the source pending rather than deciding what restoration should mean.
+The existing poll cap eventually blocks it with a visible error; unrelated
+article deliveries remain operational and cannot hide that error. Resolving
+such a restoration race remains a support operation; no automatic restore
+engine is introduced. The ordinary failure retry and durability budgets apply.
+
+Local evidence: Cloud typed/source-evidence tests (163 passed); Addon SQL/HTTP
+fixtures cover missed events, 205 IDs across three pages, read failures,
+malformed responses, credential changes, late known and unknown writers,
+reappearing attachments and producer guards. A read-only check against the
+current Local MySQL source confirmed 69 Cloud-only identities missing and two
+matching attachments retained, with zero mutations. These observations are
+not M4 acceptance, historical data cleanup, production or customer acceptance.
+Cloud must be rolled out first; its new page field is required by this consumer.
