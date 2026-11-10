@@ -755,3 +755,9 @@ Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
 maca_assert('error'!==Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['status'],'A healthy later media scan clears its own read failure without needing an unrelated buffer flush.');
 Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment(501);
 maca_assert(empty(typed_scope()['operations']),'A third-party one-argument deleted_post notification is harmless and is not absence evidence.');
+
+
+$cloud=media_reset();$cloud->sources=array('media:501'=>true);Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();typed_image();typed_tick(121);
+update_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,array('last_delivery_ok'=>false,'last_delivery_error'=>'Article delivery failed','last_error_code'=>'article_failure'));
+$health=Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+maca_assert('article_failure'===$health['last_error_code']&&'media_withdrawal_blocked'===$health['media_cleanup_error'],'Concurrent article and media failures remain independently observable.');

@@ -232,7 +232,9 @@ after the missing IDs are durably retained. The last page resets it to zero.
 A lost deletion event is therefore repaired in a later pass, including Cloud
 orphan SQL chunks. SQL errors, partial/old/unsupported Cloud responses and
 credential changes fail closed; errors remain in the existing health projection.
-The scan reads no pixels and calls no model. Disabled delivery makes no new
+The scan reads no pixels and calls no model. `media_cleanup_error` independently
+projects scan/withdrawal failure when an article delivery error also exists;
+cleanup never updates article delivery counters or clears an article failure. Disabled delivery makes no new
 automatic reconciliation request. A complete pass takes multiple hourly
 callbacks for more than 100 indexed media identities and depends on WP-Cron
 execution; this is not an immediate whole-site cleanup guarantee.

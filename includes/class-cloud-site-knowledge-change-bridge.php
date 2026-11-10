@@ -171,6 +171,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				'next_reconcile_at' => false === $next_reconcile ? '' : gmdate( 'c', (int) $next_reconcile ),
 				'reconcile_overdue' => $reconcile_overdue,
 				'last_reconciled_at' => sanitize_text_field( (string) ( $status['last_reconciled_at'] ?? '' ) ),
+				'media_cleanup_error' => sanitize_key( $media_error ),
 				'media_reconcile_error' => sanitize_key( (string) ( $status['media_reconcile_error'] ?? '' ) ),
 				'last_media_reconciled_at' => sanitize_text_field( (string) ( $status['last_media_reconciled_at'] ?? '' ) ),
 				'wp_cron_disabled' => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
