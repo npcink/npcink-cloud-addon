@@ -328,6 +328,14 @@ consumers. Structured runtime source metadata is reduced to a non-secret
 `evidence_basis` label plus `model_id`; provider and instance identifiers are
 not projected.
 
+The inline vision execution budget stays at 30 seconds, with zero automatic
+retries and fallback disabled. The HTTP request waits at least 40 seconds to
+leave ten seconds for transport and the Cloud deadline receipt, using the same
+bounded margin as article review. A Cloud timeout keeps its error reason and
+original run id; the connector does not redispatch it automatically. Model choice
+and execution remain Cloud-owned. Development local-model behavior is not
+production third-party API acceptance.
+
 This helper is not a local image recognition model, a product workflow, a
 queue, a proposal creator, a media metadata writer, or a second control plane.
 See `docs/image-context-evidence-integration-summary.md` for the cross-repo
