@@ -544,6 +544,32 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 				&& self::ALLOWED_CONTRACTS[ $ability_name ] === $contract_version;
 		}
 
+		/** Bounded, uncached Cloud identities for local source-existence checks. */
+		public static function read_media_source_page( int $after ) {
+			if ( $after < 0 ) { return new WP_Error( 'cloud_site_knowledge_media_page_invalid' ); }
+			$result = self::dispatch_runtime( array(
+				'ability_name' => 'npcink-cloud/site-knowledge-status',
+				'contract_version' => 'site_knowledge_status.v1',
+				'execution_pattern' => 'inline',
+				'input' => array( 'contract_version' => 'site_knowledge_status.v1', 'media_source_page' => array( 'after_source_id' => $after, 'limit' => 100 ), 'write_posture' => 'suggestion_only', 'direct_wordpress_write' => false ),
+				'timeout_seconds' => 20, 'retry_max' => 0,
+			), 'npcink-cloud/site-knowledge-status', 'site_knowledge_status.v1' );
+			if ( is_wp_error( $result ) ) { return $result; }
+			$page = self::runtime_result_payload( $result )['media_source_page'] ?? array();
+			if ( 'complete' !== ( $page['status'] ?? '' ) || 'relational_index' !== ( $page['storage_scope'] ?? '' ) || $after !== ( $page['after_source_id'] ?? null ) || 100 !== ( $page['limit'] ?? null ) || ! is_bool( $page['has_more'] ?? null ) || ! is_int( $page['next_after_source_id'] ?? null ) || ! is_array( $page['source_ids'] ?? null ) || array_values( $page['source_ids'] ) !== $page['source_ids'] || count( $page['source_ids'] ) > 100 || ! is_string( $page['observed_at'] ?? null ) || false === strtotime( $page['observed_at'] ) || abs( time() - (int) strtotime( $page['observed_at'] ) ) > 300 ) {
+				return new WP_Error( 'cloud_site_knowledge_media_page_incomplete' );
+			}
+			$last = $after;
+			foreach ( $page['source_ids'] as $id ) {
+				if ( ! is_int( $id ) || $id <= $last ) { return new WP_Error( 'cloud_site_knowledge_media_page_invalid' ); }
+				$last = $id;
+			}
+			if ( $page['has_more'] ? ( 100 !== count( $page['source_ids'] ) || $last !== $page['next_after_source_id'] ) : 0 !== $page['next_after_source_id'] ) {
+				return new WP_Error( 'cloud_site_knowledge_media_page_invalid' );
+			}
+			return $page;
+		}
+
 		/** Fresh, selector-complete SQL evidence; never consult the summary transient. */
 		public static function read_source_presence( array $items ) {
 			$items = Npcink_Cloud_Site_Knowledge_Change_Bridge::normalize_source_selection( $items );

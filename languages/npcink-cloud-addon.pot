@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-09T01:39:18+00:00\n"
+"POT-Creation-Date: 2026-11-10T10:14:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -650,8 +650,8 @@ msgstr ""
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:117
 #: includes/class-cloud-site-knowledge-admin-actions.php:146
-#: includes/class-cloud-site-knowledge-change-bridge.php:486
-#: includes/class-cloud-site-knowledge-change-bridge.php:534
+#: includes/class-cloud-site-knowledge-change-bridge.php:497
+#: includes/class-cloud-site-knowledge-change-bridge.php:545
 msgid "Connect this site first."
 msgstr ""
 
@@ -2910,8 +2910,8 @@ msgid "queued"
 msgstr ""
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:29
-#: includes/class-cloud-site-knowledge-change-bridge.php:466
-#: includes/class-cloud-site-knowledge-change-bridge.php:493
+#: includes/class-cloud-site-knowledge-change-bridge.php:477
+#: includes/class-cloud-site-knowledge-change-bridge.php:504
 msgid "Site Knowledge delivery is disabled locally."
 msgstr ""
 
@@ -2965,7 +2965,7 @@ msgid "Article refresh requested. Check its index status again after Cloud finis
 msgstr ""
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:149
-#: includes/class-cloud-site-knowledge-change-bridge.php:543
+#: includes/class-cloud-site-knowledge-change-bridge.php:554
 msgid "The requested Site Knowledge index action is not supported."
 msgstr ""
 
@@ -3102,86 +3102,89 @@ msgstr ""
 msgid "Last verified: %s"
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:471
-msgid "Only published posts and pages can be refreshed in Site Knowledge."
-msgstr ""
-
-#: includes/class-cloud-site-knowledge-change-bridge.php:551
-msgid "Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index."
-msgstr ""
-
-#: includes/class-cloud-site-knowledge-change-bridge.php:560
-#: includes/class-cloud-site-knowledge-change-bridge.php:580
-#: includes/class-cloud-site-knowledge-change-bridge.php:623
-msgid "A Site Knowledge full-index delivery is already in progress."
-msgstr ""
-
-#: includes/class-cloud-site-knowledge-change-bridge.php:602
-msgid "No public posts or pages were found for Site Knowledge indexing."
-msgstr ""
-
-#: includes/class-cloud-site-knowledge-change-bridge.php:732
+#: includes/class-cloud-site-knowledge-change-bridge.php:104
+#: includes/class-cloud-site-knowledge-change-bridge.php:743
+#: includes/class-cloud-site-knowledge-change-bridge.php:2142
+#: includes/class-cloud-site-knowledge-change-bridge.php:2464
 msgid "Site Knowledge delete cleanup is waiting for a local retry."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:740
+#: includes/class-cloud-site-knowledge-change-bridge.php:482
+msgid "Only published posts and pages can be refreshed in Site Knowledge."
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-change-bridge.php:562
+msgid "Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index."
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-change-bridge.php:571
+#: includes/class-cloud-site-knowledge-change-bridge.php:591
+#: includes/class-cloud-site-knowledge-change-bridge.php:634
+msgid "A Site Knowledge full-index delivery is already in progress."
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-change-bridge.php:613
+msgid "No public posts or pages were found for Site Knowledge indexing."
+msgstr ""
+
+#: includes/class-cloud-site-knowledge-change-bridge.php:751
 msgid "Site Knowledge full-index delivery is blocked after bounded retries."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:781
-#: includes/class-cloud-site-knowledge-change-bridge.php:851
+#: includes/class-cloud-site-knowledge-change-bridge.php:792
+#: includes/class-cloud-site-knowledge-change-bridge.php:862
 msgid "Cloud Site Knowledge run identifier is invalid."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:796
+#: includes/class-cloud-site-knowledge-change-bridge.php:807
 msgid "Cloud Site Knowledge run did not finish within the bounded polling window."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:813
+#: includes/class-cloud-site-knowledge-change-bridge.php:824
 msgid "Cloud Site Knowledge maintenance run failed."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1183
+#: includes/class-cloud-site-knowledge-change-bridge.php:1194
 msgid "Site Knowledge sync mode must be refresh, rebuild, or delete."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1206
+#: includes/class-cloud-site-knowledge-change-bridge.php:1217
 msgid "Public source collection is incomplete; retry without withdrawing existing indexes."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1244
+#: includes/class-cloud-site-knowledge-change-bridge.php:1255
 msgid "Comment parent changed during collection; retry delivery."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1852
+#: includes/class-cloud-site-knowledge-change-bridge.php:1863
 msgid "Site Knowledge needs verification before this request can continue."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:668
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:694
 msgid "Site Knowledge runtime requests require a supported ability and contract pair."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:677
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:703
 msgid "Site Knowledge runtime requests require the expected execution pattern."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:690
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:716
 msgid "Site Knowledge runtime requests must be suggestion-only and no-write."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:701
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:727
 msgid "Site Knowledge sync transport only accepts public refresh requests. Rebuild, delete, and collection lifecycle operations belong in Cloud Site Knowledge."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:710
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:736
 msgid "Site Knowledge runtime requests must not include credentials or signing fields."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:728
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:754
 msgid "Site Knowledge runtime payload could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-site-knowledge-runtime-bridge.php:735
+#: includes/class-cloud-site-knowledge-runtime-bridge.php:761
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr ""
 
