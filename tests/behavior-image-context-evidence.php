@@ -257,6 +257,28 @@ maca_assert(
 	'Behavior: image context evidence dispatches through bounded runtime execute payload only.'
 );
 
+maca_assert(
+	30 === ( $evidence_request_body['timeout_seconds'] ?? 0 )
+	&& 40 === ( $evidence_request['args']['timeout'] ?? 0 )
+	&& 0 === ( $evidence_request_body['retry_max'] ?? -1 ),
+	'Behavior: vision HTTP wait leaves ten seconds beyond the unchanged model budget without retries.'
+);
+
+$before_vision_timeout = count( $GLOBALS['maca_http_requests'] );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 504 ),
+	'body' => wp_json_encode( array( 'status' => 'error', 'error_code' => 'provider.timeout', 'message' => 'Provider timed out.', 'data' => array( 'run_id' => 'run_vision_timeout' ) ) ),
+);
+$vision_timeout = $client->request_image_context_evidence( $evidence_request_body['input']['image_context_evidence_request'] );
+$vision_timeout_data = is_wp_error( $vision_timeout ) ? $vision_timeout->get_error_data() : array();
+maca_assert(
+	is_wp_error( $vision_timeout )
+	&& 'provider.timeout' === ( $vision_timeout_data['cloud_error_code'] ?? '' )
+	&& 'run_vision_timeout' === ( $vision_timeout_data['cloud_error_data']['run_id'] ?? '' )
+	&& count( $GLOBALS['maca_http_requests'] ) === $before_vision_timeout + 1,
+	'Behavior: vision timeout preserves the Cloud reason and original run identity without redispatch.'
+);
+
 maca_reset_test_state();
 maca_seed_settings( true );
 $GLOBALS['maca_http_response_queue'][] = array(

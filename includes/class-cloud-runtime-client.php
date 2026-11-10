@@ -1122,7 +1122,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 						? Npcink_Cloud_Runtime_Request_Guards::WP_AI_IMAGE_GENERATION_MAX_TIMEOUT_SECONDS
 						: Npcink_Cloud_Runtime_Request_Guards::WP_AI_CONNECTOR_MAX_TIMEOUT_SECONDS;
 					$timeout = max( $timeout, min( $timeout_cap, $requested_timeout ) );
-					if ( 'npcink-toolbox/review-article' === ( $payload['ability_name'] ?? '' ) ) {
+					if ( in_array( $payload['ability_name'] ?? '', array( 'npcink-toolbox/review-article', 'npcink-cloud/image-context-evidence' ), true ) ) {
 						$timeout = max( $timeout, min( $timeout_cap, $requested_timeout ) + 10 );
 					}
 				}
