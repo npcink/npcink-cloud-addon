@@ -853,3 +853,73 @@ $cloud=media_reset();$cloud->sources=array('media:501'=>true);Npcink_Cloud_Site_
 update_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,array('last_delivery_ok'=>false,'last_delivery_error'=>'Article delivery failed','last_error_code'=>'article_failure'));
 $health=Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
 maca_assert('article_failure'===$health['last_error_code']&&'media_withdrawal_blocked'===$health['media_cleanup_error'],'Concurrent article and media failures remain independently observable.');
+
+// Local/HTTP media must deliver actual pixels without asking Cloud to fetch private URLs.
+function get_attached_file( $id ) { return $GLOBALS['typed_local_files'][$id] ?? false; }
+function wp_upload_dir() { return array( 'basedir' => $GLOBALS['typed_upload_base'] ); }
+$upload_base = sys_get_temp_dir() . '/npcink-knowledge-source-' . bin2hex( random_bytes( 6 ) );
+mkdir( $upload_base );
+$GLOBALS['typed_upload_base'] = $upload_base;
+$png = base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAIAAADbtmxLAAAAPklEQVR4nO3OMQHAIADAMEDSJKITMfv39GRHoiDz2Wf8ybod+BIqQkWoCBWhIlSEilARKkJFqAgVoSJUhMoLphgB0BzDDDQAAAAASUVORK5CYII=' );
+$local_file = $upload_base . '/source.png'; file_put_contents( $local_file, $png );
+$GLOBALS['typed_local_files'][501] = $local_file;
+$cloud = typed_reset(); maca_add_public_post_fixture( 42 ); typed_image();
+$GLOBALS['maca_posts'][501]->post_mime_type = 'image/png';
+$GLOBALS['typed_media_urls'][501] = 'https://magick-ai.local/source.png';
+$upload_calls = 0; $upload_failure = false;
+$base_request = array( $cloud, 'request' );
+$GLOBALS['maca_http_response_queue'] = array();
+$upload_request = static function ( $url, $args ) use ( &$upload_request, &$upload_calls, $base_request, $cloud, $png, &$upload_failure ) {
+ $GLOBALS['maca_http_response_queue'][] = $upload_request;
+ if ( false === strpos( $url, '/media/uploads' ) ) { $r = $base_request( $url, $args ); array_pop( $GLOBALS['maca_http_response_queue'] ); return $r; }
+ $upload_calls++;
+ if ( $upload_failure ) { return new WP_Error( 'upload_unavailable', 'Unavailable' ); }
+ maca_assert( false !== strpos( $args['body'], $png ), 'Local source upload transports real attachment bytes.' );
+ return $cloud->response( array( 'result' => array( 'artifact_type' => 'media_upload_artifact', 'contract_version' => 'media_upload_result.v1', 'artifact' => array( 'artifact_id' => 'art_' . str_repeat( 'a', 32 ), 'media_kind' => 'image', 'status' => 'available', 'content_type' => 'image/png', 'format' => 'png', 'width' => 48, 'height' => 32, 'filesize_bytes' => strlen( $png ), 'checksum' => 'sha256:' . hash( 'sha256', $png ), 'expires_at' => gmdate( 'c', time() + 1800 ), 'purged_at' => null ) ) ) );
+};
+$GLOBALS['maca_http_response_queue'][] = $upload_request;
+$source = Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( typed_selection( 'media', 501 )[0] );
+maca_assert( 0 === $upload_calls, 'Reading metadata never uploads a local attachment.' );
+$payload = array( 'ability_name' => 'npcink-cloud/site-knowledge-sync', 'contract_version' => 'site_knowledge_sync.v1', 'input' => array( 'sync_mode' => 'refresh', 'media_items' => array( $source ), 'contract_version' => 'site_knowledge_sync.v1', 'write_posture' => 'suggestion_only', 'direct_wordpress_write' => false ), 'storage_mode' => 'result_only' );
+$cloud->lose_next = true;
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'local-source-test' );
+maca_assert( 1 === $upload_calls && is_wp_error( $result ) && isset( $cloud->mutations[0]['input']['media_items'][0]['source_artifact_id'] ), 'Local .local source uploads pixels before sync, with immutable artifact reference even when acceptance response is lost.' );
+$GLOBALS['maca_transients'] = array();
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'local-source-test' );
+maca_assert( ! is_wp_error( $result ) && 1 === $upload_calls && 1 === count( $cloud->mutations ) && 1 === $cloud->replays, 'A retry reuses the durable artifact payload/key after transient cache loss instead of creating a second writer.' );
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'local-source-test' );
+maca_assert( ! is_wp_error( $result ) && 1 === $upload_calls && 1 === count( $cloud->mutations ), 'Accepted delivery remains deduplicated without re-uploading an expired artifact.' );
+$payload['input']['media_items'][0]['title'] = 'Changed';
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'local-source-test' );
+maca_assert( is_wp_error( $result ) && 'cloud_site_knowledge_payload_changed' === $result->get_error_code(), 'Changed source cannot reuse an immutable key.' );
+$payload['input']['media_items'][0] = Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( typed_selection( 'media', 501 )[0] );
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'new-source-test' );
+maca_assert( ! is_wp_error( $result ) && 2 === $upload_calls, 'A distinct source delivery uploads again after cache loss.' );
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'cached-source-test' );
+maca_assert( ! is_wp_error( $result ) && 2 === $upload_calls, 'Distinct deliveries of identical pixels reuse only the fresh site-scoped upload.' );
+foreach ( $GLOBALS['maca_transients'] as $cache_key => $cache_value ) {
+ if ( 0 === strpos( $cache_key, 'npcink_sk_source_' ) ) { $GLOBALS['maca_transients'][$cache_key]['expires'] = time() + 30; }
+}
+$upload_failure = true;
+$mutations_before = count( $cloud->mutations );
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'expired-source-test' );
+maca_assert( is_wp_error( $result ) && 3 === $upload_calls && count( $cloud->mutations ) === $mutations_before, 'An expiring artifact is not reused, and upload failure prevents the sync request.' );
+$upload_failure = false;
+$GLOBALS['typed_local_files'][501] = __FILE__;
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'outside-source-test' );
+maca_assert( is_wp_error( $result ) && 'cloud_site_knowledge_media_source_file_unavailable' === $result->get_error_code() && count( $cloud->mutations ) === $mutations_before, 'An attachment outside uploads fails closed before upload or sync.' );
+$GLOBALS['typed_local_files'][501] = $local_file;
+file_put_contents( $local_file, 'not an image' );
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'invalid-source-test' );
+maca_assert( is_wp_error( $result ) && 'cloud_site_knowledge_media_source_image_invalid' === $result->get_error_code() && count( $cloud->mutations ) === $mutations_before, 'Invalid image bytes never fall back to metadata-only indexing.' );
+file_put_contents( $local_file, $png );
+$cloud->lose_next = true;
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $payload, 'uncertain-source-test' );
+$uncertain = typed_scope()['dispatches']['uncertain-source-test'];
+$op = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'exclude', typed_selection( 'media', 501 ) );
+$uploads_before_replay = $upload_calls;
+$result = Npcink_Cloud_Site_Knowledge_Change_Bridge::dispatch_mutation( $uncertain['payload'], 'uncertain-source-test', 'old_replay', $op['operation_id'] );
+maca_assert( ! is_wp_error( $result ) && $uploads_before_replay === $upload_calls, 'Withdrawal fences can replay the exact artifact-bearing writer after a lost acceptance response.' );
+$stored = typed_scope()['dispatches']['uncertain-source-test'];
+maca_assert( $stored['source_fingerprint'] === $uncertain['source_fingerprint'], 'Durable replay preserves the original semantic fingerprint.' );
+unlink( $local_file ); rmdir( $upload_base );

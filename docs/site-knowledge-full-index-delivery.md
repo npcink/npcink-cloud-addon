@@ -280,3 +280,33 @@ current Local MySQL source confirmed 69 Cloud-only identities missing and two
 matching attachments retained, with zero mutations. These observations are
 not M4 acceptance, historical data cleanup, production or customer acceptance.
 Cloud must be rolled out first; its new page field is required by this consumer.
+
+
+## Private-origin image source transport (2026-11-11)
+
+For eligible public attachments whose origin is HTTP, `.local`, localhost,
+`.internal`, or a literal private/reserved IP, the dispatch boundary uploads
+actual image bytes through the existing site-scoped `POST /v1/runtime/media/uploads`
+endpoint and adds `source_artifact_id` to the media manifest. The original URL
+and semantic media fingerprint remain unchanged. Public HTTPS sources retain
+the existing Cloud fetch path; this is not a DNS reachability guarantee.
+
+The upload reads only regular files contained in WordPress uploads, at most
+8 MiB and 16 million pixels, with exact JPEG/PNG/WebP MIME agreement. It runs
+only after public eligibility and delivery suppression checks, never from a
+metadata read, editor hook, or page render. Invalid/unavailable local bytes or
+failed uploads stop dispatch; they do not fall back to metadata-only indexing.
+Cloud's private-network fetch prohibition remains intact.
+
+A transient cache holds only the artifact ID/expiry, scoped to connection and
+file checksum, and expires before Cloud's 30-minute source TTL. No source bytes
+or local paths enter persistent delivery state. The existing durable dispatch
+stores the exact artifact-bearing body and its semantic fingerprint before the
+sync request. Lost acceptance responses and withdrawal fences replay that exact
+body/key, even after cache loss or expiry; they never mint another writer to
+replace an uncertain one. Accepted run IDs remain deduplicated.
+
+A successful transport receipt means Cloud accepted the request, not that its
+worker indexed the image. Validate final run status and exact media fingerprint
+using Cloud evidence. This change does not add completion polling to ordinary
+buffer delivery, an indefinite retry guarantee, or a new local queue.

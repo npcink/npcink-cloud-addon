@@ -1984,7 +1984,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return self::lifecycle_error( 'key_invalid' );
 			}
 			$entry = $scope['dispatches'][ $key ] ?? array();
-			if ( ! empty( $entry ) && $entry['fingerprint'] !== $fingerprint ) {
+			if ( ! empty( $entry ) && ( $entry['source_fingerprint'] ?? $entry['fingerprint'] ) !== $fingerprint && ! ( 'old_replay' === $purpose && $entry['fingerprint'] === $fingerprint ) ) {
 				return self::lifecycle_error( 'payload_changed' );
 			}
 			if ( empty( $entry ) && count( $scope['dispatches'] ) >= 500 ) {
@@ -1993,9 +1993,17 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( ! empty( $entry['run_id'] ) ) {
 				return array( 'data' => array( 'run_id' => $entry['run_id'], 'status' => 'accepted' ) );
 			}
+			$source_fingerprint = $entry['source_fingerprint'] ?? $fingerprint;
+			// A lost acceptance response must replay the exact durable body, even
+			// after its upload expires. Never replace an uncertain writer's source.
+			$payload = $entry['payload'] ?? self::prepare_media_sources( $payload, $namespace );
+			if ( is_wp_error( $payload ) ) { return $payload; }
+			$encoded = wp_json_encode( $payload );
+			if ( ! is_string( $encoded ) || strlen( $encoded ) > 900000 ) { return self::lifecycle_error( 'payload_invalid' ); }
+			$fingerprint = hash( 'sha256', $encoded );
 			$token = wp_generate_uuid4();
 			$next = $before;
-			$scope['dispatches'][ $key ] = array_merge( $entry, array( 'payload' => $payload, 'fingerprint' => $fingerprint, 'key' => $key, 'purpose' => $entry['purpose'] ?? $purpose, 'operation' => $entry['operation'] ?? $operation, 'send_state' => 'sending' ) );
+			$scope['dispatches'][ $key ] = array_merge( $entry, array( 'source_fingerprint' => $source_fingerprint, 'payload' => $payload, 'fingerprint' => $fingerprint, 'key' => $key, 'purpose' => $entry['purpose'] ?? $purpose, 'operation' => $entry['operation'] ?? $operation, 'send_state' => 'sending' ) );
 			$next['_lifecycle']['scopes'][ $namespace ] = $scope;
 			$next['_lifecycle']['owner'] = array( 'token' => $token, 'scope' => $namespace, 'key' => $key );
 			if ( strlen( serialize( $next ) ) > 4194304 ) { return self::lifecycle_error( 'durability_full' ); }
@@ -2031,6 +2039,60 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				self::compare_and_swap_delivery_state( $current, $after );
 			}
 			return $result;
+		}
+
+		/** Upload only at dispatch, and only when Cloud cannot fetch the source URL. */
+		private static function prepare_media_sources( array $payload, string $namespace ) {
+			foreach ( $payload['input']['media_items'] ?? array() as $index => $media ) {
+				$url = parse_url( (string) ( $media['url'] ?? '' ) );
+				$host = strtolower( rtrim( (string) ( $url['host'] ?? '' ), '.' ) );
+				$ip = trim( $host, '[]' );
+				$private_ip = false !== filter_var( $ip, FILTER_VALIDATE_IP ) && false === filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
+				if ( 'https' === ( $url['scheme'] ?? '' ) && '' !== $host && 'localhost' !== $host && ! preg_match( '/\.(?:local|localhost|internal)\z/', $host ) && ! $private_ip ) { continue; }
+				// Re-resolve eligibility; Cron has no interactive user and must never
+				// use an arbitrary caller-supplied attachment path or private source.
+				$current = self::public_source( array( 'source_type' => 'media', 'source_id' => (int) ( $media['attachment_id'] ?? 0 ) ) );
+				if ( ! is_array( $current ) || $current !== $media ) { return self::lifecycle_error( 'media_source_read_changed' ); }
+				$file = self::local_media_file( (int) $media['attachment_id'], (string) $media['mime_type'] );
+				if ( is_wp_error( $file ) ) { return $file; }
+				$cache_key = 'npcink_sk_source_' . hash( 'sha256', $namespace . '|' . hash( 'sha256', $file['contents'] ) );
+				$artifact = get_transient( $cache_key );
+				if ( ! is_array( $artifact ) || (int) ( $artifact['expires'] ?? 0 ) <= time() + 120 ) {
+					$client = new Npcink_Cloud_Runtime_Client();
+					$uploaded = $client->upload_media_artifact( $file, 'trace_site_knowledge_source_' . wp_generate_uuid4() );
+					if ( is_wp_error( $uploaded ) ) { return $uploaded; }
+					$artifact = array( 'artifact_id' => $uploaded['artifact_id'], 'expires' => (int) strtotime( $uploaded['expires_at'] ) );
+					if ( $artifact['expires'] <= time() + 120 ) { return self::lifecycle_error( 'media_source_expiring' ); }
+					set_transient( $cache_key, $artifact, $artifact['expires'] - time() - 120 );
+				}
+				$payload['input']['media_items'][ $index ]['source_artifact_id'] = $artifact['artifact_id'];
+			}
+			return $payload;
+		}
+
+		/** Read one public attachment, bounded to Cloud's 8 MiB / 16 MP source limit. */
+		private static function local_media_file( int $id, string $mime ) {
+			$path = get_attached_file( $id );
+			$uploads = wp_upload_dir();
+			$path = is_string( $path ) ? realpath( $path ) : false;
+			$base = realpath( (string) ( $uploads['basedir'] ?? '' ) );
+			if ( false === $path || false === $base || 0 !== strpos( $path, rtrim( $base, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR ) || ! is_file( $path ) || ! is_readable( $path ) ) { return self::lifecycle_error( 'media_source_file_unavailable' ); }
+			clearstatcache( true, $path );
+			$stat = @stat( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Raced removal fails closed.
+			if ( ! is_array( $stat ) || 0100000 !== ( $stat['mode'] & 0170000 ) || $stat['size'] < 1 || $stat['size'] > 8388608 ) { return self::lifecycle_error( 'media_source_size_invalid' ); }
+			$handle = @fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.PHP.NoSilencedErrors.Discouraged -- Bounded attachment read.
+			if ( false === $handle ) { return self::lifecycle_error( 'media_source_file_unavailable' ); }
+			$opened = fstat( $handle );
+			$matches = is_array( $opened );
+			foreach ( array( 'dev', 'ino', 'mode', 'size' ) as $field ) {
+				if ( ! $matches || $stat[ $field ] !== $opened[ $field ] ) { $matches = false; break; }
+			}
+			$contents = $matches ? stream_get_contents( $handle, 8388609 ) : false;
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+			if ( ! is_string( $contents ) || strlen( $contents ) !== $stat['size'] ) { return self::lifecycle_error( 'media_source_read_changed' ); }
+			$info = @getimagesizefromstring( $contents ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Invalid bytes fail closed.
+			if ( ! is_array( $info ) || $info['mime'] !== $mime || ! in_array( $mime, array( 'image/jpeg', 'image/png', 'image/webp' ), true ) || $info[0] < 1 || $info[1] < 1 || $info[0] * $info[1] > 16000000 ) { return self::lifecycle_error( 'media_source_image_invalid' ); }
+			return array( 'contents' => $contents, 'filename' => substr( sanitize_file_name( basename( $path ) ), -160 ), 'mime_type' => $mime );
 		}
 
 		/** At pressure only, retire up to eight positively fenced unreferenced producers. */
