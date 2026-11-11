@@ -273,7 +273,13 @@ received from the Addon observability collector. Event payloads must be shaped
 by an explicit allowlist before they reach the runtime client.
 
 `get_observability_summary()` reads a Cloud-generated aggregate dashboard
-projection. The local Addon may cache the summary for display only.
+projection. This signed read remains available, but the Addon collector does
+not mirror Cloud monitoring or Agent feedback summaries into local options.
+Its settings status reports local collection and delivery facts only. Retiring
+the unused summary mirrors does not change event capture, consent, buffering,
+scheduled uploads, or Cloud storage and aggregation. Legacy summary options
+are left untouched during ordinary operation and remain covered by explicit
+connection cleanup and uninstall.
 
 `send_agent_feedback_event()` may send only `cloud_agent_feedback.v1` local
 operator feedback for Cloud eval and quality rollups. The payload must preserve

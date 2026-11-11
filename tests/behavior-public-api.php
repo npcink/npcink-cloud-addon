@@ -62,6 +62,24 @@ maca_assert(
 );
 
 $request_count = count( $GLOBALS['maca_http_requests'] );
+$GLOBALS['maca_http_response_queue'][] = array(
+	'response' => array( 'code' => 200 ),
+	'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'events_total' => 4 ) ) ),
+);
+$feedback_summary = npcink_cloud_addon_get_agent_feedback_summary( 48, 'feedback_summary_trace' );
+$feedback_request = $GLOBALS['maca_http_requests'][ $request_count ] ?? array();
+maca_assert(
+	is_array( $feedback_summary )
+	&& 4 === ( $feedback_summary['data']['events_total'] ?? null )
+	&& false !== strpos( (string) ( $feedback_request['url'] ?? '' ), '/v1/agent-feedback/summary?window_hours=48' )
+	&& 'GET' === ( $feedback_request['args']['method'] ?? '' )
+	&& ! empty( $feedback_request['args']['headers']['X-Npcink-Signature'] )
+	&& false === Npcink_Cloud_Addon_Settings::is_monitoring_enabled()
+	&& ! isset( $GLOBALS['maca_options']['npcink_cloud_addon_agent_feedback_summary'] ),
+	'Behavior: the Toolbox feedback summary facade keeps its signed read with monitoring off and creates no local summary mirror.'
+);
+
+$request_count = count( $GLOBALS['maca_http_requests'] );
 $unexpected_field = npcink_cloud_addon_execute_toolbox_content_support_runtime(
 	array(
 		'ability_name' => 'npcink-toolbox/ai-content-support',
