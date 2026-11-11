@@ -1,5 +1,19 @@
 # Cloud Runtime Client Contract
 
+## Site Knowledge image metadata changes
+
+The existing opt-in public-content bridge buffers image changes after
+`add_attachment`, `edit_attachment`, and additions, updates or deletions of
+`_wp_attachment_image_alt` and `_wp_attached_file`. This includes removing ALT
+and replacing an attachment file through WordPress's `update_attached_file()`;
+those metadata operations need not update the attachment post's modification
+time. Unrelated metadata remains outside this trigger.
+
+Delivery uses the current public `media_items` manifest and fingerprint through
+the existing bounded buffer. It does not generate ALT, inspect pixels, change
+WordPress content, or add a scheduler. File bytes overwritten in place without
+a WordPress content/metadata event are not detected by these hooks.
+
 ## Purpose
 
 `Npcink_Cloud_Runtime_Client` is the server-side transport client for current Npcink Cloud runtime APIs.

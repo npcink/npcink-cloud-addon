@@ -1398,7 +1398,7 @@ msgstr "是"
 msgid "Manual flush command"
 msgstr "手动刷新命令"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:568
+#: includes/class-cloud-site-knowledge-change-bridge.php:569
 msgid "Site Knowledge delivery is disabled locally. Enable delivery before starting or rebuilding the index."
 msgstr "站点知识库投递已在本地关闭。开始索引或重建索引前，请先启用投递。"
 
@@ -1557,7 +1557,7 @@ msgid "Article refresh requested. Check its index status again after Cloud finis
 msgstr "已请求刷新文章。Cloud 处理完成后，请再次检查其索引状态。"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:149
-#: includes/class-cloud-site-knowledge-change-bridge.php:560
+#: includes/class-cloud-site-knowledge-change-bridge.php:561
 msgid "The requested Site Knowledge index action is not supported."
 msgstr "请求的站点知识库索引操作不受支持。"
 
@@ -1650,48 +1650,48 @@ msgid "Last verified: %s"
 msgstr "最近验收：%s"
 
 #: includes/class-cloud-site-knowledge-admin-actions.php:29
-#: includes/class-cloud-site-knowledge-change-bridge.php:483
-#: includes/class-cloud-site-knowledge-change-bridge.php:510
+#: includes/class-cloud-site-knowledge-change-bridge.php:484
+#: includes/class-cloud-site-knowledge-change-bridge.php:511
 msgid "Site Knowledge delivery is disabled locally."
 msgstr "站点知识库投递已在本地关闭。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:488
+#: includes/class-cloud-site-knowledge-change-bridge.php:489
 msgid "Only published posts and pages can be refreshed in Site Knowledge."
 msgstr "只有已发布的文章和页面可以在 Site Knowledge 中刷新。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:577
-#: includes/class-cloud-site-knowledge-change-bridge.php:597
-#: includes/class-cloud-site-knowledge-change-bridge.php:640
+#: includes/class-cloud-site-knowledge-change-bridge.php:578
+#: includes/class-cloud-site-knowledge-change-bridge.php:598
+#: includes/class-cloud-site-knowledge-change-bridge.php:641
 msgid "A Site Knowledge full-index delivery is already in progress."
 msgstr "已有一个 Site Knowledge 全量索引投递正在进行。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:619
+#: includes/class-cloud-site-knowledge-change-bridge.php:620
 msgid "No public posts or pages were found for Site Knowledge indexing."
 msgstr "没有找到可用于站点知识库索引的公开文章或页面。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:111
-#: includes/class-cloud-site-knowledge-change-bridge.php:749
+#: includes/class-cloud-site-knowledge-change-bridge.php:112
+#: includes/class-cloud-site-knowledge-change-bridge.php:750
 msgid "Site Knowledge delete cleanup is waiting for a local retry."
 msgstr "Site Knowledge 删除清理正在等待本地重试。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:757
+#: includes/class-cloud-site-knowledge-change-bridge.php:758
 msgid "Site Knowledge full-index delivery is blocked after bounded retries."
 msgstr "Site Knowledge 全量索引投递已达到重试上限并暂停。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:798
-#: includes/class-cloud-site-knowledge-change-bridge.php:868
+#: includes/class-cloud-site-knowledge-change-bridge.php:799
+#: includes/class-cloud-site-knowledge-change-bridge.php:869
 msgid "Cloud Site Knowledge run identifier is invalid."
 msgstr "Cloud 站点知识库运行标识符无效。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:813
+#: includes/class-cloud-site-knowledge-change-bridge.php:814
 msgid "Cloud Site Knowledge run did not finish within the bounded polling window."
 msgstr "Cloud Site Knowledge 运行未能在有限轮询窗口内完成。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:830
+#: includes/class-cloud-site-knowledge-change-bridge.php:831
 msgid "Cloud Site Knowledge maintenance run failed."
 msgstr "Cloud Site Knowledge 维护运行失败。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1200
+#: includes/class-cloud-site-knowledge-change-bridge.php:1201
 msgid "Site Knowledge sync mode must be refresh, rebuild, or delete."
 msgstr "站点知识库同步模式必须是 refresh、rebuild 或 delete。"
 
@@ -2595,8 +2595,8 @@ msgstr "恢复码无效。请在 Npcink Cloud 重新连接此站点以获取新�
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:117
 #: includes/class-cloud-site-knowledge-admin-actions.php:146
-#: includes/class-cloud-site-knowledge-change-bridge.php:503
-#: includes/class-cloud-site-knowledge-change-bridge.php:551
+#: includes/class-cloud-site-knowledge-change-bridge.php:504
+#: includes/class-cloud-site-knowledge-change-bridge.php:552
 msgid "Connect this site first."
 msgstr "请先连接此站点。"
 
@@ -2902,15 +2902,15 @@ msgstr "正在核对恢复结果"
 msgid "Automatic delivery"
 msgstr "自动投递"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1869
+#: includes/class-cloud-site-knowledge-change-bridge.php:1870
 msgid "Site Knowledge needs verification before this request can continue."
 msgstr "站点知识库需要核对后才能继续此请求。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1223
+#: includes/class-cloud-site-knowledge-change-bridge.php:1224
 msgid "Public source collection is incomplete; retry without withdrawing existing indexes."
 msgstr "公开内容采集不完整，请重试；现有索引将保留。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1261
+#: includes/class-cloud-site-knowledge-change-bridge.php:1262
 msgid "Comment parent changed during collection; retry delivery."
 msgstr "采集期间评论所属文章发生变化，请重试投递。"
 

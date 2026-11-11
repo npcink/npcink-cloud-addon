@@ -78,6 +78,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			add_action( 'edit_attachment', array( __CLASS__, 'handle_attachment_change' ) );
 			add_action( 'updated_post_meta', array( __CLASS__, 'handle_attachment_meta_change' ), 10, 3 );
 			add_action( 'added_post_meta', array( __CLASS__, 'handle_attachment_meta_change' ), 10, 3 );
+			add_action( 'deleted_post_meta', array( __CLASS__, 'handle_attachment_meta_change' ), 10, 3 );
 			self::sync_schedule();
 		}
 
@@ -2524,7 +2525,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		public static function handle_attachment_meta_change( $meta_id, $id, $key ): void {
-			if ( '_wp_attachment_image_alt' === $key ) {
+			if ( in_array( $key, array( '_wp_attachment_image_alt', '_wp_attached_file' ), true ) ) {
 				self::handle_attachment_change( (int) $id );
 			}
 		}
