@@ -503,6 +503,33 @@ $result = Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( '
 maca_assert( is_wp_error( $result ) && 'excluded' === typed_scope()['sources']['post:42']['state'], 'REG-01 unresolved full delivery prevents restore from racing a later site clear.' );
 unset( $GLOBALS['wpdb'] );
 
+// Metadata deletion and file replacement must reach the registered WP callbacks.
+foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) as $meta_hook ) {
+	foreach ( array( '_wp_attachment_image_alt', '_wp_attached_file' ) as $meta_key ) {
+		$cloud = typed_reset(); maca_add_public_post_fixture( 42 ); typed_image();
+		Npcink_Cloud_Site_Knowledge_Change_Bridge::register();
+		$old_media = Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( typed_selection( 'media', 501 )[0] );
+		if ( '_wp_attachment_image_alt' === $meta_key ) {
+			$GLOBALS['typed_media_alt'][501] = 'deleted_post_meta' === $meta_hook ? '' : 'Updated image ALT';
+		} else {
+			$GLOBALS['typed_media_urls'][501] = 'https://example.test/replaced-file.jpg';
+		}
+		foreach ( $GLOBALS['maca_actions'][ $meta_hook ][10] ?? array() as $listener ) {
+			call_user_func_array( $listener['callback'], array_slice( array( 'deleted_post_meta' === $meta_hook ? array( 1 ) : 1, 501, $meta_key, '' ), 0, $listener['accepted_args'] ) );
+		}
+		maca_assert( array( 501 ) === ( get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() )['post_ids'] ?? array() ), 'Media metadata: ' . $meta_hook . ' for ' . $meta_key . ' buffers the attachment through the registered hook.' );
+		maca_run_site_knowledge_flush();
+		$new_media = Npcink_Cloud_Site_Knowledge_Change_Bridge::public_source( typed_selection( 'media', 501 )[0] );
+		maca_assert( 1 === count( $cloud->mutations ) && $new_media === $cloud->mutations[0]['input']['media_items'][0] && $old_media['media_fingerprint'] !== $new_media['media_fingerprint'], 'Media metadata: ' . $meta_hook . ' for ' . $meta_key . ' delivers the current media revision.' );
+	}
+}
+$cloud = typed_reset(); maca_add_public_post_fixture( 42 ); typed_image();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_meta_change( 1, 501, '_edit_lock' );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_meta_change( array( 1 ), 501, '_wp_attachment_metadata' );
+$GLOBALS['maca_posts'][42]->post_status = 'private';
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_meta_change( array( 1 ), 501, '_wp_attachment_image_alt' );
+maca_assert( empty( get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() )['post_ids'] ) && ! $cloud->mutations, 'Media metadata: unrelated metadata and private attachments never create a delivery.' );
+
 // Old HTTP completion must acknowledge only the exact media revision it sent.
 foreach ( array( 'alt', 'title', 'caption', 'description', 'url' ) as $changed_field ) {
 	$cloud = typed_reset(); maca_add_public_post_fixture( 42 ); typed_image();
