@@ -680,7 +680,11 @@ unset( $GLOBALS['wpdb'] );
 
 // Media deletion and missed-notification recovery use real connector/CAS code with isolated SQL/Cloud doubles.
 final class MediaSourceSQL extends TypedOptionCAS {
-
+	public function update( $table, $values, $where, $formats, $where_formats ): int {
+		// MySQL reports changed rows, not matched rows, for an identical value.
+		if ( $values['option_value'] === $where['option_value'] ) { return 0; }
+		return parent::update( $table, $values, $where, $formats, $where_formats );
+	}
 }
 function media_reset(): TypedCloudFixture { $cloud=typed_reset(); $GLOBALS['wpdb']=new MediaSourceSQL(); return $cloud; }
 
@@ -709,6 +713,15 @@ for($page=1;$page<=3;$page++){
 maca_assert(3===count(typed_scope()['operations'])&&!$cloud->mutations,'Three read-only pages retain missing identities before any cleanup request.');
 typed_tick(15);
 maca_assert(array('media:2','post:1')===array_keys($cloud->sources),'Missed notifications are repaired without deleting current attachments or same-ID text.');
+
+$cloud=media_reset(); maca_add_public_post_fixture(42); typed_image(); $cloud->sources=array('media:501'=>true);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+$unchanged_state=typed_state(); $writes_before=$GLOBALS['wpdb']->writes;
+update_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,array('last_media_reconciled_at'=>'2000-01-01T00:00:00+00:00','media_reconcile_error'=>'previous_failure'));
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+$receipt=get_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION,array());
+maca_assert('2000-01-01T00:00:00+00:00'!==$receipt['last_media_reconciled_at']&&''===$receipt['media_reconcile_error'],'Successful unchanged media pages refresh their receipt and clear the prior error with real MySQL no-op update semantics.');
+maca_assert($unchanged_state===typed_state()&&$writes_before===$GLOBALS['wpdb']->writes&&!$cloud->mutations,'A healthy unchanged media page needs no lifecycle write or Cloud mutation.');
 
 $cloud=media_reset(); $cloud->sources=array('media:501'=>true); $GLOBALS['wpdb']->fail_read=true;
 Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();

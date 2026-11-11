@@ -2477,7 +2477,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( self::lifecycle_scope() !== $namespace || $after !== (int) ( $current['_lifecycle']['scopes'][ $namespace ]['media_reconcile_after'] ?? 0 ) ) { return; }
 			$next = $current;
 			$next['_lifecycle']['scopes'][ $namespace ] = array_merge( array( 'sources' => array(), 'operations' => array(), 'dispatches' => array(), 'legacy_unknown' => empty( $current['_lifecycle']['coverage_started_without_credentials'] ) ), $current['_lifecycle']['scopes'][ $namespace ] ?? array(), array( 'media_reconcile_after' => $page['next_after_source_id'] ) );
-			if ( self::compare_and_swap_delivery_state( $current, $next ) ) { self::record_media_reconciliation( '' ); }
+			if ( $next === $current || self::compare_and_swap_delivery_state( $current, $next ) ) { self::record_media_reconciliation( '' ); }
 		}
 
 		private static function record_media_reconciliation( string $error ): void {
