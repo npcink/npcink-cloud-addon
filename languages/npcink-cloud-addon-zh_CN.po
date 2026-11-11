@@ -435,23 +435,23 @@ msgstr "原始媒体指标不完整。"
 msgid "Derivative media metrics are incomplete."
 msgstr "衍生媒体指标不完整。"
 
-#: includes/class-cloud-observability-collector.php:437
+#: includes/class-cloud-observability-collector.php:435
 msgid "Cloud did not accept the monitoring state projection."
 msgstr "Cloud 未接受监控状态投影。"
 
-#: includes/class-cloud-observability-collector.php:1485
+#: includes/class-cloud-observability-collector.php:838
 msgid "Core"
 msgstr "治理核心"
 
-#: includes/class-cloud-observability-collector.php:1490
+#: includes/class-cloud-observability-collector.php:843
 msgid "Abilities"
 msgstr "原子能力"
 
-#: includes/class-cloud-observability-collector.php:1495
+#: includes/class-cloud-observability-collector.php:848
 msgid "Adapter"
 msgstr "渠道适配器"
 
-#: includes/class-cloud-observability-collector.php:1500
+#: includes/class-cloud-observability-collector.php:853
 #: includes/class-cloud-settings-page.php:245
 #: includes/class-cloud-settings-page.php:1542
 msgid "Cloud Addon"
@@ -1816,7 +1816,7 @@ msgstr "https://cloud.npc.ink/"
 msgid "Do not show again"
 msgstr "不再显示"
 
-#: includes/class-cloud-observability-collector.php:330
+#: includes/class-cloud-observability-collector.php:328
 msgid "Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again."
 msgstr "Cloud Addon 设置尚未通过验证。连接重新验证通过后，将自动恢复监控数据上传。"
 
@@ -2093,8 +2093,8 @@ msgstr "未发现待投递的公开内容变更。本次未向 Cloud 发送内�
 msgid "Cloud customer journey response did not include an accepted event count."
 msgstr "Cloud 客户旅程响应未返回已接受事件数量。"
 
-#: includes/class-cloud-observability-collector.php:371
-#: includes/class-cloud-observability-collector.php:430
+#: includes/class-cloud-observability-collector.php:369
+#: includes/class-cloud-observability-collector.php:428
 msgid "Cloud observability response did not include an accepted event count."
 msgstr "Cloud 监控响应未返回已接受事件数量。"
 
@@ -2590,9 +2590,7 @@ msgstr "服务地址必须以 https:// 开头。"
 msgid "This recovery code is not valid. Reconnect this site in Npcink Cloud to get a new one."
 msgstr "恢复码无效。请在 Npcink Cloud 重新连接此站点以获取新的恢复码。"
 
-#: includes/class-cloud-observability-collector.php:406
-#: includes/class-cloud-observability-collector.php:487
-#: includes/class-cloud-observability-collector.php:521
+#: includes/class-cloud-observability-collector.php:404
 #: includes/class-cloud-settings-actions.php:393
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:117

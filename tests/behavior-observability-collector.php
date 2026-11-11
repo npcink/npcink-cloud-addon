@@ -418,169 +418,28 @@ maca_assert(
 maca_reset_test_state();
 maca_seed_settings( true );
 maca_set_monitoring_enabled( true );
-$GLOBALS['maca_http_response_queue'][] = array(
-	'response' => array( 'code' => 200 ),
-	'body'     => wp_json_encode(
-		array(
-			'status' => 'ok',
-			'data'   => array(
-				'window'        => array(
-					'hours'         => 24,
-					'generated_at'  => '2026-06-03T00:00:00Z',
-					'authorization' => 'Bearer secret',
-				),
-				'totals'        => array(
-					'events_total' => 10,
-					'error_total'  => 1,
-					'success_rate' => 0.9,
-					'payload_json' => array( 'raw' => 'blocked' ),
-				),
-				'plugins'       => array(
-					array(
-						'plugin_slug'    => 'npcink-governance-core',
-						'events_total'   => 8,
-						'error_total'    => 1,
-						'success_rate'   => 0.875,
-						'avg_latency_ms' => 12.5,
-						'event_kinds'    => array(
-							array(
-								'event_kind'   => 'core.commit.preflight',
-								'events_total' => 2,
-								'raw_payload'  => 'blocked',
-							),
-						),
-						'secret'         => 'blocked',
-					),
-				),
-				'timeline'      => array(
-					array(
-						'bucket_start_at' => '2026-06-03T00:00:00Z',
-						'bucket_end_at'   => '2026-06-03T01:00:00Z',
-						'bucket_hours'    => 1,
-						'events_total'    => 10,
-						'raw_payload'     => 'blocked',
-					),
-				),
-				'errors'        => array(
-					array(
-						'plugin_slug'  => 'npcink-governance-core',
-						'event_kind'   => 'core.commit.preflight',
-						'error_code'   => 'core.preflight.blocked',
-						'count'        => 1,
-						'last_seen_at' => '2026-06-03T00:00:00Z',
-						'payload_json' => 'blocked',
-					),
-				),
-				'recent_errors' => array(
-					array(
-						'error_code'    => 'core.preflight.blocked',
-						'plugin_slug'   => 'npcink-governance-core',
-						'event_kind'    => 'core.commit.preflight',
-						'received_at'   => '2026-06-03T00:00:00Z',
-						'raw_response'  => 'blocked',
-						'status_detail' => '<b>blocked</b>',
-					),
-				),
-				'health'        => array(
-					'status'  => 'warning',
-					'score'   => 80,
-					'summary' => '<b>Needs review</b>',
-					'reasons' => array( 'plugin_observability.error_rate_elevated' ),
-					'state'   => array( 'operator_note' => 'blocked' ),
-				),
-				'attention'     => array(
-					array(
-						'attention_key'   => 'attention_1',
-						'severity'        => 'warning',
-						'code'            => 'plugin_observability.error_rate_elevated',
-						'title'           => 'Elevated errors',
-						'workflow_status' => 'active',
-						'state'           => array( 'operator_note' => 'blocked' ),
-					),
-				),
-				'digest'        => array(
-					'period_label' => 'daily',
-					'headline'     => 'Metadata only',
-					'bullets'      => array( 'No raw payloads', '<b>No secrets</b>' ),
-					'token'        => 'blocked',
-				),
-				'payload_json'  => array( 'raw' => 'blocked' ),
-				'secret'        => 'blocked',
-			),
-		)
-	),
+$legacy_summary_options = array(
+	'npcink_cloud_addon_observability_summary',
+	'npcink_cloud_addon_agent_feedback_summary',
 );
-$summary = Npcink_Cloud_Observability_Collector::refresh_summary();
-$cached_summary = is_array( $summary['summary'] ?? null ) ? $summary['summary'] : array();
+foreach ( $legacy_summary_options as $option ) {
+	update_option( $option, array( 'summary' => array( 'events_total' => 99 ) ), false );
+}
+$local_status = Npcink_Cloud_Observability_Collector::get_status();
 maca_assert(
-	! empty( $summary['last_refresh_ok'] )
-	&& 10 === absint( $cached_summary['totals']['events_total'] ?? 0 )
-	&& 'npcink-governance-core' === (string) ( $cached_summary['plugins'][0]['plugin_slug'] ?? '' )
-	&& 'core.commit.preflight' === (string) ( $cached_summary['plugins'][0]['event_kinds'][0]['event_kind'] ?? '' )
-	&& 10 === absint( $cached_summary['timeline'][0]['events_total'] ?? 0 )
-	&& 'core.preflight.blocked' === (string) ( $cached_summary['errors'][0]['error_code'] ?? '' )
-	&& 'blocked' === (string) ( $cached_summary['recent_errors'][0]['status_detail'] ?? '' )
-	&& 'warning' === (string) ( $cached_summary['health']['status'] ?? '' )
-	&& 'attention_1' === (string) ( $cached_summary['attention'][0]['attention_key'] ?? '' )
-	&& ! array_key_exists( 'payload_json', $cached_summary )
-	&& ! array_key_exists( 'secret', $cached_summary )
-	&& ! array_key_exists( 'authorization', $cached_summary['window'] ?? array() )
-	&& ! array_key_exists( 'payload_json', $cached_summary['totals'] ?? array() )
-	&& ! array_key_exists( 'secret', $cached_summary['plugins'][0] ?? array() )
-	&& ! array_key_exists( 'raw_payload', $cached_summary['plugins'][0]['event_kinds'][0] ?? array() )
-	&& ! array_key_exists( 'raw_payload', $cached_summary['timeline'][0] ?? array() )
-	&& ! array_key_exists( 'payload_json', $cached_summary['errors'][0] ?? array() )
-	&& ! array_key_exists( 'raw_response', $cached_summary['recent_errors'][0] ?? array() )
-	&& ! array_key_exists( 'state', $cached_summary['health'] ?? array() )
-	&& ! array_key_exists( 'state', $cached_summary['attention'][0] ?? array() )
-	&& ! array_key_exists( 'token', $cached_summary['digest'] ?? array() ),
-	'Behavior: Cloud summary refresh stores only sanitized allowlisted summary fields.'
+	! array_key_exists( 'remote_summary', $local_status )
+	&& ! array_key_exists( 'agent_feedback_summary', $local_status )
+	&& array() === $GLOBALS['maca_http_requests'],
+	'Behavior: local monitoring status does not expose or refresh retired Cloud summary mirrors.'
 );
-
-maca_reset_test_state();
-maca_seed_settings( true );
-$GLOBALS['maca_http_response_queue'][] = array(
-	'response' => array( 'code' => 200 ),
-	'body'     => wp_json_encode(
-		array(
-			'status' => 'ok',
-			'data'   => array(
-				'contract_version'   => 'cloud_agent_feedback.v1',
-				'window_hours'       => 24,
-				'events_total'       => 4,
-				'source_runtimes'    => array( 'site_knowledge', 'image_candidates' ),
-				'low_quality_labels' => array(
-					array(
-						'label' => 'wrong_next_step',
-						'count' => 2,
-					),
-				),
-				'rejection_reasons'  => array(
-					'unsupported_claim' => 1,
-				),
-				'prompt'             => 'must not be stored',
-				'raw_request'        => array( 'body' => 'must not be stored' ),
-			),
-		)
-	),
-);
-$agent_summary = Npcink_Cloud_Observability_Collector::refresh_agent_feedback_summary();
-$status = Npcink_Cloud_Observability_Collector::get_status();
-$cached_agent_summary = is_array( $status['agent_feedback_summary']['summary'] ?? null ) ? $status['agent_feedback_summary']['summary'] : array();
-$agent_request = $GLOBALS['maca_http_requests'][0] ?? array();
-maca_assert(
-	! empty( $agent_summary['last_refresh_ok'] )
-	&& false !== strpos( (string) ( $agent_request['url'] ?? '' ), '/v1/agent-feedback/summary?window_hours=24' )
-	&& 4 === absint( $cached_agent_summary['events_total'] ?? 0 )
-	&& in_array( 'site_knowledge', $cached_agent_summary['source_runtimes'] ?? array(), true )
-	&& 'wrong_next_step' === (string) ( $cached_agent_summary['low_quality_labels'][0]['label'] ?? '' )
-	&& 'unsupported_claim' === (string) ( $cached_agent_summary['rejection_reasons'][0]['label'] ?? '' )
-	&& ! array_key_exists( 'prompt', $cached_agent_summary )
-	&& ! array_key_exists( 'raw_request', $cached_agent_summary )
-	&& false === (bool) ( $cached_agent_summary['production_mutation'] ?? true )
-	&& 'wordpress_local' === (string) ( $cached_agent_summary['approval_truth'] ?? '' ),
-	'Behavior: Agent feedback quality summary refresh is read-only, sanitized, and independent from monitoring upload opt-in.'
-);
+foreach ( $legacy_summary_options as $option ) {
+	maca_assert(
+		0 === ( $GLOBALS['maca_option_read_counts'][ $option ] ?? 0 )
+		&& 1 === $GLOBALS['maca_option_update_counts'][ $option ]
+		&& array( 'summary' => array( 'events_total' => 99 ) ) === $GLOBALS['maca_options'][ $option ],
+		'Behavior: reading local status leaves legacy summary storage untouched: ' . $option
+	);
+}
 
 maca_reset_test_state();
 maca_seed_settings( true );

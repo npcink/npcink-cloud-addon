@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-11T01:09:24+00:00\n"
+"POT-Creation-Date: 2026-11-11T01:45:01+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -634,18 +634,16 @@ msgstr ""
 msgid "Media derivative runtime artifacts require a valid future expiry."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:330
+#: includes/class-cloud-observability-collector.php:328
 msgid "Cloud Addon settings are not verified. Monitoring uploads resume after the connection is verified again."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:371
-#: includes/class-cloud-observability-collector.php:430
+#: includes/class-cloud-observability-collector.php:369
+#: includes/class-cloud-observability-collector.php:428
 msgid "Cloud observability response did not include an accepted event count."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:406
-#: includes/class-cloud-observability-collector.php:487
-#: includes/class-cloud-observability-collector.php:521
+#: includes/class-cloud-observability-collector.php:404
 #: includes/class-cloud-settings-actions.php:393
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:117
@@ -655,23 +653,23 @@ msgstr ""
 msgid "Connect this site first."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:437
+#: includes/class-cloud-observability-collector.php:435
 msgid "Cloud did not accept the monitoring state projection."
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1485
+#: includes/class-cloud-observability-collector.php:838
 msgid "Core"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1490
+#: includes/class-cloud-observability-collector.php:843
 msgid "Abilities"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1495
+#: includes/class-cloud-observability-collector.php:848
 msgid "Adapter"
 msgstr ""
 
-#: includes/class-cloud-observability-collector.php:1500
+#: includes/class-cloud-observability-collector.php:853
 #: includes/class-cloud-settings-page.php:245
 #: includes/class-cloud-settings-page.php:1542
 msgid "Cloud Addon"

@@ -1495,11 +1495,7 @@ maca_assert(
 );
 
 maca_assert(
-	false !== strpos( $observability, 'AGENT_SUMMARY_OPTION' )
-	&& false !== strpos( $observability, 'refresh_agent_feedback_summary' )
-	&& false !== strpos( $observability, 'get_agent_feedback_summary( 24' )
-	&& false !== strpos( $observability, 'sanitize_agent_feedback_summary_payload' )
-	&& false === strpos( $settings_page, 'Monitoring & Quality' )
+	false === strpos( $settings_page, 'Monitoring & Quality' )
 	&& false === strpos( $settings_page, 'Refresh monitoring and quality' )
 	&& false === strpos( $settings_page, 'ACTION_REFRESH_MONITORING' )
 	&& false === strpos( $settings_page, 'function handle_refresh_monitoring' )
