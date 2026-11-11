@@ -31,9 +31,13 @@ Self-hosted Cloud endpoint` entry. That entry only changes the authorization tar
 compatible Npcink Cloud deployment; it must not save partial credentials before
 authorization completes and must not manage Cloud sites, keys, billing, models,
 router, workflows, or runtime policy.
-Cloud authorization entries should open in a new browser tab so the WordPress
-admin page remains available while Cloud creates or activates the site
-connection.
+The primary connection and inactive-site recovery actions use a same-tab,
+click-time authorization form. This supplies fresh return context so Cloud
+confirmation returns to WordPress for credential exchange and verification.
+The folded custom-endpoint entry may open in a new browser tab. Cloud owns explicit
+activation and any customer-selected site replacement; the Addon owns only
+the handoff and verification. The separate activation recheck stays available
+for older Cloud services and manual Portal lifecycle changes.
 The connection action must state that Free service and credits belong to the
 selected Cloud account rather than the site, and that cross-account changes are
 subject to the removal and cooldown requirements shown by Cloud.
