@@ -497,6 +497,12 @@ maca_assert(
 	&& false === strpos( $inactive_rendered, 'Signed verification failed' ),
 	'Behavior: an inactive bound site renders activation recovery actions without calling it a signature failure.'
 );
+maca_assert(
+	1 === substr_count( $inactive_rendered, 'class="npcink-cloud-authorization-form"' )
+	&& false !== strpos( $inactive_rendered, Npcink_Cloud_Settings_Actions::ACTION_START_AUTH )
+	&& 0 === preg_match( '/<form class="npcink-cloud-authorization-form"[^>]*target=/', $inactive_rendered ),
+	'Behavior: inactive-site recovery starts a fresh same-tab authorization handoff so Cloud can return and verify activation.'
+);
 
 maca_reset_test_state();
 maca_seed_settings( true );

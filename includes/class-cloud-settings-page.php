@@ -738,7 +738,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			?>
 			<div class="npcink-cloud-summary__actions">
 				<?php if ( $activation_required ) : ?>
-					<a class="button button-primary" href="<?php echo esc_url( self::portal_url( $settings ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Npcink Cloud', 'npcink-cloud-addon' ); ?></a>
+					<?php self::render_authorization_form( __( 'Open Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary' ); ?>
 				<?php elseif ( $is_verified ) : ?>
 					<?php if ( $service_needs_attention ) : ?>
 						<?php self::render_reverify_form( $settings ); ?>
