@@ -2077,6 +2077,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$path = is_string( $path ) ? realpath( $path ) : false;
 			$base = realpath( (string) ( $uploads['basedir'] ?? '' ) );
 			if ( false === $path || false === $base || 0 !== strpos( $path, rtrim( $base, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR ) || ! is_file( $path ) || ! is_readable( $path ) ) { return self::lifecycle_error( 'media_source_file_unavailable' ); }
+			clearstatcache( true, $path );
 			$stat = @stat( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Raced removal fails closed.
 			if ( ! is_array( $stat ) || 0100000 !== ( $stat['mode'] & 0170000 ) || $stat['size'] < 1 || $stat['size'] > 8388608 ) { return self::lifecycle_error( 'media_source_size_invalid' ); }
 			$handle = @fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.PHP.NoSilencedErrors.Discouraged -- Bounded attachment read.
