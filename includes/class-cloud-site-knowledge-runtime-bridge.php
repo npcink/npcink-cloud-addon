@@ -618,7 +618,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 		}
 
 		/** Cloud66 executor markers plus exact identity and explicit failure provenance. */
-		public static function read_writer_witness( array $entry ) {
+		public static function read_writer_witness( array $entry, bool $allow_unverified_exit = false ) {
 			$id = $entry['run_id'] ?? '';
 			if ( ! is_string( $id ) || ! preg_match( '/\A[A-Za-z0-9._:-]+\z/', $id ) ) {
 				return new WP_Error( 'cloud_site_knowledge_writer_identity_unknown' );
@@ -649,6 +649,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
 			}
 			if ( 'failed' === $status && $normal_failure ) {
 				return array( 'run_id' => $id, 'status' => $status, 'succeeded' => false, 'error_code' => $error );
+			}
+			// Automatic absence repair can rescan after a late write. A failed
+			// record with an exact identity still does not prove executor exit.
+			if ( $allow_unverified_exit && 'failed' === $status && is_string( $error ) && '' !== $error ) {
+				return array( 'run_id' => $id, 'status' => $status, 'succeeded' => false, 'exit_unverified' => true );
 			}
 			return new WP_Error( 'cloud_site_knowledge_writer_unknown' );
 		}

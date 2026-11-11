@@ -2229,11 +2229,16 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( ! empty( $op['legacy_unknown'] ) && 'withdraw_media' !== $op['action'] ) {
 				return self::lifecycle_error( 'legacy_writer_identity_unknown' );
 			}
+			$automatic = 'withdraw_media' === $op['action'];
 			$known = $op['old_terminal'] ?? array();
+			$unverified = $op['unverified_writers'] ?? array();
+			$progress = static function ( string $reason ) use ( &$known, &$unverified ): array {
+				return array( 'old_terminal' => $known, 'unverified_writers' => $unverified, 'reason' => $reason );
+			};
 			$checked = 0;
 			foreach ( $op['old'] as $key ) {
-				if ( isset( $known[ $key ] ) ) { continue; }
-				if ( $checked++ >= 4 ) { return array( 'old_terminal' => $known, 'reason' => 'checking_old_writers' ); }
+				if ( isset( $known[ $key ] ) || ( $automatic && isset( $unverified[ $key ] ) ) ) { continue; }
+				if ( $checked++ >= 4 ) { return $progress( 'checking_old_writers' ); }
 				$entry = $scope['dispatches'][ $key ] ?? array();
 				if ( 'not_sent' === ( $entry['send_state'] ?? '' ) ) {
 					$known[ $key ] = array( 'not_sent' => true );
@@ -2241,21 +2246,27 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				}
 				if ( empty( $entry['run_id'] ) ) {
 					if ( ! empty( $entry['payload'] ) ) { self::dispatch_mutation( $entry['payload'], $key, 'old_replay', $op['id'] ); }
-					return array( 'old_terminal' => $known, 'reason' => 'old_writer_identity_unknown' );
+					return $progress( 'old_writer_identity_unknown' );
 				}
-				$witness = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_writer_witness( $entry );
-				if ( is_wp_error( $witness ) ) { return array( 'old_terminal' => $known, 'reason' => $witness->get_error_code() ); }
+				$witness = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_writer_witness( $entry, $automatic );
+				if ( is_wp_error( $witness ) ) { return $progress( $witness->get_error_code() ); }
+				if ( ! empty( $witness['exit_unverified'] ) ) {
+					$unverified[ $key ] = $witness['run_id'];
+					continue;
+				}
 				$known[ $key ] = array( 'run_id' => $witness['run_id'], 'status' => $witness['status'] );
 			}
 			$terminal = array_values( array_filter( $known, static function ( $witness ) { return isset( $witness['run_id'] ); } ) );
 			usort( $terminal, static function ( $a, $b ) { return strcmp( $a['run_id'], $b['run_id'] ); } );
-			if ( ! empty( $terminal ) ) {
+			$recheck = (int) ( $op['c1_recheck'] ?? 0 );
+			if ( ! empty( $terminal ) || ! empty( $unverified ) ) {
 				$phase = 'c1_' . hash( 'sha256', (string) wp_json_encode( $terminal ) );
+				if ( $recheck > 0 ) { $phase .= '_' . $recheck; }
 				if ( isset( $op['c1'] ) && $op['c1'] !== $phase ) {
 					return self::lifecycle_error( 'terminal_set_changed' );
 				}
 				if ( ! isset( $op['c1'] ) ) {
-					return array( 'c1' => $phase, 'terminal_writers' => $terminal, 'old_terminal' => $known );
+					return $progress( '' ) + array( 'c1' => $phase, 'terminal_writers' => $terminal );
 				}
 				$c1 = self::operation_run( $op, $scope, $phase, $payload );
 				if ( is_wp_error( $c1 ) || ! $c1['succeeded'] ) {
@@ -2268,10 +2279,16 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 			foreach ( $presence['items'] as $row ) {
 				if ( $row['document_present'] || $row['stored_chunk_count'] || $row['associated_comment_document_count'] || $row['associated_comment_stored_chunk_count'] ) {
+					if ( $automatic && ! empty( $unverified ) ) {
+						// A late write landed after C1. Advance the delete identity only
+						// on positive presence evidence; the existing poll cap still applies.
+						// null makes isset(c1) false so the new phase is persisted before dispatch.
+						return $progress( 'source_still_present' ) + array( 'c1' => null, 'c1_recheck' => $recheck + 1 );
+					}
 					return self::lifecycle_error( 'source_still_present' );
 				}
 			}
-			return array( 'status' => 'completed', 'reason' => '', 'observed_at' => $presence['observed_at'] );
+			return $progress( '' ) + array( 'status' => 'completed', 'observed_at' => $presence['observed_at'] );
 		}
 
 		private static function advance_source_restore( array $op, array $scope ) {

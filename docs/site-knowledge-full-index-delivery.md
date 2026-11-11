@@ -255,6 +255,16 @@ writers ended. Explicit user exclusion retains its stronger unknown-writer
 block. This is a bounded eventual repair exception to that stronger exclusion
 guarantee, not a way to clear the unknown flag.
 
+For automatic withdrawal only, a failed writer record with matching run,
+site, idempotency key, contract and executor identifiers can proceed to
+compensation even when its exit cannot be verified. Such records are retained
+separately from verified terminal writers. Transport errors, mismatched
+receipts and running writers still stop advancement. If a late write is
+observed after compensation, the next attempt uses a new delete identity
+within the existing poll limit; fresh typed absence is required to complete.
+After completion, the existing hourly scan can repair another late write.
+Explicit exclusions still require verified exit.
+
 If an attachment reappears during an unresolved withdrawal, deletion stops and
 keeps the source pending rather than deciding what restoration should mean.
 The existing poll cap eventually blocks it with a visible error; unrelated

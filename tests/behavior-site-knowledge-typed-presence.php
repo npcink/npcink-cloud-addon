@@ -715,6 +715,58 @@ maca_assert(isset(typed_scope()['sources']['media:501']),'An old running media p
 $cloud->runs[$old_id]['status']='succeeded';$cloud->runs[$old_id]['finished_at']=gmdate('c');$cloud->sources['media:501']=true;typed_tick(8);
 maca_assert(!isset($cloud->sources['media:501'])&&!isset(typed_scope()['sources']['media:501'])&&$cloud->delete_calls>=2,'Late media writer is fenced and compensated before withdrawal is acknowledged.');
 
+// A failed record may be closed for automatic absence repair without proving exit.
+foreach ( array( 'matching', 'wrong_site', 'late_before_presence', 'persistent_late_writes' ) as $receipt ) {
+	$cloud = media_reset();
+	maca_add_public_post_fixture( 42 );
+	typed_image();
+	$removed = clone $GLOBALS['maca_posts'][501];
+	$cloud->hold_producers = true;
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::request_public_post_refresh( 42 );
+	$old_id = array_key_first( $cloud->runs );
+	$cloud->runs[$old_id]['status'] = 'failed';
+	$cloud->runs[$old_id]['error_code'] = 'runtime.operator_stale_running_failed';
+	$cloud->runs[$old_id]['finished_at'] = gmdate( 'c' );
+	if ( 'wrong_site' === $receipt ) { $cloud->runs[$old_id]['site_id'] = 'wrong-site'; }
+	$cloud->sources = array( 'media:501' => true, 'post:42' => true );
+	unset( $GLOBALS['maca_posts'][501] );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment( 501, $removed );
+	if ( 'persistent_late_writes' === $receipt ) {
+		$cloud->status_result_filter = static function ( $result ) use ( $cloud ) {
+			if ( isset( $result['source_presence'] ) ) {
+				$cloud->sources['media:501'] = true;
+				$result['source_presence']['items'][0] = array_merge( $result['source_presence']['items'][0], array( 'document_present' => true, 'public_document_present' => true, 'stored_chunk_count' => 1, 'public_chunk_count' => 1 ) );
+			}
+			return $result;
+		};
+		typed_tick( 150 );
+		$operation = reset( typed_scope()['operations'] );
+		$deletes = $cloud->delete_calls;
+		typed_tick( 10 );
+		maca_assert( 'blocked' === $operation['status'] && 121 === $operation['polls'] && $deletes > 2 && $deletes === $cloud->delete_calls, 'Persistent late writes hit the outer poll cap and cannot dispatch further compensation.' );
+		continue;
+	}
+	typed_tick( 3 );
+	if ( 'late_before_presence' === $receipt ) {
+		maca_assert( 2 === $cloud->delete_calls, 'The first compensation has executed before the simulated late write.' );
+		$cloud->sources['media:501'] = true;
+	}
+	typed_tick( 8 );
+	$scope = typed_scope();
+	$operation = reset( $scope['operations'] );
+	if ( 'wrong_site' === $receipt ) {
+		maca_assert( 'pending' === $operation['status'] && 1 === $cloud->delete_calls, 'Media repair does not accept a failed receipt with the wrong site identity.' );
+		continue;
+	}
+	$dispatch = reset( $scope['dispatches'] );
+	$expected_deletes = 'late_before_presence' === $receipt ? 3 : 2;
+	maca_assert( 'completed' === $operation['status'] && array( $dispatch['key'] => $old_id ) === $operation['unverified_writers'] && empty( $operation['old_terminal'] ) && $old_id === $dispatch['run_id'] && $expected_deletes === $cloud->delete_calls && ! isset( $scope['sources']['media:501'] ) && ! isset( $cloud->sources['media:501'] ) && isset( $cloud->sources['post:42'] ), 'Automatic absence is confirmed after C1 while the old producer and its unverified exit remain recorded.' );
+	$cloud->sources['media:501'] = true;
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+	typed_tick( 8 );
+	maca_assert( ! isset( $cloud->sources['media:501'] ) && isset( $cloud->sources['post:42'] ) && $expected_deletes + 2 === $cloud->delete_calls, 'Hourly reconciliation compensates a later write from a failed run whose exit is unverified.' );
+}
+
 $cloud=media_reset();$cloud->sources=array('media:501'=>true);
 Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();typed_image();typed_tick();
 maca_assert(!$cloud->mutations&&isset($cloud->sources['media:501']),'Attachment reappearing before dispatch prevents deletion and retains a visible unresolved operation.');
