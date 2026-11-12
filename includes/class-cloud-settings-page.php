@@ -1316,9 +1316,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			<div class="card npcink-cloud-card npcink-cloud-checks-simple npcink-cloud-checks-simple--<?php echo esc_attr( $simple_tone ); ?>">
 				<?php self::render_status_line( $simple_message, $simple_tone ); ?>
 				<p class="description"><?php echo esc_html( $simple_hint ); ?></p>
-				<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
+				<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start" id="npcink-cloud-checks-actions">
 					<?php if ( $credentials_ok && $activation_required ) : ?>
-						<a class="button button-primary" href="<?php echo esc_url( self::tab_url( 'connection' ) ); ?>"><?php esc_html_e( 'Open Connection', 'npcink-cloud-addon' ); ?></a>
+						<?php self::render_authorization_form( __( 'Open Npcink Cloud', 'npcink-cloud-addon' ), 'button button-primary' ); ?>
 					<?php elseif ( 'warn' === $simple_tone && $connection_ok && $site_knowledge_needs_attention && empty( $entitlement['stale'] ) ) : ?>
 						<a class="button button-primary" href="#npcink-cloud-sk-delivery"><?php esc_html_e( 'View delivery detail', 'npcink-cloud-addon' ); ?></a>
 					<?php elseif ( 'warn' === $simple_tone && $connection_ok && empty( $entitlement['stale'] ) && ! empty( $capability_attention ) ) : ?>
@@ -1648,7 +1648,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$portal_url = untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal';
 			if ( 'retry_test' === $next_action_token ) {
 				$action_markup = '<a href="#npcink-cloud-run-readiness-test">' . esc_html__( 'Retry', 'npcink-cloud-addon' ) . '</a>';
-			} elseif ( in_array( $next_action_token, array( 'open_settings', 'activate_site' ), true ) ) {
+			} elseif ( 'activate_site' === $next_action_token ) {
+				$action_markup = '<a href="#npcink-cloud-checks-actions">' . esc_html__( 'Reconnect', 'npcink-cloud-addon' ) . '</a>';
+			} elseif ( 'open_settings' === $next_action_token ) {
 				$action_markup = '<a href="' . esc_url( self::tab_url( 'connection' ) ) . '">' . esc_html__( 'Open Connection', 'npcink-cloud-addon' ) . '</a>';
 			} elseif ( 'check_cloud_status' === $next_action_token ) {
 				$action_markup = '<a href="' . esc_url( $portal_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Check Cloud status', 'npcink-cloud-addon' ) . '</a>';

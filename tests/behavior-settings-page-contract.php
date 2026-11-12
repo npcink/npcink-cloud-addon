@@ -1446,11 +1446,13 @@ maca_assert(
 	&& false !== strpos( $inactive_checks_html, 'npcink-cloud-checks-simple--warn' )
 	&& false === strpos( $inactive_checks_html, 'The service has a problem we cannot fix automatically.' )
 	&& false === strpos( $inactive_checks_html, '>Contact support</a>' )
-	&& false !== strpos( $inactive_checks_html, 'tab=connection' ),
+	&& 1 === substr_count( $inactive_checks_html, 'class="npcink-cloud-authorization-form"' )
+	&& false !== strpos( $inactive_checks_html, 'npcink_cloud_addon_start_auth' )
+	&& 0 === preg_match( '/<form class="npcink-cloud-authorization-form"[^>]*target=/', $inactive_checks_html ),
 	'Checks: an inactive signed response overrides earlier verified credentials with activation guidance, not a service fault.'
 );
 $inactive_detail = Npcink_Cloud_Settings_Page::format_readiness_detail_markup( $inactive_check, Npcink_Cloud_Addon_Settings::get_settings() );
-maca_assert( false !== strpos( $inactive_detail, 'tab=connection' ) && false === strpos( $inactive_detail, 'Retry</a>' ), 'Checks: detailed inactive recovery links to the existing connection handoff instead of retrying an inactive site.' );
+maca_assert( false !== strpos( $inactive_detail, '#npcink-cloud-checks-actions' ) && false === strpos( $inactive_detail, 'Retry</a>' ), 'Checks: detailed inactive recovery links to its actual same-tab authorization action instead of a connection page with no handoff.' );
 delete_transient( 'npcink_cloud_readiness_1' );
 Npcink_Cloud_Entitlement_Summary::cache_summary_from_response( array( 'entitlement' => array( 'wordpress_ai_capabilities' => $diagnostic_capabilities ) ) );
 update_option( Npcink_Cloud_Observability_Collector::STATUS_OPTION, array( 'last_upload_ok' => true, 'last_uploaded_at' => gmdate( 'c' ), 'buffer_count' => 200 ), false );

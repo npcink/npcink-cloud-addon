@@ -171,7 +171,8 @@ existing local slot, liveness, and signed-read statuses, such as
 For a reachable service returning exactly `auth.site_inactive`, the result keeps
 `status=failed` and signed-read failure facts but projects `owner_label=operator`
 and `next_safe_action=activate_site`. Checks directs the owner to the existing
-Connection handoff instead of classifying a disabled site as a service outage.
+same-tab authorization form instead of classifying a disabled site as a service
+outage or linking to an already-verified Connection page without recovery.
 A successful connection verification clears the current administrator's older
 manual-check transient; it does not claim that a model generation was tested.
 The local Diagnostics page must trigger this test only through an explicit

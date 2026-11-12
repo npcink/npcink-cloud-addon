@@ -43,6 +43,9 @@ availability. See [reversible pauses](docs/reversible-feature-pauses-v1.md).
 
 ## Engineering Decisions and Standards
 
+- [停用站点连接恢复验收](docs/inactive-site-connection-acceptance-2026-11-12.md)记录提示、
+  授权按钮、真实回调和本地注入样本的证据边界。
+
 - [媒体同步验收与复盘](docs/media-source-sync-retrospective-2026-11-12.md)汇总删除、
   漏通知、许可关闭和三次失败恢复的实测，区分测试站、生产与未验证事项。
 
