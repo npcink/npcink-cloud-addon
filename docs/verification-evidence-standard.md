@@ -125,3 +125,24 @@ into the isolated combination candidate, not master. Fixed-UI auditing reached
 zero gaps and the exact combined ZIP was browser-checked in a disposable
 WordPress fixture. Plugin distribution and production-site acceptance remain
 separate; source merge and CI do not grant either permission.
+
+## 媒体源同步与恢复验收
+
+变更删除、补偿、重试或 Cron 时，至少覆盖：正常新增／修改／删除、严格漏通知、
+有效项保留、许可关闭、失败后恢复。先本地复现，再在获授权站点用最少临时样本
+验收；默认不添加产品入口或永久运维配置。
+
+分别记录事件捕获、缓冲持久化、下一次唤醒、请求接受、Cloud 运行结果、精确文档／
+分块存在性以及撤回 completed。HTTP 200、索引暂空、任务被人工标失败，均不能
+替代其余状态。核对旧写入并保留未核实退出，不能为验收清空安全标记。
+
+故障注入和到期提前必须标注；至少一次真实 Cron 回调证明冷却不被绕过及到期补投，
+不能声称已经等待自然一小时或验证长期稳定。证明去重身份、文件指纹与实际加载
+文件一致。源码、包、本机、M4、测试站、生产部署和人工验收保持分别记账。
+
+离开环境前，核对测试图片文件／行及云端文档／块均已移除，撤回已完成，原内容和
+设置已恢复，绑定未丢失；再撤临时 Cron、保护代码、标记和注入状态。把证据移出
+临时 worktree，链接到仓库复盘和活动文档后才清理分支。主机故障的恢复与根因
+结论分开，未复现的对照不能授权永久调参或关闭独立调查。
+
+实例与限制见[2026-11-12 复盘](media-source-sync-retrospective-2026-11-12.md)。
