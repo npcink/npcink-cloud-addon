@@ -175,15 +175,17 @@ if ( ! function_exists( 'npcink_cloud_addon_dispatch_media_derivative_cloud_requ
 	 * @param string              $trace_id Optional trace id.
 	 * @param string              $idempotency_key Optional idempotency key.
 	 * @param array<string,mixed> $watermark_artifact Optional short TTL watermark artifact or upload descriptor.
+	 * @param string $processing_purpose Optional bounded save_as_new.v1 preview purpose.
 	 * @return array<string,mixed>|WP_Error
 	 */
-	function npcink_cloud_addon_dispatch_media_derivative_cloud_request( array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '', array $watermark_artifact = array() ) {
+	function npcink_cloud_addon_dispatch_media_derivative_cloud_request( array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '', array $watermark_artifact = array(), string $processing_purpose = '' ) {
 		return Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response(
 			$ability_response,
 			$source_artifact,
 			$trace_id,
 			$idempotency_key,
-			$watermark_artifact
+			$watermark_artifact,
+			$processing_purpose
 		);
 	}
 }

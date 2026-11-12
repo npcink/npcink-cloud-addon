@@ -11,6 +11,29 @@ defined( 'ABSPATH' ) || exit;
 
 final class Npcink_Cloud_Discoverability_Pause {
 	public const ACTIVE = true;
+	public const SAVE_AS_NEW_PURPOSE = 'save_as_new.v1';
+
+	/** Narrow preview exception; this marker grants no WordPress write authority. */
+	public static function is_save_as_new_media_job( array $payload ): bool {
+		$required = array( 'request_contract_version', 'operation', 'source_artifact_id', 'params', 'result_ttl_minutes', 'processing_purpose' );
+		$params = $payload['params'] ?? null;
+		return array() === array_diff( $required, array_keys( $payload ) )
+			&& array() === array_diff( array_keys( $payload ), array_merge( $required, array( 'watermark_artifact_id' ) ) )
+			&& self::SAVE_AS_NEW_PURPOSE === ( $payload['processing_purpose'] ?? null )
+			&& 'media_job_request.v1' === ( $payload['request_contract_version'] ?? null )
+			&& 'image.transform.v1' === ( $payload['operation'] ?? null )
+			&& is_string( $payload['source_artifact_id'] ?? null )
+			&& 1 === preg_match( '/^art_[0-9a-f]{32}$/', $payload['source_artifact_id'] )
+			&& 30 === ( $payload['result_ttl_minutes'] ?? null )
+			&& is_array( $params )
+			&& array() === array_diff( array_keys( $params ), array( 'mode', 'target_format', 'max_width', 'resize_mode', 'quality', 'source_media_type', 'watermark' ) )
+			&& 'manual' === ( $params['mode'] ?? null )
+			&& 'preserve' === ( $params['resize_mode'] ?? null )
+			&& 'image' === ( $params['source_media_type'] ?? null )
+			&& in_array( $params['target_format'] ?? null, array( 'webp', 'avif', 'jpeg', 'png', 'original' ), true )
+			&& is_int( $params['quality'] ?? null ) && $params['quality'] >= 1 && $params['quality'] <= 100
+			&& is_int( $params['max_width'] ?? null ) && $params['max_width'] >= 1 && $params['max_width'] <= 10000;
+	}
 
 	/** Source-controlled availability only; configuration and historical data stay intact. */
 	private static array $paused_runtime_features = array(

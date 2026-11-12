@@ -703,3 +703,14 @@ For packaged plugin releases, also follow
 including the Cloud Base URL check for local development versus production. For
 public Cloud onboarding, use
 [`docs/public-cloud-onboarding-checklist.md`](docs/public-cloud-onboarding-checklist.md).
+
+### Single-image preview purpose — 2026-11-12
+
+`npcink_cloud_addon_dispatch_media_derivative_cloud_request` accepts an optional
+final `processing_purpose` argument, `save_as_new.v1`. It is transported on the
+existing media job contract only for manual, preserve-dimensions single-image
+compression/conversion or watermark previews, with a 30-minute result TTL.
+All crop, batch, auto-safe and governance jobs retain their release pauses.
+The complete predicate is checked before uploads and before signing; missing or
+unknown purposes do not unpause anything. Historical artifact delivery remains
+available. Core approval and Toolkit new-attachment writes stay in WordPress.

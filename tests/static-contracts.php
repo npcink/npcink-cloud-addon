@@ -2372,7 +2372,7 @@ maca_assert(
 // complexity may stay, but these files must not grow unnoticed: raise a limit
 // only with a documented reason in docs/cloud-addon-complexity-budget.md.
 $complexity_ratchet_limits = array(
-	'includes/class-cloud-runtime-client.php'          => 1742,
+	'includes/class-cloud-runtime-client.php'          => 1743,
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 392,
 	'includes/class-cloud-runtime-request-guards.php'  => 2124,
@@ -2387,7 +2387,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
 	'includes/class-cloud-wordpress-ai-text-model.php' => 394,
 	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 126,
-	'includes/class-cloud-media-derivative-transport.php' => 715,
+	'includes/class-cloud-media-derivative-transport.php' => 724,
 	'includes/class-cloud-media-governance-validation.php' => 282,
 	'includes/class-cloud-media-plan-projection.php' => 709,
 	'includes/class-cloud-media-artifact-verification.php' => 701,

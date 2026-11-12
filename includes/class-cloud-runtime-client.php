@@ -550,7 +550,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 		 */
 		public function create_media_job( array $payload, string $trace_id = '', string $idempotency_key = '' ) {
 			$required_keys = array( 'request_contract_version', 'operation', 'source_artifact_id', 'params', 'result_ttl_minutes' );
-			$allowed_keys  = array_merge( $required_keys, array( 'watermark_artifact_id', 'batch_context', 'governance' ) );
+			$allowed_keys  = array_merge( $required_keys, array( 'watermark_artifact_id', 'batch_context', 'governance', 'processing_purpose' ) );
 			$has_governance = array_key_exists( 'governance', $payload );
 			$has_batch_context = array_key_exists( 'batch_context', $payload );
 			if (
@@ -563,6 +563,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				|| 30 !== ( $payload['result_ttl_minutes'] ?? null )
 				|| ( isset( $payload['watermark_artifact_id'] ) && 1 !== preg_match( Npcink_Cloud_Runtime_Request_Guards::MEDIA_ARTIFACT_ID_PATTERN, (string) $payload['watermark_artifact_id'] ) )
 				|| $has_governance !== $has_batch_context
+				|| ( array_key_exists( 'processing_purpose', $payload ) && ! Npcink_Cloud_Discoverability_Pause::is_save_as_new_media_job( $payload ) )
 			) {
 				return new WP_Error(
 					'cloud_media_job_contract_invalid',
@@ -1067,7 +1068,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			}
 
 			$method = strtoupper( trim( $method ) );
-			if ( 'POST' === $method && '/v1/runtime/media/jobs' === $path ) {
+			if ( 'POST' === $method && '/v1/runtime/media/jobs' === $path && ! Npcink_Cloud_Discoverability_Pause::is_save_as_new_media_job( $payload ?? array() ) ) {
 				$paused = Npcink_Cloud_Discoverability_Pause::feature_error( 'advanced_media' );
 				if ( is_wp_error( $paused ) ) { return $paused; }
 			}

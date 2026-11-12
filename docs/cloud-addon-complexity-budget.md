@@ -506,3 +506,10 @@ actions, options, or public APIs are removed.
 2026-10-21 first-connection onboarding: settings-actions 1230→1250 for the authorization flow tag that keeps change-account landing on Connection while a first connection lands on Overview.
 
 Normative UI copy for those 2026-10-21 surfaces (status card, usage 本期已用, consent ask-once, commercial.* vs provider.* errors, handoff self-check) lives in `docs/admin-surface-standard.md`; this file only tracks line ceilings.
+
+## Single-image preview exception — 2026-11-12
+
+The runtime-client ceiling is 1743 lines and derivative-transport ceiling is 724
+lines for the optional `save_as_new.v1` purpose. The shared pause helper checks
+the exact manual preserve-dimensions request before source uploads and signing.
+No crop, batch, governance, settings, write authority or new runtime is enabled.
