@@ -2050,7 +2050,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		/** Upload only at dispatch, and only when Cloud cannot fetch the source URL. */
 		private static function prepare_media_sources( array $payload, string $namespace ) {
 			foreach ( $payload['input']['media_items'] ?? array() as $index => $media ) {
-				$url = parse_url( (string) ( $media['url'] ?? '' ) );
+				$url = wp_parse_url( (string) ( $media['url'] ?? '' ) );
 				$host = strtolower( rtrim( (string) ( $url['host'] ?? '' ), '.' ) );
 				$ip = trim( $host, '[]' );
 				$private_ip = false !== filter_var( $ip, FILTER_VALIDATE_IP ) && false === filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
