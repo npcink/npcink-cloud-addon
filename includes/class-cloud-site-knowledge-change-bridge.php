@@ -521,12 +521,17 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				return self::record_delivery_result( true, 0, '' );
 			}
 
+			if ( $buffer['retry_after'] > time() ) {
+				self::schedule_flush( $buffer['retry_after'] - time() );
+				return self::get_status();
+			}
+
 			$batches = self::byte_bounded_batches( array_map( static function ( $id ) { return array( 'source_id' => $id, 'source_type' => 'buffer' ); }, array_slice( $buffer['post_ids'], 0, self::MAX_BATCH_ITEMS ) ) );
 			$post_ids = array_column( $batches[0] ?? array(), 'source_id' );
 			$sent_fingerprints = self::delivery_fingerprints( $post_ids );
 			$result = self::request_site_knowledge_sync( 'refresh', $post_ids, 'change_bridge' );
 			if ( is_wp_error( $result ) ) {
-				return self::retry_or_drop_buffer( $buffer, $post_ids, $sent_fingerprints, $result->get_error_message() );
+				return self::retry_buffer( $buffer, $post_ids, $result->get_error_message() );
 			}
 
 			$latest_buffer = self::get_buffer();
@@ -1548,30 +1553,25 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		/**
-		 * Retries or drops the buffered batch after bounded delivery attempts.
+		 * Retains failed work, rotating exhausted batches into hourly recovery.
 		 *
 		 * @param array<string,mixed> $buffer Buffer payload.
 		 * @param array<int,int>      $attempted_post_ids Attempted batch ids.
-		 * @param array<int,string>   $sent_fingerprints Sent document fingerprints.
-		 * @param string              $error Error message.
+		 * @param string             $error Error message.
 		 * @return array<string,mixed>
 		 */
-		private static function retry_or_drop_buffer( array $buffer, array $attempted_post_ids, array $sent_fingerprints, string $error ): array {
+		private static function retry_buffer( array $buffer, array $attempted_post_ids, string $error ): array {
 			$latest_buffer = self::get_buffer();
-			$attempts = max( absint( $buffer['attempts'] ?? 0 ), absint( $latest_buffer['attempts'] ?? 0 ) ) + 1;
+			$attempts = min( self::MAX_DELIVERY_ATTEMPTS, max( $buffer['attempts'], $latest_buffer['attempts'] ) + 1 );
+			$post_ids = $latest_buffer['post_ids'];
+			$delay = self::RETRY_SECONDS;
 			if ( $attempts >= self::MAX_DELIVERY_ATTEMPTS ) {
-				$remaining = self::remaining_after_delivery( $latest_buffer['post_ids'], $attempted_post_ids, $sent_fingerprints );
-				$dropped = max( 0, count( $latest_buffer['post_ids'] ) - count( $remaining ) );
-				self::save_buffer( $remaining, 0 );
-				self::record_dropped_changes( $dropped );
-				if ( ! empty( $remaining ) ) {
-					self::schedule_flush( self::RETRY_SECONDS );
-				}
-				return self::record_delivery_result( false, 0, $error, 'delivery_attempts_exhausted' );
+				// Keep identities/revisions, but let later work reach the next batch.
+				$post_ids = array_merge( array_diff( $post_ids, $attempted_post_ids ), array_intersect( $post_ids, $attempted_post_ids ) );
+				$delay = HOUR_IN_SECONDS;
 			}
-
-			self::save_buffer( $latest_buffer['post_ids'], $attempts );
-			self::schedule_flush( self::RETRY_SECONDS );
+			self::save_buffer( $post_ids, $attempts, false, $attempts >= self::MAX_DELIVERY_ATTEMPTS ? time() + $delay : 0 );
+			self::schedule_flush( $delay );
 
 			return self::record_delivery_result( false, 0, $error, 'delivery_failed_retry_scheduled' );
 		}
@@ -1780,6 +1780,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			return array(
 				'post_ids' => array_values( array_filter( array_map( 'absint', is_array( $post_ids ) ? $post_ids : array() ) ) ),
 				'attempts' => absint( $value['attempts'] ?? 0 ),
+				'retry_after' => absint( $value['retry_after'] ?? 0 ),
 				'comment_changes' => is_array( $value['comment_changes'] ?? null ) ? $value['comment_changes'] : array(),
 				'delivery_id' => is_string( $value['delivery_id'] ?? null ) ? $value['delivery_id'] : '',
 			);
@@ -1791,9 +1792,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @param array<int,int> $post_ids Post ids.
 		 * @param int            $attempts Delivery attempts.
 		 * @param bool           $new_delivery Start a new accepted-delivery interval.
+		 * @param int|null       $retry_after Recovery deadline; null preserves the current deadline.
 		 * @return void
 		 */
-		private static function save_buffer( array $post_ids, int $attempts, bool $new_delivery = false ): void {
+		private static function save_buffer( array $post_ids, int $attempts, bool $new_delivery = false, ?int $retry_after = null ): void {
 			$post_ids = array_values( array_unique( array_filter( array_map( 'absint', $post_ids ) ) ) );
 			if ( empty( $post_ids ) ) {
 				delete_option( self::BUFFER_OPTION );
@@ -1809,6 +1811,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 					'comment_changes' => $changes,
 					'delivery_id' => $delivery_id,
 					'attempts' => max( 0, $attempts ),
+					'retry_after' => $new_delivery ? 0 : ( $retry_after ?? self::get_buffer()['retry_after'] ),
 					'updated_at' => gmdate( 'c' ),
 				),
 				false

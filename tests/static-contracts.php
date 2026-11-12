@@ -1685,7 +1685,7 @@ maca_assert(
 	false !== strpos( $site_knowledge_bridge, 'wp_schedule_single_event' )
 	&& false !== strpos( $site_knowledge_bridge, 'wp_schedule_event' )
 	&& false !== strpos( $site_knowledge_bridge, 'MAX_DELIVERY_ATTEMPTS' )
-	&& false !== strpos( $site_knowledge_bridge, 'retry_or_drop_buffer' )
+	&& false !== strpos( $site_knowledge_bridge, 'retry_buffer' )
 	&& false !== strpos( $agents, 'Bounded Site Knowledge change buffering, WP-Cron flushing' )
 	&& false !== strpos( $agents, 'hourly reconciliation cursor scan that replays missed public content' )
 	&& false !== strpos( $agents, 'local delivery consent, and explicit administrator delivery' ),
