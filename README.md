@@ -43,6 +43,9 @@ availability. See [reversible pauses](docs/reversible-feature-pauses-v1.md).
 
 ## Engineering Decisions and Standards
 
+- [媒体同步验收与复盘](docs/media-source-sync-retrospective-2026-11-12.md)汇总删除、
+  漏通知、许可关闭和三次失败恢复的实测，区分测试站、生产与未验证事项。
+
 - [Editor native feedback](docs/editor-native-feedback-v1.md) defines exact-save
   adoption, consent/privacy boundaries, bounded retry and controlled verification.
 
