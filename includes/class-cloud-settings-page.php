@@ -1271,12 +1271,18 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$portal_status_url = untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal';
 			$readiness_status = sanitize_key( (string) ( $readiness['bounded_status'] ?? $readiness['status'] ?? '' ) );
 			$readiness_failed = ! empty( $readiness ) && 'ready' !== $readiness_status;
+			$activation_required = 'inactive' === (string) ( $settings['activation_state'] ?? '' )
+				|| ( $readiness_failed && 'activate_site' === (string) ( $readiness['next_safe_action'] ?? '' ) );
 			$capability_attention = self::unavailable_feature_labels();
 			// Plain status projected only from Cloud-reported state already stored locally.
 			if ( ! $credentials_ok ) {
 				$simple_tone = 'warn';
 				$simple_message = __( 'This site is not connected yet.', 'npcink-cloud-addon' );
 				$simple_hint = __( 'Connect it to Npcink Cloud to use AI features.', 'npcink-cloud-addon' );
+			} elseif ( $activation_required ) {
+				$simple_tone = 'warn';
+				$simple_message = __( 'This site needs to be turned on in Npcink Cloud', 'npcink-cloud-addon' );
+				$simple_hint = __( 'Click the button below and confirm in Npcink Cloud to restore it.', 'npcink-cloud-addon' );
 			} elseif ( ! $connection_ok ) {
 				$simple_tone = 'warn';
 				$simple_message = __( 'The connection needs to be confirmed again.', 'npcink-cloud-addon' );
@@ -1311,7 +1317,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				<?php self::render_status_line( $simple_message, $simple_tone ); ?>
 				<p class="description"><?php echo esc_html( $simple_hint ); ?></p>
 				<div class="npcink-cloud-summary__actions npcink-cloud-summary__actions--start">
-					<?php if ( 'warn' === $simple_tone && $connection_ok && $site_knowledge_needs_attention && empty( $entitlement['stale'] ) ) : ?>
+					<?php if ( $credentials_ok && $activation_required ) : ?>
+						<a class="button button-primary" href="<?php echo esc_url( self::tab_url( 'connection' ) ); ?>"><?php esc_html_e( 'Open Connection', 'npcink-cloud-addon' ); ?></a>
+					<?php elseif ( 'warn' === $simple_tone && $connection_ok && $site_knowledge_needs_attention && empty( $entitlement['stale'] ) ) : ?>
 						<a class="button button-primary" href="#npcink-cloud-sk-delivery"><?php esc_html_e( 'View delivery detail', 'npcink-cloud-addon' ); ?></a>
 					<?php elseif ( 'warn' === $simple_tone && $connection_ok && empty( $entitlement['stale'] ) && ! empty( $capability_attention ) ) : ?>
 						<a class="button button-primary" href="<?php echo esc_url( $portal_status_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View details in Cloud', 'npcink-cloud-addon' ); ?></a>
@@ -1552,6 +1560,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 				return __( 'Check Cloud status', 'npcink-cloud-addon' );
 			case 'open_settings':
 				return __( 'Open settings', 'npcink-cloud-addon' );
+			case 'activate_site':
+				return __( 'Open Npcink Cloud', 'npcink-cloud-addon' );
 			case 'unavailable':
 			default:
 				return __( 'unavailable', 'npcink-cloud-addon' );
@@ -1638,7 +1648,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Page' ) ) {
 			$portal_url = untrailingslashit( Npcink_Cloud_Addon_Settings::get_effective_base_url( $settings ) ) . '/portal';
 			if ( 'retry_test' === $next_action_token ) {
 				$action_markup = '<a href="#npcink-cloud-run-readiness-test">' . esc_html__( 'Retry', 'npcink-cloud-addon' ) . '</a>';
-			} elseif ( 'open_settings' === $next_action_token ) {
+			} elseif ( in_array( $next_action_token, array( 'open_settings', 'activate_site' ), true ) ) {
 				$action_markup = '<a href="' . esc_url( self::tab_url( 'connection' ) ) . '">' . esc_html__( 'Open Connection', 'npcink-cloud-addon' ) . '</a>';
 			} elseif ( 'check_cloud_status' === $next_action_token ) {
 				$action_markup = '<a href="' . esc_url( $portal_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Check Cloud status', 'npcink-cloud-addon' ) . '</a>';
