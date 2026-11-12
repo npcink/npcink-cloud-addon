@@ -239,6 +239,14 @@ automatic reconciliation request. A complete pass takes multiple hourly
 callbacks for more than 100 indexed media identities and depends on WP-Cron
 execution; this is not an immediate whole-site cleanup guarantee.
 
+Already-pending cleanup survives a later delivery-consent shutdown. Bootstrap
+retains or recreates its existing single flush wakeup without HTTP, while the
+hourly scan and ordinary uploads remain disabled. Only pending operations in
+the current verified credential scope may advance. Completed/blocked operations
+and other sites do not keep Cron awake. Pending restores pause without spending
+the poll budget or blocking later cleanup; explicitly enabling delivery wakes
+them again. Existing retry bounds and unresolved-failure visibility still apply.
+
 Automatic withdrawal reuses immutable dispatch identities, pending source
 suppression, D0 deletion, known-writer terminal evidence, compensation and fresh
 typed relational presence checks. Current attachment absence is rechecked before

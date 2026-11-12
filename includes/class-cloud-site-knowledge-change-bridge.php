@@ -1028,9 +1028,15 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			self::initialize_delivery_coverage();
+			$pending_cleanup = self::has_pending_source_operations();
 			if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
-				wp_clear_scheduled_hook( self::FLUSH_HOOK );
 				wp_clear_scheduled_hook( self::RECONCILE_HOOK );
+				if ( ! $pending_cleanup ) {
+					wp_clear_scheduled_hook( self::FLUSH_HOOK );
+				}
+			}
+			if ( $pending_cleanup ) {
+				self::schedule_flush( 30 );
 			}
 		}
 
@@ -1049,7 +1055,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 
 			$cursor = self::get_maintenance_cursor();
 			$buffer = self::get_buffer();
-			if ( self::is_active_full_index_delivery( $cursor ) || ! empty( $buffer['post_ids'] ) ) {
+			if ( self::is_active_full_index_delivery( $cursor ) || ! empty( $buffer['post_ids'] ) || self::has_pending_source_operations() ) {
 				self::schedule_flush( 1 );
 			}
 		}
@@ -2044,7 +2050,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		/** Upload only at dispatch, and only when Cloud cannot fetch the source URL. */
 		private static function prepare_media_sources( array $payload, string $namespace ) {
 			foreach ( $payload['input']['media_items'] ?? array() as $index => $media ) {
-				$url = parse_url( (string) ( $media['url'] ?? '' ) );
+				$url = wp_parse_url( (string) ( $media['url'] ?? '' ) );
 				$host = strtolower( rtrim( (string) ( $url['host'] ?? '' ), '.' ) );
 				$ip = trim( $host, '[]' );
 				$private_ip = false !== filter_var( $ip, FILTER_VALIDATE_IP ) && false === filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
@@ -2184,12 +2190,26 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			return $payload;
 		}
 
+		/** Cleanup outlives delivery consent; restores wait without consuming polls. */
+		private static function can_advance_source_operation( array $operation ): bool {
+			return Npcink_Cloud_Addon_Settings::is_verified()
+				&& 'pending' === $operation['status']
+				&& ( 'restore' !== $operation['action'] || self::is_enabled() );
+		}
+
+		private static function has_pending_source_operations(): bool {
+			foreach ( self::source_lifecycle_summary()['operations'] as $operation ) {
+				if ( self::can_advance_source_operation( $operation ) ) { return true; }
+			}
+			return false;
+		}
+
 		/** Advances at most one operation per existing Cron callback. */
 		public static function process_source_operations(): bool {
 			$state = self::delivery_state();
 			$scope = $state['_lifecycle']['scopes'][ self::lifecycle_scope() ] ?? array();
 			foreach ( $scope['operations'] ?? array() as $op ) {
-				if ( 'pending' !== $op['status'] ) {
+				if ( ! self::can_advance_source_operation( $op ) ) {
 					continue;
 				}
 				$next = $op;
@@ -2207,8 +2227,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				}
 				self::store_source_operation( $op, $next );
 
-				$remaining = self::source_lifecycle_summary()['operations'];
-				if ( array_filter( $remaining, static function ( $operation ) { return 'pending' === $operation['status']; } ) ) {
+				if ( self::has_pending_source_operations() ) {
 					self::schedule_flush( 30 );
 				}
 				return true;
