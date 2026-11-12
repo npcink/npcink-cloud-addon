@@ -424,3 +424,12 @@ state transitions, not only whether text exists in rendered HTML.
 
 The historical problem inventory, rationale, evidence limits and dated Git
 closeout are recorded in [the 2026-11-04 admin review](admin-focus-review-2026-11-04.md).
+
+## Inactive-site recovery (2026-11-12)
+
+A detailed signed read reporting `auth.site_inactive` must lead directly to the
+existing same-tab authorization form, including when stored credentials remain
+verified. A Connection link alone is insufficient if that page has no recovery
+action. Successful verification clears the current administrator’s old manual
+check transient; connection evidence never claims model generation. See the
+[dated acceptance and limits](inactive-site-connection-acceptance-2026-11-12.md).

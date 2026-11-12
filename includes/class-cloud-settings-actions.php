@@ -569,6 +569,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 					return;
 				}
 				Npcink_Cloud_Observability_Collector::sync_schedule();
+				// A fresh successful signed probe supersedes this administrator's
+				// older detailed-check failure for the previous connection state.
+				delete_transient( self::manual_readiness_transient_key() );
 				Npcink_Cloud_Observability_Collector::project_monitoring_state(
 					! empty( $settings['monitoring_enabled'] )
 				);

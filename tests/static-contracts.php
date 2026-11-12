@@ -2374,7 +2374,7 @@ maca_assert(
 $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-client.php'          => 1742,
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
-	'includes/class-cloud-runtime-diagnostics.php'     => 387,
+	'includes/class-cloud-runtime-diagnostics.php'     => 392,
 	'includes/class-cloud-runtime-request-guards.php'  => 2124,
 	'includes/class-cloud-settings-page.php'           => 2840,
 	'includes/class-cloud-settings-actions.php'        => 1260,

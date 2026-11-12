@@ -89,9 +89,10 @@ connector classes so they cannot grow unnoticed:
   bounded-text/sanitize helpers with zero instance state; 2026-10-30 adds five
   lines to require factual references and distinguish their mode from optional
   style, with behavior coverage in `tests/behavior-ai-task-contract.php`)
-- `includes/class-cloud-runtime-diagnostics.php` — 387 lines (static readiness
+- `includes/class-cloud-runtime-diagnostics.php` — 392 lines (static readiness
   projection and secret redaction over probe arrays and the caller's
-  configuration snapshot)
+  configuration snapshot; 2026-11-12 adds five lines for exact
+  `auth.site_inactive` activation guidance, retaining transport-failure facts)
 - `includes/class-cloud-runtime-media-payloads.php` — 280 lines (static
   multipart assembly and exact upload/delivery-ack response validation for
   the bounded media endpoints)

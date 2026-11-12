@@ -80,6 +80,11 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Diagnostics' ) ) {
 				$owner_label = 'cloud';
 				$blocked_reason = self::redact_support_text( (string) ( $probe['live_message'] ?? '' ), $config );
 				$next_action = 'check_cloud_status';
+			} elseif ( 'auth.site_inactive' === (string) ( $probe['auth_error_code'] ?? '' ) ) {
+				$status = 'failed';
+				$owner_label = 'operator';
+				$blocked_reason = __( 'This site needs to be turned on in Npcink Cloud', 'npcink-cloud-addon' );
+				$next_action = 'activate_site';
 			} else {
 				$status = 'failed';
 				$owner_label = 'cloud';

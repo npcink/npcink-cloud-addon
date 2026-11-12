@@ -576,6 +576,7 @@ $GLOBALS['maca_http_response_queue'][] = array(
 $inactive_client = new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() );
 $inactive_probe = $inactive_client->probe_connectivity();
 $inactive_error_data = is_array( $inactive_probe['auth_error_data'] ?? null ) ? $inactive_probe['auth_error_data'] : array();
+$inactive_readiness = $inactive_probe['readiness_result'] ?? array();
 
 maca_assert(
 	'auth.site_inactive' === (string) ( $inactive_probe['auth_error_code'] ?? '' )
@@ -583,6 +584,18 @@ maca_assert(
 	&& 'activate_site' === (string) ( $inactive_error_data['cloud_error_data']['action'] ?? '' )
 	&& false !== strpos( (string) ( $inactive_probe['auth_message'] ?? '' ), 'site is bound' ),
 	'Behavior: connectivity probing preserves the structured inactive-site recovery code and facts for local UX mapping.'
+);
+maca_assert(
+	'failed' === ( $inactive_readiness['bounded_status'] ?? '' )
+	&& 'operator' === ( $inactive_readiness['owner_label'] ?? '' )
+	&& 'activate_site' === ( $inactive_readiness['next_safe_action'] ?? '' )
+	&& 'ready' === ( $inactive_readiness['service_liveness_status'] ?? '' )
+	&& 'failed' === ( $inactive_readiness['signed_transport_status'] ?? '' )
+	&& 'activate_site' !== Npcink_Cloud_Runtime_Diagnostics::build_readiness_result(
+		array( 'live_ok' => false, 'auth_error_code' => 'auth.site_inactive' ),
+		Npcink_Cloud_Addon_Settings::get_settings(), true
+	)['next_safe_action'],
+	'Behavior: a reachable inactive site requires Cloud activation without masking an unreachable service.'
 );
 
 maca_reset_test_state();
@@ -594,6 +607,7 @@ $GLOBALS['maca_http_response_queue'][] = array(
 );
 
 $method = maca_private_method( Npcink_Cloud_Settings_Actions::class, 'persist_and_verify_settings' );
+set_transient( 'npcink_cloud_readiness_1', $inactive_readiness, 600 );
 $method->invoke( null, $settings, 'Verified.' );
 $post_verify_summary = Npcink_Cloud_Entitlement_Summary::get_cached_summary();
 $post_verify_urls = array_map(
@@ -605,6 +619,7 @@ $post_verify_urls = array_map(
 
 maca_assert(
 	Npcink_Cloud_Addon_Settings::is_verified()
+	&& false === get_transient( 'npcink_cloud_readiness_1' )
 	&& 3 === count( $GLOBALS['maca_http_requests'] )
 	&& 1 === count( array_filter( $post_verify_urls, static fn( string $url ): bool => false !== strpos( $url, '/v1/entitlements/current' ) ) )
 	&& 1 === count( array_filter( $post_verify_urls, static fn( string $url ): bool => false !== strpos( $url, '/v1/observability/plugin-events' ) ) )
