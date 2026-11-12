@@ -30,10 +30,11 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 		 * @param string              $trace_id Optional trace id.
 		 * @param string              $idempotency_key Optional idempotency key.
 		 * @param array<string,mixed> $watermark_artifact Optional short TTL watermark artifact or upload descriptor.
+		 * @param string $processing_purpose Optional bounded save_as_new.v1 preview purpose.
 		 * @return array<string,mixed>|WP_Error
 		 */
-		public static function dispatch_from_ability_response( array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '', array $watermark_artifact = array() ) {
-			$paused = Npcink_Cloud_Discoverability_Pause::feature_error( 'advanced_media' );
+		public static function dispatch_from_ability_response( array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '', array $watermark_artifact = array(), string $processing_purpose = '' ) {
+			$paused = Npcink_Cloud_Discoverability_Pause::SAVE_AS_NEW_PURPOSE === $processing_purpose ? null : Npcink_Cloud_Discoverability_Pause::feature_error( 'advanced_media' );
 			if ( is_wp_error( $paused ) ) { return $paused; }
 			$client = self::verified_client();
 			if ( is_wp_error( $client ) ) {
@@ -113,6 +114,11 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				return $governance_context;
 			}
 
+			// Validate the exception before the first source or logo upload.
+			$purpose_payload = self::build_media_job_request( $media_params, array( 'artifact_id' => 'art_' . str_repeat( '0', 32 ) ), array(), $governance_context );
+			if ( '' !== $processing_purpose && ( is_wp_error( $purpose_payload ) || ! Npcink_Cloud_Discoverability_Pause::is_save_as_new_media_job( array_merge( $purpose_payload, array( 'processing_purpose' => $processing_purpose ) ) ) ) ) {
+				return new WP_Error( 'cloud_media_job_contract_invalid', __( 'Media jobs require the exact artifact-referenced media_job_request.v1 contract.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
+			}
 			$base_idempotency_key = '' !== $idempotency_key ? $idempotency_key : 'media_derivative_' . wp_generate_uuid4();
 			if ( ! empty( $source_upload ) ) {
 				unset( $source_upload['field_name'] );
@@ -149,6 +155,7 @@ if ( ! class_exists( 'Npcink_Cloud_Media_Derivative_Transport' ) ) {
 				return $media_payload;
 			}
 
+			if ( '' !== $processing_purpose ) { $media_payload['processing_purpose'] = $processing_purpose; }
 			$result = $client->create_media_job(
 				$media_payload,
 				$trace_id,

@@ -39,3 +39,53 @@ maca_assert(
 	! Npcink_Cloud_Discoverability_Pause::is_admin_surface_paused( 'unknown_surface' ),
 	'Unknown admin surfaces are not treated as paused.'
 );
+
+// The accepted single-image exception is a complete request, never a generic bypass.
+$single_payload = array(
+	'request_contract_version' => 'media_job_request.v1', 'operation' => 'image.transform.v1',
+	'source_artifact_id' => 'art_' . str_repeat( '1', 32 ), 'result_ttl_minutes' => 30,
+	'processing_purpose' => 'save_as_new.v1',
+	'params' => array( 'mode' => 'manual', 'target_format' => 'webp', 'max_width' => 1200, 'quality' => 82, 'source_media_type' => 'image', 'resize_mode' => 'preserve' ),
+);
+foreach ( array( 'purpose', 'resize', 'crop', 'batch', 'governance', 'auto', 'extra', 'quality' ) as $invalid ) {
+	$case = $single_payload;
+	if ( 'purpose' === $invalid ) { $case['processing_purpose'] = 'unknown'; }
+	if ( 'resize' === $invalid ) { $case['params']['resize_mode'] = 'fit'; }
+	if ( 'crop' === $invalid ) { $case['params']['crop'] = array( 'type' => 'aspect_ratio' ); }
+	if ( 'batch' === $invalid ) { $case['batch_context'] = array( 'item_count' => 1 ); }
+	if ( 'governance' === $invalid ) { $case['governance'] = array(); }
+	if ( 'auto' === $invalid ) { $case['params']['mode'] = 'auto_safe'; }
+	if ( 'extra' === $invalid ) { $case['skip_pause'] = true; }
+	if ( 'quality' === $invalid ) { $case['params']['quality'] = 0; }
+	$before = count( $GLOBALS['maca_http_requests'] );
+	maca_assert( ! Npcink_Cloud_Discoverability_Pause::is_save_as_new_media_job( $case ), 'Invalid single-image exception rejected: ' . $invalid );
+	maca_assert( is_wp_error( $pause_client->create_media_job( $case ) ) && $before === count( $GLOBALS['maca_http_requests'] ), 'Invalid purpose cannot sign or send: ' . $invalid );
+}
+foreach ( array( 'compression', 'watermark' ) as $task ) {
+	$case = $single_payload;
+	if ( 'watermark' === $task ) {
+		$case['params']['target_format'] = 'original';
+		$case['params']['watermark'] = array( 'type' => 'text', 'text' => 'Test', 'position' => 'bottom_right', 'opacity' => 0.5 );
+	}
+	$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'run_id' => 'run_single' ) ) ) );
+	$before = count( $GLOBALS['maca_http_requests'] );
+	maca_assert( ! is_wp_error( $pause_client->create_media_job( $case ) ) && $before + 1 === count( $GLOBALS['maca_http_requests'] ), 'Bounded single-image transport is available: ' . $task );
+}
+$before = count( $GLOBALS['maca_http_requests'] );
+$fit_ability = maca_ability_fixture();
+$fit_ability['cloud_job_payload']['resize_mode'] = 'fit';
+$fit_result = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response( $fit_ability, array( 'bytes' => base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j2ioAAAAASUVORK5CYII=' ), 'filename' => 'source.png', 'mime_type' => 'image/png' ), '', '', array(), 'save_as_new.v1' );
+maca_assert( is_wp_error( $fit_result ) && 'cloud_media_job_contract_invalid' === $fit_result->get_error_code() && $before === count( $GLOBALS['maca_http_requests'] ), 'Invalid bounded transport is rejected before source uploads.' );
+
+$logo_ability = maca_ability_fixture();
+$logo_ability['cloud_job_payload']['resize_mode'] = 'preserve';
+$logo_ability['cloud_job_payload']['target_format'] = 'original';
+$logo_ability['cloud_job_payload']['watermark'] = array( 'type' => 'image', 'position' => 'bottom_right', 'opacity' => 0.5 );
+$logo_source = array( 'artifact_id' => 'art_' . str_repeat( '2', 32 ), 'expires_at' => maca_future_expiry() );
+$logo_reference = array( 'artifact_id' => 'art_' . str_repeat( '3', 32 ), 'expires_at' => maca_future_expiry() );
+$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'run_id' => 'run_logo', 'status' => 'queued' ) ) ) );
+$logo_result = Npcink_Cloud_Media_Derivative_Transport::dispatch_from_ability_response( $logo_ability, $logo_source, '', '', $logo_reference, 'save_as_new.v1' );
+maca_assert( ! is_wp_error( $logo_result ), ( is_wp_error( $logo_result ) ? $logo_result->get_error_code() . ': ' . $logo_result->get_error_message() . ' ' : '' ) . 'Image watermark passes the pre-upload predicate and real job transport.' );
+$logo_http = end( $GLOBALS['maca_http_requests'] );
+$logo_body = json_decode( $logo_http['args']['body'], true );
+maca_assert( $logo_reference['artifact_id'] === $logo_body['watermark_artifact_id'] && 'save_as_new.v1' === $logo_body['processing_purpose'], 'Image watermark and source references survive bounded dispatch.' );
