@@ -63,7 +63,7 @@ A parent mismatch fails collection. The revision participates in the existing
 in-flight fingerprint, so a new comment change cannot be acknowledged by an
 older payload. A normal batch contains at most 25 parents and 200 comments.
 Overflow uses the existing `dropped_count` attention diagnostic; this bounded
-bridge does not guarantee lossless capture under overflow or retry exhaustion.
+bridge does not guarantee lossless capture under overflow or durable-storage limits.
 Comment and post withdrawals are excluded from a split pure-media payload.
 
 Migration order for this specific semantic change is **Addon first, then Cloud**.
@@ -73,6 +73,32 @@ to explicit delete/withdrawal markers; older producers can still update public
 content, but omission no longer withdraws it. These are candidate source
 contracts until merged/runtime evidence is recorded, not a production receipt.
 No new option, queue, scheduler, ability or WordPress content write is introduced.
+
+## Ordinary delivery recovery after repeated failures
+
+Ordinary change delivery keeps at most 500 post/media IDs and 200 comment
+identities. After three fast failures, it retains the latest buffered IDs,
+comment revisions and delivery identity instead of dropping the attempted batch.
+It rotates that batch behind later work and schedules one recovery attempt per
+hour. The persisted `retry_after` deadline is checked before delivery: new edits,
+reconciliation or an early callback cannot turn the cooldown into a hot loop.
+Failure renews the hourly deadline and keeps the fast-attempt count capped at
+three. A successful accepted batch clears its cooldown and starts normal delivery
+for the remainder; its uncertain unchanged payload keeps the existing replay key.
+
+This uses the existing buffer option and single flush hook, not another queue
+or scheduler. Consent and verified credentials still gate ordinary delivery;
+turning delivery off pauses this work, and re-enabling resumes it subject to the
+remaining cooldown. Pending source cleanup retains its separate higher-priority
+path. Manual full-index operations keep their existing three-failure blocked
+state; this change does not automatically restart a destructive rebuild.
+
+Retries reread current public sources. They do not store additional body text,
+restore notifications already discarded by older versions, recover overflow,
+or prove that an accepted Cloud run eventually succeeded. The existing durable
+writer/storage limits and diagnostic errors remain authoritative. Recovery still
+requires WordPress Cron execution; a published-post scan alone cannot rediscover
+an already-deleted comment or a notification before its saved cursor.
 
 ## Automatic reconciliation cursor
 

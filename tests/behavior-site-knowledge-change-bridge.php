@@ -771,13 +771,61 @@ $exhausted = Npcink_Cloud_Site_Knowledge_Change_Bridge::flush_buffer();
 $exhausted_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
 $exhausted_health = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
 maca_assert(
-	'delivery_attempts_exhausted' === (string) ( $exhausted['last_error_code'] ?? '' )
-	&& array( 8025 ) === (array) ( $exhausted_buffer['post_ids'] ?? array() )
-	&& 0 === absint( $exhausted_buffer['attempts'] ?? 0 )
-	&& 25 === absint( $exhausted_health['dropped_count'] ?? 0 )
-	&& '' !== (string) ( $exhausted_health['last_dropped_at'] ?? '' ),
-	'Behavior: exhausting one Site Knowledge batch preserves later buffered work.'
+	'delivery_failed_retry_scheduled' === (string) ( $exhausted['last_error_code'] ?? '' )
+	&& array_merge( array( 8025 ), range( 8000, 8024 ) ) === (array) ( $exhausted_buffer['post_ids'] ?? array() )
+	&& 3 === absint( $exhausted_buffer['attempts'] ?? 0 )
+	&& $exhausted_buffer['retry_after'] >= time() + HOUR_IN_SECONDS - 1
+	&& 0 === absint( $exhausted_health['dropped_count'] ?? 0 ),
+	'Behavior: three failed attempts retain all work, rotate the failed batch and schedule hourly recovery without counting drops.'
 );
+
+// Fast retries exhausted: no request may bypass the persisted cooldown.
+$sync_requests = static function () { return array_values( array_filter( $GLOBALS['maca_http_requests'], static function ( $r ) { return 'npcink-cloud/site-knowledge-sync' === ( json_decode( $r['args']['body'] ?? '{}', true )['ability_name'] ?? '' ); } ) ); };
+$http_before = count( $sync_requests() );
+for ( $i = 0; $i < 3; $i++ ) { maca_run_site_knowledge_flush(); }
+maca_add_public_post_fixture( 8026 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_saved_post( 8026, $GLOBALS['maca_posts'][8026] );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+maca_run_site_knowledge_flush();
+$cooling = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert( $http_before === count( $sync_requests() ) && $cooling['retry_after'] === $exhausted_buffer['retry_after'] && in_array( 8026, $cooling['post_ids'], true ), 'Behavior: new edits, reconciliation and extra callbacks retain the cooldown and cannot trigger early delivery HTTP.' );
+$cooling['retry_after'] = time() - 1;
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, $cooling );
+$GLOBALS['maca_http_response_queue'][] = new WP_Error( 'http_request_failed', 'The site is still offline.' );
+maca_run_site_knowledge_flush();
+$still_offline = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert( 3 === $still_offline['attempts'] && 27 === count( $still_offline['post_ids'] ) && $still_offline['retry_after'] >= time() + HOUR_IN_SECONDS - 1, 'Behavior: prolonged failure keeps the bounded buffer and resets a single hourly recovery deadline without growing the fast-attempt counter.' );
+$still_offline['retry_after'] = time() - 1;
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, $still_offline );
+maca_queue_site_knowledge_inline_success( 2 );
+maca_run_site_knowledge_flush();
+$recovered = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
+maca_assert( 0 === $recovered['attempts'] && 0 === $recovered['retry_after'] && 2 === count( $recovered['post_ids'] ), 'Behavior: successful recovery clears the cooldown and retry counter while preserving the remainder for normal delivery.' );
+maca_run_site_knowledge_flush();
+maca_assert( ! get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() ), 'Behavior: all retained work is automatically drained after connectivity returns.' );
+
+// Deleted comment identities cannot be rediscovered by a published-post scan.
+maca_reset_site_knowledge_bridge_state(); maca_seed_settings( true ); maca_add_public_post_fixture( 42 );
+$GLOBALS['maca_comments'][501] = (object) array( 'comment_ID' => 501, 'comment_post_ID' => 42, 'comment_approved' => '1', 'comment_content' => 'A public comment' );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::capture_comment_removal_context( 501 );
+unset( $GLOBALS['maca_comments'][501] );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_removed_comment( 501 );
+$notification = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION );
+for ( $i = 0; $i < 3; $i++ ) { $GLOBALS['maca_http_response_queue'][] = new WP_Error( 'http_request_failed', 'Lost acceptance response.' ); maca_run_site_knowledge_flush(); }
+$pending_comment = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION );
+maca_assert( $notification['comment_changes'] === $pending_comment['comment_changes'] && $notification['delivery_id'] === $pending_comment['delivery_id'], 'Behavior: retry exhaustion retains deleted-comment identity, revision and delivery identity.' );
+$http_before = count( $GLOBALS['maca_http_requests'] );
+maca_set_site_knowledge_delivery_enabled( false );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule();
+$pending_comment['retry_after'] = time() - 1;
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, $pending_comment );
+maca_run_site_knowledge_flush();
+maca_assert( $http_before === count( $GLOBALS['maca_http_requests'] ) && $pending_comment === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION ) && false === wp_next_scheduled( Npcink_Cloud_Site_Knowledge_Change_Bridge::FLUSH_HOOK ), 'Behavior: consent-off keeps exhausted work durable without delivering or waking ordinary retries.' );
+maca_set_site_knowledge_delivery_enabled( true ); Npcink_Cloud_Site_Knowledge_Change_Bridge::resume_pending_delivery();
+maca_queue_site_knowledge_inline_success(); maca_run_site_knowledge_flush();
+$sent = array_values( array_filter( $GLOBALS['maca_http_requests'], static function ( $request ) { return 'POST' === $request['args']['method']; } ) );
+$first = reset( $sent ); $last = end( $sent ); $last_payload = json_decode( $last['args']['body'], true );
+maca_assert( $first['args']['headers']['Idempotency-Key'] === $last['args']['headers']['Idempotency-Key'] && array( 501 ) === $last_payload['input']['withdrawn_comment_ids'] && ! get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() ), 'Behavior: recovery replays the exact uncertain key, withdraws the deleted comment and clears only after acceptance.' );
 
 maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
