@@ -1691,7 +1691,7 @@ msgstr "Cloud Site Knowledge 运行未能在有限轮询窗口内完成。"
 msgid "Cloud Site Knowledge maintenance run failed."
 msgstr "Cloud Site Knowledge 维护运行失败。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1201
+#: includes/class-cloud-site-knowledge-change-bridge.php:1207
 msgid "Site Knowledge sync mode must be refresh, rebuild, or delete."
 msgstr "站点知识库同步模式必须是 refresh、rebuild 或 delete。"
 
@@ -2902,15 +2902,15 @@ msgstr "正在核对恢复结果"
 msgid "Automatic delivery"
 msgstr "自动投递"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1870
+#: includes/class-cloud-site-knowledge-change-bridge.php:1876
 msgid "Site Knowledge needs verification before this request can continue."
 msgstr "站点知识库需要核对后才能继续此请求。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1224
+#: includes/class-cloud-site-knowledge-change-bridge.php:1230
 msgid "Public source collection is incomplete; retry without withdrawing existing indexes."
 msgstr "公开内容采集不完整，请重试；现有索引将保留。"
 
-#: includes/class-cloud-site-knowledge-change-bridge.php:1262
+#: includes/class-cloud-site-knowledge-change-bridge.php:1268
 msgid "Comment parent changed during collection; retry delivery."
 msgstr "采集期间评论所属文章发生变化，请重试投递。"
 

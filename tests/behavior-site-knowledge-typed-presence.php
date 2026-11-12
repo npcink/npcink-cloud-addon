@@ -703,6 +703,73 @@ typed_image(); Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_attachment_chan
 maca_assert(in_array(501,get_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION)['post_ids'],true),'A later real attachment can be delivered again after withdrawal.');
 maca_assert(is_wp_error(Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation('withdraw_media',typed_selection('media',501))),'Automatic withdrawal is not an administrator selection action or arbitrary public bypass.');
 
+// Bootstrap must preserve withdrawal progress after consent is switched off.
+foreach ( array( 'existing', 'missing', 'due' ) as $wakeup ) {
+	$cloud = media_reset(); maca_add_public_post_fixture( 42 ); typed_image(); typed_image( 502 );
+	$removed = clone $GLOBALS['maca_posts'][501];
+	$cloud->sources = array( 'media:501' => true, 'media:502' => true, 'post:501' => true );
+	unset( $GLOBALS['maca_posts'][501] );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment( 501, $removed );
+	maca_set_site_knowledge_delivery_enabled( false );
+	$hook = Npcink_Cloud_Site_Knowledge_Change_Bridge::FLUSH_HOOK;
+	if ( 'missing' === $wakeup ) { wp_clear_scheduled_hook( $hook ); }
+	if ( 'due' === $wakeup ) { $GLOBALS['maca_scheduled_events'][$hook] = time() - 1; }
+	$before = wp_next_scheduled( $hook ); $http = count( $GLOBALS['maca_http_requests'] );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule();
+	maca_assert( false !== wp_next_scheduled( $hook ) && ( 'due' !== $wakeup || $before === wp_next_scheduled( $hook ) ) && $http === count( $GLOBALS['maca_http_requests'] ), 'Disabled bootstrap retains or recovers the withdrawal wakeup without HTTP or postponing due work: ' . $wakeup );
+	for ( $i = 0; $i < 8 && false !== wp_next_scheduled( $hook ); $i++ ) {
+		Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule();
+		maca_run_site_knowledge_flush();
+	}
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule();
+	$op = reset( typed_scope()['operations'] );
+	maca_assert( 'completed' === $op['status'] && array( 'media:502', 'post:501' ) === array_keys( $cloud->sources ) && false === wp_next_scheduled( $hook ) && false === wp_next_scheduled( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILE_HOOK ) && ! Npcink_Cloud_Addon_Settings::is_site_knowledge_delivery_enabled(), 'Consumed Cron callbacks finish only the queued withdrawal, preserve valid sources, stop scheduling and keep consent off.' );
+	foreach ( $cloud->mutations as $mutation ) { maca_assert( 'delete' === $mutation['input']['sync_mode'], 'Paused delivery never dispatches uploads during withdrawal cleanup.' ); }
+}
+
+foreach ( array( 'unverified', 'other_site', 'blocked' ) as $inactive ) {
+	$cloud = media_reset(); $cloud->sources = array( 'media:501' => true );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+	maca_set_site_knowledge_delivery_enabled( false );
+	$original = typed_scope()['operations'];
+	if ( 'unverified' === $inactive ) {
+		$settings = Npcink_Cloud_Addon_Settings::get_settings(); $settings['verified'] = false; Npcink_Cloud_Addon_Settings::write_settings( $settings );
+	} elseif ( 'other_site' === $inactive ) {
+		$settings = Npcink_Cloud_Addon_Settings::get_settings(); $settings['site_id'] = 'other-site'; Npcink_Cloud_Addon_Settings::write_settings( $settings );
+	} else {
+		$state = typed_state(); $ns = Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope();
+		foreach ( $state['_lifecycle']['scopes'][$ns]['operations'] as &$op ) { $op['status'] = 'blocked'; } unset( $op );
+		update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, $state );
+	}
+	$before = typed_state(); $http = count( $GLOBALS['maca_http_requests'] );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule();
+	maca_run_site_knowledge_flush();
+	maca_assert( false === wp_next_scheduled( Npcink_Cloud_Site_Knowledge_Change_Bridge::FLUSH_HOOK ) && $http === count( $GLOBALS['maca_http_requests'] ) && $before === typed_state(), 'Inactive cleanup retains its durable state without waking Cron or HTTP: ' . $inactive );
+	if ( 'unverified' === $inactive || 'other_site' === $inactive ) {
+		$settings = Npcink_Cloud_Addon_Settings::get_settings(); $settings['verified'] = true; $settings['site_id'] = 'site_test'; Npcink_Cloud_Addon_Settings::write_settings( $settings );
+		Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule();
+		maca_assert( $original === typed_scope()['operations'] && false !== wp_next_scheduled( Npcink_Cloud_Site_Knowledge_Change_Bridge::FLUSH_HOOK ), 'Returning verified credentials recover only their original pending cleanup: ' . $inactive );
+	}
+}
+
+// Paused restores must not spend polls or starve a later cleanup operation.
+$cloud = media_reset(); maca_add_public_post_fixture( 42 ); typed_image();
+Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'exclude', typed_selection() ); typed_tick( 7 );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'restore', typed_selection() );
+$restore = reset( typed_scope()['operations'] );
+$removed = clone $GLOBALS['maca_posts'][501]; $cloud->sources['media:501'] = true;
+unset( $GLOBALS['maca_posts'][501] );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::handle_deleted_attachment( 501, $removed );
+maca_set_site_knowledge_delivery_enabled( false );
+for ( $i = 0; $i < 8; $i++ ) { Npcink_Cloud_Site_Knowledge_Change_Bridge::sync_schedule(); maca_run_site_knowledge_flush(); }
+$paused = typed_scope()['operations'][$restore['id']];
+maca_assert( 'pending' === $paused['status'] && $restore['polls'] === $paused['polls'] && ! isset( $cloud->sources['media:501'] ) && false === wp_next_scheduled( Npcink_Cloud_Site_Knowledge_Change_Bridge::FLUSH_HOOK ), 'Paused restore retains its retry budget, allows later withdrawal and does not keep Cron awake alone.' );
+maca_set_site_knowledge_delivery_enabled( true );
+Npcink_Cloud_Site_Knowledge_Change_Bridge::resume_pending_delivery();
+maca_assert( false !== wp_next_scheduled( Npcink_Cloud_Site_Knowledge_Change_Bridge::FLUSH_HOOK ), 'Explicit permission restoration wakes an otherwise idle pending restore.' );
+for ( $i = 0; $i < 8; $i++ ) { maca_run_site_knowledge_flush(); }
+maca_assert( 'completed' === typed_scope()['operations'][$restore['id']]['status'] && isset( $cloud->sources['post:42'] ), 'A paused restore completes after consent returns.' );
+
 $cloud=media_reset(); typed_image(2); maca_add_public_post_fixture(1);
 for($id=1;$id<=205;$id++){$cloud->sources['media:'.$id]=true;}
 $cloud->sources['post:1']=true;
