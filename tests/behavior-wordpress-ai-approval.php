@@ -61,10 +61,17 @@ namespace {
 	maca_assert( null === Npcink_Cloud_WordPress_AI_Approval::check() && 3 === count( $GLOBALS['approval_pending'] ), 'Approval in the host store immediately permits the same caller without another pending entry.' );
 	$GLOBALS['approval_allowed'] = false;
 	maca_assert( is_wp_error( Npcink_Cloud_WordPress_AI_Approval::check() ), 'Revoking host approval takes effect without cached permission truth.' );
-	$rest_error = Npcink_Cloud_WordPress_AI_Approval::explain_blocked_rest_error( new WP_Error( 'prompt_builder_error', 'SDK wrapper' ) );
-	maca_assert( 'wpai_connector_not_approved' === $rest_error->get_error_code() && 403 === $rest_error->get_error_data()['status'], 'REST retains the native approval code and 403 status across the AI Client wrapper.' );
 	$unrelated = new WP_Error( 'other_error', 'Unrelated' );
+	maca_assert( $unrelated === Npcink_Cloud_WordPress_AI_Approval::explain_blocked_rest_error( $unrelated ), 'A handled approval denial cannot replace a separate validation error.' );
+	$ordinary_sdk_error = new WP_Error( 'prompt_builder_error', 'SDK wrapper', array( 'exception_class' => '\\WordPress\\AiClient\\Common\\Exception\\RuntimeException' ) );
+	maca_assert( $ordinary_sdk_error === Npcink_Cloud_WordPress_AI_Approval::explain_blocked_rest_error( $ordinary_sdk_error ), 'An ordinary SDK error keeps its origin even after a provider denial.' );
+	$typed_error = new WP_Error( 'prompt_builder_error', 'SDK wrapper', array( 'exception_class' => 'Npcink_Cloud_WordPress_AI_Approval_Exception' ) );
+	$rest_error = Npcink_Cloud_WordPress_AI_Approval::explain_blocked_rest_error( $typed_error );
+	maca_assert( 'wpai_connector_not_approved' === $rest_error->get_error_code() && 403 === $rest_error->get_error_data()['status'], 'REST retains the native approval code and 403 status across the AI Client wrapper.' );
 	maca_assert( $unrelated === Npcink_Cloud_WordPress_AI_Approval::explain_blocked_rest_error( $unrelated ), 'Approval denial does not replace a later unrelated REST error.' );
+	maca_assert( array( 'success' => true ) === Npcink_Cloud_WordPress_AI_Approval::explain_blocked_rest_error( array( 'success' => true ) ), 'A handled denial does not alter successful nested or batch responses.' );
+	maca_assert( 'wpai_connector_not_approved' === Npcink_Cloud_WordPress_AI_Approval::explain_blocked_rest_error( $typed_error )->get_error_code(), 'Independent nested or batch approval errors carry their own origin without a shared last-denial slot.' );
+	maca_assert( is_subclass_of( 'Npcink_Cloud_WordPress_AI_Approval_Exception', '\\WordPress\\AiClient\\Common\\Exception\\RuntimeException' ), 'Typed approval denial preserves the AI Client exception contract.' );
 	$GLOBALS['approval_enabled'] = false;
 	maca_assert( null === Npcink_Cloud_WordPress_AI_Approval::check(), 'Turning off the host feature removes its provider restriction.' );
 }

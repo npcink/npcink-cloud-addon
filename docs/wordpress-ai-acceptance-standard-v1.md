@@ -266,6 +266,9 @@ outstanding Chinese UI audit and the bounded test budget.
 The text connector obtains identity from the validated Ability execution hook,
 tracks nested callbacks, and releases context through `wp_ability_execute_result`
 on WordPress 7.1, including callback errors. Model context is consumed once.
+ALT attachment inputs share the same frame and consumption state. REST callbacks
+start with isolated context and restore their suspended caller on completion;
+an internal REST read cannot erase or borrow an outer Ability's identity.
 WordPress 6.9/7.0 use their success hook plus REST/shutdown cleanup; direct
 in-process legacy callback failures before model invocation are not a proven
 cleanup boundary. Third-party Ability callbacks are never wrapped or replaced.
@@ -290,6 +293,8 @@ not attribution of a write to the model request.
 With Connector Approval enabled, all three AI Client models consult the
 host's `Caller_Identifier` and `Approvals_Store` before uploads/signing/HTTP.
 The native pending store and Tools > Connector Approvals remain authoritative.
-A denial preserves `wpai_connector_not_approved` and HTTP 403 across the SDK's
-exception wrapper. Cloud entitlement and Site Knowledge transport are outside
+A dedicated SDK exception preserves `wpai_connector_not_approved` and HTTP 403
+across WordPress's exception wrapper. The REST projection recognizes that
+exception type without keeping a shared last-denial value; unrelated errors
+remain unchanged. Cloud entitlement and Site Knowledge transport are outside
 this provider-only check. No permission option or approval UI is added.

@@ -957,7 +957,7 @@ maca_assert(
 	&& false !== strpos( $wpai_alt_text_handoff, 'class Npcink_Cloud_WordPress_AI_Alt_Text_Handoff' )
 	&& false !== strpos( $wpai_alt_text_handoff, 'upload_wordpress_ai_alt_text_source' )
 	&& false !== strpos( $wordpress_ai_connector, "add_action( 'wp_before_execute_ability'" )
-	&& false !== strpos( $wordpress_ai_connector, "'ai/alt-text-generation' === \$ability_name" )
+	&& false !== strpos( $wordpress_ai_connector, "'ai/alt-text-generation' === ( \$context['ability_id'] ?? '' )" )
 	&& false !== strpos( $wordpress_ai_connector, 'consume_alt_text_ability_context' )
 	&& false !== strpos( $wpai_alt_text_handoff, 'fstat( $handle )' )
 	&& false !== strpos( $wpai_alt_text_handoff, 'getimagesizefromstring( $contents )' )
@@ -2382,7 +2382,7 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
 	'includes/class-cloud-wordpress-ai-image-model.php' => 497,
-	'includes/class-cloud-wordpress-ai-scene-model.php' => 169,
+	'includes/class-cloud-wordpress-ai-scene-model.php' => 175,
 	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 178,
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
 	'includes/class-cloud-wordpress-ai-text-model.php' => 394,

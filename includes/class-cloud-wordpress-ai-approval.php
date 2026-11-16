@@ -15,8 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Uses the host's approval truth; never keeps an Addon permission matrix.
  */
 final class Npcink_Cloud_WordPress_AI_Approval {
-	/** @var WP_Error|null Last provider denial, for the host REST error projection. */
-	private static $blocked = null;
 	/**
 	 * Checks only AI Client provider execution, before uploads/signing/HTTP.
 	 *
@@ -27,7 +25,6 @@ final class Npcink_Cloud_WordPress_AI_Approval {
 	 * @return WP_Error|null
 	 */
 	public static function check(): ?WP_Error {
-		self::$blocked = null;
 		if ( ! class_exists( '\WordPress\AI\Experiments\Connector_Approval\Connector_Approval' )
 			|| ! class_exists( '\WordPress\AI\Connector_Approval\Caller_Identifier' )
 			|| ! class_exists( '\WordPress\AI\Connector_Approval\Approvals_Store' ) ) {
@@ -48,12 +45,11 @@ final class Npcink_Cloud_WordPress_AI_Approval {
 			return null;
 		}
 		$store->record_pending( $caller, $connector_id );
-		self::$blocked = new WP_Error(
+		return new WP_Error(
 			'wpai_connector_not_approved',
 			__( 'Npcink Cloud is pending connector approval. Ask a site administrator to approve it under Tools > Connector Approvals.', 'npcink-cloud-addon' ),
 			array( 'status' => 403, 'connector_id' => $connector_id, 'caller' => $caller )
 		);
-		return self::$blocked;
 	}
 
 	/**
@@ -63,8 +59,10 @@ final class Npcink_Cloud_WordPress_AI_Approval {
 	 * @return mixed
 	 */
 	public static function explain_blocked_rest_error( $response ) {
-		$blocked = self::$blocked;
-		self::$blocked = null;
-		return null !== $blocked && is_wp_error( $response ) ? $blocked : $response;
+		if ( ! is_wp_error( $response ) || 'prompt_builder_error' !== $response->get_error_code()
+			|| 'Npcink_Cloud_WordPress_AI_Approval_Exception' !== ( $response->get_error_data()['exception_class'] ?? null ) ) {
+			return $response;
+		}
+		return new WP_Error( 'wpai_connector_not_approved', $response->get_error_message(), array( 'status' => 403, 'connector_id' => Npcink_Cloud_WordPress_AI_Connector::CONNECTOR_ID ) );
 	}
 }

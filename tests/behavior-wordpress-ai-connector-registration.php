@@ -426,3 +426,27 @@ maca_assert( ! Npcink_Cloud_WordPress_AI_Connector::has_alt_text_ability_context
 Npcink_Cloud_WordPress_AI_Connector::end_wordpress_ai_ability_context( 'custom/unmapped', null, null );
 maca_assert( array( 'attachment_id' => 123 ) === Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context(), 'The outer vision attachment remains available after nested execution.' );
 Npcink_Cloud_WordPress_AI_Connector::end_wordpress_ai_ability_context( 'ai/alt-text-generation', null, null );
+
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'ai/alt-text-generation', array( 'attachment_id' => 123 ) );
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'ai/alt-text-generation', array( 'attachment_id' => 456 ) );
+maca_assert( array( 'attachment_id' => 456 ) === Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context() && array() === Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context(), 'Nested ALT consumes only its own attachment once.' );
+Npcink_Cloud_WordPress_AI_Connector::finish_wordpress_ai_ability_context( new WP_Error( 'inner_failed', 'Fixture' ), 'ai/alt-text-generation', null );
+maca_assert( array( 'attachment_id' => 123 ) === Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context() && array() === Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context(), 'An inner ALT failure restores the outer attachment and its independent one-use state.' );
+Npcink_Cloud_WordPress_AI_Connector::end_wordpress_ai_ability_context( 'ai/alt-text-generation', null, null );
+
+$outer_request = new stdClass();
+$inner_request = new stdClass();
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'ai/title-generation', array( 'context' => 123 ) );
+Npcink_Cloud_WordPress_AI_Connector::begin_rest_ability_context( null, array(), $outer_request );
+maca_assert( array() === Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context(), 'A nested REST callback cannot borrow its caller Ability identity.' );
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'custom/legacy-failure', array() );
+Npcink_Cloud_WordPress_AI_Connector::begin_rest_ability_context( null, array(), $inner_request );
+Npcink_Cloud_WordPress_AI_Connector::clear_rest_ability_context( null, array(), $inner_request );
+maca_assert( 'custom/legacy-failure' === Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context()['ability_id'], 'A nested REST return restores its immediate caller, even with a legacy failed frame.' );
+Npcink_Cloud_WordPress_AI_Connector::clear_rest_ability_context( null, array(), $outer_request );
+maca_assert( 'ai/title-generation' === Npcink_Cloud_WordPress_AI_Connector::consume_text_ability_context()['ability_id'], 'REST completion discards callback frames and restores the original outer Ability.' );
+Npcink_Cloud_WordPress_AI_Connector::begin_rest_ability_context( null, array(), $outer_request );
+Npcink_Cloud_WordPress_AI_Connector::begin_rest_ability_context( null, array(), $inner_request );
+Npcink_Cloud_WordPress_AI_Connector::clear_rest_ability_context( null, array(), $outer_request );
+maca_assert( array() === Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context(), 'An aborted inner REST scope is discarded without reviving consumed outer context.' );
+Npcink_Cloud_WordPress_AI_Connector::reset_wordpress_ai_ability_context();

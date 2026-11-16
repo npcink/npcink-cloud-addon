@@ -125,7 +125,8 @@ connector classes so they cannot grow unnoticed:
   raised from 1035 with reason: the 2026-10-20 connector-runtime request-log
   bridge maps Cloud `result.usage` tokens_in/out into host tokens_input/output)
 - `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 338 lines
-- `includes/class-cloud-wordpress-ai-approval.php` — 70 lines (adapter to the host's existing approval store; no Addon permission truth)
+- `includes/class-cloud-wordpress-ai-approval.php` — 68 lines (stateless adapter to the host's existing approval store; typed SDK errors preserve origin without a last-denial slot)
+- `includes/class-cloud-wordpress-ai-approval-exception.php` — 15 lines (typed SDK denial, lazy-loaded only when the SDK is present)
 - `includes/class-cloud-wordpress-ai-availability.php` — 32 lines
 - `includes/class-cloud-wordpress-ai-image-model.php` — 497 lines (one shared host
   approval check before provider execution; previously raised from
@@ -135,7 +136,8 @@ connector classes so they cannot grow unnoticed:
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
 - `includes/class-cloud-wordpress-ai-text-model.php` — 394 lines (four lines reuse WordPress AI source normalization before short-text transport)
 - `includes/class-cloud-wordpress-ai-vision-text-model.php` — 127 lines (one shared host approval check before uploads)
-- `includes/class-cloud-wordpress-ai-scene-model.php` — 169 lines (shared host
+- `includes/class-cloud-wordpress-ai-scene-model.php` — 175 lines (six added lines
+  preserve the approval exception type through the SDK without rewriting unrelated errors; shared host
   approval enforcement with no new approval store; shared
   metadata/config plumbing, prompt/result projection helpers, and the
   single plain-text exception sink `throw_user_facing()` required by the

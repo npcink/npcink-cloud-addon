@@ -3,6 +3,35 @@
 Status: local candidate, not merged or deployed. AI 1.5 Chinese UI coverage is
 still incomplete; do not treat connector compatibility as complete UI acceptance.
 
+## Omission-review corrections
+
+The follow-up review reproduced and corrected three defects: an internal REST
+request erased its caller's Ability identity; nested ALT generation overwrote
+the outer attachment input; and a shared last-approval-denial value could
+replace an unrelated REST error. REST entry now suspends and isolates the
+caller context, then restores the matching caller on completion. ALT input and
+single-use state live in the same Ability frame. A dedicated SDK exception
+carries approval origin through the host wrapper, without mutable denial state.
+
+Zero-model regressions passed in both WP 7.0.4 / AI 1.4.0 / PHP 8.0 and
+WP 7.1.4 / AI 1.5.0 / PHP 8.4 compatibility lanes. Each lane executed 13 native
+Ability/REST checks, covering isolation, restoration, REST-contained callback
+failure, nested ALT attachment identity and consumption. These are execution
+checks, beyond plugin/route discovery; they do not prove the legacy direct
+in-process failure case described below.
+
+On the local WP 7.1.4 site, separate native probes confirmed restored outer
+identity and attachment, an empty final context and zero outbound requests.
+The real SDK exception converter and REST dispatcher retained approval 403,
+independent validation 422 and an outer nested-request error 409. No model was
+called for these corrections. Local regression, PHPStan, packaging and strict
+Plugin Check were repeated after the fixes; no additional paid review was run.
+
+Signed read-only Cloud queries confirmed one accepted feedback event for
+`editor_assist` / `wordpress_ai_editor`. The summary endpoint exposes aggregates,
+so this does not prove association with the specific title run below. No new
+Cloud endpoint or source change was introduced to fill that evidence gap.
+
 ## Scope and boundary
 
 The three AI Client models now check the official optional Connector Approval
@@ -33,6 +62,9 @@ strings, 681 shim translations and 255 UI coverage gaps. The shim, localization
 JavaScript and audit script are unchanged from this branch's base `e57cf34`.
 This batch does not absorb another active localization task. Consequently the
 complete `release:verify` gate is not green and this candidate is not release-ready.
+The separately mounted dirty checkout had 180 UI gaps at the review checkpoint;
+that is a different source tree, not this candidate's 255-gap result. Neither
+result establishes final browser coverage.
 
 The final source and regression tests were reviewed locally for context
 isolation, approval denial before spend, result ownership and boundary safety.
