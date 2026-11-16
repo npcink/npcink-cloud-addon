@@ -53,6 +53,7 @@ if (
 		public function generateImageResult( array $prompt ): \WordPress\AiClient\Results\DTO\GenerativeAiResult {
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
+			self::assert_connector_approved();
 			if ( 1 !== count( $prompt ) ) {
 				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported' ) );
 			}

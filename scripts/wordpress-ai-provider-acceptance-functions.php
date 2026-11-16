@@ -279,6 +279,25 @@ function npcink_cloud_acceptance_quality_failure( $ability, $data, array $input 
 	if ( 'ai/image-prompt-generation' === $ability && '' === npcink_cloud_acceptance_string( $data ) ) {
 		return 'image_prompt_empty';
 	}
+	if ( 'ai/block-container-label-generation' === $ability ) {
+		return is_string( $data ) && 1 === preg_match( '/^[^<>\r\n`#*]{1,80}$/u', $data )
+			&& ! in_array( strtolower( trim( $data ) ), array( 'content', 'section', 'text', 'group', 'columns', 'container' ), true ) ? null : 'block_label_invalid';
+	}
+	if ( 'ai/revision-change-summary' === $ability ) {
+		if ( ! is_array( $data ) || ! is_string( $data['summary'] ?? null ) || '' === trim( $data['summary'] )
+			|| ! is_array( $data['changes'] ?? null ) || ! is_bool( $data['truncated'] ?? null )
+			|| ( $data['revision_id'] ?? null ) !== ( $input['revision_id'] ?? null )
+			|| ( $data['from_revision_id'] ?? null ) !== ( $input['from_revision_id'] ?? null ) ) {
+			return 'revision_summary_invalid';
+		}
+		foreach ( $data['changes'] as $change ) {
+			if ( ! is_string( $change ) || '' === trim( $change ) ) {
+				return 'revision_summary_invalid';
+			}
+		}
+		return null;
+	}
+
 	if ( 'ai/image-generation' === $ability ) {
 		if ( ! is_array( $data )
 			|| 'image_generation_result.v1' !== (string) ( $data['contract_version'] ?? '' )

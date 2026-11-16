@@ -600,6 +600,7 @@ function maca_load_addon_classes(): void {
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-settings.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-cleanup.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-ai-task-contract.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-approval.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-request-guards.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-diagnostics.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-media-payloads.php';

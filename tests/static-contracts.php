@@ -460,7 +460,7 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'wordpress_write_attempted: false' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "const providerLedgerValidation = env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1'" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'provider_call_ledger_evidence: providerLedgerEvidence' )
-	&& false !== strpos( $wp_ai_text_browser_smoke, "['1.2.0', '1.3.0', '1.4.0'].includes(readiness.ai_version)" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "['1.2.0', '1.3.0', '1.4.0', '1.5.0'].includes(readiness.ai_version)" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "['shorten', 'expand', 'rephrase']" )
 	&& false === strpos( $wp_ai_text_browser_smoke, "'lengthen'" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'pre_save_post_writes' )
@@ -509,7 +509,7 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'title_acceptance_evidence' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'content_fields_recorded: false' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'removeFakeProvider(fakeProvider)' )
-	&& false !== strpos( $local_test_guide, 'official WordPress AI 1.2.0, 1.3.0, or 1.4.0 plugin' )
+	&& false !== strpos( $local_test_guide, 'official WordPress AI 1.2.0, 1.3.0, 1.4.0, or 1.5.0 plugin' )
 	&& false !== strpos( $local_test_guide, 'composer run smoke:wp-ai-text-browser:preflight' )
 	&& false !== strpos( $local_test_guide, 'It does not create a draft, start a' )
 	&& false !== strpos( $local_test_guide, 'WP_AI_TEXT_FAKE_PROVIDER=1' )
@@ -522,7 +522,7 @@ maca_assert(
 	&& false !== strpos( $local_test_guide, 'not real-editor usefulness, acceptance, or a multi-site cohort' )
 	&& false !== strpos( $local_test_guide, '`cloud_run_id` only inside metadata-only request context for correlation' )
 	&& false !== strpos( $local_test_guide, 'proves zero post writes before the explicit Save/Update click' ),
-	'Opt-in browser acceptance uses the official AI 1.2.0/1.3.0/1.4.0 UI, supports a local expiring fake Provider, preserves suggestion-only review, records content-free adoption evidence, and cleans up its local fixture.'
+	'Opt-in browser acceptance uses the official AI 1.2.0/1.3.0/1.4.0/1.5.0 UI, supports a local expiring fake Provider, preserves suggestion-only review, records content-free adoption evidence, and cleans up its local fixture.'
 );
 
 maca_assert(
@@ -969,8 +969,8 @@ maca_assert(
 	&& false !== strpos( $wordpress_ai_connector, "'reference_image_not_supported'" )
 	&& false === strpos( $wpai_bundle_scope, "'response_format'  => \$this->response_format()" )
 	&& false === strpos( $wpai_bundle_scope, 'private function response_format(): string' )
-	&& false !== strpos( $wpai_text_model, 'detect_scene_ability_name' )
-	&& false !== strpos( $wpai_text_model, 'WordPress\\\\AI\\\\Abilities\\\\Title_Generation\\\\Title_Generation' )
+	&& false === strpos( $wpai_text_model, 'debug_backtrace' )
+	&& false !== strpos( $wpai_text_model, 'consume_text_ability_context' )
 	&& false !== strpos( $wpai_text_model, "'scene_not_supported', 'cloud_wp_ai_scene_not_supported'" )
 	&& false !== strpos( $wpai_image_model, "'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported'" )
 	&& false !== strpos( $wpai_image_model, "'tools_not_supported', 'cloud_wp_ai_tools_not_supported'" )
@@ -2381,12 +2381,12 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1130,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
-	'includes/class-cloud-wordpress-ai-image-model.php' => 496,
-	'includes/class-cloud-wordpress-ai-scene-model.php' => 159,
+	'includes/class-cloud-wordpress-ai-image-model.php' => 497,
+	'includes/class-cloud-wordpress-ai-scene-model.php' => 169,
 	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 178,
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
 	'includes/class-cloud-wordpress-ai-text-model.php' => 394,
-	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 126,
+	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 127,
 	'includes/class-cloud-media-derivative-transport.php' => 724,
 	'includes/class-cloud-media-governance-validation.php' => 282,
 	'includes/class-cloud-media-plan-projection.php' => 709,

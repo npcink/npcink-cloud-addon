@@ -15,7 +15,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:985
+#: includes/bootstrap.php:986
 #: includes/class-cloud-settings-page.php:244
 #: includes/class-cloud-settings-page.php:255
 #: includes/class-cloud-settings-page.php:256
@@ -28,60 +28,60 @@ msgstr "Npcink Cloud Addon"
 msgid "Npcink"
 msgstr "Npcink"
 
-#: includes/bootstrap.php:153
-#: includes/bootstrap.php:210
-#: includes/bootstrap.php:240
-#: includes/bootstrap.php:334
-#: includes/bootstrap.php:365
-#: includes/bootstrap.php:396
-#: includes/bootstrap.php:427
-#: includes/bootstrap.php:454
-#: includes/bootstrap.php:481
-#: includes/bootstrap.php:504
-#: includes/bootstrap.php:520
-#: includes/bootstrap.php:542
-#: includes/bootstrap.php:629
-#: includes/bootstrap.php:653
-#: includes/bootstrap.php:677
-#: includes/bootstrap.php:685
-#: includes/bootstrap.php:693
-#: includes/bootstrap.php:701
-#: includes/bootstrap.php:709
-#: includes/bootstrap.php:717
-#: includes/bootstrap.php:725
-#: includes/bootstrap.php:741
-#: includes/bootstrap.php:749
+#: includes/bootstrap.php:154
+#: includes/bootstrap.php:211
+#: includes/bootstrap.php:241
+#: includes/bootstrap.php:335
+#: includes/bootstrap.php:366
+#: includes/bootstrap.php:397
+#: includes/bootstrap.php:428
+#: includes/bootstrap.php:455
+#: includes/bootstrap.php:482
+#: includes/bootstrap.php:505
+#: includes/bootstrap.php:521
+#: includes/bootstrap.php:543
+#: includes/bootstrap.php:630
+#: includes/bootstrap.php:654
+#: includes/bootstrap.php:678
+#: includes/bootstrap.php:686
+#: includes/bootstrap.php:694
+#: includes/bootstrap.php:702
+#: includes/bootstrap.php:710
+#: includes/bootstrap.php:718
+#: includes/bootstrap.php:726
+#: includes/bootstrap.php:742
+#: includes/bootstrap.php:750
 #: includes/class-cloud-runtime-client.php:1065
 #: includes/class-cloud-runtime-client.php:1187
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr "Npcink Cloud 尚未配置。"
 
-#: includes/bootstrap.php:581
+#: includes/bootstrap.php:582
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr "Toolbox 运行请求超过固定大小限制。"
 
-#: includes/bootstrap.php:595
+#: includes/bootstrap.php:596
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr "Toolbox 运行请求包含固定合同之外的字段。"
 
-#: includes/bootstrap.php:603
+#: includes/bootstrap.php:604
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr "Toolbox 运行限制超出连接器固定策略。"
 
-#: includes/bootstrap.php:625
+#: includes/bootstrap.php:626
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr "Toolbox 内容支持需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:649
+#: includes/bootstrap.php:650
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr "Toolbox 站点助手需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:673
+#: includes/bootstrap.php:674
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr "夜间检查需要使用其固定运行时合同。"
 
-#: includes/bootstrap.php:1015
+#: includes/bootstrap.php:1016
 msgid "Settings"
 msgstr "设置"
 
@@ -1069,7 +1069,7 @@ msgstr "已启用"
 msgid "disabled"
 msgstr "已禁用"
 
-#: includes/bootstrap.php:987
+#: includes/bootstrap.php:988
 #: includes/class-cloud-settings-page.php:315
 msgid "Connect this site"
 msgstr "连接此站点"
@@ -1724,7 +1724,7 @@ msgstr "无法编码站点知识库运行时 payload。"
 msgid "Site Knowledge runtime payload exceeds the transport size limit."
 msgstr "站点知识库运行时 payload 超过传输大小限制。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:399
+#: includes/class-cloud-wordpress-ai-connector.php:439
 msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr "使用已验证的 Npcink Cloud 设置，为 WordPress AI 的固定编辑场景提供云端建议能力。"
 
@@ -1813,7 +1813,7 @@ msgstr "Npcink Cloud 无法投影替代文本 Ability 合同。"
 msgid "https://cloud.npc.ink/"
 msgstr "https://cloud.npc.ink/"
 
-#: includes/bootstrap.php:989
+#: includes/bootstrap.php:990
 msgid "Do not show again"
 msgstr "不再显示"
 
@@ -1880,63 +1880,63 @@ msgstr "最近一次 Cloud 验证未完成。"
 msgid "The knowledge base update could not be delivered and will be retried automatically. Detail: %s"
 msgstr "知识库更新未能投递，系统会自动重试。详情：%s"
 
-#: includes/class-cloud-wordpress-ai-connector.php:767
+#: includes/class-cloud-wordpress-ai-connector.php:807
 msgid "This request is not supported by the Npcink Cloud AI connection yet."
 msgstr "Npcink Cloud AI 连接暂不支持该请求。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:768
+#: includes/class-cloud-wordpress-ai-connector.php:808
 msgid "The Npcink Cloud AI connection does not support conversation history for this request."
 msgstr "Npcink Cloud AI 连接不支持在此请求中使用对话历史。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:769
+#: includes/class-cloud-wordpress-ai-connector.php:809
 msgid "The Npcink Cloud AI connection does not support tool calls or web search."
 msgstr "Npcink Cloud AI 连接不支持工具调用或网页搜索。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:770
+#: includes/class-cloud-wordpress-ai-connector.php:810
 msgid "The Npcink Cloud AI connection needs text input for this request."
 msgstr "此请求需要为 Npcink Cloud AI 连接提供文本输入。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:771
+#: includes/class-cloud-wordpress-ai-connector.php:811
 msgid "Image-to-image refinement is not supported by the Npcink Cloud AI connection yet."
 msgstr "Npcink Cloud AI 连接暂不支持图生图细化。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:772
+#: includes/class-cloud-wordpress-ai-connector.php:812
 msgid "This AI feature is not currently available through the Npcink Cloud connection."
 msgstr "该 AI 功能当前无法通过 Npcink Cloud 连接使用。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:773
+#: includes/class-cloud-wordpress-ai-connector.php:813
 msgid "Npcink Cloud did not return usable output for this request. Please try again."
 msgstr "Npcink Cloud 未返回可用的结果，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:775
+#: includes/class-cloud-wordpress-ai-connector.php:815
 msgid "Npcink Cloud returned an unexpected image result. Please try again."
 msgstr "Npcink Cloud 返回了异常的图片结果，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:776
+#: includes/class-cloud-wordpress-ai-connector.php:816
 msgid "The generated image previews are too large to show. Try generating fewer images at once."
 msgstr "生成的图片预览过大，无法显示。请尝试一次生成更少的图片。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:777
+#: includes/class-cloud-wordpress-ai-connector.php:817
 msgid "The generated image could not be verified for safe delivery. Please try again."
 msgstr "生成的图片未能通过安全投递校验，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:778
+#: includes/class-cloud-wordpress-ai-connector.php:818
 msgid "Npcink Cloud could not confirm delivery of the generated image. Please try again."
 msgstr "Npcink Cloud 未能确认图片已投递，请重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:779
+#: includes/class-cloud-wordpress-ai-connector.php:819
 msgid "The generated image is no longer available. Please generate it again."
 msgstr "生成的图片已失效，请重新生成。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:781
+#: includes/class-cloud-wordpress-ai-connector.php:821
 msgid "Npcink Cloud could not be reached from this site. Please try again in a moment."
 msgstr "本站点暂时无法连接 Npcink Cloud，请稍后重试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:782
+#: includes/class-cloud-wordpress-ai-connector.php:822
 msgid "The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page."
 msgstr "Npcink Cloud 连接的授权已失效。请在 Cloud Addon 设置页面重新连接站点。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:783
+#: includes/class-cloud-wordpress-ai-connector.php:823
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr "该请求已达到 Npcink Cloud 的限额。请稍后重试，或在 Cloud 中查看套餐用量。"
 
@@ -1968,92 +1968,92 @@ msgstr "查看上传详情"
 msgid "View Site Knowledge status"
 msgstr "查看站点知识库状态"
 
-#: includes/class-cloud-wordpress-ai-connector.php:774
+#: includes/class-cloud-wordpress-ai-connector.php:814
 msgid "Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run."
 msgstr "Npcink Cloud 仍在处理此请求。请稍候再试，以免重复执行产生额外消耗。"
 
-#: includes/class-cloud-ai-task-contract.php:133
+#: includes/class-cloud-ai-task-contract.php:145
 msgid "A registered WordPress Ability is required for Cloud AI task execution."
 msgstr "Cloud AI 任务执行需要已注册的 WordPress 能力。"
 
-#: includes/class-cloud-ai-task-contract.php:138
+#: includes/class-cloud-ai-task-contract.php:150
 msgid "The requested WordPress Ability is not registered."
 msgstr "请求的 WordPress 能力尚未注册。"
 
-#: includes/class-cloud-ai-task-contract.php:154
+#: includes/class-cloud-ai-task-contract.php:166
 msgid "The registered Ability does not publish a Cloud AI task contract."
 msgstr "已注册能力未发布 Cloud AI 任务契约。"
 
-#: includes/class-cloud-ai-task-contract.php:193
+#: includes/class-cloud-ai-task-contract.php:205
 msgid "The Toolkit contract source is unavailable for this Ability."
 msgstr "此能力的 Toolkit 契约来源不可用。"
 
-#: includes/class-cloud-ai-task-contract.php:199
+#: includes/class-cloud-ai-task-contract.php:211
 msgid "The Toolkit contract is missing for this Ability."
 msgstr "此能力缺少 Toolkit 契约。"
 
-#: includes/class-cloud-ai-task-contract.php:206
+#: includes/class-cloud-ai-task-contract.php:218
 msgid "The WordPress Ability schema does not match the Toolkit contract."
 msgstr "WordPress 能力架构与 Toolkit 契约不匹配。"
 
-#: includes/class-cloud-ai-task-contract.php:210
+#: includes/class-cloud-ai-task-contract.php:222
 msgid "The Toolkit contract version or Ability identity is invalid."
 msgstr "Toolkit 契约版本或能力身份无效。"
 
-#: includes/class-cloud-ai-task-contract.php:219
+#: includes/class-cloud-ai-task-contract.php:231
 msgid "The Toolkit contract permission or write posture is incompatible with the local Ability."
 msgstr "Toolkit 契约权限或写入姿态与本地能力不兼容。"
 
-#: includes/class-cloud-ai-task-contract.php:224
+#: includes/class-cloud-ai-task-contract.php:236
 msgid "The Toolkit risk level does not match the registered WordPress Ability."
 msgstr "Toolkit 风险级别与已注册 WordPress 能力不匹配。"
 
-#: includes/class-cloud-ai-task-contract.php:227
+#: includes/class-cloud-ai-task-contract.php:239
 msgid "The Toolkit approval requirement does not match the registered WordPress Ability."
 msgstr "Toolkit 审批要求与已注册 WordPress 能力不匹配。"
 
-#: includes/class-cloud-ai-task-contract.php:241
+#: includes/class-cloud-ai-task-contract.php:253
 msgid "AI task contracts require ai_task_contract.v1."
 msgstr "AI 任务契约必须使用 ai_task_contract.v1。"
 
-#: includes/class-cloud-ai-task-contract.php:256
+#: includes/class-cloud-ai-task-contract.php:268
 msgid "AI task contracts require a registered ability, task, and supported task family."
 msgstr "AI 任务契约必须包含已注册能力、任务和受支持的任务类型。"
 
-#: includes/class-cloud-ai-task-contract.php:259
+#: includes/class-cloud-ai-task-contract.php:271
 msgid "AI task contract verification must be mapping_current before Cloud execution."
 msgstr "Cloud 执行前，AI 任务契约验证状态必须为 mapping_current。"
 
-#: includes/class-cloud-ai-task-contract.php:265
+#: includes/class-cloud-ai-task-contract.php:277
 msgid "AI task contracts contain an unsupported context requirement or constraint."
 msgstr "AI 任务契约包含不受支持的上下文要求或约束。"
 
-#: includes/class-cloud-ai-task-contract.php:272
+#: includes/class-cloud-ai-task-contract.php:284
 msgid "AI task contracts require a stable sha256 schema hash."
 msgstr "AI 任务契约必须包含稳定的 sha256 架构哈希。"
 
-#: includes/class-cloud-ai-task-contract.php:276
+#: includes/class-cloud-ai-task-contract.php:288
 msgid "The Ability output schema is too large for runtime projection."
 msgstr "能力输出架构过大，无法投影到运行时请求。"
 
-#: includes/class-cloud-ai-task-contract.php:281
+#: includes/class-cloud-ai-task-contract.php:293
 msgid "The AI task contract schema hash does not match its input and output schemas."
 msgstr "AI 任务契约架构哈希与输入、输出架构不匹配。"
 
-#: includes/class-cloud-ai-task-contract.php:307
-#: includes/class-cloud-ai-task-contract.php:311
+#: includes/class-cloud-ai-task-contract.php:319
+#: includes/class-cloud-ai-task-contract.php:323
 msgid "AI task contract list fields must be arrays."
 msgstr "AI 任务契约列表字段必须是数组。"
 
-#: includes/class-cloud-ai-task-contract.php:315
+#: includes/class-cloud-ai-task-contract.php:327
 msgid "AI task contract list fields must contain strings."
 msgstr "AI 任务契约列表字段必须只包含字符串。"
 
-#: includes/class-cloud-ai-task-contract.php:321
+#: includes/class-cloud-ai-task-contract.php:333
 msgid "AI task contract list fields contain an unsupported value."
 msgstr "AI 任务契约列表字段包含不受支持的值。"
 
-#: includes/class-cloud-ai-task-contract.php:325
+#: includes/class-cloud-ai-task-contract.php:337
 msgid "AI task contract context none cannot be combined with other values."
 msgstr "AI 任务契约上下文 none 不能与其他值组合。"
 
@@ -2127,7 +2127,7 @@ msgstr "Cloud 未返回完整的知识库用量。请进入 Cloud 查看此站�
 msgid "Site Knowledge usage could not be read. Check the Cloud connection and this site in Cloud before retrying."
 msgstr "无法读取知识库用量。请先检查 Cloud 连接及 Cloud 中的此站点状态，再重试。"
 
-#: includes/class-cloud-ai-task-contract.php:250
+#: includes/class-cloud-ai-task-contract.php:262
 #: includes/class-cloud-discoverability-pause.php:125
 #: includes/class-cloud-runtime-request-guards.php:217
 msgid "SEO/AEO/GEO specialist assistance is paused."
@@ -2400,7 +2400,7 @@ msgstr "重新连接"
 msgid "Check again"
 msgstr "重新检查"
 
-#: includes/bootstrap.php:986
+#: includes/bootstrap.php:987
 #: includes/class-cloud-settings-page.php:301
 msgid "Connect this site to Npcink Cloud to use AI features."
 msgstr "把此站点连接到 Npcink Cloud，即可使用 AI 功能。"
@@ -2836,27 +2836,27 @@ msgstr "去 Npcink Cloud 充值"
 msgid "Last AI error code"
 msgstr "最近一次 AI 错误代码"
 
-#: includes/class-cloud-wordpress-ai-connector.php:780
+#: includes/class-cloud-wordpress-ai-connector.php:820
 msgid "The AI request did not succeed. Try again later; if it keeps failing, copy the information on the Checks tab and contact support."
 msgstr "AI 请求没有成功。请稍后再试，若一直失败请到「检查」页复制信息联系客服。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:784
+#: includes/class-cloud-wordpress-ai-connector.php:824
 msgid "Your AI credits have run out. Top up on Npcink Cloud, then try again."
 msgstr "AI 积分已用完。请去 Npcink Cloud 充值后再试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:785
+#: includes/class-cloud-wordpress-ai-connector.php:825
 msgid "This site is no longer connected to Npcink Cloud. Reconnect it on the Npcink AI > Cloud Addon page, then try again."
 msgstr "此站点已与 Npcink Cloud 断开。请在“Npcink AI > 云端扩展”页面重新连接后再试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:786
+#: includes/class-cloud-wordpress-ai-connector.php:826
 msgid "This site is turned off in Npcink Cloud. Turn it on in Npcink Cloud, then try again."
 msgstr "此站点在 Npcink Cloud 中已停用。请在 Npcink Cloud 中启用后再试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:787
+#: includes/class-cloud-wordpress-ai-connector.php:827
 msgid "Too many AI requests right now. Wait a minute, then try again."
 msgstr "AI 请求太频繁了。请等一分钟后再试。"
 
-#: includes/class-cloud-wordpress-ai-connector.php:788
+#: includes/class-cloud-wordpress-ai-connector.php:828
 msgid "Npcink Cloud is temporarily unavailable. Try again in a few minutes."
 msgstr "Npcink Cloud 暂时不可用。请过几分钟再试。"
 
@@ -3337,3 +3337,7 @@ msgstr "以下 AI 功能暂时不可用：%s。"
 #: includes/class-cloud-settings-page.php:2371
 msgid "AI credits are used up."
 msgstr "AI 积分已用尽。"
+
+#: includes/class-cloud-wordpress-ai-approval.php:53
+msgid "Npcink Cloud is pending connector approval. Ask a site administrator to approve it under Tools > Connector Approvals."
+msgstr "Npcink Cloud 连接器待审批。请站点管理员前往「工具 → 连接器审批」批准使用。"

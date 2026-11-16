@@ -104,6 +104,16 @@ $cases = array(
 	array( 'scenario_id' => 'image-prompt-generation-default', 'ability' => 'ai/image-prompt-generation', 'input' => array( 'content' => 'A calm editorial workspace showing a WordPress article moving through a reliable AI provider pipeline.', 'context' => 'Use a clean product illustration style.', 'style' => 'minimal, editorial, accessible contrast' ) ),
 	array( 'scenario_id' => 'title-generation-default', 'ability' => 'ai/title-generation', 'input' => array( 'content' => 'A guide explaining how WordPress AI abilities connect to a cloud provider.' ) ),
 );
+// Explicit existing fixtures only: this acceptance runner never creates or saves posts.
+$editor_post_id = absint( getenv( 'WP_AI_ACCEPTANCE_EDITOR_POST_ID' ) ?: 0 );
+$revision_id = absint( getenv( 'WP_AI_ACCEPTANCE_REVISION_ID' ) ?: 0 );
+$from_revision_id = absint( getenv( 'WP_AI_ACCEPTANCE_FROM_REVISION_ID' ) ?: 0 );
+if ( $editor_post_id > 0 ) {
+	$cases[] = array( 'scenario_id' => 'block-container-label-fixed', 'ability' => 'ai/block-container-label-generation', 'input' => array( 'post_id' => $editor_post_id, 'content' => '<h2>Connector Approval</h2><p>A site administrator approves the connector before the Addon sends signed requests to Cloud.</p>' ) );
+	if ( $revision_id > 0 && $from_revision_id > 0 ) {
+		$cases[] = array( 'scenario_id' => 'revision-change-summary-fixed', 'ability' => 'ai/revision-change-summary', 'input' => array( 'post_id' => $editor_post_id, 'revision_id' => $revision_id, 'from_revision_id' => $from_revision_id ) );
+	}
+}
 $allow_comment_metadata_write = '1' === (string) ( getenv( 'WP_AI_ACCEPTANCE_ALLOW_COMMENT_METADATA_WRITE' ) ?: '' );
 if ( 0 < $comment_id ) {
 	if ( $allow_comment_metadata_write ) {

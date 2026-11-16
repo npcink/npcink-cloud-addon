@@ -42,6 +42,7 @@ includes/class-cloud-site-knowledge-change-bridge.php
 includes/class-cloud-site-knowledge-runtime-bridge.php
 includes/class-cloud-wordpress-ai-alt-text-handoff.php
 includes/class-cloud-wordpress-ai-availability.php
+includes/class-cloud-wordpress-ai-approval.php
 includes/class-cloud-wordpress-ai-connector.php
 includes/class-cloud-wordpress-ai-image-model.php
 includes/class-cloud-wordpress-ai-model-metadata-directory.php

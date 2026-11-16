@@ -92,6 +92,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Scene_Model' ) ) {
 		}
 
 		/**
+		 * Enforces the host's optional connector approval before any provider spend.
+		 */
+		protected static function assert_connector_approved(): void {
+			$error = Npcink_Cloud_WordPress_AI_Approval::check();
+			if ( is_wp_error( $error ) ) {
+				self::throw_user_facing( $error->get_error_message() );
+			}
+		}
+
+		/**
 		 * Throws the shared user-facing runtime exception.
 		 *
 		 * The message comes from the connector's plain-text user-facing

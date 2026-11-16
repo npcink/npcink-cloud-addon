@@ -125,15 +125,18 @@ connector classes so they cannot grow unnoticed:
   raised from 1035 with reason: the 2026-10-20 connector-runtime request-log
   bridge maps Cloud `result.usage` tokens_in/out into host tokens_input/output)
 - `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 338 lines
+- `includes/class-cloud-wordpress-ai-approval.php` — 70 lines (adapter to the host's existing approval store; no Addon permission truth)
 - `includes/class-cloud-wordpress-ai-availability.php` — 32 lines
-- `includes/class-cloud-wordpress-ai-image-model.php` — 496 lines (raised from
+- `includes/class-cloud-wordpress-ai-image-model.php` — 497 lines (one shared host
+  approval check before provider execution; previously raised from
   492 for the 2026-10-12 precise expired-artifact classification before
   verified media delivery)
 - `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
 - `includes/class-cloud-wordpress-ai-text-model.php` — 394 lines (four lines reuse WordPress AI source normalization before short-text transport)
-- `includes/class-cloud-wordpress-ai-vision-text-model.php` — 126 lines
-- `includes/class-cloud-wordpress-ai-scene-model.php` — 159 lines (shared
+- `includes/class-cloud-wordpress-ai-vision-text-model.php` — 127 lines (one shared host approval check before uploads)
+- `includes/class-cloud-wordpress-ai-scene-model.php` — 169 lines (shared host
+  approval enforcement with no new approval store; shared
   metadata/config plumbing, prompt/result projection helpers, and the
   single plain-text exception sink `throw_user_facing()` required by the
   strict Plugin Check gate)

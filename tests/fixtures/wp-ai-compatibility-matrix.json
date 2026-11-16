@@ -20,6 +20,15 @@
       "status": "declared"
     },
     {
+      "lane_id": "stable-current",
+      "wordpress": "7.1.4",
+      "wordpress_ai_versions": ["1.5.0"],
+      "wordpress_ai_urls": ["https://api.github.com/repos/WordPress/ai/releases/assets/690364191"],
+      "php_versions": ["8.4"],
+      "gate": "blocking",
+      "status": "declared"
+    },
+    {
       "lane_id": "upstream-warning",
       "wordpress": "7.1.1",
       "wordpress_ai_versions": ["develop"],

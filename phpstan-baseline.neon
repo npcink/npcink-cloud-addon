@@ -217,12 +217,6 @@ parameters:
 			path: includes/class-cloud-wordpress-ai-image-model.php
 
 		-
-			message: '#^Offset ''''\|class\-string on array\{WordPress\\AI\\Abilities\\Image\\Generate_Image_Prompt\: ''ai/image\-prompt…'', WordPress\\AI\\Abilities\\Content_Classification\\Content_Classification\: ''ai/content…'', WordPress\\AI\\Abilities\\Comment_Moderation\\Comment_Analysis\: ''ai/comment\-analysis'', WordPress\\AI\\Abilities\\Content_Resizing\\Content_Resizing\: ''ai/content\-resizing'', WordPress\\AI\\Abilities\\Content_Translation\\Content_Translation\: ''ai/content…'', WordPress\\AI\\Abilities\\Editorial_Updates\\Editorial_Updates\: ''ai/editorial\-updates'', WordPress\\AI\\Abilities\\Editorial_Notes\\Editorial_Notes\: ''ai/editorial\-notes'', WordPress\\AI\\Abilities\\Excerpt_Generation\\Excerpt_Generation\: ''ai/excerpt…'', \.\.\.\} in isset\(\) does not exist\.$#'
-			identifier: isset.offset
-			count: 1
-			path: includes/class-cloud-wordpress-ai-text-model.php
-
-		-
 			message: '#^Property WP_Post\:\:\$post_content \(string\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
 			count: 1

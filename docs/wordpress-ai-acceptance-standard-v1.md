@@ -28,8 +28,9 @@ system, or writer to make acceptance easier.
 
 The compatibility lanes are declared in
 `tests/fixtures/wp-ai-compatibility-matrix.json`: WordPress 7.0.4 with
-WordPress AI 1.3.0 is the primary stable lane, WordPress 7.1.1 with AI 1.2.0
-is the reviewed regression lane, and WordPress 7.1.1 with upstream `develop`
+WordPress AI 1.4.0 is the primary stable lane, WordPress 7.1.1 with AI 1.3.0
+is the regression lane, WordPress 7.1.4 with AI 1.5.0 / PHP 8.4 is the current
+stable lane, and WordPress 7.1.1 with upstream `develop`
 is a visible non-blocking warning lane. The
 `composer run smoke:wp-ai-compatibility -- <lane>` runner boots each lane in
 WordPress Playground, installs the pinned AI artifact, activates the Addon,
@@ -255,3 +256,40 @@ intentional release scope, exact revisions, rollback targets, and authorization.
 
 See the [dated acceptance record](wordpress-ai-acceptance-and-release-handoff-2026-09-08.md)
 for text and image runs, recovery observations, merged PRs, and remaining gaps.
+
+## AI 1.5 editor fixtures
+
+The [2026-11-16 candidate verification](wordpress-ai-15-connector-verification-2026-11-16.md)
+records real-provider, replay and browser evidence separately, including the
+outstanding Chinese UI audit and the bounded test budget.
+
+The text connector obtains identity from the validated Ability execution hook,
+tracks nested callbacks, and releases context through `wp_ability_execute_result`
+on WordPress 7.1, including callback errors. Model context is consumed once.
+WordPress 6.9/7.0 use their success hook plus REST/shutdown cleanup; direct
+in-process legacy callback failures before model invocation are not a proven
+cleanup boundary. Third-party Ability callbacks are never wrapped or replaced.
+It does not infer abilities from PHP implementation class names. A registered
+Ability still needs a reviewed local task contract; unknown tasks fail closed.
+
+Block container labels and revision summaries reuse the existing bounded
+Cloud generation/analysis families. Their temporary compatibility projections
+live in the Addon; no Cloud scene registration is required. The official AI
+plugin owns the prompts, revision comparison, permission checks and post writes.
+The public revision schema includes host-supplied IDs and truncation state;
+only summary/changes are consumed from model output by the official parser.
+
+For a bounded existing draft/revision fixture, set
+`WP_AI_ACCEPTANCE_EDITOR_POST_ID`, `WP_AI_ACCEPTANCE_REVISION_ID` and
+`WP_AI_ACCEPTANCE_FROM_REVISION_ID`, and select
+`WP_AI_ACCEPTANCE_ABILITIES=ai/block-container-label-generation,ai/revision-change-summary`.
+The acceptance runner does not create or save these fixtures. Avoid concurrent
+editor saves during its global content-state comparison; a changed snapshot is
+not attribution of a write to the model request.
+
+With Connector Approval enabled, all three AI Client models consult the
+host's `Caller_Identifier` and `Approvals_Store` before uploads/signing/HTTP.
+The native pending store and Tools > Connector Approvals remain authoritative.
+A denial preserves `wpai_connector_not_approved` and HTTP 403 across the SDK's
+exception wrapper. Cloud entitlement and Site Knowledge transport are outside
+this provider-only check. No permission option or approval UI is added.

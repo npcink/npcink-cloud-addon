@@ -326,3 +326,9 @@ $factual_transport = Npcink_Cloud_Runtime_Request_Guards::normalize_wordpress_ai
 	) ), 'site_alpha', 'https://alpha.example.test', '0.4.4'
 );
 maca_assert( ! is_wp_error( $factual_transport ), 'Factual evidence: full signed-runtime request guard accepts a registered task and its schema projection.' );
+
+foreach ( array( 'ai/block-container-label-generation' => 'generation', 'ai/revision-change-summary' => 'analysis' ) as $new_ability => $family ) {
+	$GLOBALS['maca_abilities'][ $new_ability ] = new Maca_AI_Task_Test_Ability( $new_ability, array(), array( 'type' => 'analysis' === $family ? 'object' : 'string' ) );
+	$new_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( $new_ability );
+	maca_assert( is_array( $new_contract ) && $family === $new_contract['task_family'] && 'suggestion_only' === $new_contract['write_posture'], 'AI 1.5 editor Ability uses the bounded family runtime with host-owned schema: ' . $new_ability );
+}

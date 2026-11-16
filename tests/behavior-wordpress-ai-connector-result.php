@@ -18,30 +18,6 @@ namespace WordPress\AI {
 	}
 }
 
-namespace WordPress\AI\Abilities\Suggest_Reply {
-	final class Suggest_Reply {
-		public function detected_scene_ability_name(): string {
-			$model  = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
-			$method = new \ReflectionMethod( $model, 'detect_scene_ability_name' );
-			$method->setAccessible( true );
-
-			return (string) $method->invoke( $model );
-		}
-	}
-}
-
-namespace WordPress\AI\Abilities\Image {
-	final class Generate_Image_Prompt {
-		public function detected_scene_ability_name(): string {
-			$model  = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
-			$method = new \ReflectionMethod( $model, 'detect_scene_ability_name' );
-			$method->setAccessible( true );
-
-			return (string) $method->invoke( $model );
-		}
-	}
-}
-
 namespace {
 	require_once __DIR__ . '/helpers.php';
 
@@ -147,6 +123,16 @@ namespace {
 	);
 
 	$projection_model = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
+	maca_reset_test_state();
+	Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'ai/alt-text-generation', array( 'attachment_id' => 123 ) );
+	$alt_text_rejected = false;
+	try {
+		$projection_model->generateTextResult( array() );
+	} catch ( \WordPress\AiClient\Common\Exception\RuntimeException $error ) {
+		$alt_text_rejected = true;
+	}
+	maca_assert( $alt_text_rejected && empty( $GLOBALS['maca_http_requests'] ), 'Text-only provider rejects ALT generation before HTTP; attachment input must use the vision provider.' );
+	Npcink_Cloud_WordPress_AI_Connector::reset_wordpress_ai_ability_context();
 	$projection_method = new \ReflectionMethod( 'Npcink_Cloud_WordPress_AI_Text_Model', 'project_short_text_scene_request' );
 	$projection_method->setAccessible( true );
 	$excerpt_projection = $projection_method->invoke(
@@ -208,15 +194,20 @@ namespace {
 		'Behavior: short-text projection keeps the original prompt when the Ability provides no content.'
 	);
 
-	maca_assert(
-		'ai/suggest-reply' === ( new \WordPress\AI\Abilities\Suggest_Reply\Suggest_Reply() )->detected_scene_ability_name(),
-		'Behavior: the text connector recognizes the WordPress AI suggest reply ability as a bounded scene.'
-	);
-	maca_assert(
-		'ai/image-prompt-generation' === ( new \WordPress\AI\Abilities\Image\Generate_Image_Prompt() )->detected_scene_ability_name(),
-		'Behavior: the text connector recognizes the current WordPress AI image-prompt ability class as a bounded scene.'
-	);
+	$editor_validator = new ReflectionMethod( $projection_model, 'valid_editor_output' );
+	$editor_validator->setAccessible( true );
+	foreach ( array( 'Product Features', '产品功能概览' ) as $label ) {
+		maca_assert( $editor_validator->invoke( $projection_model, 'block_container_label_generation', $label ), 'Block labels accept concise plain text in the source language.' );
+	}
+	foreach ( array( 'Content', "Features\nExplanation", '<b>Features</b>', str_repeat( 'x', 81 ) ) as $label ) {
+		maca_assert( ! $editor_validator->invoke( $projection_model, 'block_container_label_generation', $label ), 'Block labels reject generic, multiline, markup or unbounded output.' );
+	}
+	maca_assert( $editor_validator->invoke( $projection_model, 'revision_change_summary', '{"summary":"Added an approval step.","changes":["Requires administrator approval."]}' ), 'Revision summary accepts the model response before host-owned revision fields are attached.' );
+	foreach ( array( 'Plain text', '{"summary":"","changes":[]}', '{"summary":"Changed.","changes":[42]}', '{"summary":"Changed.","changes":[],"unexpected":999}' ) as $summary ) {
+		maca_assert( ! $editor_validator->invoke( $projection_model, 'revision_change_summary', $summary ), 'Revision summary rejects malformed content and undeclared fields.' );
+	}
 
+	maca_assert( $editor_validator->invoke( $projection_model, 'revision_change_summary', '{"summary":"Changed.","changes":[],"revision_id":999,"truncated":true}' ), 'Public-schema revision fields are accepted only for the official parser to discard and recompute from local revisions.' );
 	maca_reset_test_state();
 	maca_seed_settings( true );
 	$image_bytes = base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', true );

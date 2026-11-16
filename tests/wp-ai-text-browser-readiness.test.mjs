@@ -53,7 +53,7 @@ test('synthetic failure evidence requires the actual fixture transport attempt',
 });
 
 test('accepts only explicitly reviewed active AI versions', () => {
-	for (const ai_version of ['1.2.0', '1.3.0', '1.4.0']) {
+	for (const ai_version of ['1.2.0', '1.3.0', '1.4.0', '1.5.0']) {
 		assert.doesNotThrow(() => check('http://fixture.local', { ...ready, ai_version }));
 	}
 	for (const ai_version of ['', '1.1.0', '1.3.1', '1.3.0-beta', '1.4.1', '2.0.0']) {
@@ -65,7 +65,7 @@ test('accepts only explicitly reviewed active AI versions', () => {
 test('declares stable and upstream-warning compatibility lanes without widening the Cloud contract', () => {
 	assert.equal(matrix.contract_version, 'wordpress_ai_compatibility_matrix.v1');
 	assert.deepEqual(matrix.lanes.map((lane) => lane.lane_id), [
-		'stable-primary', 'stable-regression', 'upstream-warning',
+		'stable-primary', 'stable-regression', 'stable-current', 'upstream-warning',
 	]);
 	const primary = matrix.lanes.find((lane) => lane.lane_id === 'stable-primary');
 	const regression = matrix.lanes.find((lane) => lane.lane_id === 'stable-regression');
@@ -77,6 +77,7 @@ test('declares stable and upstream-warning compatibility lanes without widening 
 	assert.deepEqual(regression.wordpress_ai_versions, ['1.3.0']);
 	assert.deepEqual(primary.wordpress_ai_urls, ['https://api.github.com/repos/WordPress/ai/releases/assets/613524776']);
 	assert.deepEqual(regression.wordpress_ai_urls, ['https://api.github.com/repos/WordPress/ai/releases/assets/519975984']);
+	assert.equal(matrix.lanes.find((lane) => lane.lane_id === 'stable-current').wordpress_ai_versions[0], '1.5.0');
 	assert.equal(warning.gate, 'non_blocking_warning');
 	assert.equal(warning.wordpress_ai_versions[0], 'develop');
 	assert.deepEqual(warning.wordpress_ai_urls, ['https://github.com/WordPress/ai/archive/refs/heads/develop.zip']);
@@ -103,6 +104,7 @@ test('summary persistence reads the exact reviewed version key without legacy fa
 	assert.equal(key('1.2.0'), 'ai_generated_summary');
 	assert.equal(key('1.3.0'), 'wpai_generated_summary');
 	assert.equal(key('1.4.0'), 'wpai_generated_summary');
+	assert.equal(key('1.5.0'), 'wpai_generated_summary');
 	assert.throws(() => key('1.3.1'));
 });
 

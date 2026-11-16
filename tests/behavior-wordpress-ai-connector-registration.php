@@ -405,3 +405,24 @@ maca_assert( false === apply_filters( 'wpai_feature_meta-description_enabled', t
 
 $pause_features = apply_filters( 'wpai_default_feature_classes', array( 'meta-description' => 'Meta_Class', 'title-generation' => 'Title_Class', 'slug-generation' => 'Slug_Class' ) );
 maca_assert( array( 'title-generation' => 'Title_Class', 'slug-generation' => 'Slug_Class' ) === $pause_features, 'Only the dedicated metadata feature entry is removed from the host feature list.' );
+
+// The active frame, rather than a PHP class name, supplies provider identity.
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'ai/block-container-label-generation', array( 'content' => 'Outer content' ) );
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'custom/unmapped', array() );
+maca_assert( 'custom/unmapped' === Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context()['ability_id'], 'An unknown nested Ability cannot borrow the outer text identity.' );
+$error = new WP_Error( 'fixture_error', 'Failed before model generation.' );
+maca_assert( $error === Npcink_Cloud_WordPress_AI_Connector::finish_wordpress_ai_ability_context( $error, 'custom/unmapped', array() ), 'Callback errors pass through unchanged while their context is released.' );
+maca_assert( 'ai/block-container-label-generation' === Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context()['ability_id'], 'An outer editor Ability is restored after a nested failure.' );
+Npcink_Cloud_WordPress_AI_Connector::end_wordpress_ai_ability_context( 'ai/block-container-label-generation', null, $error );
+maca_assert( array() === Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context(), 'Failed outer execution leaves no identity for a later model call.' );
+
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'ai/title-generation', array( 'content' => 'One use' ) );
+maca_assert( 'ai/title-generation' === Npcink_Cloud_WordPress_AI_Connector::consume_text_ability_context()['ability_id'] && array() === Npcink_Cloud_WordPress_AI_Connector::consume_text_ability_context(), 'A model request consumes its identity once, even when generation fails.' );
+Npcink_Cloud_WordPress_AI_Connector::clear_rest_ability_context( null );
+maca_assert( array() === Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context(), 'REST completion clears failed legacy callback context without erasing run evidence.' );
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'ai/alt-text-generation', array( 'attachment_id' => 123 ) );
+Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'custom/unmapped', array() );
+maca_assert( ! Npcink_Cloud_WordPress_AI_Connector::has_alt_text_ability_context() && array() === Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context(), 'An unknown nested Ability cannot borrow its parent vision identity or attachment.' );
+Npcink_Cloud_WordPress_AI_Connector::end_wordpress_ai_ability_context( 'custom/unmapped', null, null );
+maca_assert( array( 'attachment_id' => 123 ) === Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context(), 'The outer vision attachment remains available after nested execution.' );
+Npcink_Cloud_WordPress_AI_Connector::end_wordpress_ai_ability_context( 'ai/alt-text-generation', null, null );

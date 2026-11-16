@@ -326,3 +326,11 @@ $all_good = npcink_cloud_acceptance_finalize_report( array( 'write_detected' => 
 maca_assert( 'local_verified' === $all_good['evidence_state'] && 2 === $all_good['passed'], 'Acceptance verifies the batch only when every case has passing evidence.' );
 Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
+
+maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/block-container-label-generation', 'Connector Approval Process' ), 'AI 1.5 acceptance accepts a descriptive block label.' );
+maca_assert( 'block_label_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/block-container-label-generation', 'Content' ), 'AI 1.5 acceptance rejects a generic label.' );
+$revision_fixture = array( 'summary' => 'Added connector approval.', 'changes' => array(), 'truncated' => false, 'revision_id' => 23, 'from_revision_id' => 22 );
+$revision_input = array( 'revision_id' => 23, 'from_revision_id' => 22 );
+maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/revision-change-summary', $revision_fixture, $revision_input ), 'AI 1.5 acceptance validates the exact host revision identity.' );
+$revision_fixture['revision_id'] = 999;
+maca_assert( 'revision_summary_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/revision-change-summary', $revision_fixture, $revision_input ), 'AI 1.5 acceptance refuses a summary bound to another revision.' );

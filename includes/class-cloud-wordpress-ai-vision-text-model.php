@@ -33,6 +33,7 @@ if (
 			// Clear a prior ability's evidence before any validation or runtime call.
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
+			self::assert_connector_approved();
 			$ability_input = Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context();
 			if ( array() === $ability_input ) {
 				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_not_supported', 'cloud_wp_ai_scene_not_supported' ) );
