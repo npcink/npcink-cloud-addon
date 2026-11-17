@@ -293,3 +293,33 @@ for an authenticated Chinese-locale user with the existing corresponding
 capability. Only an exact untranslated message changes; routes, codes, status,
 permissions, payloads and existing official translations remain unchanged.
 All other REST errors and all front-end gettext calls retain their source behavior.
+
+## AI 1.5 compatibility integration (2026-11-17)
+
+The reviewed settings-only update (89 mappings and its PHP/JS regressions) was
+copied from the separate, uncommitted local settings work into the AI 1.5
+connector candidate. Its input hashes and patch are retained outside the
+worktree; the source checkout and its unrelated Site Knowledge/editor-error
+changes remain untouched. This is a focused copy, not a merge of that checkout.
+
+The installed 1.5 audit was reviewed across every group. Revision notices,
+block-label empty results, Abilities Explorer JSON errors and MCP installation
+help were fixed UI that the prose/schema heuristics misclassified. The audit
+now recognizes those exact JS UI sources. Dynamic ability metadata, schemas,
+image prompts and example-experiment metadata remain outside addon translation
+ownership. The strict fixed-UI gate reaches zero gaps; that heuristic result
+is not a complete REST-error language pack or proof of every runtime surface.
+
+The shared DataViews fallback now has seventeen keys. `Filter` is supported
+only with the `verb` context. The payload is limited to AI settings, request
+logs, MCP access and Abilities Explorer, matching the installed bundles.
+Exact source/form/context/plural checks and upstream translation precedence
+remain mandatory. No full dictionary is added to the default text domain.
+
+The block-label and revision-summary REST error fallback handles only three
+reviewed exact message/code/route pairs for authorized Chinese-locale callers.
+It leaves status, permissions, error codes, translated messages and all other
+routes unchanged. Successful results and dynamic ability descriptions are not
+translated by this adapter. Unit checks exercise these negative boundaries;
+native UI acceptance and package identity are recorded separately in the
+connector verification record.

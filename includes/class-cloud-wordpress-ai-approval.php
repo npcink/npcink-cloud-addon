@@ -59,8 +59,9 @@ final class Npcink_Cloud_WordPress_AI_Approval {
 	 * @return mixed
 	 */
 	public static function explain_blocked_rest_error( $response ) {
+		$data = is_wp_error( $response ) ? $response->get_error_data() : null;
 		if ( ! is_wp_error( $response ) || 'prompt_builder_error' !== $response->get_error_code()
-			|| 'Npcink_Cloud_WordPress_AI_Approval_Exception' !== ( $response->get_error_data()['exception_class'] ?? null ) ) {
+			|| ! is_array( $data ) || 'Npcink_Cloud_WordPress_AI_Approval_Exception' !== ( $data['exception_class'] ?? null ) ) {
 			return $response;
 		}
 		return new WP_Error( 'wpai_connector_not_approved', $response->get_error_message(), array( 'status' => 403, 'connector_id' => Npcink_Cloud_WordPress_AI_Connector::CONNECTOR_ID ) );

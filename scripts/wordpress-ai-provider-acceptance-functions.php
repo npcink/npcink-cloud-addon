@@ -280,7 +280,7 @@ function npcink_cloud_acceptance_quality_failure( $ability, $data, array $input 
 		return 'image_prompt_empty';
 	}
 	if ( 'ai/block-container-label-generation' === $ability ) {
-		return is_string( $data ) && 1 === preg_match( '/^[^<>\r\n`#*]{1,80}$/u', $data )
+		return is_string( $data ) && '' !== trim( $data ) && 1 === preg_match( '/^[^<>\r\n`#*]{1,80}$/u', $data )
 			&& ! in_array( strtolower( trim( $data ) ), array( 'content', 'section', 'text', 'group', 'columns', 'container' ), true ) ? null : 'block_label_invalid';
 	}
 	if ( 'ai/revision-change-summary' === $ability ) {

@@ -155,15 +155,17 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			return $result;
 		}
 
-		/** @param mixed $response Unchanged REST result. @param array $handler Handler. @param mixed $request REST request. @return mixed */
-		public static function begin_rest_ability_context( $response, array $handler = array(), $request = null ) {
+		/** @param mixed $response Unchanged REST result. @param mixed $handler Handler. @param mixed $request REST request. @return mixed */
+		public static function begin_rest_ability_context( $response, $handler = array(), $request = null ) {
+			unset( $handler );
 			self::$rest_ability_context[] = array( 'request' => $request, 'context' => self::$text_ability_context );
 			self::$text_ability_context = array();
 			return $response;
 		}
 
-		/** @param mixed $response Unchanged REST result. @param array $handler Handler. @param mixed $request REST request. @return mixed */
-		public static function clear_rest_ability_context( $response, array $handler = array(), $request = null ) {
+		/** @param mixed $response Unchanged REST result. @param mixed $handler Handler. @param mixed $request REST request. @return mixed */
+		public static function clear_rest_ability_context( $response, $handler = array(), $request = null ) {
+			unset( $handler );
 			// Restore the matching caller, discarding any scopes aborted by a nested callback exception.
 			while ( $scope = array_pop( self::$rest_ability_context ) ) {
 				if ( $scope['request'] === $request ) {

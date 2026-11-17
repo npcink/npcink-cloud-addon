@@ -20,7 +20,7 @@
 	wp.i18n.setLocaleData( fallback, 'ai' );
 	// DataViews bundled by AI uses default-domain strings. Never register the
 	// full AI dictionary in that domain. PHP supplies only the reviewed keys
-	// and only on the AI settings and request-log screens.
+	// and only on settings, request logs, MCP access and the abilities explorer.
 	const bundled = config.bundledUiFallback || {};
 	if ( ! wp.hooks || ! wp.hooks.addFilter || ! Object.keys( bundled ).length ) {
 		return;
@@ -43,6 +43,7 @@
 		( translation, source, context, domain ) => {
 			const supported = ( [ 'Comfortable', 'Balanced', 'Compact' ].includes( source ) && context === 'Density option for DataView layout' ) ||
 				( source === 'View options' && context === 'View is used as a noun' ) ||
+				( source === 'Filter' && context === 'verb' ) ||
 				( source === 'Edit %s (has errors)' && context === 'field' );
 			return isDefault( domain ) && supported && bundled[ source ] && translation === source ?
 				bundled[ source ] : translation;

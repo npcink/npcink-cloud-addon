@@ -275,11 +275,14 @@ function npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( string $text, ar
 		'Compact' => 'Density option for DataView layout',
 		'View options' => 'View is used as a noun',
 		'Edit %s (has errors)' => 'field',
+		'Filter' => 'verb',
 	);
 	foreach ( $entry['calls'] as $call ) {
 		if ( ! in_array( $call['file'], array(
 			'build/routes/ai-home/content.js', 'build/routes/ai-home/content.min.js',
 			'build-scripts/admin/ai-request-logs.js',
+			'build-scripts/experiments/mcp-adapter.js',
+			'build-scripts/experiments/abilities-explorer.js',
 		), true ) ) {
 			return false;
 		}
@@ -406,6 +409,11 @@ function npcink_cloud_addon_ai_i18n_audit_classify_missing( string $text, array 
 			'build-scripts/experiments/content-translation.js',
 			'build-scripts/experiments/slug-generation.js',
 			'build-scripts/experiments/summarization.js',
+			'build-scripts/experiments/block-container-label-generation.js',
+			'build-scripts/experiments/revision-change-summary.js',
+			'build-scripts/experiments/revision-change-summary-classic.js',
+			'build-scripts/experiments/abilities-explorer.js',
+			'build-scripts/experiments/mcp-adapter.js',
 			'includes/Experiments/Abilities_Explorer/Admin_Page.php',
 			'includes/Experiments/Markdown_Feeds/Markdown_Feeds.php',
 			'includes/Experiments/Comment_Moderation/Comment_Moderation.php',

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T10:44:00+00:00\n"
+"POT-Creation-Date: 2026-11-17T01:46:16+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -3243,95 +3243,95 @@ msgstr ""
 msgid "Npcink Cloud is pending connector approval. Ask a site administrator to approve it under Tools > Connector Approvals."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:440
+#: includes/class-cloud-wordpress-ai-connector.php:442
 msgid "Use verified Npcink Cloud settings for bounded WordPress AI scene tasks."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:808
+#: includes/class-cloud-wordpress-ai-connector.php:810
 msgid "This request is not supported by the Npcink Cloud AI connection yet."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:809
+#: includes/class-cloud-wordpress-ai-connector.php:811
 msgid "The Npcink Cloud AI connection does not support conversation history for this request."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:810
+#: includes/class-cloud-wordpress-ai-connector.php:812
 msgid "The Npcink Cloud AI connection does not support tool calls or web search."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:811
+#: includes/class-cloud-wordpress-ai-connector.php:813
 msgid "The Npcink Cloud AI connection needs text input for this request."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:812
+#: includes/class-cloud-wordpress-ai-connector.php:814
 msgid "Image-to-image refinement is not supported by the Npcink Cloud AI connection yet."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:813
+#: includes/class-cloud-wordpress-ai-connector.php:815
 msgid "This AI feature is not currently available through the Npcink Cloud connection."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:814
+#: includes/class-cloud-wordpress-ai-connector.php:816
 msgid "Npcink Cloud did not return usable output for this request. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:815
+#: includes/class-cloud-wordpress-ai-connector.php:817
 msgid "Npcink Cloud is still processing this request. Wait a moment and try again later to avoid a duplicate run."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:816
+#: includes/class-cloud-wordpress-ai-connector.php:818
 msgid "Npcink Cloud returned an unexpected image result. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:817
+#: includes/class-cloud-wordpress-ai-connector.php:819
 msgid "The generated image previews are too large to show. Try generating fewer images at once."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:818
+#: includes/class-cloud-wordpress-ai-connector.php:820
 msgid "The generated image could not be verified for safe delivery. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:819
+#: includes/class-cloud-wordpress-ai-connector.php:821
 msgid "Npcink Cloud could not confirm delivery of the generated image. Please try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:820
+#: includes/class-cloud-wordpress-ai-connector.php:822
 msgid "The generated image is no longer available. Please generate it again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:821
+#: includes/class-cloud-wordpress-ai-connector.php:823
 msgid "The AI request did not succeed. Try again later; if it keeps failing, copy the information on the Checks tab and contact support."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:822
+#: includes/class-cloud-wordpress-ai-connector.php:824
 msgid "Npcink Cloud could not be reached from this site. Please try again in a moment."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:823
+#: includes/class-cloud-wordpress-ai-connector.php:825
 msgid "The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:824
+#: includes/class-cloud-wordpress-ai-connector.php:826
 msgid "This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:825
+#: includes/class-cloud-wordpress-ai-connector.php:827
 msgid "Your AI credits have run out. Top up on Npcink Cloud, then try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:826
+#: includes/class-cloud-wordpress-ai-connector.php:828
 msgid "This site is no longer connected to Npcink Cloud. Reconnect it on the Npcink AI > Cloud Addon page, then try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:827
+#: includes/class-cloud-wordpress-ai-connector.php:829
 msgid "This site is turned off in Npcink Cloud. Turn it on in Npcink Cloud, then try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:828
+#: includes/class-cloud-wordpress-ai-connector.php:830
 msgid "Too many AI requests right now. Wait a minute, then try again."
 msgstr ""
 
-#: includes/class-cloud-wordpress-ai-connector.php:829
+#: includes/class-cloud-wordpress-ai-connector.php:831
 msgid "Npcink Cloud is temporarily unavailable. Try again in a few minutes."
 msgstr ""
 

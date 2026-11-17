@@ -80,6 +80,25 @@ maca_assert(
 	'AI plugin localization covers the audited fixed UI candidates without translating dynamic ability metadata.'
 );
 
+$settings_15_translations = array(
+	'Turn on stable Features and early-stage Experiments. Experiments may change or be removed in any release, and some run automatically once enabled, so try them on a staging site first.' => '启用稳定功能和早期实验功能。实验功能可能在任何版本中变更或移除，部分功能启用后会自动运行，建议先在测试站点试用。',
+	'Early-stage AI tools for the block editor, including content generation and enhancement tools. Experiments may change or be removed in any release.' => '面向区块编辑器的早期 AI 工具，包括内容生成和增强工具。实验功能可能在任何版本中变更或移除。',
+	'Early-stage AI tools for the WordPress admin area, including exploration and testing tools. Experiments may change or be removed in any release.' => '面向 WordPress 后台的早期 AI 工具，包括探索和测试工具。实验功能可能在任何版本中变更或移除。',
+	'Block Container Label Generation' => '容器区块标签生成',
+	'Generate concise labels for content blocks. Requires an AI connector that includes support for text generation models.' => '为内容区块生成简短标签。需要支持文本生成模型的 AI 连接器。',
+	'Revision Change Summary' => '修订变更摘要',
+	'When %s runs and what it sends' => '%s何时运行、发送哪些内容',
+	'Runs automatically' => '自动运行',
+	'When you click Apply Editorial Updates, which also saves the post' => '点击“应用编辑更新”时，同时会保存文章',
+	'Nothing to your AI provider. Depending on the tool called, the post title, status, and a short text preview of each block go to the AI model the agent browser uses' => '不向你的 AI 提供方发送内容。根据调用的工具，文章标题、状态和各区块的简短文本预览会发送给智能体浏览器使用的 AI 模型',
+);
+foreach ( $settings_15_translations as $source => $expected ) {
+	maca_assert(
+		$expected === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( $source, $source, 'ai' ),
+		'AI 1.5 fixed settings copy and operational consequences translate through PHP: ' . $source
+	);
+}
+
 maca_assert(
 	'能力浏览器' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Abilities Explorer',
@@ -1370,6 +1389,12 @@ $localized_script = $GLOBALS['maca_localized_scripts'][0] ?? array();
 $locale_data = isset( $localized_script['data']['localeData'] ) && is_array( $localized_script['data']['localeData'] )
 	? $localized_script['data']['localeData']
 	: array();
+foreach ( $settings_15_translations as $source => $expected ) {
+	maca_assert(
+		$expected === ( $locale_data[ $source ][0] ?? '' ),
+		'AI 1.5 fixed settings copy ships in the ai-domain JS locale payload: ' . $source
+	);
+}
 foreach ( $audit_gap_translations as $source => $expected ) {
 	maca_assert(
 		$expected === ( $locale_data[ $source ][0] ?? '' ),
@@ -1441,6 +1466,7 @@ $payload_guard->setAccessible( true );
 $payload_hook_cases = array(
 	'settings_page_ai-wp-admin'     => true,
 	'tools_page_ai-request-logs'    => true,
+	'tools_page_ai-mcp-access' => true,
 	'tools_page_ai-abilities-explorer' => true,
 	'options-connectors'            => true,
 	'edit-comments.php'             => true,
@@ -1463,9 +1489,9 @@ foreach ( $payload_hook_cases as $payload_hook_case => $payload_hook_allowed ) {
 	Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data( $payload_hook_case );
 	$bundled_payload = $GLOBALS['maca_localized_scripts'][0]['data']['bundledUiFallback'] ?? array();
 	maca_assert(
-		in_array( $payload_hook_case, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs' ), true )
-			? count( $bundled_payload ) === 16 : empty( $bundled_payload ),
-		'DataViews exceptions only ship on the two verified AI screens: ' . $payload_hook_case
+		in_array( $payload_hook_case, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs', 'tools_page_ai-mcp-access', 'tools_page_ai-abilities-explorer' ), true )
+			? count( $bundled_payload ) === 17 : empty( $bundled_payload ),
+		'DataViews exceptions only ship on the four reviewed AI screens: ' . $payload_hook_case
 	);
 	maca_assert(
 		( $payload_hook_allowed ? 1 : 0 ) === count( $GLOBALS['maca_enqueued_scripts'] )
@@ -1499,6 +1525,17 @@ $rest_message = static function ( $message = 'Unsupported schema version: 999.',
 };
 maca_assert( '不支持的结构版本：999。' === $rest_message(), 'REST settings import localizes its exact version error.' );
 maca_assert( '未生成别名建议。' === $rest_message( 'No slug suggestion was generated.', 'no_results', '/wp-abilities/v1/abilities/ai/slug-generation/run' ), 'REST slug ability localizes its fixed no-results error.' );
+foreach ( array(
+	array( 'No label was generated.', 'no_results', 'block-container-label-generation', '未生成标签。' ),
+	array( 'No summary of the changes was generated.', 'no_results', 'revision-change-summary', '未生成变更摘要。' ),
+	array( 'Could not parse the AI response as a summary of changes.', 'invalid_response', 'revision-change-summary', '无法将 AI 响应解析为变更摘要。' ),
+) as $case ) {
+	$route = '/wp-abilities/v1/abilities/ai/' . $case[2] . '/run';
+	maca_assert( $case[3] === $rest_message( $case[0], $case[1], $route ), 'New AI 1.5 REST UI errors retain exact origin: ' . $case[2] );
+	maca_assert( $case[0] === $rest_message( $case[0], 'other_error', $route ), 'A different REST code is not rewritten for ' . $case[2] );
+	maca_assert( $case[0] === $rest_message( $case[0], $case[1], $route, 'POST', 'en_US' ), 'English REST callers keep their error for ' . $case[2] );
+	maca_assert( $case[0] === $rest_message( $case[0], $case[1], $route, 'POST', 'zh_CN', false ), 'Unauthorized REST callers keep their error for ' . $case[2] );
+}
 foreach ( array(
 	array( '官方译文' ),
 	array( 'Unsupported schema version: 999.', 'other_error' ),

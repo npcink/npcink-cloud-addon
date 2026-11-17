@@ -107,3 +107,60 @@ tokens. Including the preceding audit: seven hosted text calls, 5,182 text
 tokens and 142 local embedding tokens. The replay was not another provider
 call. Cloud cost fields were zero; actual upstream charges were not reconciled.
 No further model requests are needed for this handoff.
+
+## Integration follow-up — 2026-11-17
+
+The 255-gap candidate and separate 180-gap settings work above are historical
+checkpoints. The candidate now includes the reviewed settings mappings and
+further fixed AI 1.5 UI translations, plus bounded DataViews support for the
+MCP and Ability Explorer screens. The installed-plugin strict fixed-UI audit
+now reports zero gaps. Dynamic ability/schema/prompt copy stays excluded, and
+this audit does not claim complete runtime error localization.
+
+The original dirty checkout is preserved. Native acceptance uses a temporary
+candidate mount and an isolated Chinese draft. A local-only transport guard
+accepts only that fixture, replays deterministic cases and caps real summary/
+rewrite requests at two in total. Synthetic telemetry uploads are blocked
+until fixture-scoped cleanup. Native evidence, final package identity and
+remaining limits will be recorded in the integration handoff; source success
+alone does not mark this draft PR merged, installed permanently or released.
+
+## Native integration acceptance — 2026-11-17
+
+The candidate was mounted only for a disposable local draft (post 283298) and
+then the original `/Users/muze/gitee/npcink-cloud-addon` symlink target was
+restored. After resetting the local PHP opcode cache, the candidate path was
+confirmed by reflection before the final replay checks.
+
+Two real hosted text calls were used, exactly within the approved cap: Chinese
+summary (`run_112f5ea0f2de4965b33826cd0684fabf`) and Chinese rewrite
+(`run_d8ddccde86b24d28a352a7a9af71ac42`, 804 total tokens). The summary was
+shown in the native summary block. The rewrite preview was shown in the native
+“建议替换内容” dialog, accepted explicitly, and the first paragraph changed
+while the second paragraph and sentinel remained intact. Before Save draft,
+the database content hash was unchanged; after Save draft and refresh, the
+summary, rewritten paragraph and sentinel persisted.
+
+Local deterministic replay then verified the block-container label flow:
+`社区花园节水试验` appeared in the rename dialog and was saved as the group
+label. The native revision screen generated `记录频率从每周调整为每天。` and
+showed the explicit “由 AI 生成，请核对实际变更后再采用此摘要” notice. The
+post content hash and revision list were unchanged by that summary action.
+
+The AI settings page, request-log link, MCP access link and Abilities Explorer
+link were inspected in the candidate browser. The installed AI 1.5 feature
+list rendered in Chinese, including the connector-owned fixed UI. These checks
+are acceptance evidence for the exercised flows, not a claim that every toggle
+has been paid-model tested. Image generation/editing, visual alt text, TTS,
+type-ahead, WebMCP, MCP execution, and automatic editor updates remain
+connector-capability or policy-dependent and were not enabled or executed.
+
+Fixture-scoped quality and journey records were sanitized (pending quality was
+empty; observability was unchanged; customer-journey buffer dropped only
+fixture-matching records). The temporary MU guard, state file and diagnostic
+were removed. No production data, credentials, approvals, Cloud source or
+scene registry was changed.
+
+Evidence files: `wordpress-ai-15-integration-evidence-2026-11-17/` under the
+Codex visualization root, including native rewrite, saved editor and revision
+summary screenshots, the real-call receipts, and pre/post content snapshots.
