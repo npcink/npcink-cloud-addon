@@ -293,3 +293,36 @@ for an authenticated Chinese-locale user with the existing corresponding
 capability. Only an exact untranslated message changes; routes, codes, status,
 permissions, payloads and existing official translations remain unchanged.
 All other REST errors and all front-end gettext calls retain their source behavior.
+
+## Settings compatibility update (2026-11-16, AI 1.5.0)
+
+The installed AI 1.5.0 changed the settings introduction and group descriptions,
+added fixed feature labels, and introduced usage disclosures. The local Addon
+mount resolves to this repository. Added 89 exact `ai`-domain entries for this
+settings surface, including when a feature runs, what it sends, and request
+counts. Preserve direct-save, automatic execution, plugin-install, plaintext-key
+and external-AI data-sharing consequences in Chinese. WebMCP remains a proper
+name. No feature was enabled and no upstream plugin file was edited.
+
+Maintenance lesson: check the whole affected settings surface, including the
+information buttons and accessible names, after an upstream update. Known
+upstream feature usage prose can appear in the audit's schema or long-copy
+groups; inspect its actual call site before deciding ownership. This does not
+authorize translating third-party ability metadata or automatically translating
+unknown strings at request time.
+
+The existing visible labels/descriptions and on-demand usage disclosures retain
+their positions; no content was moved or duplicated. Local PHP regressions, JS
+asset execution (33 tests), WordPress.org review guard and PHPStan passed.
+Browser evidence is under `ai15-settings-*.jpg` and
+`ai15-settings-receipt.json` in this task's evidence directory. The screenshot
+reported by the user and the updated real page are separate from automated
+dictionary coverage; feature checkbox values remain unchanged.
+
+The full installed-plugin strict audit still fails: UI coverage gaps decreased
+from 255 to 180. Residual editor, request-log, ability-explorer and other surfaces,
+including default-domain calls in the new MCP bundle, remain separate review
+work. This settings fix is not full AI 1.5 localization acceptance. No CI,
+merge or production deployment is claimed. Playground is not applicable:
+bootstrap, public APIs, default connector state and compatibility floors did
+not change.

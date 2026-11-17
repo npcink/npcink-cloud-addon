@@ -500,7 +500,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			$status = sanitize_key( (string) ( $result['bounded_status'] ?? $result['status'] ?? '' ) );
 			if ( 'ready' === $status ) {
-				self::set_admin_notice( 'success', __( 'Full check passed. Everything is working.', 'npcink-cloud-addon' ) );
+				self::set_admin_notice( 'success', __( 'Connection and account checks passed. AI generation was not tested.', 'npcink-cloud-addon' ) );
 			} else {
 				self::set_admin_notice( 'warning', Npcink_Cloud_Settings_Page::format_readiness_detail( $result ) );
 			}

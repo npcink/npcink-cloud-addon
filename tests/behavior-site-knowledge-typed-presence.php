@@ -21,6 +21,7 @@ if ( ! function_exists( 'get_post_meta' ) ) {
 if ( ! function_exists( 'wp_cache_delete' ) ) {
 	function wp_cache_delete( $key, $group = '' ) {
 		if ( 'post_meta' === $group ) { unset( $GLOBALS['typed_meta_cache'][ $key ] ); }
+		if ( 'options' === $group && isset( $GLOBALS['typed_option_cache_eviction'] ) ) { call_user_func( $GLOBALS['typed_option_cache_eviction'], $key ); }
 		return true;
 	}
 }
@@ -87,6 +88,7 @@ final class TypedCloudFixture {
 		$this->queue();
 		if ( $this->during_send ) { $callback = $this->during_send; $this->during_send = null; $callback(); }
 		if ( 'GET' === $args['method'] ) {
+			if ( false !== strpos( $url, '/by-idempotency/' ) ) { return $this->response( $this->runs[ $this->keys[ basename( $url ) ] ?? '' ] ?? array() ); }
 			if ( 'result' === basename( $url ) ) { return $this->response( $this->results[ basename( dirname( $url ) ) ] ?? array() ); }
 			$id = basename( $url );
 			return $this->response( $this->runs[ $id ] ?? array() );
@@ -990,3 +992,5 @@ maca_assert( ! is_wp_error( $result ) && $uploads_before_replay === $upload_call
 $stored = typed_scope()['dispatches']['uncertain-source-test'];
 maca_assert( $stored['source_fingerprint'] === $uncertain['source_fingerprint'], 'Durable replay preserves the original semantic fingerprint.' );
 unlink( $local_file ); rmdir( $upload_base );
+
+require_once __DIR__ . '/behavior-site-knowledge-receipt-recovery.php';

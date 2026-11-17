@@ -739,6 +739,14 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			return $this->request( 'GET', '/v1/runs/' . rawurlencode( $run_id ), null, '', $trace_id );
 		}
 
+		/** Read an existing dispatch receipt without creating or replaying a run. */
+		public function get_run_by_idempotency( string $key, string $trace_id = '' ) {
+			if ( ! preg_match( '/\A[A-Za-z0-9._:-]{1,128}\z/', $key ) || in_array( $key, array( '.', '..' ), true ) ) {
+				return new WP_Error( 'cloud_runtime_idempotency_invalid' );
+			}
+			return $this->request( 'GET', '/v1/runs/by-idempotency/' . rawurlencode( $key ), null, '', $trace_id );
+		}
+
 		/**
 		 * Reads one runtime run result.
 		 *

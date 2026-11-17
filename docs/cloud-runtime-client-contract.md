@@ -135,6 +135,7 @@ It returns a `WP_Error` until the addon settings have passed Save and Verify.
 | `request_image_context_evidence()` | `POST /v1/runtime/execute` |
 | `upload_media_artifact()` | `POST /v1/runtime/media/uploads` |
 | `create_media_job()` | `POST /v1/runtime/media/jobs` |
+| `get_run_by_idempotency()` | `GET /v1/runs/by-idempotency/{key}` (read only; no execution/replay) |
 | `get_run()` | `GET /v1/runs/{run_id}` |
 | `get_run_result()` | `GET /v1/runs/{run_id}/result` |
 | `get_recent_nightly_inspection_runs()` | `GET /v1/runs/nightly-inspection/recent` |

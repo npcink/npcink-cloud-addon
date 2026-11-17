@@ -43,6 +43,10 @@ availability. See [reversible pauses](docs/reversible-feature-pauses-v1.md).
 
 ## Engineering Decisions and Standards
 
+- [回执丢失与恢复复盘](docs/site-knowledge-receipt-recovery-retrospective-2026-11-16.md)
+  记录 Cloud 成功但本地未保存回执的漏检原因、修复取舍和验证限制；后续按
+  [跨系统回执验收要求](docs/verification-evidence-standard.md#跨系统回执与中断恢复验收)覆盖故障窗口。
+
 - [停用站点连接恢复验收](docs/inactive-site-connection-acceptance-2026-11-12.md)记录提示、
   授权按钮、真实回调和本地注入样本的证据边界。
 
@@ -84,6 +88,7 @@ The addon owns:
   - `POST /v1/runtime/execute`
   - `POST /v1/runtime/media/uploads` for bounded image source uploads
   - `POST /v1/runtime/media/jobs`
+  - `GET /v1/runs/by-idempotency/{key}` for read-only receipt recovery
   - `GET /v1/runs/{run_id}`
   - `GET /v1/runs/{run_id}/result`
   - `GET /v1/runs/nightly-inspection/recent`

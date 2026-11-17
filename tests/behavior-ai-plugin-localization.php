@@ -80,6 +80,25 @@ maca_assert(
 	'AI plugin localization covers the audited fixed UI candidates without translating dynamic ability metadata.'
 );
 
+$settings_15_translations = array(
+	'Turn on stable Features and early-stage Experiments. Experiments may change or be removed in any release, and some run automatically once enabled, so try them on a staging site first.' => '启用稳定功能和早期实验功能。实验功能可能在任何版本中变更或移除，部分功能启用后会自动运行，建议先在测试站点试用。',
+	'Early-stage AI tools for the block editor, including content generation and enhancement tools. Experiments may change or be removed in any release.' => '面向区块编辑器的早期 AI 工具，包括内容生成和增强工具。实验功能可能在任何版本中变更或移除。',
+	'Early-stage AI tools for the WordPress admin area, including exploration and testing tools. Experiments may change or be removed in any release.' => '面向 WordPress 后台的早期 AI 工具，包括探索和测试工具。实验功能可能在任何版本中变更或移除。',
+	'Block Container Label Generation' => '容器区块标签生成',
+	'Generate concise labels for content blocks. Requires an AI connector that includes support for text generation models.' => '为内容区块生成简短标签。需要支持文本生成模型的 AI 连接器。',
+	'Revision Change Summary' => '修订变更摘要',
+	'When %s runs and what it sends' => '%s何时运行、发送哪些内容',
+	'Runs automatically' => '自动运行',
+	'When you click Apply Editorial Updates, which also saves the post' => '点击“应用编辑更新”时，同时会保存文章',
+	'Nothing to your AI provider. Depending on the tool called, the post title, status, and a short text preview of each block go to the AI model the agent browser uses' => '不向你的 AI 提供方发送内容。根据调用的工具，文章标题、状态和各区块的简短文本预览会发送给智能体浏览器使用的 AI 模型',
+);
+foreach ( $settings_15_translations as $source => $expected ) {
+	maca_assert(
+		$expected === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( $source, $source, 'ai' ),
+		'AI 1.5 fixed settings copy and operational consequences translate through PHP: ' . $source
+	);
+}
+
 maca_assert(
 	'能力浏览器' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Abilities Explorer',
@@ -1370,6 +1389,12 @@ $localized_script = $GLOBALS['maca_localized_scripts'][0] ?? array();
 $locale_data = isset( $localized_script['data']['localeData'] ) && is_array( $localized_script['data']['localeData'] )
 	? $localized_script['data']['localeData']
 	: array();
+foreach ( $settings_15_translations as $source => $expected ) {
+	maca_assert(
+		$expected === ( $locale_data[ $source ][0] ?? '' ),
+		'AI 1.5 fixed settings copy ships in the ai-domain JS locale payload: ' . $source
+	);
+}
 foreach ( $audit_gap_translations as $source => $expected ) {
 	maca_assert(
 		$expected === ( $locale_data[ $source ][0] ?? '' ),

@@ -65,6 +65,9 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Endpoint_Policy' ) ) {
 				return true;
 			}
 
+			if ( 'GET' === $method && $path === $path_only && 1 === preg_match( '#^/v1/runs/by-idempotency/[A-Za-z0-9._:-]{1,128}$#', $path_only ) ) {
+				return true;
+			}
 			if ( 'GET' === $method && 1 === preg_match( '#^/v1/runs/[A-Za-z0-9._:-]+(?:/result)?$#', $path_only ) ) {
 				return true;
 			}

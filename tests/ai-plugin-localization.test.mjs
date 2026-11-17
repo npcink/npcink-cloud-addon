@@ -33,6 +33,23 @@ function run(exceptions = bundled) {
 	return { hooks, registrations };
 }
 
+test('shipped JS registers AI 1.5 settings copy without widening default-domain exceptions', () => {
+	const { hooks, registrations } = run();
+	const { data, domain } = registrations[0];
+	assert.equal(domain, 'ai');
+	for (const [source, translated] of [
+		['Block Container Label Generation', '容器区块标签生成'],
+		['Revision Change Summary', '修订变更摘要'],
+		['Runs automatically', '自动运行'],
+		['When %s runs and what it sends', '%s何时运行、发送哪些内容'],
+		['When you click Apply Editorial Updates, which also saves the post', '点击“应用编辑更新”时，同时会保存文章'],
+	]) {
+		assert.deepEqual(Array.from(data[source]), [translated]);
+		assert.equal(hooks.get('i18n.gettext')(source, source, 'default'), source);
+	}
+	assert.equal(Object.keys(bundled).length, 16);
+});
+
 test('shipped JS translates exact bundled plurals and contexts', () => {
 	const { hooks, registrations } = run();
 	assert.equal(Object.keys(bundled).length, 16);

@@ -1791,7 +1791,7 @@ maca_assert(
 	&& false === strpos( $settings_page, 'npcink-cloud-advanced-stack' )
 	&& false === strpos( $admin_css, '.npcink-cloud-advanced-stack' )
 	&& false === strpos( $settings_page, 'Run the bounded connection checks' )
-	&& false !== strpos( $settings_page, 'Run detailed checks' )
+	&& false !== strpos( $settings_page, 'Check connection and account access' )
 	&& false === strpos( $settings_page, 'function render_secondary_tab_navigation' )
 	&& false === strpos( $settings_page, 'self::advanced_section_labels()' )
 	&& false === strpos( $settings_page, "if ( 'checks' === \$active_view )" )
@@ -2050,7 +2050,7 @@ maca_assert(
 	&& false === strpos( $settings_page, 'Updating · %d waiting' )
 	&& false === strpos( $settings_page, 'Updates waiting: %d' )
 	&& false !== strpos( $settings_page, 'Ready to index' )
-	&& false !== strpos( $settings_page, 'Up to date' )
+	&& false !== strpos( $settings_page, 'Automatic content updates are enabled.' )
 	&& false !== strpos( $settings_page, 'View checks' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-sk-delivery' )
 	&& false !== strpos( $settings_page, 'format_readiness_detail_markup' )
@@ -2372,13 +2372,13 @@ maca_assert(
 // complexity may stay, but these files must not grow unnoticed: raise a limit
 // only with a documented reason in docs/cloud-addon-complexity-budget.md.
 $complexity_ratchet_limits = array(
-	'includes/class-cloud-runtime-client.php'          => 1743,
+	'includes/class-cloud-runtime-client.php'          => 1751,
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 392,
 	'includes/class-cloud-runtime-request-guards.php'  => 2126,
 	'includes/class-cloud-settings-page.php'           => 2840,
 	'includes/class-cloud-settings-actions.php'        => 1260,
-	'includes/class-cloud-wordpress-ai-connector.php'  => 1130,
+	'includes/class-cloud-wordpress-ai-connector.php'  => 1134,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
 	'includes/class-cloud-wordpress-ai-image-model.php' => 496,

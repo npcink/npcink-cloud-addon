@@ -67,6 +67,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			add_action( 'wp_connectors_init', array( __CLASS__, 'register_connector' ) );
 			add_action( 'admin_init', array( __CLASS__, 'sync_connected_marker' ) );
 			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_connectors_page_assets' ) );
+			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_editor_error_actions' ) );
 			add_filter( 'wpai_has_ai_credentials', array( __CLASS__, 'filter_has_ai_credentials' ), 100, 2 );
 			add_filter( 'wpai_preferred_text_models', array( __CLASS__, 'filter_preferred_text_models' ) );
 			add_filter( 'wpai_preferred_vision_models', array( __CLASS__, 'filter_preferred_vision_models' ) );
@@ -429,6 +430,23 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			);
 		}
 
+		/** Adds a native notice action without putting HTML into exception messages. */
+		public static function enqueue_editor_error_actions( string $hook_suffix ): void {
+			if ( ! in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
+				return;
+			}
+			require_once __DIR__ . '/class-cloud-editor-error-actions.php';
+			Npcink_Cloud_Editor_Error_Actions::enqueue( self::runtime_failure_guidance() );
+		}
+
+		/** Keeps a usable location in plain-text clients and for users without settings access. */
+		private static function runtime_failure_guidance(): string {
+			if ( function_exists( 'current_user_can' ) && ! current_user_can( Npcink_Cloud_Settings_Page::MENU_CAPABILITY ) ) {
+				return __( 'The AI request did not succeed. Try again later. If it keeps failing, ask your site administrator to open Cloud Addon > Checks and copy troubleshooting information for support.', 'npcink-cloud-addon' );
+			}
+			return __( 'The AI request did not succeed. Try again later. For help, open Npcink AI > Cloud Addon > Checks > Troubleshooting details and choose Copy troubleshooting information.', 'npcink-cloud-addon' );
+		}
+
 		/**
 		 * Keeps the synthetic connector credential marker aligned with Cloud verification.
 		 *
@@ -751,12 +769,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		}
 
 		/**
-		 * Builds a bounded, actionable connector failure message for the editor.
-		 *
-		 * The WordPress AI client escapes exception text at render time, so the
-		 * returned string must stay plain text. Friendly sentence first, stable
-		 * code for support, then a bounded detail excerpt.
-		 *
+		 * Returns plain exception text; native editor notices add navigation separately.
 		 * @param string $friendly_key Stable friendly-message key.
 		 * @param string $stable_code Stable error code shown for support.
 		 * @param string $detail Sanitized upstream or validation detail.
@@ -777,7 +790,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'artifact_verification_failed'  => __( 'The generated image could not be verified for safe delivery. Please try again.', 'npcink-cloud-addon' ),
 				'artifact_ack_invalid'          => __( 'Npcink Cloud could not confirm delivery of the generated image. Please try again.', 'npcink-cloud-addon' ),
 				'artifact_expired'              => __( 'The generated image is no longer available. Please generate it again.', 'npcink-cloud-addon' ),
-				'runtime_failed'                => __( 'The AI request did not succeed. Try again later; if it keeps failing, copy the information on the Checks tab and contact support.', 'npcink-cloud-addon' ),
+				'runtime_failed'                => self::runtime_failure_guidance(),
 				'input_too_large'               => __( 'This AI input exceeds the size limit, including formatting and instructions. Retry with shorter input or process it in smaller sections; you do not need to delete the original article.', 'npcink-cloud-addon' ),
 				'text_input_too_large'          => __( 'This text input exceeds 50,000 characters, including formatting. Retry with shorter input or select a smaller section; you do not need to delete the original article.', 'npcink-cloud-addon' ),
 				'output_incomplete'             => __( 'The AI result is incomplete or exceeds the output limit. The original article is unchanged. Select a smaller section or choose a model with enough output capacity, then try again.', 'npcink-cloud-addon' ),

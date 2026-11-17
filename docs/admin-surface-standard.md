@@ -112,8 +112,20 @@ normalize onto Overview / Checks / Connection for compatibility, but they must n
   A quiet Manage excluded content link opens a nested content-selection page;
   do not embed a content list on Overview. One status badge describes progress; do not add a disabled
   “Syncing” button beside “Updating”. Only a recorded failure exposes recovery.
-- Label the last local delivery as content delivery, not Cloud indexing
-  completion. Routine pending counts stay out of the default view.
+- Keep the current content-update state short, beside a quiet compact last-send
+  time; contextual links follow below. Purpose and automatic-update mechanics
+  belong in the closed `How Site Knowledge works` disclosure, mounted outside
+  the asynchronously refreshed status. Errors, impact and next actions stay
+  visible. State progress once; do not repeat an updating badge beside a sentence
+  saying the same thing. Hidden save feedback and empty
+  JavaScript-enabled `noscript` elements must not create grid rows or offset the
+  title/switch; Cloud and exclusion links share one baseline.
+- Use plain last-send wording (`Last sent to Cloud` / `最近发送到 Cloud`), not Cloud
+  indexing completion. Distinguish buffered changes waiting to send, active local
+  delivery and enabled automatic updates. Sampled Cloud `not_indexed_count` is not
+  execution evidence: exclusions and incomplete coverage can leave gaps while
+  no job is running. Never infer “Updating” or full indexing completion from that
+  count or a successful send. Routine pending counts stay out of the default view.
 - Privacy consent stays folded, with the current anonymous-diagnostics choice
   in the summary. After changing it, reopen that disclosure and retain inline
   save feedback. The ask-once consent lifecycle is unchanged.
@@ -128,6 +140,12 @@ normalize onto Overview / Checks / Connection for compatibility, but they must n
 - Checks labels successful stored verification as historical and places its actual
   connection-verification time before a secondary recheck action. Do not claim a
   complete live health check from credential verification alone.
+- Both the detailed-check action and its success notice name connection/account
+  access as their scope. Keep the lack of AI-generation validation visible beside
+  the main status; a successful read must not clear or imply recovery of a failed
+  editor request. Local input-size failures require shorter input, not waiting,
+  reconnecting, or a generic support handoff. Count formatting and instructions
+  in the input boundary; do not ask users to delete their original article.
 - Troubleshooting details owns support evidence and anonymous diagnostics delivery;
   genuine failures open the parent and show diagnostics failures inline. One
   closed Technical details disclosure separates support-only evidence from the
@@ -285,8 +303,13 @@ Cloud settings, entitlement summaries, and observability buffers may store UTC
 or ISO timestamps for machine use, cache freshness, signing, upload status, or
 Cloud correlation. Keep those stored values stable.
 
-Any timestamp shown in the wp-admin settings page must be formatted through the
-WordPress site timezone as `Y-m-d H:i:s`. Do not print raw UTC strings, ISO
+Human-facing wp-admin timestamps must use the WordPress site timezone.
+Detailed timestamps use `Y-m-d H:i:s`. Overview's last-content-send
+summary may use `Today HH:mm`, `Yesterday HH:mm`, `MM-DD HH:mm` within the current
+year, or `YYYY-MM-DD HH:mm` for other years; use local calendar dates, not elapsed
+24-hour buckets. A native, keyboard-operable time disclosure exposes the complete
+site-local timestamp without requiring hover. The machine-readable `time` retains
+the original instant. Empty/invalid input must not manufacture a date. Do not print raw UTC strings, ISO
 timestamps, or Cloud machine timestamps directly in the human-facing admin UI
 unless the label explicitly describes a machine/debug value.
 
@@ -433,3 +456,58 @@ verified. A Connection link alone is insufficient if that page has no recovery
 action. Successful verification clears the current administrator’s old manual
 check transient; connection evidence never claims model generation. See the
 [dated acceptance and limits](inactive-site-connection-acceptance-2026-11-12.md).
+
+## Support ticket handoff (2026-11-16)
+
+A real blocked image withdrawal opens the existing Cloud Support form with
+`new=1&topic=site&site=…` and optional plain-text `title` / `description` query
+parameters. These are editable browser draft hints, never an API submission or
+proof of site ownership. Cloud validates the related site against the signed-in
+account, bounds title/description to 191/4000 characters, preserves manual edits
+on same-context refresh, and clears drafts on account or selected-site changes.
+The existing Portal login/second-factor return target retains the full query.
+
+The Addon includes only the issue code, site ID, operation count and up to five
+operation IDs/reasons in the link. Full metadata remains in the folded Fault
+information copy fallback for older Cloud forms; credentials and retained public
+content never enter either projection. Opening the form does not submit it.
+This changes no runtime endpoint, connector state, index policy, or supported
+WordPress/PHP baseline; the Playground bootstrap gate does not apply.
+
+## Editor failure navigation (2026-11-16)
+
+A failure that asks an editor user to visit another page must offer a named,
+clickable destination and describe the next action in plain text. The Cloud
+runtime failure uses a native WordPress notice action to open Checks in a new
+tab, expand Troubleshooting details and target Copy troubleshooting information.
+Keep the article editor open. Users without settings access receive an
+administrator handoff instead of an inaccessible link. Exception text remains
+plain text; never embed HTML to work around host escaping. Match only exact
+addon errors, preserve unrelated notices, identity, dismissal and existing
+actions, and do not repeat screen-reader announcements just to add navigation.
+
+The display-only `support=ai-error` hint expands existing information; it does
+not verify generation, rerun Cloud, persist a failure or submit a ticket. Raw
+evidence stays in existing Technical details/copy output. Verify the complete
+click path, new-tab behavior and copy feedback in a browser. Resolve browser
+plugin identity separately from CLI identity: a candidate selector can make
+them differ. A source fixture does not prove another active candidate contains
+the fix.
+
+The same contract covers authorization/connection/inactive-site errors (open
+the existing connection check before selecting recovery), exhausted credits
+and account limits (open `/portal/billing`), and unreachable service or invalid
+results (offer troubleshooting while retaining the retry instruction). Keep
+rate-limit and still-running wait instructions; never turn navigation into an
+automatic retry. Without settings permission, connection/account failures
+explicitly ask for administrator help and expose no inaccessible account link.
+
+On Checks, Contact support opens `/portal/support?new=1&topic=site&site=…`,
+with the existing Copy troubleshooting information entry alongside it. Do not
+label a generic Portal-home link as support. The Cloud form validates site
+ownership; the link opens an editable form and never submits a ticket. Recovery
+copy must use the actual button label (Update knowledge base, not the obsolete
+Sync label); remove duplicate links that only point back to the same region.
+
+The bounded source audit and browser evidence are recorded in
+[the guidance audit](editor-error-guidance-audit-2026-11-16.md).

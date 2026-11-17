@@ -90,6 +90,37 @@ a site-linked checkout update separate from Git cleanup.
 See the [2026-10-17 reconciliation retrospective](site-knowledge-reconciliation-retrospective-and-handoff-2026-10-17.md)
 for the dated case and remaining recovery acceptance.
 
+## 跨系统回执与中断恢复验收
+
+变更“远端接受 → 本地保存回执/释放 owner → 后续推进”路径，或修复该路径卡住时，
+须分开验证远端执行、本地回执持久化、后续操作推进和最终数据状态。HTTP 成功、
+现场人工恢复、提示改进及工单预填都不替代防复发验收。
+
+评审须检查保存/CAS 返回值；失败不得报告完整成功。冲突重试必须有限，重新读取
+权威状态并处理请求内缓存，仅合并当前 owner 拥有的字段，保留并发意图。恢复身份
+须先持久化，跨 PHP 请求/进程可达；不能只说“有幂等 key”，却让本地锁挡住恢复。
+
+| 故障边界 | 必须证明的行为 |
+| --- | --- |
+| 远端已接受，本地回执保存冲突 | 同一远端执行的回执最终保存，并发意图保留；重试耗尽显式失败且保留恢复身份 |
+| 接受后、本地 finalizer 前进程退出 | 新进程只靠持久身份恢复；不依赖内存响应，不制造新的执行/用量 |
+| 已知未发送，释放 owner 冲突/耗尽 | 后续可恢复；若取消旧 sender，证明其恢复后无法再通过发送前原子检查 |
+| 原请求延迟、running、未知/缺失/过期记录、错误终态 | 保守阻断；超时、404、HTTP 错误和普通 failed 标签不是旧 writer 已结束的证明 |
+| 回执来自不同站点、凭据命名空间或请求身份 | 拒绝解锁；保持原 payload、抑制和并发意图 |
+| 权威匹配终态随后可用 | 不只证明拒绝；还须证明回执保存、owner 解除及原操作继续推进，并核对最终 presence/撤回条件 |
+
+取消安全须给出发送检查/原子状态变更的线性化依据；lease 到期本身不足够。
+涉及并发或重启正确性的修改，除确定性回归外须给出真实数据库独立连接与 WordPress
+缓存证据，以及真实进程退出后新进程恢复证据。若远端用 double，必须标明，并把
+真实签名网络读取/执行证据另记。尚无安全恢复证明的窗口应明确保留，不得为跑绿清锁。
+不同路径按实际共享入口和持久化语义决定覆盖，不要求无关模块全量复测，也不得把
+源码横向检查写成逐入口真实 E2E 或全仓可靠性证明。
+
+收尾记录分别列出现场恢复、防复发代码、确定性回归、真实 DB/cache、进程、签名网络、
+CI、M4 candidate/accepted、合并、生产及人工验收；未完成项保留退出条件。故障模型、
+源码与回归入口须入库，原始证据不能只留在可清理工作树。案例及当前候选限制见
+[2026-11-16 回执恢复复盘](site-knowledge-receipt-recovery-retrospective-2026-11-16.md)。
+
 ## Evidence Freshness
 - Tier C evidence expires when the surface it covers changes, or after 30
   days, whichever comes first. A release must not cite expired evidence.

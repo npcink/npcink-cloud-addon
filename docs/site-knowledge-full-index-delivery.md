@@ -145,9 +145,29 @@ option；其中没有复制 Cloud secret。WordPress 正文、附件文件及 me
 所有 mutation producer（普通 buffer、article refresh、Toolbox/public facade、
 full/reconcile 和图片事件）共用原 `MAINTENANCE_OPTION` 的 serialized SQL CAS owner。
 收集时过滤不能替代最终派发检查。派发前保存不可变 payload、fingerprint、key 和 owner；
-并发请求能登记 pending 并保留这次旧 writer，不能抹去或接管 owner。确定尚未发送的
+并发请求能登记 pending 并保留这次旧 writer；已进入 sending 的 owner 不能被抹去或接管。确定尚未发送的
 owner 可标 `not_sent`；HTTP timeout、响应解析失败、任意 4xx 都不能据此取消 pending。
 发送后保存失败或进程消失的 owner 保守阻断，不借 lease 自动断言无旧 writer。
+
+2026-11-16 回执恢复候选（Cloud → Addon；未证明生产安装）：保存回执和确定未发出
+的 owner 释放，最多进行 4 次 fresh-state CAS 合并；失败 CAS 失效本请求 option cache，
+只修改同 token/scope/key/fingerprint 的派发项，保留并发 pending 意图。重试耗尽返回
+`cloud_site_knowledge_receipt_not_saved`，不再把 Cloud 成功当作本地保存成功。
+新 owner 先持久化为 `phase=preparing`，发送前必须再以完整旧 envelope CAS 转为
+`phase=sending`。后续 Cron/派发可 CAS 取消同一 preparing token 为 `not_sent`：
+即使旧 PHP 进程恢复，其准备→发送 CAS 也必然失败，不能再执行 HTTP。这也覆盖
+发送前进程退出和已知未发送释放的 4 次 CAS 全部失败。旧版无 phase 的 owner 按
+可能已发送处理，不能依此取消。派发前安排既有 Cron 回调；后续 Cron/派发对已发送
+及旧版 owner 先用签名
+`GET /v1/runs/by-idempotency/{key}` 找回当前站点既有 run，再读取 run 并核对下文
+完整 writer 身份及正常 executor 终态，才补存 run_id 并释放 owner。不重新执行或
+POST replay，不新增队列或设置页恢复控制台。请求仍在执行、任意记录缺失、身份不符、
+权限/网络错误、旧 Cloud 不支持接口及非可信终态均保持 owner/原 payload，不按时间解锁。
+查询不到也不能证明旧 PHP 请求不会再发送。旧凭据命名空间不能由新凭据解锁。
+确定性回归见 `tests/behavior-site-knowledge-receipt-recovery.php`；真实 MySQL/cache、
+进程中断和跨仓证据必须独立记录，隔离 fixture 通过不替代它们。
+漏检原因、当日验证台账和保留窗口见[回执恢复复盘](site-knowledge-receipt-recovery-retrospective-2026-11-16.md)；
+后续修改遵循[跨系统回执验收要求](verification-evidence-standard.md#跨系统回执与中断恢复验收)。
 
 ### D0、C1 与 Cloud writer 证据
 
