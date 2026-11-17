@@ -8,6 +8,29 @@ silent reuse of stale results. This standard complements
 `cloud-addon-complexity-budget.md` (which defines the tiers) and `AGENTS.md`
 (which defines the gates). It adds no boundary and no product control.
 
+## Local symlink and PHP worker identity
+
+After changing a Local site's plugin symlink, WP-CLI reflection and a successful
+Cloud request are insufficient proof of the web installation. A long-lived
+PHP-FPM worker can retain the previous resolved plugin path even while a new CLI
+process loads the new target. Record the mounted target, then inspect a fresh
+authenticated editor page's actual asset URLs, HTTP status and visible translated
+controls. Require the localization and notice-action scripts to load from the
+canonical plugin URL, with the current localized payload and expected links.
+Do not call this browser cache or require a hard refresh until the web response
+has been checked. If web and CLI identities differ, gracefully reload only the
+named Local site's PHP service and verify again. Never restart another site or
+production as part of this local recovery. Preserve unsaved editor state before
+refreshing a user's existing tab. No paid AI request is needed to check loading.
+
+2026-11-17 local incident: CLI loaded the intended Addon, but fresh editor HTML
+still referenced the former worktree through an invalid `/wp-content/plugins/Users/`
+asset URL (404), with old failure copy and no notice-action script. Reloading the
+`magick-ai` PHP-FPM service restored canonical asset URLs (both scripts HTTP 200),
+Chinese title/excerpt/summary/editorial controls, and the current troubleshooting
+message/link payload. The user tab was refreshed only after Save was confirmed
+disabled. This proves local loading recovery; it does not prove generation success.
+
 ## Evidence Tiers
 
 The tiers keep the meaning they have in `cloud-addon-complexity-budget.md`:
