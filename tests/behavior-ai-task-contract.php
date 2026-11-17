@@ -326,3 +326,12 @@ $factual_transport = Npcink_Cloud_Runtime_Request_Guards::normalize_wordpress_ai
 	) ), 'site_alpha', 'https://alpha.example.test', '0.4.4'
 );
 maca_assert( ! is_wp_error( $factual_transport ), 'Factual evidence: full signed-runtime request guard accepts a registered task and its schema projection.' );
+
+$unicode_schema_contract = $title_contract;
+$unicode_schema_contract['schema_hash'] = '';
+$unicode_schema_contract['output_schema'] = array( 'type' => 'string', 'description' => str_repeat( '文', 2500 ) );
+$accepted = Npcink_Cloud_AI_Task_Contract::normalize( $unicode_schema_contract );
+maca_assert( ! is_wp_error( $accepted ), 'Ability schema byte cap uses UTF-8 JSON consistently with Cloud for localized descriptions.' );
+$unicode_schema_contract['output_schema']['description'] = str_repeat( '文', 4001 );
+$rejected = Npcink_Cloud_AI_Task_Contract::normalize( $unicode_schema_contract );
+maca_assert( is_wp_error( $rejected ) && 'cloud_ai_task_output_schema_invalid' === $rejected->get_error_code(), 'Ability schema retains the 12,000 UTF-8-byte ceiling.' );

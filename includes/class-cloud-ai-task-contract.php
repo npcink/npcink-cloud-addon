@@ -271,7 +271,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 			if ( '' !== $schema_hash && 1 !== preg_match( '/^sha256:[a-f0-9]{64}$/', $schema_hash ) ) {
 				return self::error( 'cloud_ai_task_schema_hash_invalid', __( 'AI task contracts require a stable sha256 schema hash.', 'npcink-cloud-addon' ) );
 			}
-			$encoded       = wp_json_encode( $output_schema );
+			$encoded       = wp_json_encode( $output_schema, JSON_UNESCAPED_UNICODE );
 			if ( ! is_string( $encoded ) || strlen( $encoded ) > 12000 ) {
 				return self::error( 'cloud_ai_task_output_schema_invalid', __( 'The Ability output schema is too large for runtime projection.', 'npcink-cloud-addon' ) );
 			}

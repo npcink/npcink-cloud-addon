@@ -778,6 +778,11 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'artifact_ack_invalid'          => __( 'Npcink Cloud could not confirm delivery of the generated image. Please try again.', 'npcink-cloud-addon' ),
 				'artifact_expired'              => __( 'The generated image is no longer available. Please generate it again.', 'npcink-cloud-addon' ),
 				'runtime_failed'                => __( 'The AI request did not succeed. Try again later; if it keeps failing, copy the information on the Checks tab and contact support.', 'npcink-cloud-addon' ),
+				'input_too_large'               => __( 'This AI input exceeds the size limit, including formatting and instructions. Retry with shorter input or process it in smaller sections; you do not need to delete the original article.', 'npcink-cloud-addon' ),
+				'text_input_too_large'          => __( 'This text input exceeds 50,000 characters, including formatting. Retry with shorter input or select a smaller section; you do not need to delete the original article.', 'npcink-cloud-addon' ),
+				'output_incomplete'             => __( 'The AI result is incomplete or exceeds the output limit. The original article is unchanged. Select a smaller section or choose a model with enough output capacity, then try again.', 'npcink-cloud-addon' ),
+				'model_context_overflow'        => __( 'The selected model cannot fit this input and the requested output. Use shorter input or choose a model with a larger context window in Npcink Cloud > AI resources, then try again.', 'npcink-cloud-addon' ),
+				'instructions_too_large'        => __( 'The AI instructions exceed 12,000 characters. Shorten the custom instructions for this feature, then try again.', 'npcink-cloud-addon' ),
 				'runtime_unreachable'           => __( 'Npcink Cloud could not be reached from this site. Please try again in a moment.', 'npcink-cloud-addon' ),
 				'runtime_unauthorized'          => __( 'The Npcink Cloud connection is no longer authorized. Please reconnect the site from the Cloud Addon settings page.', 'npcink-cloud-addon' ),
 				'runtime_limit_reached'         => __( 'This request reached a Npcink Cloud limit. Please wait a moment and try again, or review the plan usage in Cloud.', 'npcink-cloud-addon' ),
@@ -857,10 +862,20 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			// pool" in an application error) and must not drive the family.
 			$haystack = strtolower( $error_code . ' ' . $diagnostic );
 			$friendly_key = 'runtime_failed';
-			// Cloud upstream model-provider codes (provider.quota_exhausted,
-			// provider.rate_limited, ...) describe Npcink's provider, not the
-			// site's credits or request rate, so they are always "unavailable".
-			if ( 1 === preg_match( '/(?:^|[^a-z0-9_.])provider\./', $haystack ) ) {
+			if ( in_array( $error_code, array( 'cloud_wp_ai_connector_request_too_large', 'cloud_wp_ai_connector_prompt_too_large', 'cloud_wp_ai_image_generation_request_too_large', 'cloud_wp_ai_image_generation_prompt_too_large' ), true ) ) {
+				$friendly_key = 'input_too_large';
+			} elseif ( in_array( $error_code, array( 'cloud_wp_ai_connector_system_instruction_too_large', 'wordpress_operation.system_instruction_too_large' ), true ) || 1 === preg_match( '/(?:^|[^a-z0-9_.])wordpress_operation\.system_instruction_too_large(?:$|[^a-z0-9_.])/', $haystack ) ) {
+				$friendly_key = 'instructions_too_large';
+			} elseif ( in_array( $error_code, array( 'cloud_wp_ai_connector_source_text_too_large', 'wordpress_operation.source_text_too_large' ), true ) || 1 === preg_match( '/(?:^|[^a-z0-9_.])wordpress_operation\.source_text_too_large(?:$|[^a-z0-9_.])/', $haystack ) ) {
+				$friendly_key = 'text_input_too_large';
+			} elseif ( 1 === preg_match( '/(?:^|[^a-z0-9_.])provider\.output_(?:incomplete|too_large)(?:$|[^a-z0-9_.])/', $haystack ) ) {
+				$friendly_key = 'output_incomplete';
+			} elseif ( 1 === preg_match( '/(?:^|[^a-z0-9_.])provider\.context_overflow(?:$|[^a-z0-9_.])/', $haystack ) ) {
+				$friendly_key = 'model_context_overflow';
+			} elseif ( 1 === preg_match( '/(?:^|[^a-z0-9_.])provider\./', $haystack ) ) {
+				// Cloud upstream model-provider codes (provider.quota_exhausted,
+				// provider.rate_limited, ...) describe Npcink's provider, not the
+				// site's credits or request rate, remain "unavailable" except context overflow above.
 				$friendly_key = 'plain_service_unavailable';
 			} elseif ( 1 === preg_match( '/(?:commercial\.quota_exceeded|insufficient[_ ]credit|credits?[_ ]exhausted|quota[_ ]exhausted|payment[_ ]required|credit[_ ]balance)/', $haystack ) ) {
 				$friendly_key = 'plain_credits_exhausted';

@@ -28,11 +28,12 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 		public const WP_AI_IMAGE_GENERATION_MAX_TIMEOUT_SECONDS = 90;
 		private const CLOUD_CONNECTOR_RUNTIME_CONTRACT = 'cloud_connector_runtime.v1';
 		private const WORDPRESS_OPERATION_CONTRACT = 'wordpress_operation.v1';
-		private const WP_AI_CONNECTOR_MAX_REQUEST_BYTES = 24000;
+		private const WP_AI_CONNECTOR_MAX_REQUEST_BYTES = 524288;
+		private const WP_AI_CONNECTOR_MAX_SOURCE_TEXT_CHARS = 50000;
 		private const WP_AI_CONNECTOR_MAX_SCENE_TEXT_CHARS = 12000;
 		private const WP_AI_CONNECTOR_MAX_RETENTION_TTL = 86400;
 		private const WP_AI_IMAGE_GENERATION_CONTRACT = 'image_generation_request.v1';
-		private const WP_AI_IMAGE_GENERATION_MAX_REQUEST_BYTES = 12000;
+		private const WP_AI_IMAGE_GENERATION_MAX_REQUEST_BYTES = 65536;
 		private const WP_AI_IMAGE_GENERATION_MAX_PROMPT_CHARS = 4000;
 		private const WP_AI_IMAGE_GENERATION_MAX_RETENTION_TTL = 86400;
 		private const WP_AI_IMAGE_GENERATION_ALLOWED_ASPECT_RATIOS = array( '1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9' );
@@ -253,7 +254,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				);
 			}
 
-			$encoded_request = wp_json_encode( $request );
+			$encoded_request = wp_json_encode( $request, JSON_UNESCAPED_UNICODE );
 			if ( ! is_string( $encoded_request ) || '' === $encoded_request ) {
 				return new WP_Error(
 					'cloud_wp_ai_connector_encode_failed',
@@ -261,7 +262,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 					array( 'status' => 400 )
 				);
 			}
-			if ( strlen( $encoded_request ) > self::WP_AI_CONNECTOR_MAX_REQUEST_BYTES ) {
+			if ( strlen( $encoded_request ) > ( in_array( $task, self::WP_AI_CONNECTOR_SOURCE_TEXT_TASKS, true ) ? self::WP_AI_CONNECTOR_MAX_REQUEST_BYTES : ( 'alt_text_suggest' === $task ? 24000 : 131072 ) ) ) {
 				return new WP_Error(
 					'cloud_wp_ai_connector_request_too_large',
 					__( 'WordPress AI connector request exceeds the scene runtime size limit.', 'npcink-cloud-addon' ),
@@ -294,7 +295,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 					);
 				}
 				$scene_request['source_text'] = trim( $scene_request['source_text'] );
-				if ( self::text_length( $scene_request['source_text'] ) > self::WP_AI_CONNECTOR_MAX_SCENE_TEXT_CHARS ) {
+				if ( self::text_length( $scene_request['source_text'] ) > self::WP_AI_CONNECTOR_MAX_SOURCE_TEXT_CHARS ) {
 					return new WP_Error(
 						'cloud_wp_ai_connector_source_text_too_large',
 						__( 'WordPress AI source_text exceeds the scene runtime size limit.', 'npcink-cloud-addon' ),
@@ -650,7 +651,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				);
 			}
 
-			$encoded_request = wp_json_encode( $request );
+			$encoded_request = wp_json_encode( $request, JSON_UNESCAPED_UNICODE );
 			if ( ! is_string( $encoded_request ) || '' === $encoded_request ) {
 				return new WP_Error(
 					'cloud_wp_ai_image_generation_encode_failed',
@@ -765,7 +766,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				);
 			}
 
-			$encoded_request = wp_json_encode( $request );
+			$encoded_request = wp_json_encode( $request, JSON_UNESCAPED_UNICODE );
 			if ( ! is_string( $encoded_request ) || '' === $encoded_request ) {
 				return new WP_Error(
 					'cloud_toolbox_image_generation_encode_failed',
@@ -1139,7 +1140,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				return new WP_Error( 'cloud_toolbox_article_review_snapshot_invalid', __( 'Article review snapshot hash does not match the supplied text.', 'npcink-cloud-addon' ), array( 'status' => 400 ) );
 			}
 
-			$encoded_request = wp_json_encode( $request );
+			$encoded_request = wp_json_encode( $request, JSON_UNESCAPED_UNICODE );
 			if ( ! is_string( $encoded_request ) || strlen( $encoded_request ) > self::TOOLBOX_ARTICLE_REVIEW_MAX_REQUEST_BYTES ) {
 				return new WP_Error( 'cloud_toolbox_article_review_request_too_large', __( 'Article review request exceeds the runtime size limit.', 'npcink-cloud-addon' ), array( 'status' => 413 ) );
 			}
@@ -2048,11 +2049,11 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 			$value = preg_replace( '/\s+/u', ' ', $value );
 			$value = is_string( $value ) ? trim( $value ) : '';
 			$max_chars = max( 1, $max_chars );
-			if ( function_exists( 'mb_strlen' ) && function_exists( 'mb_substr' ) && mb_strlen( $value, 'UTF-8' ) > $max_chars ) {
+			if ( function_exists( 'mb_substr' ) ) {
 				return mb_substr( $value, 0, $max_chars, 'UTF-8' );
 			}
 
-			return strlen( $value ) > $max_chars ? substr( $value, 0, $max_chars ) : $value;
+			return 1 === preg_match( '/^.{0,' . $max_chars . '}/us', $value, $match ) ? $match[0] : '';
 		}
 
 		/** @param string $value UTF-8 text. */
@@ -2105,7 +2106,8 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				return mb_strlen( $value, 'UTF-8' );
 			}
 
-			return strlen( $value );
+			$length = preg_match_all( '/./us', $value );
+			return false === $length ? strlen( $value ) : $length;
 		}
 
 		/**

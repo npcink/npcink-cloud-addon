@@ -82,7 +82,7 @@ connector classes so they cannot grow unnoticed:
   `class-cloud-runtime-request-guards.php`,
   `class-cloud-runtime-diagnostics.php`, and
   `class-cloud-runtime-media-payloads.php`)
-- `includes/class-cloud-runtime-request-guards.php` — 2124 lines (raised by 99
+- `includes/class-cloud-runtime-request-guards.php` — 2126 lines (raised by 99
   lines for the fixed article-review snapshot guard, UTF-16/byte bounds and
   behavior coverage, including strict Cloud envelope identity and portable UTF-16 counting; pure
   `normalize_*` request validators, forbidden-key walkers, PII scan, and
@@ -513,3 +513,25 @@ The runtime-client ceiling is 1743 lines and derivative-transport ceiling is 724
 lines for the optional `save_as_new.v1` purpose. The shared pause helper checks
 the exact manual preserve-dimensions request before source uploads and signing.
 No crop, batch, governance, settings, write authority or new runtime is enabled.
+
+### 2026-11-17 long-text transport adjustment
+
+Request guards gain two lines for a separate 50,000 source-character bound and
+portable Unicode counting without mbstring. The connector ceiling remains 1130 lines
+for structured Cloud input/instruction and model context-overflow guidance.
+The caller text envelope is bounded at 512 KiB; image/ALT limits, instructions (12,000),
+timeouts, prompts and WordPress write ownership remain unchanged.
+
+The follow-up 2026-11-17 audit keeps class line ceilings unchanged: image caller
+bytes (64 KiB) and other text caller bytes (128 KiB) now accommodate the existing
+Unicode character contracts. Article review/schema measure UTF-8 JSON; shared
+bounded text returns Unicode substrings without a secondary byte cut. No new
+product surface, prompt owner, provider call, queue or WordPress write is added.
+
+2026-11-17 output completeness: three connector lines add one localized next-step
+message and structured terminal-error classification. Ceiling 1130; no provider
+execution, retries or WordPress writes are added to Addon.
+
+2026-11-17 formatting budget alignment changes the existing guard expression only;
+runtime-client ceiling remains 1743. Unicode characters and UTF-8 bytes are checked
+separately; no new facade, settings, control plane or writes.

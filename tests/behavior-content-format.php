@@ -29,3 +29,17 @@ maca_assert( $payload['input'] === $request, 'Formatting preserves exact UTF-8 a
 maca_assert( 'no_store' === $payload['storage_mode'] && 'inline' === $payload['execution_pattern'] && 0 === $payload['retry_max'] && 0 === $payload['retention_ttl'], 'Formatting is inline with no retention or retries.' );
 maca_assert( 'npcink-toolbox/format-content' === $payload['ability_name'] && 'content_format_request.v2' === $payload['contract_version'] && 'content-format.managed' === $payload['profile_id'] && 'pii' === $payload['data_classification'], 'Formatting uses the fixed Cloud scenario.' );
 maca_assert( $http[0]['args']['headers']['Idempotency-Key'] !== $http[1]['args']['headers']['Idempotency-Key'], 'Each manual formatting request gets fresh idempotency.' );
+
+foreach ( array( '中', '😀', 'a' ) as $char ) {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$client = Npcink_Cloud_Runtime_Client_Factory::configured();
+	$source = '<p>' . str_repeat( $char, 49993 ) . '</p>';
+	$input = array( 'content' => $source, 'format' => 'html', 'source_sha256' => hash( 'sha256', $source ) );
+	$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'result' => array() ) ) ) );
+	$client->execute_toolbox_content_format_runtime( $input );
+	maca_assert( count( $GLOBALS['maca_http_requests'] ) === 1 && json_decode( $GLOBALS['maca_http_requests'][0]['args']['body'], true )['input'] === $input, '50000 Unicode characters reach transport unchanged.' );
+	$input['content'] .= $char;
+	$input['source_sha256'] = hash( 'sha256', $input['content'] );
+	maca_assert( is_wp_error( $client->execute_toolbox_content_format_runtime( $input ) ) && count( $GLOBALS['maca_http_requests'] ) === 1, '50001 characters fail before HTTP.' );
+}

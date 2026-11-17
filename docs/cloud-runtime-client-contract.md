@@ -532,6 +532,16 @@ The method rejects generic chat or provider-control fields such as `messages`,
 headers. It also bounds source/prompt/body size and clamps timeout to 60
 seconds, retention, and retry values.
 
+Source-text tasks now accept 50,000 Unicode characters including markup, with
+an independent 12,000-character system-instruction cap and a 512 KiB caller
+UTF-8 JSON envelope; the fixed normalized identity wrapper adds bounded overhead. The signature covers the exact transmitted body; Chinese is not
+expanded into JSON Unicode escapes. Non-source prompt/ALT and image character limits,
+output budgets and the maximum 60-second text timeout are unchanged. Model
+context capacity is checked separately in Cloud and may reject smaller inputs.
+No automatic truncation or multi-call chunking is introduced. See the Cloud
+[long-text contract](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/wordpress-text-input-limits-v1.md)
+for cross-repository rollout and regression requirements.
+
 Text and alt-text consumers accept one result shape only:
 `response.data.result.contract_version=cloud_connector_result.v1`,
 `suggestion_only=true`, `connector_id=npcink-cloud-addon`, and an
@@ -734,3 +744,32 @@ All crop, batch, auto-safe and governance jobs retain their release pauses.
 The complete predicate is checked before uploads and before signing; missing or
 unknown purposes do not unpause anything. Historical artifact delivery remains
 available. Core approval and Toolkit new-attachment writes stay in WordPress.
+
+### Localized input budget correction — 2026-11-17
+
+Other text tasks keep 12,000 prompt characters with a 128 KiB caller envelope;
+ALT keeps its 24,000-byte envelope and 500 prompt characters. Both image surfaces
+keep 4,000 prompt characters with a 64 KiB caller envelope. Article review keeps
+its 120,000-byte envelope and existing UTF-16/block/raw-byte bounds. These three
+transports measure and transmit Unicode as UTF-8 JSON, signing the exact final
+body. Schema projection likewise matches Cloud's 12,000 UTF-8-byte budget.
+Bounded text no longer falls through from a successful character check to an
+accidental byte cut. Tests include Chinese and supplementary Unicode with and
+without mbstring. See the Cloud
+[limit audit](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/wordpress-input-limit-audit-2026-11-17.md)
+for confirmed reproductions and separate unresolved Toolbox findings.
+
+## Approved text-budget follow-through — 2026-11-17
+
+Development candidate, not a production release. Formatting facade now accepts
+up to 50,000 Unicode code points including HTML and 256 KiB UTF-8 source bytes;
+exact source/hash/contract checks remain. Cloud/PHP/browser output consumers cap
+formatting candidates at 512 KiB UTF-8. No prompt or WordPress write ownership
+moves into Addon. Whole-text WordPress transformations now surface structured
+`provider.output_incomplete` / `provider.output_too_large` errors with localized
+next steps; partial results are not adopted and upstream usage remains recorded.
+The default output token budget is owned by Cloud; title/summary/ALT remain short.
+
+Current budgets and layered evidence supersede the preceding 12k output-clipping
+checkpoint; see [Cloud's authoritative contract](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/wordpress-text-budget-followthrough-2026-11-17.md)
+and compatibility matrix. Existing pauses and reviewed write ownership remain.

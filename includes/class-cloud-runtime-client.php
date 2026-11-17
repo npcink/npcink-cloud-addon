@@ -322,7 +322,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			sort( $keys );
 			$content = $request['content'] ?? null;
 			if ( array( 'content', 'format', 'source_sha256' ) !== $keys
-				|| ! is_string( $content ) || '' === $content || strlen( $content ) > 100000
+				|| ! is_string( $content ) || '' === $content || strlen( $content ) > 262144 || preg_match_all( '/./us', $content ) > 50000
 				|| 1 !== preg_match( '//u', $content )
 				|| 'html' !== ( $request['format'] ?? null )
 				|| hash( 'sha256', $content ) !== ( $request['source_sha256'] ?? null ) ) {
@@ -1105,7 +1105,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			if ( null !== $raw_body ) {
 				$body = $raw_body;
 			} elseif ( is_array( $payload ) ) {
-				$encoded = wp_json_encode( $payload );
+				$encoded = wp_json_encode( $payload, in_array( $payload['contract_version'] ?? '', array( 'cloud_connector_runtime.v1', 'image_generation_request.v1', 'article_review_cloud_request.v1' ), true ) ? JSON_UNESCAPED_UNICODE : 0 );
 				if ( ! is_string( $encoded ) || '' === $encoded ) {
 					return new WP_Error(
 						'cloud_runtime_encode_failed',

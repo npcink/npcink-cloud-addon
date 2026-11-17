@@ -80,3 +80,24 @@ foreach ( array( array(), array( 'logic', 'language' ), array( 'language', 'lang
     $error = Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $bad );
     maca_assert( is_wp_error( $error ) && 'cloud_toolbox_article_review_contract_invalid' === $error->get_error_code(), 'Invalid check selection fails its contract guard before hash validation or signing.' );
 }
+
+// Every content bound can be satisfied while escaped JSON exceeds the old byte cap.
+$large_blocks = array(); $large_canonical = array();
+for ( $i = 1; $i <= 20; $i++ ) {
+    $text = str_repeat( '文', 1500 );
+    $large_blocks[] = array( 'block_ref' => 'b' . $i, 'kind' => 'body', 'text' => $text );
+    $large_canonical[] = array( 'b' . $i, 'body', $text );
+}
+$large_request = $request;
+$large_request['blocks'] = $large_blocks;
+$large_request['checks'] = array( 'language' );
+$large_request['snapshot_sha256'] = hash( 'sha256', json_encode( array( 'article_review_cloud_request.v1', 'zh-CN', array( 'language' ), $large_canonical ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS ) );
+$accepted = Npcink_Cloud_Runtime_Request_Guards::normalize_toolbox_article_review_request( $large_request );
+maca_assert( ! is_wp_error( $accepted ) && $large_blocks === $accepted['input']['blocks'], 'Article review accepts all 30,000 allowed Chinese UTF-16 units without escaped-JSON inflation.' );
+
+$GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'result' => array() ) ) ) );
+$client->execute_toolbox_article_review_runtime( $large_request, 'review-long-unicode', 'review-long-unicode' );
+$sent = end( $GLOBALS['maca_http_requests'] );
+$body = (string) $sent['args']['body']; $headers = $sent['args']['headers'];
+$canonical = implode( "\n", array( 'POST', '/v1/runtime/execute', 'site_test', 'key_test', $headers['X-Npcink-Timestamp'], $headers['X-Npcink-Nonce'], 'review-long-unicode', $headers['traceparent'], hash( 'sha256', $body ) ) );
+maca_assert( str_contains( $body, '文' ) && $large_blocks === json_decode( $body, true )['input']['blocks'] && hash_hmac( 'sha256', $canonical, 'secret_test' ) === $headers['X-Npcink-Signature'], 'Article review signs exact unescaped UTF-8 bytes and retains every supplied block.' );

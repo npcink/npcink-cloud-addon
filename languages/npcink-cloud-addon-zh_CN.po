@@ -3337,3 +3337,23 @@ msgstr "以下 AI 功能暂时不可用：%s。"
 #: includes/class-cloud-settings-page.php:2371
 msgid "AI credits are used up."
 msgstr "AI 积分已用尽。"
+
+#: includes/class-cloud-wordpress-ai-connector.php:794
+msgid "This AI input exceeds the size limit, including formatting and instructions. Retry with shorter input or process it in smaller sections; you do not need to delete the original article."
+msgstr "本次 AI 输入超过大小限制（含格式和提示词）。请使用精简内容或分段处理后重试，无需删除原文。"
+
+#: includes/class-cloud-wordpress-ai-connector.php:795
+msgid "This text input exceeds 50,000 characters, including formatting. Retry with shorter input or select a smaller section; you do not need to delete the original article."
+msgstr "本次文字输入超过 50,000 个字符（含格式标记）。请使用精简内容或选取较小段落后重试，无需删除原文。"
+
+#: includes/class-cloud-wordpress-ai-connector.php:797
+msgid "The selected model cannot fit this input and the requested output. Use shorter input or choose a model with a larger context window in Npcink Cloud > AI resources, then try again."
+msgstr "当前模型无法容纳本次输入和所需输出。请精简输入，或前往 Npcink Cloud > AI 资源选择上下文容量更大的模型后重试。"
+
+#: includes/class-cloud-wordpress-ai-connector.php:798
+msgid "The AI instructions exceed 12,000 characters. Shorten the custom instructions for this feature, then try again."
+msgstr "AI 提示词超过 12,000 个字符。请精简此功能的自定义提示词后重试。"
+
+#: includes/class-cloud-wordpress-ai-connector.php:796
+msgid "The AI result is incomplete or exceeds the output limit. The original article is unchanged. Select a smaller section or choose a model with enough output capacity, then try again."
+msgstr "AI 结果未完成或超过输出上限，原文章未被修改。请选择较小段落，或选择输出容量足够的模型后重试。"
