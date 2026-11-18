@@ -921,6 +921,8 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'This repeats a recent title. Add a different angle in the title guidance and regenerate.' => '本次标题与最近候选重复。请在“标题修改要求”中换个角度，再点击“重新生成”。',
 				'The title, excerpt or content changed after this suggestion. Regenerate using your current draft before inserting.' => '生成建议后，标题、摘要或正文发生了变化。请先点击“重新生成”，再插入建议。',
 				'The title changed while AI was working. Your edit was kept. Generate again to use the current title.' => '生成期间你修改了标题，已保留你的修改。请再次点击“生成标题”，按当前标题重新生成。',
+				'The title, excerpt or content changed while AI was working. Your edit was kept. Generate again using the current draft.' => '生成期间标题、摘要或正文发生了变化，已保留你的修改。请按当前草稿重新生成标题。',
+				'This repeats a recent title. Edit the name and regenerate.' => '本次建议与最近标题重复。请先修改上方名称，再点击“重新生成标题”。',
 				// WordPress AI plugin 1.5.0: fixed editor progress and recovery UI.
 				'%1$d block could not be reviewed: %2$s' => '有 %1$d 个区块未能完成检查：%2$s',
 				'%1$d blocks could not be reviewed: %2$s' => '有 %1$d 个区块未能完成检查：%2$s',

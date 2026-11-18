@@ -81,6 +81,8 @@ maca_assert(
 );
 
 $settings_15_translations = array(
+	'The title, excerpt or content changed while AI was working. Your edit was kept. Generate again using the current draft.' => '生成期间标题、摘要或正文发生了变化，已保留你的修改。请按当前草稿重新生成标题。',
+	'This repeats a recent title. Edit the name and regenerate.' => '本次建议与最近标题重复。请先修改上方名称，再点击“重新生成标题”。',
 	'Open Notes' => '打开编辑建议',
 	'Applies pending editorial Notes and saves the post. Save your current edits first.' => '应用待处理的编辑建议并保存文章。请先保存当前修改。',
 	'Save your current edits and wait for saving to finish before applying Editorial Updates.' => '请先点击编辑器右上角的“保存”，等待保存完成后，再点击“应用编辑更新”。',

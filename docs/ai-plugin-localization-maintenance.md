@@ -442,3 +442,24 @@ assets must reapply or replace its source patch; these addon translations alone
 do not fix duplicate columns or raw enum rendering. CI's stable AI 1.4 lane and
 local AI 1.5 evidence remain separate. Rollback only these addon dictionary/hook
 changes or the separately recorded native asset hashes; do not erase saved views.
+
+
+### Rename modal recovery — 2026-11-18
+
+The native local AI patch `f6e8c64` now rejects stale Rename results after post,
+title, excerpt or content changes and ignores late responses after closing the
+original form. It owns in-modal errors and connector recovery actions. This addon
+only adds two fixed ai-domain messages: changed-draft recovery and duplicate-name
+recovery that names Rename's actual controls. No new default-domain key or prompt
+ownership is introduced.
+
+Installed strict audit: 1337 discovered AI keys / 1081 shim entries, zero bounded
+UI/error/default-domain gaps; the same 300 non-UI entries remain excluded. PC
+1440×1000 and 1280×960 browser evidence covers duplicate requests/candidates,
+name/excerpt edits, close/reopen with delayed output, expected 503, missing-provider
+link and Escape/focus return. No content was saved; temporary post/auth/helper
+cleanup and original article fingerprint are recorded. The four earlier admin
+pages were not rerun for these editor-only strings. Native 30 tests and Addon
+PHP/JS/strict audit remain distinct from model quality, M4 and production evidence.
+Native patch artifact and browser receipts are linked from the Cloud followthrough
+record; upgrading AI must reapply/review the patch before claiming this behavior.
