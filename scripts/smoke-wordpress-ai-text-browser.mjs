@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Opt-in browser evidence for the official WordPress AI 1.2.0/1.3.0/1.4.0 text surfaces.
+ * Opt-in browser evidence for the official WordPress AI 1.2.0/1.3.0/1.4.0/1.5.0 text surfaces.
  *
  * This smoke deliberately separates:
  * - UI review evidence: real editor controls, review modals, visible blocks, and screenshots.
@@ -911,7 +911,7 @@ echo wp_json_encode(array(
 function assertReadiness(baseUrl, readiness) {
 	assert(['local', 'development'].includes(readiness.environment), `WordPress environment is non-production (${readiness.environment}).`);
 	assert(new URL(readiness.home_url).origin === baseUrl, 'WP_BASE_URL matches the Local WordPress home origin.');
-	assert(readiness.ai_active && ['1.2.0', '1.3.0', '1.4.0'].includes(readiness.ai_version), 'Official WordPress AI 1.2.0, 1.3.0, or 1.4.0 is active.');
+	assert(readiness.ai_active && ['1.2.0', '1.3.0', '1.4.0', '1.5.0'].includes(readiness.ai_version), 'Official WordPress AI 1.2.0, 1.3.0, 1.4.0, or 1.5.0 is active.');
 	assert(readiness.addon_loaded && readiness.addon_verified && readiness.connector_enabled, 'Verified Cloud Addon connector is enabled for WordPress AI.');
 	const capability = readiness.text_capability;
 	const reason = /^[a-z_]{1,64}$/.test(capability?.reason_code || '') ? capability.reason_code : 'snapshot_unavailable';
@@ -998,7 +998,7 @@ function deletePermissionUser(userId) {
 
 function summaryMetaKey(version) {
 	if (version === '1.2.0') return 'ai_generated_summary';
-	if (version === '1.3.0' || version === '1.4.0') return 'wpai_generated_summary';
+	if (version === '1.3.0' || version === '1.4.0' || version === '1.5.0') return 'wpai_generated_summary';
 	throw new Error('Summary persistence requires a reviewed AI version.');
 }
 
@@ -1371,7 +1371,7 @@ async function visibleMenuItems(page, editorFrame) {
 		}
 		await page.waitForTimeout(100);
 	}
-	throw new Error('Content resizing menu did not expose its three pinned WordPress AI 1.2.0/1.3.0/1.4.0 controls.');
+	throw new Error('Content resizing menu did not expose its three reviewed WordPress AI controls.');
 }
 
 async function captureDiagnostics(page, screenshotPath, abilityResponses, preSaveWrites, error) {

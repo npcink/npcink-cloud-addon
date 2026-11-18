@@ -53,10 +53,10 @@ test('synthetic failure evidence requires the actual fixture transport attempt',
 });
 
 test('accepts only explicitly reviewed active AI versions', () => {
-	for (const ai_version of ['1.2.0', '1.3.0', '1.4.0']) {
+	for (const ai_version of ['1.2.0', '1.3.0', '1.4.0', '1.5.0']) {
 		assert.doesNotThrow(() => check('http://fixture.local', { ...ready, ai_version }));
 	}
-	for (const ai_version of ['', '1.1.0', '1.3.1', '1.3.0-beta', '1.4.1', '2.0.0']) {
+	for (const ai_version of ['', '1.1.0', '1.3.1', '1.3.0-beta', '1.4.1', '1.5.0-beta', '1.5.1', '2.0.0']) {
 		assert.throws(() => check('http://fixture.local', { ...ready, ai_version }), /WordPress AI/);
 	}
 	assert.throws(() => check('http://fixture.local', { ...ready, ai_active: false }), /WordPress AI/);
@@ -103,6 +103,7 @@ test('summary persistence reads the exact reviewed version key without legacy fa
 	assert.equal(key('1.2.0'), 'ai_generated_summary');
 	assert.equal(key('1.3.0'), 'wpai_generated_summary');
 	assert.equal(key('1.4.0'), 'wpai_generated_summary');
+	assert.equal(key('1.5.0'), 'wpai_generated_summary');
 	assert.throws(() => key('1.3.1'));
 });
 
