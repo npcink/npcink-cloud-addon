@@ -326,3 +326,29 @@ work. This settings fix is not full AI 1.5 localization acceptance. No CI,
 merge or production deployment is claimed. Playground is not applicable:
 bootstrap, public APIs, default connector state and compatibility floors did
 not change.
+
+## 2026-11-18 editor followthrough
+
+Added nineteen exact ai-domain source keys for title/reply regeneration,
+translation progress and stale-editor protection, Notes review failures,
+classification adoption errors, and the existing revision-summary UI.
+Revision-summary localization does not map or enable its currently unsupported
+Ability. No default-domain exception, prompt, dynamic metadata, option,
+feature state, or layout changed. Existing official translations still win.
+
+This is a bounded editor slice of the 180-gap installed AI 1.5 baseline.
+Full strict coverage and browser acceptance are recorded separately below.
+
+Verification receipt: PHP suite/boundary checks, PHPStan and 38 JavaScript
+tests pass. Strict installed AI 1.5 audit now reports **161 UI gaps**
+(145 fixed candidates, two ability error notices, fourteen default-domain
+keys), down from 180; it remains red. The mounted Addon resolves to this
+checkout. A disposable real editor at PC 1440 and 1280 loaded all nineteen
+locale entries; the native title review modal and translation-progress button
+were rendered in Chinese. Screenshot/report: task evidence directory
+`editor-followthrough-20261118/ui-*`. Other newly translated error states and
+revision-summary controls were not individually triggered in this browser run.
+Draft persistence and original post 279790 were unchanged; temporary draft,
+session, and outbound-blocking MU helper were removed. No production or human
+visual acceptance is claimed. Playground is not applicable to this copy-only
+change because bootstrap/API/default connector state did not change.
