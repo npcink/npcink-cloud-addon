@@ -448,6 +448,12 @@ successful response must expose `cloud_connector_result.v1`,
 `response.data.result.output.output_text`; the addon does not dual-read legacy
 result shapes.
 
+AI 1.5+ excerpt calls also preserve the complete user message as `source_text`,
+without copying article content into the system instruction. Content resizing
+forwards the local `shorten|expand|rephrase` intent as optional `rewrite_action`;
+this requires the matching Cloud length-instruction fix for correct semantics.
+See `docs/cloud-runtime-client-contract.md` for legacy excerpt compatibility.
+
 This helper rejects generic chat or provider-control shapes such as `messages`,
 `conversation_id`, `session_id`, `thread_id`, `tools`, `tool_calls`, `functions`,
 `function_call`, `stream`, credentials, cookies, nonces, and signed headers. It

@@ -81,6 +81,15 @@ maca_assert(
 );
 
 $settings_15_translations = array(
+	'Open Notes' => '打开编辑建议',
+	'Applies pending editorial Notes and saves the post. Save your current edits first.' => '应用待处理的编辑建议并保存文章。请先保存当前修改。',
+	'Save your current edits and wait for saving to finish before applying Editorial Updates.' => '请先点击编辑器右上角的“保存”，等待保存完成后，再点击“应用编辑更新”。',
+	'No usable block content was returned. The original block is unchanged.' => '未返回可用的区块内容，原区块保持不变。请在“编辑建议”侧栏检查该建议后重试。',
+	'The post changed while AI was working. No updates were applied or saved. Save your edits, then try again.' => 'AI 生成期间文章发生了修改，本次结果未应用或保存。请先点击右上角“保存”，再重试。',
+	'The post save could not be confirmed. Editor content is preserved and Notes remain pending. Check the Save status before trying again.' => '无法确认文章是否保存成功。生成内容保留在编辑器中，建议仍待处理。请检查右上角的保存状态，确认保存后再处理建议。',
+	'Saved blocks: %1$d; failed blocks: %2$d. Failed Notes remain pending. Review them in the Notes sidebar before trying again. %3$s' => '已保存 %1$d 个区块，%2$d 个区块失败。失败建议仍待处理，请在“编辑建议”侧栏查看后重试。原因：%3$s',
+	'The post was saved, but %d Notes could not be marked complete. Review the saved content and resolve those Notes in the Notes sidebar.' => '文章已保存，但有 %d 条建议未能标记完成。请核对已保存内容，并在“编辑建议”侧栏中手动完成这些建议。',
+	'The complete Notes list could not be loaded. Try again before applying updates.' => '未能加载完整的编辑建议，本次未应用或保存任何结果。请刷新“编辑建议”侧栏后重试。',
 	'Turn on stable Features and early-stage Experiments. Experiments may change or be removed in any release, and some run automatically once enabled, so try them on a staging site first.' => '启用稳定功能和早期实验功能。实验功能可能在任何版本中变更或移除，部分功能启用后会自动运行，建议先在测试站点试用。',
 	'Early-stage AI tools for the block editor, including content generation and enhancement tools. Experiments may change or be removed in any release.' => '面向区块编辑器的早期 AI 工具，包括内容生成和增强工具。实验功能可能在任何版本中变更或移除。',
 	'Early-stage AI tools for the WordPress admin area, including exploration and testing tools. Experiments may change or be removed in any release.' => '面向 WordPress 后台的早期 AI 工具，包括探索和测试工具。实验功能可能在任何版本中变更或移除。',

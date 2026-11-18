@@ -83,7 +83,8 @@ connector classes so they cannot grow unnoticed:
   `class-cloud-runtime-request-guards.php`,
   `class-cloud-runtime-diagnostics.php`, and
   `class-cloud-runtime-media-payloads.php`)
-- `includes/class-cloud-runtime-request-guards.php` — 2126 lines (raised by 99
+- `includes/class-cloud-runtime-request-guards.php` — 2129 lines (three added lines validate the optional
+  task-scoped rewrite action before HTTP; raised by 99
   lines for the fixed article-review snapshot guard, UTF-16/byte bounds and
   behavior coverage, including strict Cloud envelope identity and portable UTF-16 counting; pure
   `normalize_*` request validators, forbidden-key walkers, PII scan, and
@@ -132,7 +133,7 @@ connector classes so they cannot grow unnoticed:
   verified media delivery)
 - `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
-- `includes/class-cloud-wordpress-ai-text-model.php` — 394 lines (four lines reuse WordPress AI source normalization before short-text transport)
+- `includes/class-cloud-wordpress-ai-text-model.php` — 401 lines (seven added lines preserve AI 1.5 excerpt user-message roles and forward the validated resize action; four earlier lines reuse WordPress AI source normalization before short-text transport)
 - `includes/class-cloud-wordpress-ai-vision-text-model.php` — 126 lines
 - `includes/class-cloud-wordpress-ai-scene-model.php` — 159 lines (shared
   metadata/config plumbing, prompt/result projection helpers, and the

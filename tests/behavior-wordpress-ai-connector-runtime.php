@@ -59,6 +59,21 @@ function maca_wordpress_operation_request( string $task, array $scene_request, a
 	);
 }
 
+foreach ( array( 'shorten', 'expand', 'rephrase' ) as $rewrite_action ) {
+	$normalized = Npcink_Cloud_Runtime_Request_Guards::normalize_wordpress_ai_connector_request(
+		maca_wordpress_operation_request( 'content_rewrite', array( 'source_text' => '<content>保留链接和事实。</content>', 'rewrite_action' => $rewrite_action ) ),
+		'site_test', 'https://wordpress.example.test', '0.4.4'
+	);
+	maca_assert( ! is_wp_error( $normalized ) && $rewrite_action === $normalized['input']['operation_contract']['request']['rewrite_action'], 'Behavior: rewrite intent survives the signed transport projection: ' . $rewrite_action );
+}
+$before_invalid_action = count( $GLOBALS['maca_http_requests'] );
+foreach ( array( '', 'invent', null, array(), 1 ) as $invalid_action ) {
+	$rejected_action = $client->execute_wordpress_ai_connector_runtime( maca_wordpress_operation_request( 'content_rewrite', array( 'source_text' => 'source', 'rewrite_action' => $invalid_action ) ) );
+	maca_assert( is_wp_error( $rejected_action ) && 'cloud_wp_ai_connector_rewrite_action_invalid' === $rejected_action->get_error_code(), 'Behavior: invalid rewrite intent is rejected before HTTP.' );
+}
+$wrong_action_task = $client->execute_wordpress_ai_connector_runtime( maca_wordpress_operation_request( 'title_generation', array( 'source_text' => 'source', 'rewrite_action' => 'expand' ) ) );
+maca_assert( is_wp_error( $wrong_action_task ) && $before_invalid_action === count( $GLOBALS['maca_http_requests'] ), 'Behavior: rewrite actions cannot change another task or spend a provider request.' );
+
 // Over-limit source fails locally; the old 4,200-Chinese-character failure is covered below.
 require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
 $oversize_http_count = count( $GLOBALS['maca_http_requests'] );

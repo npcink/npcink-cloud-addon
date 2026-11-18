@@ -72,10 +72,14 @@ if (
 			if ( in_array( $task, array( 'title_generation', 'content_summary', 'content_rewrite', 'content_translation', 'editorial_updates' ), true ) ) {
 				$scene_input['source_text'] = $text;
 			} elseif ( in_array( $task, array( 'excerpt_generation', 'meta_description' ), true ) ) {
-				$short_text_projection = $this->project_short_text_scene_request( $task, $text, $context_input );
+				$source_prompt = 'excerpt_generation' === $task && defined( 'WPAI_VERSION' ) && version_compare( WPAI_VERSION, '1.5.0', '>=' );
+				$short_text_projection = $this->project_short_text_scene_request( $task, $text, $context_input, $source_prompt );
 				$scene_input = array_merge( $scene_input, $short_text_projection );
 			} else {
 				$scene_input['prompt'] = $text;
+			}
+			if ( 'content_rewrite' === $task ) {
+				$scene_input['rewrite_action'] = $context_input['action'] ?? 'rephrase';
 			}
 			if ( 'content_classification' === $task ) {
 				$taxonomy = sanitize_key( (string) ( $context_input['taxonomy'] ?? '' ) );
@@ -278,18 +282,21 @@ if (
 		/**
 		 * Projects the official short-text Ability input into the Cloud scene.
 		 *
-		 * Excerpt and meta-description abilities carry the actual post content in
-		 * validated Ability input, while their AI Client message is an instruction.
-		 * Keep those roles separate so Cloud can ground the result in the content
-		 * without losing the official instruction or asking the model to infer the
-		 * source from a generic prompt.
+		 * AI 1.5+ excerpt messages already contain source and additional context;
+		 * preserve that opaque message. Legacy excerpt and meta-description
+		 * messages are instructions, with source in validated Ability input.
+		 * Keep both projections separate from the actual system instruction.
 		 *
 		 * @param string              $task Task name.
 		 * @param string              $instruction Official AI Client instruction.
 		 * @param array<string,mixed> $context_input Validated Ability input.
+		 * @param bool                $source_prompt Whether the upstream message already owns the source.
 		 * @return array<string,string>
 		 */
-		private function project_short_text_scene_request( string $task, string $instruction, array $context_input ): array {
+		private function project_short_text_scene_request( string $task, string $instruction, array $context_input, bool $source_prompt = false ): array {
+			if ( $source_prompt ) {
+				return array( 'source_text' => $instruction );
+			}
 			$content = trim( (string) ( $context_input['content'] ?? '' ) );
 			if ( '' === $content && function_exists( 'get_post' ) ) {
 				$post_id = absint( $context_input['post_id'] ?? $context_input['context'] ?? 0 );

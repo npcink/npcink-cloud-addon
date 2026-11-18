@@ -33,6 +33,16 @@ disabled. This proves local loading recovery; it does not prove generation succe
 
 ## Evidence Tiers
 
+Native WordPress AI upgrades also require checking the installed Ability's
+message roles against the adapter: source, additional context and system
+instruction are separate contracts. A former instruction-only message may now
+contain the article. Cover every action of a shared family (shorten, expand,
+rephrase), a source longer than the instruction cap, preservation of HTML and
+links, exact response consumption, and unchanged article/meta fingerprints.
+Real WordPress with intercepted HTTP is local integration evidence, not hosted
+model quality or browser adoption. Keep unsupported scene mappings explicit;
+do not infer support from enabled upstream switches or old acceptance reports.
+
 The tiers keep the meaning they have in `cloud-addon-complexity-budget.md`:
 
 - Tier A — deterministic: `composer run test:all` (lint, contract tests,
@@ -200,3 +210,18 @@ separate; source merge and CI do not grant either permission.
 结论分开，未复现的对照不能授权永久调参或关闭独立调查。
 
 实例与限制见[2026-11-12 复盘](media-source-sync-retrospective-2026-11-12.md)。
+
+## Native editorial-update save consumer (2026-11-17)
+
+A suggestion-only Ability response does not prove that the upstream editor
+saved it correctly. Native `savePost()` can resolve without persistence; verify
+its failure state and saved content before completing Notes. Test unsaved drafts,
+concurrent typing, partial block failure and failed Note completion in the owning
+AI plugin. Keep these write controls out of the Addon; its fixed UI translations
+may explain the native save status and point to Notes/revisions.
+
+The AI 1.5.0 local source patch, rebuild/rollback and six browser scenarios are
+recorded in Cloud `docs/history/engineering/2026/wordpress-editorial-save-correctness-2026-11-17.md`.
+This does not certify the full AI 1.5 translation inventory: the installed version
+has 180 pre-existing strict-UI gaps, unchanged by the editorial patch. New fixed
+recovery notices require their own Chinese behavior coverage and real rendering.

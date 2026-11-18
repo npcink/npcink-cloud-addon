@@ -519,13 +519,25 @@ Those three tasks reject legacy `prompt`, `post_title`, and `post_excerpt`
 fields; embedded content tags are transported as opaque text. Other bounded
 tasks such as alt text may keep their task-specific prompt field.
 
-Excerpt and meta-description source projection reuses the active WordPress AI
-`normalize_content()` helper when available, including content resolved through
-a post context. This matches the Ability's cleanup of editor HTML before model
-execution; it preserves the full normalized text and official instruction.
+With WordPress AI 1.5+, excerpt generation preserves the complete opaque AI
+Client user message as `source_text`, including upstream additional context.
+Only the actual AI Client system instruction enters `system_instruction`;
+article text must not be duplicated there. Legacy excerpt and meta-description
+source projection reuses the active WordPress AI `normalize_content()` helper
+when available, including content resolved through a post context. This matches
+the Ability's cleanup and preserves the full normalized text and instruction.
 Raw Gutenberg markup must not inflate an otherwise bounded short-text request.
 Existing byte/character limits and prompt ownership are unchanged. Without the
 upstream helper, existing source projection remains in effect.
+
+Content resizing projects the validated local action as optional
+`request.rewrite_action` (`shorten`, `expand`, or `rephrase`), only for
+`content_rewrite`. Omitted upstream action uses the Ability's default `rephrase`.
+Invalid values/tasks fail before HTTP. Cloud respects the requested length
+change and gives expansion a larger computed default output budget, capped by
+the existing output/token/model limits. Positive explicit caller budgets remain
+authoritative. Deploy the matching Cloud first; an old Cloud may accept the
+additive field while still using the old conflicting length instruction.
 
 The method rejects generic chat or provider-control fields such as `messages`,
 `conversation_id`, `session_id`, `thread_id`, `tools`, `tool_calls`,

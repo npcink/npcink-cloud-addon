@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-17T03:32:05+00:00\n"
+"POT-Creation-Date: 2026-11-17T10:39:06+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -192,7 +192,7 @@ msgstr ""
 
 #: includes/class-cloud-agent-feedback-metadata.php:31
 #: includes/class-cloud-agent-feedback-metadata.php:41
-#: includes/class-cloud-runtime-request-guards.php:1593
+#: includes/class-cloud-runtime-request-guards.php:1596
 msgid "Agent feedback contains missing or unsupported fields."
 msgstr ""
 
@@ -250,7 +250,7 @@ msgstr ""
 
 #: includes/class-cloud-ai-task-contract.php:250
 #: includes/class-cloud-discoverability-pause.php:125
-#: includes/class-cloud-runtime-request-guards.php:218
+#: includes/class-cloud-runtime-request-guards.php:221
 msgid "SEO/AEO/GEO specialist assistance is paused."
 msgstr ""
 
@@ -970,387 +970,391 @@ msgstr ""
 msgid "WordPress AI connector requests require one wordpress_operation.v1 operation contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:232
+#: includes/class-cloud-runtime-request-guards.php:218
+msgid "Choose Shorten, Expand, or Rephrase in the content editor, then try again."
+msgstr ""
+
+#: includes/class-cloud-runtime-request-guards.php:235
 msgid "The AI task contract does not match the requested task."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:240
+#: includes/class-cloud-runtime-request-guards.php:243
 msgid "WordPress AI connector requests require a supported site-task surface."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:249
+#: includes/class-cloud-runtime-request-guards.php:252
 msgid "WordPress AI connector requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:261
+#: includes/class-cloud-runtime-request-guards.php:264
 msgid "WordPress AI connector request could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:268
+#: includes/class-cloud-runtime-request-guards.php:271
 msgid "WordPress AI connector request exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:285
+#: includes/class-cloud-runtime-request-guards.php:288
 msgid "WordPress AI title, summary, and rewrite requests require source_text without legacy prompt or post fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:293
+#: includes/class-cloud-runtime-request-guards.php:296
 msgid "WordPress AI title, summary, and rewrite requests require nonempty source_text."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:301
+#: includes/class-cloud-runtime-request-guards.php:304
 msgid "WordPress AI source_text exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:309
+#: includes/class-cloud-runtime-request-guards.php:312
 msgid "WordPress AI existing_title context is supported only for title generation."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:319
+#: includes/class-cloud-runtime-request-guards.php:322
 msgid "WordPress AI system_instruction must be a string."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:327
+#: includes/class-cloud-runtime-request-guards.php:330
 msgid "WordPress AI system_instruction exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:338
+#: includes/class-cloud-runtime-request-guards.php:341
 msgid "WordPress AI connector prompt exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:366
+#: includes/class-cloud-runtime-request-guards.php:369
 msgid "WordPress AI connector requests require a verified Cloud site_id."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:373
+#: includes/class-cloud-runtime-request-guards.php:376
 msgid "WordPress AI connector requests require the canonical WordPress site URL."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:380
+#: includes/class-cloud-runtime-request-guards.php:383
 msgid "WordPress AI connector requests require the active addon version."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:467
+#: includes/class-cloud-runtime-request-guards.php:470
 msgid "WordPress AI alt-text requests accept only an Artifact id and bounded text context."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:476
+#: includes/class-cloud-runtime-request-guards.php:479
 msgid "WordPress AI alt-text requests require a valid source_artifact_id."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:485
+#: includes/class-cloud-runtime-request-guards.php:488
 msgid "WordPress AI alt-text prompt must be a nonempty string of at most 500 characters."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:498
+#: includes/class-cloud-runtime-request-guards.php:501
 msgid "WordPress AI alt-text task_contract must be a normalized object."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:518
+#: includes/class-cloud-runtime-request-guards.php:521
 msgid "WordPress AI alt-text context fields must be bounded strings."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:529
+#: includes/class-cloud-runtime-request-guards.php:532
 msgid "WordPress AI alt-text max_tokens must be an integer from 1 through 96."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:558
+#: includes/class-cloud-runtime-request-guards.php:561
 msgid "WordPress AI Site Knowledge reference must be a bounded object."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:567
+#: includes/class-cloud-runtime-request-guards.php:570
 msgid "WordPress AI Site Knowledge reference accepts only enabled and mode."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:576
+#: includes/class-cloud-runtime-request-guards.php:579
 msgid "WordPress AI Site Knowledge reference enabled value must be boolean."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:592
+#: includes/class-cloud-runtime-request-guards.php:595
 msgid "WordPress AI Site Knowledge reference is not supported for this task."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:599
+#: includes/class-cloud-runtime-request-guards.php:602
 msgid "WordPress AI Site Knowledge reference mode is not supported."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:620
+#: includes/class-cloud-runtime-request-guards.php:623
 msgid "WordPress AI image generation requests require the image_generation_request.v1 contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:629
+#: includes/class-cloud-runtime-request-guards.php:632
 msgid "WordPress AI image generation requests require the supported image_generation task surface."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:637
+#: includes/class-cloud-runtime-request-guards.php:640
 msgid "WordPress AI image generation requests may not select a provider response format."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:646
+#: includes/class-cloud-runtime-request-guards.php:649
 msgid "WordPress AI image generation requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:658
+#: includes/class-cloud-runtime-request-guards.php:661
 msgid "WordPress AI image generation request could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:665
+#: includes/class-cloud-runtime-request-guards.php:668
 msgid "WordPress AI image generation request exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:674
+#: includes/class-cloud-runtime-request-guards.php:677
 msgid "WordPress AI image generation requires text scene input."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:681
+#: includes/class-cloud-runtime-request-guards.php:684
 msgid "WordPress AI image generation prompt exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:735
+#: includes/class-cloud-runtime-request-guards.php:738
 msgid "Toolbox image generation requests require the image_generation_request.v1 contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:744
+#: includes/class-cloud-runtime-request-guards.php:747
 msgid "Toolbox image generation requests require the supported image_generation task surface."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:752
+#: includes/class-cloud-runtime-request-guards.php:755
 msgid "Toolbox image generation requests may not select a provider response format."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:761
+#: includes/class-cloud-runtime-request-guards.php:764
 msgid "Toolbox image generation requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:773
+#: includes/class-cloud-runtime-request-guards.php:776
 msgid "Toolbox image generation request could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:780
+#: includes/class-cloud-runtime-request-guards.php:783
 msgid "Toolbox image generation request exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:789
+#: includes/class-cloud-runtime-request-guards.php:792
 msgid "Toolbox image generation requires text scene input."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:796
+#: includes/class-cloud-runtime-request-guards.php:799
 msgid "Toolbox image generation prompt exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:869
+#: includes/class-cloud-runtime-request-guards.php:872
 msgid "Toolbox audio generation requests require the audio_generation_request.v1 contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:878
+#: includes/class-cloud-runtime-request-guards.php:881
 msgid "Toolbox audio generation requests require a supported article audio intent."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:887
+#: includes/class-cloud-runtime-request-guards.php:890
 msgid "Toolbox audio generation requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:899
+#: includes/class-cloud-runtime-request-guards.php:902
 msgid "Toolbox audio generation request could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:906
+#: includes/class-cloud-runtime-request-guards.php:909
 msgid "Toolbox audio generation request exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:915
+#: includes/class-cloud-runtime-request-guards.php:918
 msgid "Toolbox audio generation requires reviewed narration text or a summary script."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:922
+#: includes/class-cloud-runtime-request-guards.php:925
 msgid "Toolbox audio generation text exceeds the scene runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:992
+#: includes/class-cloud-runtime-request-guards.php:995
 msgid "Toolbox Site Check Cloud detail requests require the site_ops_cloud_analysis_request.v1 contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1000
+#: includes/class-cloud-runtime-request-guards.php:1003
 msgid "Toolbox Site Check Cloud detail requests require the site_ops_cloud_analysis_result.v1 result contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1014
+#: includes/class-cloud-runtime-request-guards.php:1017
 msgid "Toolbox Site Check Cloud detail requests must remain runtime-detail, suggestion-only, and no-write."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1022
+#: includes/class-cloud-runtime-request-guards.php:1025
 msgid "Toolbox Site Check Cloud detail requests require bounded local analysis input."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1031
+#: includes/class-cloud-runtime-request-guards.php:1034
 msgid "Toolbox Site Check Cloud detail requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1043
+#: includes/class-cloud-runtime-request-guards.php:1046
 msgid "Toolbox Site Check Cloud detail request could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1050
+#: includes/class-cloud-runtime-request-guards.php:1053
 msgid "Toolbox Site Check Cloud detail request exceeds the runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1093
+#: includes/class-cloud-runtime-request-guards.php:1096
 msgid "Article review requests must use the fixed read-only contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1097
+#: includes/class-cloud-runtime-request-guards.php:1100
 msgid "Article review requests require the zh-CN language contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1102
+#: includes/class-cloud-runtime-request-guards.php:1105
 msgid "Article review requests require between 1 and 80 text blocks."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1111
+#: includes/class-cloud-runtime-request-guards.php:1114
 msgid "Article review blocks must be structured text snapshots."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1118
+#: includes/class-cloud-runtime-request-guards.php:1121
 msgid "Article review blocks contain unsupported fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1124
+#: includes/class-cloud-runtime-request-guards.php:1127
 msgid "Article review block identity or text is invalid."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1129
+#: includes/class-cloud-runtime-request-guards.php:1132
 msgid "Article review text exceeds the bounded review size."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1140
+#: includes/class-cloud-runtime-request-guards.php:1143
 msgid "Article review snapshot hash does not match the supplied text."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1145
+#: includes/class-cloud-runtime-request-guards.php:1148
 msgid "Article review request exceeds the runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1187
+#: includes/class-cloud-runtime-request-guards.php:1190
 msgid "Media governance audits require the exact metadata-only request contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1215
+#: includes/class-cloud-runtime-request-guards.php:1218
 msgid "Media governance audit snapshot facts are invalid or incomplete."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1223
+#: includes/class-cloud-runtime-request-guards.php:1226
 msgid "Media governance capacity facts must be non-negative integers."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1231
+#: includes/class-cloud-runtime-request-guards.php:1234
 msgid "Media governance coverage sources are invalid."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1242
+#: includes/class-cloud-runtime-request-guards.php:1245
 msgid "Media governance audit items require exact evidence fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1262
+#: includes/class-cloud-runtime-request-guards.php:1265
 msgid "Media governance audit item evidence is invalid."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1291
+#: includes/class-cloud-runtime-request-guards.php:1294
 msgid "Media governance audit request exceeds the runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1323
+#: includes/class-cloud-runtime-request-guards.php:1326
 msgid "Toolbox web search requests require the web_search.v1 contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1332
+#: includes/class-cloud-runtime-request-guards.php:1335
 msgid "Toolbox web search requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1344
+#: includes/class-cloud-runtime-request-guards.php:1347
 msgid "Toolbox web search request could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1351
+#: includes/class-cloud-runtime-request-guards.php:1354
 msgid "Toolbox web search request exceeds the runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1360
+#: includes/class-cloud-runtime-request-guards.php:1363
 msgid "Toolbox web search requires a query."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1423
+#: includes/class-cloud-runtime-request-guards.php:1426
 msgid "Toolbox image-source requests require the image_source_cloud_request.v1 contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1432
+#: includes/class-cloud-runtime-request-guards.php:1435
 msgid "Toolbox image-source requests do not support generic chat sessions, tool calls, streams, or credential fields."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1444
+#: includes/class-cloud-runtime-request-guards.php:1447
 msgid "Toolbox image-source request could not be encoded."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1451
+#: includes/class-cloud-runtime-request-guards.php:1454
 msgid "Toolbox image-source request exceeds the runtime size limit."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1460
+#: includes/class-cloud-runtime-request-guards.php:1463
 msgid "Toolbox image-source search requires a query."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1586
+#: includes/class-cloud-runtime-request-guards.php:1589
 msgid "Agent feedback may not carry approval, preflight, or WordPress write authority."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1606
+#: includes/class-cloud-runtime-request-guards.php:1609
 msgid "Agent feedback scalar fields must be strings."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1614
+#: includes/class-cloud-runtime-request-guards.php:1617
 msgid "Agent feedback contains an empty or oversized field."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1624
+#: includes/class-cloud-runtime-request-guards.php:1627
 msgid "Agent feedback requires the cloud_agent_feedback.v1 contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1631
+#: includes/class-cloud-runtime-request-guards.php:1634
 msgid "Agent feedback contains an unsupported local outcome."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1648
+#: includes/class-cloud-runtime-request-guards.php:1651
 msgid "Agent feedback created_at must be a valid date and time."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1662
+#: includes/class-cloud-runtime-request-guards.php:1665
 msgid "Agent feedback list fields must be bounded lists."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1671
+#: includes/class-cloud-runtime-request-guards.php:1674
 msgid "Agent feedback list entries must be bounded strings."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1679
+#: includes/class-cloud-runtime-request-guards.php:1682
 msgid "Agent feedback contains an unsupported feedback label."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1737
+#: includes/class-cloud-runtime-request-guards.php:1740
 msgid "Image context evidence requires a suggestion-only no-write request contract."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1758
+#: includes/class-cloud-runtime-request-guards.php:1761
 msgid "Image context evidence items must use either a source artifact or media URLs."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1786
+#: includes/class-cloud-runtime-request-guards.php:1789
 msgid "Background image recognition requires an attachment URL, media fingerprint, and image MIME type."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1820
+#: includes/class-cloud-runtime-request-guards.php:1823
 msgid "Image context evidence requires at least one bounded source artifact or media URL."
 msgstr ""
 
-#: includes/class-cloud-runtime-request-guards.php:1928
+#: includes/class-cloud-runtime-request-guards.php:1931
 msgid "Cloud did not return usable image context evidence."
 msgstr ""
 
