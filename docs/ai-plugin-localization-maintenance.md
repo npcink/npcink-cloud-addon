@@ -46,7 +46,7 @@ The implementation is intentionally static:
 
 - It only runs in `wp-admin`.
 - It only runs for Chinese locales (`zh_*`).
-- It targets text domain `ai`, with the sixteen-key bundled component exception below.
+- It targets text domain `ai`, with the seventeen-key bundled component exception below.
 - Its inline JS locale payload enqueues only on surfaces that render
   `ai`-domain JS — the AI plugin's own admin screens (hook suffix containing
   `_page_ai-`), its Connectors screen (`options-connectors`), the core
@@ -78,15 +78,56 @@ can translate those calls. The earlier description of these calls as a build
 that "dropped" the `ai` domain was unproven; the shipped bundle identifies them
 as WordPress component code.
 
-At the user's explicit request to fix these remaining gaps, sixteen source keys
-(two plural pairs, five contextual strings, and seven plain labels) have a bounded compatibility
+At the user's explicit request to fix these remaining gaps, seventeen source keys
+(two plural pairs, six contextual strings, and seven plain labels) have a bounded compatibility
 exception: `bundled_ui_fallback()` supplies only those keys on
-`settings_page_ai-wp-admin` and `tools_page_ai-request-logs`. The JS hooks check
+`settings_page_ai-wp-admin`, `tools_page_ai-request-logs`,
+`tools_page_ai-mcp-access` and `tools_page_ai-abilities-explorer`. The latter two
+screens also embed DataViews in AI 1.5.0. The added `Filter` key is accepted only
+with `_x` context `verb`; a plain call or another context must stand down.
+The JS hooks check
 the exact source, plural pair or context, accept only the default domain, and stand down
 when an existing translation is present. Never register the full AI dictionary
 in the default domain. Do not expand this exception to other keys or screens
 without evidence and review. Retire it when the bundled component translations
 work without the fallback.
+
+### AI 1.5.0 followthrough — 2026-11-18
+
+Reviewed 267 additional fixed UI/error keys, preserving placeholders, destructive
+scope and unknown/unverified wording. Two initially reported candidates are
+registration metadata (`WebMCP` and the text-to-speech Ability description),
+classified by exact source plus file; they are not translated. Settings labels
+in the same files remain fixed UI candidates. Localization does not enable audio,
+MCP, block labels, revision summaries or any paused/unsupported capability.
+
+Installed-plugin strict audit now passes: 1,326 discovered ai-domain keys, 1,070
+shim entries, zero fixed UI, Ability-error or uncovered default-domain gaps.
+The remaining 300 missing entries are 72 metadata/developer copy, 211 schema/JSON
+and 17 long-prompt entries; 27 stale entries remain for review. This bounded source
+audit does not prove every English word on every plugin page has been translated.
+
+A first zero-gap audit missed 113 actual `WP_Error` messages because wording
+heuristics classified them as metadata/schema/long prompts. The audit now scans
+PHP tokens for ai-domain strings inside the second `new WP_Error` argument and
+classifies those as error notices before prose heuristics. Comments, error codes,
+third-argument data and adjacent schema strings are excluded from that promotion.
+Four known admin/revision bundles also contribute nine fixed notices previously
+hidden by schema-word heuristics. These 122 keys are included in the 267 above.
+Never use a zero count alone without reviewing excluded groups.
+
+Local PC browser evidence at 1440 and 1280 covers settings, request logs,
+Abilities Explorer and MCP Access, including the real locale payload, exact
+default-domain/context stand-down behavior, view-options controls and cancelling
+log deletion. No feature or content was saved, no Ability/model invoked; the
+original post and feature-setting fingerprints are unchanged. Browser failures
+from intentionally blocked Gravatar are recorded separately. Evidence lives in
+the local `editor-localization-20261118/` artifact directory, with scripts and hashes.
+Remaining component/literal labels such as `PAGE`, `OF`, `Plugin`, `ACTIONS` and
+`Text`, and the existing wide/duplicated Explorer columns, are not fixed by this
+batch. Do not expand the default-domain dictionary or claim a layout redesign
+based on this strict audit. All fixed error states were reviewed in source/tests;
+they were not each triggered in the browser.
 
 ## Maintenance Problem
 
@@ -174,8 +215,9 @@ browser. Keys used in both `ai` and default domains need runtime review; their
 mere presence in a shared bundle is not proof of an untranslated UI.
 
 Known fixed UI source files take precedence over the length and schema-word
-heuristics: the reviewed settings import error, translation/slug/summary editor bundles, Abilities Explorer
-help, Markdown Feeds settings, and comment moderation controls. Long help text
+heuristics: the reviewed settings import error, translation/slug/summary/revision
+editor bundles, Abilities Explorer and MCP Access bundles, Explorer help,
+Markdown Feeds settings, and comment moderation controls. Long help text
 and UI notices mentioning JSON or schemas must remain review candidates; ability
 registration metadata and image prompt templates remain excluded.
 

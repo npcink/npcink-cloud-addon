@@ -144,6 +144,70 @@ function npcink_cloud_addon_ai_i18n_audit_extract_strings( string $contents, str
 }
 
 /**
+ * Marks translated WP_Error messages before wording-based classification.
+ *
+ * Only inspect the second constructor argument, not error codes/data or nearby
+ * schema/registration strings. Tokenization keeps comments and quoted code out.
+ *
+ * @param string $contents PHP source.
+ * @param string $relative Relative source path.
+ * @param array<string,array<string,mixed>> $strings Collected strings.
+ * @return void
+ */
+function npcink_cloud_addon_ai_i18n_audit_mark_error_messages( string $contents, string $relative, array &$strings ): void {
+	$tokens = token_get_all( $contents );
+	$count = count( $tokens );
+	for ( $i = 0; $i < $count; ++$i ) {
+		if ( ! is_array( $tokens[ $i ] ) || T_NEW !== $tokens[ $i ][0] ) {
+			continue;
+		}
+		$j = $i + 1;
+		while ( $j < $count && is_array( $tokens[ $j ] ) && in_array( $tokens[ $j ][0], array( T_WHITESPACE, T_COMMENT, T_DOC_COMMENT ), true ) ) {
+			++$j;
+		}
+		if ( $j >= $count || ! is_array( $tokens[ $j ] ) || 'WP_Error' !== ltrim( $tokens[ $j ][1], '\\' ) ) {
+			continue;
+		}
+		++$j;
+		while ( $j < $count && is_array( $tokens[ $j ] ) && in_array( $tokens[ $j ][0], array( T_WHITESPACE, T_COMMENT, T_DOC_COMMENT ), true ) ) {
+			++$j;
+		}
+		if ( $j >= $count || '(' !== $tokens[ $j ] ) {
+			continue;
+		}
+		$depth = 1;
+		$argument = 0;
+		$message = '';
+		for ( ++$j; $j < $count; ++$j ) {
+			$token = $tokens[ $j ];
+			if ( is_string( $token ) ) {
+				if ( ',' === $token && 1 === $depth ) {
+					if ( 1 === $argument ) {
+						break;
+					}
+					++$argument;
+					continue;
+				}
+				if ( in_array( $token, array( '(', '[', '{' ), true ) ) {
+					++$depth;
+				} elseif ( in_array( $token, array( ')', ']', '}' ), true ) && 0 === --$depth ) {
+					break;
+				}
+			}
+			if ( 1 === $argument ) {
+				$message .= is_array( $token ) ? $token[1] : $token;
+			}
+		}
+		$errors = array();
+		npcink_cloud_addon_ai_i18n_audit_extract_strings( $message, $relative, $errors );
+		foreach ( $errors as $text => $entry ) {
+			npcink_cloud_addon_ai_i18n_audit_add_string( $strings, $text, $relative );
+			$strings[ $text ]['error_notice'] = true;
+		}
+	}
+}
+
+/**
  * Returns whether a file should be scanned.
  *
  * @param string $path File path.
@@ -275,11 +339,13 @@ function npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( string $text, ar
 		'Compact' => 'Density option for DataView layout',
 		'View options' => 'View is used as a noun',
 		'Edit %s (has errors)' => 'field',
+		'Filter' => 'verb',
 	);
 	foreach ( $entry['calls'] as $call ) {
 		if ( ! in_array( $call['file'], array(
 			'build/routes/ai-home/content.js', 'build/routes/ai-home/content.min.js',
-			'build-scripts/admin/ai-request-logs.js',
+			'build-scripts/admin/ai-request-logs.js', 'build-scripts/experiments/mcp-adapter.js',
+			'build-scripts/experiments/abilities-explorer.js',
 		), true ) ) {
 			return false;
 		}
@@ -394,6 +460,12 @@ function npcink_cloud_addon_ai_i18n_audit_file_starts_with( array $files, array 
  * @return string
  */
 function npcink_cloud_addon_ai_i18n_audit_classify_missing( string $text, array $files ): string {
+	// Reviewed registration metadata in AI 1.5: not admin labels owned by the shim.
+	if ( ( 'WebMCP' === $text && in_array( 'includes/Experiments/WebMCP/WebMCP.php', $files, true ) )
+		|| ( 'Generates speech audio from text or from a post&#8217;s content.' === $text
+			&& in_array( 'includes/Experiments/Text_To_Speech/Text_To_Speech.php', $files, true ) ) ) {
+		return 'dynamic_ability_metadata';
+	}
 	if ( 'Unsupported schema version: %d.' === $text && in_array( 'includes/REST/Settings_IO_Controller.php', $files, true ) ) {
 		return 'fixed_ui_candidates';
 	}
@@ -406,6 +478,10 @@ function npcink_cloud_addon_ai_i18n_audit_classify_missing( string $text, array 
 			'build-scripts/experiments/content-translation.js',
 			'build-scripts/experiments/slug-generation.js',
 			'build-scripts/experiments/summarization.js',
+			'build-scripts/experiments/abilities-explorer.js',
+			'build-scripts/experiments/mcp-adapter.js',
+			'build-scripts/experiments/revision-change-summary.js',
+			'build-scripts/experiments/revision-change-summary-classic.js',
 			'includes/Experiments/Abilities_Explorer/Admin_Page.php',
 			'includes/Experiments/Markdown_Feeds/Markdown_Feeds.php',
 			'includes/Experiments/Comment_Moderation/Comment_Moderation.php',
@@ -486,7 +562,8 @@ function npcink_cloud_addon_ai_i18n_audit_group_missing( array $missing, array $
 
 	foreach ( $missing as $text ) {
 		$files    = $found[ $text ]['files'] ?? array();
-		$category = npcink_cloud_addon_ai_i18n_audit_classify_missing( $text, $files );
+		$category = ! empty( $found[ $text ]['error_notice'] ) ? 'ability_error_notices'
+			: npcink_cloud_addon_ai_i18n_audit_classify_missing( $text, $files );
 		$groups[ $category ][] = $text;
 	}
 
@@ -573,6 +650,10 @@ function npcink_cloud_addon_ai_i18n_audit_main( array $argv, string $root ): int
 		}
 
 		npcink_cloud_addon_ai_i18n_audit_extract_strings( $contents, $relative, $found );
+		if ( 'php' === strtolower( pathinfo( $path, PATHINFO_EXTENSION ) )
+			&& ! npcink_cloud_addon_ai_i18n_audit_is_vendor_path( $relative ) ) {
+			npcink_cloud_addon_ai_i18n_audit_mark_error_messages( $contents, $relative, $found );
+		}
 	}
 
 	ksort( $found );

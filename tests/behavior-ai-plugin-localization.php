@@ -108,6 +108,27 @@ foreach ( $settings_15_translations as $source => $expected ) {
 	);
 }
 
+$reviewed_ui_15 = array(
+	'C2PA Content Credentials detected (not verified)' => '检测到 C2PA 内容凭证（尚未验证）',
+	'Could not check on audio generation. It may still be running in the background.' => '无法查询音频生成状态，任务可能仍在后台运行。',
+	'Choose the "Test" action from an ability\'s row actions in the list.' => '在能力列表中打开对应行的操作菜单，选择“测试”。',
+	'Delete all logs?' => '删除全部日志？',
+	'No logs older than the selected age were found.' => '未找到超过所选期限的日志。',
+	'Field "%1$s" must be at most %2$s' => '字段“%1$s”的值不能大于 %2$s',
+	'A minimum of %d characters is required for translation.' => '翻译内容至少需要 %d 个字符。',
+	'You do not have permission to generate titles.' => '你无权生成标题。',
+	'The specified target language is not supported for translation.' => '翻译功能不支持指定的目标语言。',
+	'No translated content was generated.' => '未生成翻译内容。',
+);
+foreach ( $reviewed_ui_15 as $source => $expected ) {
+	maca_assert(
+		$expected === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( $source, $source, 'ai' )
+		&& '官方译文' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( '官方译文', $source, 'ai' )
+		&& $source === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( $source, $source, 'default' ),
+		'AI 1.5 UI preserves uncertainty, destructive scope and official/domain ownership: ' . $source
+	);
+}
+
 maca_assert(
 	'能力浏览器' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Abilities Explorer',
@@ -1476,6 +1497,7 @@ $payload_hook_cases = array(
 	'settings_page_ai-wp-admin'     => true,
 	'tools_page_ai-request-logs'    => true,
 	'tools_page_ai-abilities-explorer' => true,
+	'tools_page_ai-mcp-access' => true,
 	'options-connectors'            => true,
 	'edit-comments.php'             => true,
 	'index.php'                     => true,
@@ -1497,9 +1519,9 @@ foreach ( $payload_hook_cases as $payload_hook_case => $payload_hook_allowed ) {
 	Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data( $payload_hook_case );
 	$bundled_payload = $GLOBALS['maca_localized_scripts'][0]['data']['bundledUiFallback'] ?? array();
 	maca_assert(
-		in_array( $payload_hook_case, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs' ), true )
-			? count( $bundled_payload ) === 16 : empty( $bundled_payload ),
-		'DataViews exceptions only ship on the two verified AI screens: ' . $payload_hook_case
+		in_array( $payload_hook_case, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs', 'tools_page_ai-mcp-access', 'tools_page_ai-abilities-explorer' ), true )
+			? count( $bundled_payload ) === 17 : empty( $bundled_payload ),
+		'DataViews exceptions only ship on the four verified AI screens: ' . $payload_hook_case
 	);
 	maca_assert(
 		( $payload_hook_allowed ? 1 : 0 ) === count( $GLOBALS['maca_enqueued_scripts'] )

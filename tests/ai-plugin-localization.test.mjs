@@ -47,12 +47,12 @@ test('shipped JS registers AI 1.5 settings copy without widening default-domain 
 		assert.deepEqual(Array.from(data[source]), [translated]);
 		assert.equal(hooks.get('i18n.gettext')(source, source, 'default'), source);
 	}
-	assert.equal(Object.keys(bundled).length, 16);
+	assert.equal(Object.keys(bundled).length, 17);
 });
 
 test('shipped JS translates exact bundled plurals and contexts', () => {
 	const { hooks, registrations } = run();
-	assert.equal(Object.keys(bundled).length, 16);
+	assert.equal(Object.keys(bundled).length, 17);
 	for (const [single, plural] of [
 		['%d Item selected', '%d Items selected'],
 		['%d field needs attention', '%d fields need attention'],
@@ -68,6 +68,7 @@ test('shipped JS translates exact bundled plurals and contexts', () => {
 		['Compact', 'Density option for DataView layout'],
 		['View options', 'View is used as a noun'],
 		['Edit %s (has errors)', 'field'],
+		['Filter', 'verb'],
 	]) {
 		assert.equal(hooks.get('i18n.gettext_with_context')(source, source, context), bundled[source]);
 	}
@@ -95,5 +96,7 @@ test('exceptions preserve official translations, foreign domains, contexts and u
 	assert.equal(contextual('Comfortable', 'Comfortable', 'other'), 'Comfortable');
 	assert.equal(contextual('Comfortable', 'Comfortable', 'Density option for DataView layout', 'other'), 'Comfortable');
 	assert.equal(contextual('Edit %s', 'Edit %s', 'field'), 'Edit %s');
+	assert.equal(contextual('Filter', 'Filter', 'noun'), 'Filter');
+	assert.equal(plain('Filter', 'Filter'), 'Filter');
 	assert.equal(run({}).hooks.size, 0);
 });
