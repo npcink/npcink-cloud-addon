@@ -4,15 +4,19 @@
  * Ability surface and the Npcink Cloud provider projection.
  *
  * Run with:
+ *   WP_AI_ACCEPTANCE_MAX_CALLS=1 WP_AI_ACCEPTANCE_ABILITIES=ai/excerpt-generation \
  *   composer run acceptance:wp-ai-provider
  *
  * Optional real media/comment/image-generation coverage:
+ *   WP_AI_ACCEPTANCE_MAX_CALLS=3 \
+ *   WP_AI_ACCEPTANCE_ABILITIES=ai/suggest-reply,ai/alt-text-generation,ai/image-generation \
  *   WP_AI_ACCEPTANCE_COMMENT_ID=123 WP_AI_ACCEPTANCE_ALT_TEXT_ATTACHMENT_ID=456 \
  *   WP_AI_ACCEPTANCE_IMAGE_GENERATION=1 \
  *   composer run acceptance:wp-ai-provider
  *
  * A bounded subset can be run while diagnosing one ability:
- *   WP_AI_ACCEPTANCE_ABILITIES=ai/editorial-updates composer run acceptance:wp-ai-provider
+ *   WP_AI_ACCEPTANCE_MAX_CALLS=1 WP_AI_ACCEPTANCE_ABILITIES=ai/editorial-updates \
+ *   composer run acceptance:wp-ai-provider
  *
  * Comment analysis is skipped by default because the official Ability stores
  * its result in comment metadata. Set WP_AI_ACCEPTANCE_ALLOW_COMMENT_METADATA_WRITE=1
@@ -163,6 +167,20 @@ if ( ! empty( $requested_abilities ) ) {
 		)
 	);
 }
+$requested_scenarios = array_filter( array_map( 'trim', explode( ',', (string) getenv( 'WP_AI_ACCEPTANCE_SCENARIOS' ) ) ) );
+if ( $requested_scenarios ) {
+	$cases = array_values( array_filter( $cases, static fn( $case ) => in_array( $case['scenario_id'], $requested_scenarios, true ) ) );
+	if ( array_diff( $requested_scenarios, array_column( $cases, 'scenario_id' ) ) ) {
+		$cases = array();
+	}
+}
+$budget = new Npcink_Cloud_Acceptance_Budget(
+	(string) getenv( 'WP_AI_ACCEPTANCE_MAX_CALLS' ), $requested_abilities, $cases,
+	Npcink_Cloud_Addon_Settings::get_effective_base_url()
+);
+// These filters exist only for this CLI process and never modify site settings.
+add_filter( 'pre_http_request', array( $budget, 'guard' ), PHP_INT_MAX, 3 );
+add_action( 'http_api_debug', array( $budget, 'observe' ), PHP_INT_MAX, 2 );
 
 $report = array(
 	'contract_version' => 'wordpress_ai_provider_acceptance.v1',
@@ -171,11 +189,14 @@ $report = array(
 	'write_evidence_state' => 'not_measured',
 	'generated_at'     => gmdate( 'c' ),
 	'fixture_id'       => 'wordpress-ai-acceptance-fixed-v1',
-	'preflight'        => npcink_cloud_acceptance_quota_preflight(),
+	'preflight'        => '' === $budget->stop_reason ? npcink_cloud_acceptance_quota_preflight() : array( 'state' => 'not_requested' ),
 	'optional_capabilities_skipped' => array(),
 	'cases'            => array(),
 );
 $skip_provider_calls = 'quota_exhausted' === ( $report['preflight']['state'] ?? '' );
+if ( 'unavailable' === ( $report['preflight']['state'] ?? '' ) ) {
+	$budget->stop_reason = $budget->stop_reason ?: 'quota_preflight_unavailable';
+}
 
 foreach ( $cases as $case_definition ) {
 	$ability = (string) ( $case_definition['ability'] ?? '' );
@@ -216,12 +237,13 @@ foreach ( $cases as $case_definition ) {
 	if ( is_wp_error( $contract ) ) {
 		$case['failure_code'] = 'ability_contract_invalid';
 		$report['cases'][]    = $case;
+		$budget->stop_reason = $budget->stop_reason ?: 'case_failed';
 		continue;
 	}
 
-	if ( $skip_provider_calls ) {
+	if ( $skip_provider_calls || '' !== $budget->stop_reason ) {
 		$case['execution_state'] = 'not_executed';
-		$case['failure_code'] = 'quota_exhausted';
+		$case['failure_code'] = $skip_provider_calls ? 'quota_exhausted' : $budget->stop_reason;
 		$case['failure_stage'] = 'acceptance_preflight';
 		$case['quality_status'] = 'not_evaluated';
 		$case['non_empty_result'] = false;
@@ -269,6 +291,9 @@ foreach ( $cases as $case_definition ) {
 		}
 	}
 	$report['cases'][] = $case;
+	if ( null !== $case['failure_code'] ) {
+		$budget->stop_reason = $budget->stop_reason ?: 'case_failed';
+	}
 }
 if ( 0 === $comment_id ) {
 	$report['optional_capabilities_skipped'][] = array( 'ability' => 'ai/comment-analysis', 'reason' => 'set WP_AI_ACCEPTANCE_COMMENT_ID' );
@@ -294,6 +319,7 @@ if ( is_array( $wordpress_state_before ) && is_array( $wordpress_state_after ) )
 	unset( $case );
 }
 
+$report['call_budget'] = $budget->receipt();
 $report = npcink_cloud_acceptance_finalize_report( $report );
 fwrite( STDOUT, wp_json_encode( $report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "\n" );
 // Unknown write evidence cannot close acceptance even when fixed quality checks pass.

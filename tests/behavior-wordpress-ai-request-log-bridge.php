@@ -200,6 +200,7 @@ namespace {
 		'Behavior: WordPress AI request log bridge writes when global option is absent (AI 1.4+) and the single feature is on.'
 	);
 
+	Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array( 'run_id' => 'run_error_1', 'error_stage' => 'artifact_validation', 'quality_reason' => 'artifact_byte_verification' ) );
 	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
 		array(
 			'type'                       => 'text',
@@ -234,6 +235,8 @@ namespace {
 		'run_error_1' === (string) ( $error_context['cloud_run_id'] ?? '' ),
 		'Behavior: WordPress AI request log bridge preserves a Cloud run ID supplied alongside a failed request.'
 	);
+	maca_assert( 'artifact_validation' === ( $error_context['error_stage'] ?? '' ) && 'artifact_byte_verification' === ( $error_context['quality_reason'] ?? '' ), 'Failure logs preserve fixed delivery-stage metadata alongside the Cloud run ID.' );
+	Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 
 	Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence(
 		array(
@@ -336,4 +339,14 @@ namespace {
 		&& ! array_key_exists( 'tokens_output', $empty_usage_log ),
 		'Behavior: WordPress AI request log bridge omits TOKEN fields when usage lacks tokens_in/out.'
 	);
+	foreach ( array(
+		array( 'run_id' => 'run_metadata_rejection', 'error_stage' => 'artifact_validation', 'quality_reason' => 'PRIVATE_PROVIDER_DETAIL' ),
+		array( 'run_id' => 'run_other_failure', 'error_stage' => 'artifact_validation', 'quality_reason' => 'artifact_download' ),
+	) as $rejected_failure ) {
+		Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( $rejected_failure );
+		Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( array( 'type' => 'image', 'task' => 'image_generate', 'response' => new WP_Error( 'delivery_failed', 'Image delivery failed.' ), 'cloud_run_id' => 'run_metadata_rejection' ) );
+		$rejected_log = end( $GLOBALS['maca_wpai_request_logs'] );
+		maca_assert( ! isset( $rejected_log['context']['quality_reason'] ) && ! isset( $rejected_log['context']['error_stage'] ) && ! str_contains( wp_json_encode( $rejected_log ), 'PRIVATE_PROVIDER_DETAIL' ), 'Request logs omit arbitrary Cloud failure details and evidence belonging to a different run.' );
+	}
+	Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
 }

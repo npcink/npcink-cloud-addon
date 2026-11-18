@@ -81,6 +81,23 @@ maca_assert(
 );
 
 $settings_15_translations = array(
+	'AI Client' => 'AI 客户端',
+	'Audio' => '音频',
+	'Embeddings' => '向量嵌入',
+	'Image' => '图片',
+	'MCP Tool' => 'MCP 工具',
+	'Metadata' => '元数据',
+	'Success' => '成功',
+	'Text' => '文本',
+	'Timeout' => '超时',
+	'Applies pending editorial Notes and saves the post. Save your current edits first.' => '应用待处理的编辑批注并保存文章。请先保存当前修改。',
+	'For example: shorter, focus on the practical steps. Recent suggestions are avoided automatically.' => '例如：更简短、侧重实际步骤。系统会自动避开最近的建议。',
+	'No usable block content was returned. The original block is unchanged.' => '未返回可用的区块内容，原区块保持不变。',
+	'Open Notes' => '打开批注',
+	'Save your current edits and wait for saving to finish before applying Editorial Updates.' => '请先保存当前修改，等待保存完成后再应用编辑更新。',
+	'Saved blocks: %1$d; failed blocks: %2$d. Failed Notes remain pending. Review them in the Notes sidebar before trying again. %3$s' => '已保存区块：%1$d；失败区块：%2$d。失败的批注仍待处理，请在批注侧栏中查看后重试。%3$s',
+	'This repeats a recent title. Add a different angle in the title guidance and regenerate.' => '此标题与最近的标题重复，请在标题要求中补充不同角度后重新生成。',
+	'Title guidance (optional)' => '标题要求（可选）',
 	'Turn on stable Features and early-stage Experiments. Experiments may change or be removed in any release, and some run automatically once enabled, so try them on a staging site first.' => '启用稳定功能和早期实验功能。实验功能可能在任何版本中变更或移除，部分功能启用后会自动运行，建议先在测试站点试用。',
 	'Early-stage AI tools for the block editor, including content generation and enhancement tools. Experiments may change or be removed in any release.' => '面向区块编辑器的早期 AI 工具，包括内容生成和增强工具。实验功能可能在任何版本中变更或移除。',
 	'Early-stage AI tools for the WordPress admin area, including exploration and testing tools. Experiments may change or be removed in any release.' => '面向 WordPress 后台的早期 AI 工具，包括探索和测试工具。实验功能可能在任何版本中变更或移除。',

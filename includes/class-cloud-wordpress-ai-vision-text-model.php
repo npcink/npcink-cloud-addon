@@ -23,6 +23,17 @@ if (
 		\WordPress\AiClient\Providers\Models\Contracts\ModelInterface,
 		\WordPress\AiClient\Providers\Models\TextGeneration\Contracts\TextGenerationModelInterface {
 
+		/** Reject structured, truncated, or marked-up output before the host fills an ALT field. */
+		protected function extract_text( array $response, string $expected_task ): string {
+			$text = parent::extract_text( $response, $expected_task );
+			$length = function_exists( 'mb_strlen' ) ? mb_strlen( $text, 'UTF-8' ) : preg_match_all( '/./us', $text );
+			if ( 'alt_text_suggest' !== $expected_task || ! is_int( $length ) || $length > 240 || 1 !== preg_match( '//u', $text )
+				|| preg_match( '/^[\s\x{FEFF}]*(?:[\{\[]|```)|<\/?[a-z][^>]*>|[\r\n]/iu', $text ) ) {
+				return '';
+			}
+			return $text;
+		}
+
 		/**
 		 * Generates alt text through the bounded Cloud vision runtime seam.
 		 *

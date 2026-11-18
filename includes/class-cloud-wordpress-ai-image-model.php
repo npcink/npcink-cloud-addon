@@ -29,6 +29,8 @@ if (
 		private const MAX_IMAGE_AXIS = 8192;
 		private const MAX_IMAGE_AREA = 16777216;
 		private const MAX_IMAGE_CANDIDATES = 4;
+		/** @var string Payload-free stage retained when delivery fails. */
+		private string $delivery_stage = 'artifact_contract';
 		private const IMAGE_ARTIFACT_KEYS = array(
 			'artifact_id',
 			'artifact_reference',
@@ -62,34 +64,64 @@ if (
 				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'tools_not_supported', 'cloud_wp_ai_tools_not_supported' ) );
 			}
 
+			$reference_file = $this->reference_file_descriptor( $prompt );
 			$text = $this->prompt_text( $prompt );
 			if ( '' === $text ) {
 				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_input_required', 'cloud_wp_ai_scene_input_required' ) );
 			}
 
-			$request = array(
-				'contract_version' => 'image_generation_request.v1',
-				'task'             => 'image_generation',
-				'prompt'           => $text,
-				'n'                => $this->image_count(),
-				'aspect_ratio'     => $this->aspect_ratio(),
-				'resolution'       => 'medium',
-				'timeout_seconds'  => 90,
-				'retention_ttl'    => 86400,
-			);
+			$editing = null !== $reference_file;
+			if ( $editing ) {
+				$upload = npcink_cloud_addon_upload_toolbox_site_media_visual_source(
+					$reference_file,
+					'trace_wp_ai_image_edit_source_' . wp_generate_uuid4(),
+					'wp_ai_image_edit_upload_' . wp_generate_uuid4()
+				);
+				if ( is_wp_error( $upload ) ) {
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $upload->get_error_code(), '', (string) $upload->get_error_message() ) );
+				}
+				$artifact_id = (string) ( $upload['artifact_id'] ?? '' );
+				if ( 1 !== preg_match( self::ARTIFACT_ID_PATTERN, $artifact_id ) ) {
+					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'source_artifact_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
+				}
+				$request = array(
+					'contract_version'   => 'cloud_connector_runtime.v1',
+					'profile_id'         => 'wp-ai.image-editing',
+					'operation_contract' => array(
+						'contract_version' => 'wordpress_operation.v1',
+						'task'             => 'image_editing',
+						'request'          => array(
+							'source_artifact_id' => $artifact_id,
+							'prompt'             => $text,
+						),
+					),
+					'timeout_seconds' => 90,
+					'retention_ttl'   => 86400,
+					'retry_max'       => 0,
+				);
+			} else {
+				$request = array(
+					'contract_version' => 'image_generation_request.v1',
+					'task'             => 'image_generation',
+					'prompt'           => $text,
+					'n'                => $this->image_count(),
+					'aspect_ratio'     => $this->aspect_ratio(),
+					'resolution'       => 'medium',
+					'timeout_seconds'  => 90,
+					'retention_ttl'    => 86400,
+				);
+			}
 
 			$trace_id = 'trace_wp_ai_image_' . wp_generate_uuid4();
 			$started  = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
-			$response = npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime(
-				$request,
-				$trace_id,
-				'wp_ai_image_' . wp_generate_uuid4()
-			);
+			$response = $editing
+				? npcink_cloud_addon_execute_wordpress_ai_connector_runtime( $request, $trace_id, 'wp_ai_image_edit_' . wp_generate_uuid4() )
+				: npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime( $request, $trace_id, 'wp_ai_image_' . wp_generate_uuid4() );
 			$log_event = array(
 					'type'             => 'image',
 					'operation'        => 'npcink-cloud/generate-image',
-					'task'             => 'image_generation',
-					'contract_version' => 'image_generation_request.v1',
+				'task'             => $editing ? 'image_editing' : 'image_generation',
+				'contract_version' => $editing ? 'cloud_connector_runtime.v1' : 'image_generation_request.v1',
 					'response'         => $response,
 					'duration_ms'      => Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started ),
 					'fallback_model_id' => Npcink_Cloud_WordPress_AI_Connector::IMAGE_MODEL_ID,
@@ -103,8 +135,9 @@ if (
 			}
 
 			$result     = $this->extract_result( is_array( $response ) ? $response : array() );
+			$this->delivery_stage = 'artifact_contract';
 			try {
-				$candidates = $this->extract_image_candidates( $result, $trace_id );
+				$candidates = $this->extract_image_candidates( $result, $trace_id, $editing ? 'image.edit.v1' : 'image.generate.v1' );
 				if ( empty( $candidates ) ) {
 					if ( Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( $response ) ) {
 						self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'runtime_run_in_progress', 'cloud_wp_ai_image_run_in_progress' ) );
@@ -117,7 +150,7 @@ if (
 				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
 					'run_id'         => $cloud_run_id,
 					'error_stage'    => 'artifact_validation',
-					'quality_reason' => 'image_output_invalid',
+					'quality_reason' => $this->delivery_stage,
 				) );
 				$log_event['validation_error'] = new WP_Error( 'cloud_wp_ai_image_output_invalid', 'Cloud image output could not be downloaded or verified.' );
 				$log_event['duration_ms'] = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started );
@@ -136,7 +169,7 @@ if (
 				$this->metadata,
 				array(
 					'contract_version'          => 'image_generation_result.v1',
-					'task'                      => 'image_generation',
+					'task'                      => $editing ? 'image_editing' : 'image_generation',
 					'suggestion_only'           => true,
 					'direct_wordpress_write'    => false,
 					'model_id'                  => (string) ( $result['model_id'] ?? '' ),
@@ -146,7 +179,9 @@ if (
 		}
 
 		/**
-		 * Extracts text from a single user prompt and rejects reference-image refinement.
+		 * Extracts text from a single user prompt. A single reference File is
+		 * handled by reference_file_descriptor() and uploaded as a short-lived
+		 * Cloud artifact before the edit runtime request.
 		 *
 		 * @param list<\WordPress\AiClient\Messages\DTO\Message> $prompt Prompt messages.
 		 * @return string
@@ -160,7 +195,7 @@ if (
 			$parts = array();
 			foreach ( $message->getParts() as $part ) {
 				if ( null !== $part->getFile() ) {
-					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'reference_image_not_supported', 'cloud_wp_ai_reference_image_not_supported' ) );
+					continue;
 				}
 
 				$text = $part->getText();
@@ -170,6 +205,68 @@ if (
 			}
 
 			return trim( implode( "\n\n", $parts ) );
+		}
+
+		/**
+		 * Extracts and locally validates one WordPress AI reference File.
+		 *
+		 * @param list<\WordPress\AiClient\Messages\DTO\Message> $prompt Prompt messages.
+		 * @return array<string,string>|null
+		 */
+		private function reference_file_descriptor( array $prompt ): ?array {
+			$files = array();
+			foreach ( $prompt[0]->getParts() as $part ) {
+				$file = $part->getFile();
+				if ( null !== $file ) {
+					$files[] = $file;
+				}
+			}
+			if ( empty( $files ) ) {
+				return null;
+			}
+			if ( 1 !== count( $files ) ) {
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'multiple_reference_images_not_supported', 'cloud_wp_ai_reference_image_not_supported' ) );
+			}
+
+			$file = $files[0];
+			$data = $file->getBase64Data();
+			$contents = is_string( $data ) ? base64_decode( $data, true ) : false;
+			if ( false === $contents || '' === $contents ) {
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'reference_image_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
+			}
+			$mime_type = '';
+			foreach ( array( 'getMimeType', 'getMime' ) as $method ) {
+				if ( method_exists( $file, $method ) ) {
+					$value = $file->{$method}();
+					if ( is_string( $value ) ) {
+						$mime_type = strtolower( trim( $value ) );
+						break;
+					}
+				}
+			}
+			if ( '' === $mime_type && function_exists( 'getimagesizefromstring' ) ) {
+				$image_info = @getimagesizefromstring( $contents );
+				$mime_type = is_array( $image_info ) ? strtolower( trim( (string) ( $image_info['mime'] ?? '' ) ) ) : '';
+			}
+			if ( ! in_array( $mime_type, array( 'image/jpeg', 'image/png', 'image/webp' ), true ) ) {
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'reference_image_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
+			}
+			$descriptor = Npcink_Cloud_Media_Source_Validation::normalize_upload_file_descriptor(
+				array(
+					'content'   => $contents,
+					'filename'  => 'wordpress-ai-reference.' . ( 'image/png' === $mime_type ? 'png' : ( 'image/webp' === $mime_type ? 'webp' : 'jpg' ) ),
+					'mime_type' => $mime_type,
+				),
+				'reference_image'
+			);
+			if ( is_wp_error( $descriptor ) || empty( $descriptor ) ) {
+				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'reference_image_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
+			}
+			return array(
+				'contents'  => (string) $descriptor['contents'],
+				'filename'  => (string) $descriptor['filename'],
+				'mime_type' => (string) $descriptor['mime_type'],
+			);
 		}
 
 		/**
@@ -214,6 +311,10 @@ if (
 		 * @return array<string,mixed>
 		 */
 		private function extract_result( array $response ): array {
+			$connector_result = $response['data']['result'] ?? null;
+			if ( is_array( $connector_result ) && 'cloud_connector_result.v1' === ( $connector_result['contract_version'] ?? '' ) && is_array( $connector_result['output'] ?? null ) ) {
+				return $connector_result['output'];
+			}
 			if ( isset( $response['data']['result'] ) && is_array( $response['data']['result'] ) ) {
 				return $response['data']['result'];
 			}
@@ -232,10 +333,12 @@ if (
 		 *
 		 * @param array<string,mixed> $result Cloud result payload.
 		 * @param string              $trace_id Runtime trace id.
+		 * @param string              $operation Expected generation or edit operation.
 		 * @return list<\WordPress\AiClient\Results\DTO\Candidate>
 		 */
-		private function extract_image_candidates( array $result, string $trace_id = '' ): array {
-			$images = $this->download_artifact_images( $result, $trace_id );
+		private function extract_image_candidates( array $result, string $trace_id = '', string $operation = 'image.generate.v1' ): array {
+			$images = $this->download_artifact_images( $result, $trace_id, $operation );
+			$this->delivery_stage = 'candidate_conversion';
 
 			$candidates = array();
 			foreach ( $images as $image ) {
@@ -275,13 +378,15 @@ if (
 		 *
 		 * @param array<string,mixed> $result Cloud image result payload.
 		 * @param string              $trace_id Runtime trace id.
+		 * @param string              $operation Expected generation or edit operation.
 		 * @return list<array{b64_json:string,mime_type:string}>
 		 */
-		private function download_artifact_images( array $result, string $trace_id ): array {
+		private function download_artifact_images( array $result, string $trace_id, string $operation = 'image.generate.v1' ): array {
+			$this->delivery_stage = 'artifact_contract';
 			if (
 				'image_generation_result.v1' !== (string) ( $result['contract_version'] ?? '' )
 				|| 'image_generation_artifacts' !== (string) ( $result['artifact_type'] ?? '' )
-				|| 'image.generate.v1' !== (string) ( $result['operation'] ?? '' )
+				|| $operation !== (string) ( $result['operation'] ?? '' )
 				|| true !== ( $result['suggestion_only'] ?? null )
 				|| true !== ( $result['requires_local_review'] ?? null )
 				|| ! is_array( $result['artifacts'] ?? null )
@@ -309,10 +414,10 @@ if (
 
 			$images = array();
 			foreach ( $result['artifacts'] as $artifact ) {
+				$this->delivery_stage = 'artifact_contract';
 				if ( ! is_array( $artifact ) ) {
 					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_contract_invalid', 'cloud_wp_ai_image_artifact_invalid' ) );
 				}
-
 				$artifact_contract = $artifact;
 				if ( array_key_exists( 'purged_at', $artifact_contract ) ) {
 					if ( null !== $artifact_contract['purged_at'] ) {
@@ -339,7 +444,7 @@ if (
 					|| $artifact_id !== (string) ( $reference['artifact_id'] ?? '' )
 					|| 'available' !== (string) ( $artifact['status'] ?? '' )
 					|| 'image' !== (string) ( $artifact['media_kind'] ?? '' )
-					|| 'image.generate.v1' !== (string) ( $artifact['operation'] ?? '' )
+					|| $operation !== (string) ( $artifact['operation'] ?? '' )
 					|| '' === $mime_type
 					|| $this->image_format_for_mime( $mime_type ) !== (string) ( $artifact['format'] ?? '' )
 					|| ! is_int( $width )
@@ -363,11 +468,13 @@ if (
 					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_expired', 'cloud_wp_ai_image_artifact_purged' ) );
 				}
 
+				$this->delivery_stage = 'artifact_download';
 				$download = $client->pull_media_artifact( $artifact_id, $trace_id );
 				if ( is_wp_error( $download ) ) {
 					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $download->get_error_code(), '', (string) $download->get_error_message() ) );
 				}
 
+				$this->delivery_stage = 'artifact_byte_verification';
 				$contents      = is_string( $download['body'] ?? null ) ? $download['body'] : '';
 				$response_mime = $this->normalize_image_mime_type( (string) ( $download['content_type'] ?? '' ) );
 				$actual_checksum = 'sha256:' . hash( 'sha256', $contents );
@@ -375,7 +482,7 @@ if (
 				$ack_deadline_at = (string) ( $download['delivery_ack_deadline'] ?? '' );
 				$ack_deadline    = $this->strict_image_timestamp( $ack_deadline_at );
 				$image_info      = function_exists( 'getimagesizefromstring' ) ? @getimagesizefromstring( $contents ) : false;
-				$decoded_mime    = is_array( $image_info ) ? $this->normalize_image_mime_type( (string) ( $image_info['mime'] ?? '' ) ) : '';
+				$decoded_mime    = is_array( $image_info ) ? $this->normalize_image_mime_type( (string) $image_info['mime'] ) : '';
 
 				if (
 					'' === $contents
@@ -397,6 +504,7 @@ if (
 					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'artifact_verification_failed', 'cloud_wp_ai_image_artifact_verification_failed' ) );
 				}
 
+				$this->delivery_stage = 'artifact_delivery_ack';
 				$ack = $client->acknowledge_media_artifact_delivery(
 					$artifact_id,
 					array(
@@ -410,6 +518,7 @@ if (
 				if ( is_wp_error( $ack ) ) {
 					self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( (string) $ack->get_error_code(), '', (string) $ack->get_error_message() ) );
 				}
+				$this->delivery_stage = 'artifact_ack_verification';
 				$acknowledged_at = $this->strict_image_timestamp( (string) ( $ack['acknowledged_at'] ?? '' ) );
 				$ack_expires_at  = $this->strict_image_timestamp( (string) ( $ack['artifact_expires_at'] ?? '' ) );
 				if (

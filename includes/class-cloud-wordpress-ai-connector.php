@@ -697,6 +697,14 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'direct_wordpress_write'     => false,
 				'content_storage'            => 'omitted_metadata_only',
 			);
+			if ( $is_error ) {
+				// Fixed connector metadata only; never copy exception detail or provider payloads.
+				$failure = self::current_runtime_failure_evidence();
+				if ( $run_id === ( $failure['run_id'] ?? null ) && 'artifact_validation' === ( $failure['error_stage'] ?? '' ) && in_array( $failure['quality_reason'] ?? '', array( 'artifact_contract', 'artifact_download', 'artifact_byte_verification', 'artifact_delivery_ack', 'artifact_ack_verification', 'candidate_conversion' ), true ) ) {
+					$context['error_stage'] = 'artifact_validation';
+					$context['quality_reason'] = (string) ( $failure['quality_reason'] ?? '' );
+				}
+			}
 
 			$log_data = array(
 				// WordPress AI log types describe the caller, not the content modality.

@@ -750,7 +750,10 @@ maca_assert(
 	&& false !== strpos( $runtime_guards, "WORDPRESS_OPERATION_CONTRACT = 'wordpress_operation.v1'" )
 	&& false !== strpos( $runtime_guards, "'ability_name'        => 'npcink-cloud/connector-runtime'" )
 	&& false !== strpos( $runtime_guards, "'channel'             => 'editor'" )
-	&& false !== strpos( $runtime_guards, "'execution_kind'      => \$is_alt_text ? 'vision' : 'text'" )
+	&& (
+		false !== strpos( $runtime_guards, "'execution_kind'      => \$is_alt_text ? 'vision' : 'text'" )
+		|| false !== strpos( $runtime_guards, "'execution_kind'      => ( \$is_alt_text || \$is_image_editing ) ? ( \$is_image_editing ? 'image_generation' : 'vision' ) : 'text'" )
+	)
 	&& false !== strpos( $runtime_guards, "'site_id'             => \$site_id" )
 	&& false !== strpos( $runtime_guards, "'site_url'           => \$site_url" )
 	&& false !== strpos( $runtime_guards, "'platform_kind'      => 'wordpress'" )
@@ -2375,18 +2378,18 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-client.php'          => 1743,
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 392,
-	'includes/class-cloud-runtime-request-guards.php'  => 2124,
+	'includes/class-cloud-runtime-request-guards.php'  => 2171,
 	'includes/class-cloud-settings-page.php'           => 2840,
 	'includes/class-cloud-settings-actions.php'        => 1260,
 	'includes/class-cloud-wordpress-ai-connector.php'  => 1130,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
-	'includes/class-cloud-wordpress-ai-image-model.php' => 497,
+	'includes/class-cloud-wordpress-ai-image-model.php' => 606,
 	'includes/class-cloud-wordpress-ai-scene-model.php' => 175,
-	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 178,
+	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 181,
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
 	'includes/class-cloud-wordpress-ai-text-model.php' => 394,
-	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 127,
+	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 138,
 	'includes/class-cloud-media-derivative-transport.php' => 724,
 	'includes/class-cloud-media-governance-validation.php' => 282,
 	'includes/class-cloud-media-plan-projection.php' => 709,

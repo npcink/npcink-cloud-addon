@@ -26,6 +26,28 @@ system, or writer to make acceptance easier.
 6. Correlate the actual model, run, official request log, delivered output, and
    reviewed draft save. Report each proven step separately.
 
+### Mandatory live-call opt-in
+
+The CLI acceptance runner defaults to **zero outbound requests**. A live run
+requires both `WP_AI_ACCEPTANCE_MAX_CALLS` (a positive integer, at most 999)
+and an explicit comma-separated `WP_AI_ACCEPTANCE_ABILITIES` allowlist.
+The selected scenario count must fit inside that limit before any quota read
+or Ability execution. An Ability may have several cases; select exact case IDs
+with `WP_AI_ACCEPTANCE_SCENARIOS` when the budget is smaller than that set.
+Unknown/empty selections fail closed. Any contract, output or HTTP failure
+stops subsequent calls; an unavailable quota preflight also blocks generation.
+The process-local HTTP guard also blocks nested
+requests above the limit, other destinations, runtime retry and media-job
+paths. Only the existing quota/run reads, source upload, artifact download
+and verified delivery ACK paths are allowed alongside runtime execution.
+
+`call_budget.runtime_submissions` counts outbound `/v1/runtime/execute`
+submissions, including failures, rather than success-log rows. It does not
+measure provider attempts inside Cloud: routing/fallback and upstream charges
+still require run/billing evidence. The limit is per CLI invocation; do not
+restart a run to reset a user's total authorization. Offline
+`WP_AI_ACCEPTANCE_INPUT` quality evaluation needs no live opt-in.
+
 The compatibility lanes are declared in
 `tests/fixtures/wp-ai-compatibility-matrix.json`: WordPress 7.0.4 with
 WordPress AI 1.4.0 is the primary stable lane, WordPress 7.1.1 with AI 1.3.0
@@ -187,6 +209,8 @@ Use the combined local command when the candidate Addon is mounted in the
 target WordPress site:
 
 ```bash
+WP_AI_ACCEPTANCE_MAX_CALLS=1 \
+WP_AI_ACCEPTANCE_ABILITIES=ai/excerpt-generation \
 composer run acceptance:wp-ai-provider:quality
 ```
 
