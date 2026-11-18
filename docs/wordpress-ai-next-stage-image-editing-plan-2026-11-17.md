@@ -2,7 +2,8 @@
 
 状态（2026-11-18 更新）：Flare 图片编辑能力探测及原生 WordPress AI → Addon →
 M4 Cloud → Provider → artifact 下载/字节校验/ACK 的真实链路已成功，主模型已保存。
-新增 5 次预算保守计数已用完，不再调用模型；人工图片质量验收仍待操作者回答。
+新增 5 次预算保守计数已用完，不再调用模型；操作者已确认本次单图改色通过基础
+编辑质量验收。该结论覆盖本次样本，不扩展为逐像素保真或所有图片编辑任务通过。
 源码尚未合并，实际站点已恢复原 Addon 挂载，M4 仍是 candidate。下文历史失败和
 剩余额度记录按发生时间保留，以末尾最新验收为准。
 
@@ -17,8 +18,8 @@ M4 Cloud → Provider → artifact 下载/字节校验/ACK 的真实链路已成
 | Provider | OpenAI-compatible mock/录制已覆盖 `POST /images/edits` multipart；结果标记 `image.edit.v1` 并复用图片 artifact 物化 | Cloud `app/adapters/providers/openai.py` |
 | 可用性证据 | Flare 编辑实例已完成真实能力探测并保存为 M4 编辑主模型；Grok 仍保留验证失败状态 | Cloud `catalog_capability_evidence`、运行配置图片编辑入口 |
 
-因此，目录和零模型执行链路已经补齐，但成功的真实 Provider 与质量证据仍缺失，不能
-仅凭目录项或 mock 测试宣称“已支持”。
+因此，目录、真实 Provider 链路和本次基础质量证据已经补齐；仍需把合并、clean-master
+M4 验收和发布状态分别记录，不能仅凭本次样本推导所有图片编辑任务均已支持。
 视觉理解提供 ALT/识图；图片生成创建图片；图片编辑以原图及修改要求生成结果，
 三者需要分别检查输入、模型能力和结果质量。
 
@@ -113,8 +114,8 @@ MCP 的外部 HTTP 只读与权限检查继续走宿主/Adapter；WebMCP 等待�
 - “配置已保存”不代表模型具备图片编辑能力。
 - “执行成功”不代表原图保真或编辑质量达标。
 - 只有 WordPress 输入、Cloud/Provider 执行、安全交付及人工质量均通过，
-  才将图片编辑标为已支持；当前是“Flare 真实链路已成功，人工质量待验收，
-  合并及干净 master M4 验收待完成”。
+  才将图片编辑标为已支持；当前本次单图改色已通过基础编辑验收，合并及干净
+  master M4 验收待完成，不能扩展为所有编辑任务已支持。
 
 ## 最新真实验收（2026-11-18）
 
@@ -136,7 +137,7 @@ Provider latency 12676 ms；verified delivery ACK 时间
 
 源图为代码绘制的 512×512 测试图。要求仅将红圆改为绿色，保留黑轮廓、蓝方块、
 白背景；结果具备这些对象与颜色，但尺寸变为 1254×1254，边缘有重绘。
-技术成功不能证明逐像素保真；人工质量问答仍 pending。没有导入媒体、保存文章或
+技术成功不能证明逐像素保真；操作者已通过本次“单图改色”的基础编辑验收。没有导入媒体、保存文章或
 发布，源图 checksum 与 WordPress posts/postmeta/comments 快照均未变化。
 
 原生 SDK 预检修正了 text-only inputModalities 与错误的 File getter：使用真实
@@ -152,8 +153,8 @@ operation，不接受 Provider 自报 operation 作为判断依据。
 先前 routing mismatch，不代表此次失败；未为诊断另增产品机制。
 
 本机验收临时挂载候选后已恢复 `/Users/muze/gitee/npcink-cloud-addon`，不表示站点
-永久安装了编辑功能。M4 运行未提交候选，clean-master accepted、CI、合并、人工
-接受及生产必须分别记账。生产未授权。
+永久安装了编辑功能。M4 运行仍是未提交 candidate；clean-master accepted、CI、合并
+及生产必须分别记账。人工基础编辑验收已完成，生产未授权。
 
 同日 audit 发现安装的 AI 1.5 中 17 条新增固定文案缺失，涉及请求日志类型标签、
 标题要求和编辑更新提示；已补 ai-domain PHP/JS 映射与真实资产测试。未扩大
