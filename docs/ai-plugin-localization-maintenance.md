@@ -78,12 +78,15 @@ can translate those calls. The earlier description of these calls as a build
 that "dropped" the `ai` domain was unproven; the shipped bundle identifies them
 as WordPress component code.
 
-At the user's explicit request to fix these remaining gaps, seventeen source keys
-(two plural pairs, six contextual strings, and seven plain labels) have a bounded compatibility
+At the user's explicit request to fix these remaining gaps, nineteen source keys
+(two plural pairs, seven contextual strings, and eight plain labels) have a bounded compatibility
 exception: `bundled_ui_fallback()` supplies only those keys on
 `settings_page_ai-wp-admin`, `tools_page_ai-request-logs`,
 `tools_page_ai-mcp-access` and `tools_page_ai-abilities-explorer`. The latter two
-screens also embed DataViews in AI 1.5.0. The added `Filter` key is accepted only
+screens also embed DataViews in AI 1.5.0. The `Actions` header and paging template were verified in the bundled table and
+pagination sources on 2026-11-18. The paging template is accepted only with
+`_x` context `paging`, retaining both placeholders and HTML wrappers.
+The added `Filter` key is accepted only
 with `_x` context `verb`; a plain call or another context must stand down.
 The JS hooks check
 the exact source, plural pair or context, accept only the default domain, and stand down
@@ -412,3 +415,30 @@ Native title review browser checks cover duplicate rejection without automatic
 retry, retained feedback/candidate, explicit draft adoption, and stale insertion
 blocked after author edits at PC 1440/1280. Errors stay inside the review modal.
 Evidence: task directory `editor-followthrough-20261118/title-*`.
+
+
+### List labels followthrough — 2026-11-18
+
+The installed AI 1.5 local patch now owns known request-log enum labels and
+known origin badge fallbacks. This addon adds nine fixed ai-domain translations
+(Success, Timeout, AI Client, MCP Tool, Text, Image, Audio, Embeddings, Metadata)
+and two exact component fallback keys; it does not translate dynamic IDs or
+change native list persistence/layout. Unknown extension enum codes and explicit
+custom origin labels remain readable without replacement.
+
+Local strict audit after rebuilding the native patch: 1335 discovered AI strings,
+1079 shim entries; zero fixed-UI/error/default-domain gaps; the same 300 reviewed
+non-UI strings remain excluded. This is bounded installed-plugin evidence,
+not complete English coverage or proof of every error branch. Four real admin
+pages were checked at 1440×1050 and 1280×960, including list options, legacy view
+recovery, keyboard row actions, log detail Escape/focus return, and cancelled
+purge confirmation. Five Gravatar requests were intentionally blocked; no
+unexpected request or console failures. Article 279790 and feature settings
+fingerprints stayed unchanged. Evidence lives in the local
+`editor-list-followthrough-20261118/final-3` report and sibling visual receipt.
+
+Native source commit `7c9381c` is local only. Rebuilding/upgrading native AI
+assets must reapply or replace its source patch; these addon translations alone
+do not fix duplicate columns or raw enum rendering. CI's stable AI 1.4 lane and
+local AI 1.5 evidence remain separate. Rollback only these addon dictionary/hook
+changes or the separately recorded native asset hashes; do not erase saved views.

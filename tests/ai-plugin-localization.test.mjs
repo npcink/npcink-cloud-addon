@@ -47,12 +47,12 @@ test('shipped JS registers AI 1.5 settings copy without widening default-domain 
 		assert.deepEqual(Array.from(data[source]), [translated]);
 		assert.equal(hooks.get('i18n.gettext')(source, source, 'default'), source);
 	}
-	assert.equal(Object.keys(bundled).length, 17);
+	assert.equal(Object.keys(bundled).length, 19);
 });
 
 test('shipped JS translates exact bundled plurals and contexts', () => {
 	const { hooks, registrations } = run();
-	assert.equal(Object.keys(bundled).length, 17);
+	assert.equal(Object.keys(bundled).length, 19);
 	for (const [single, plural] of [
 		['%d Item selected', '%d Items selected'],
 		['%d field needs attention', '%d fields need attention'],
@@ -69,10 +69,11 @@ test('shipped JS translates exact bundled plurals and contexts', () => {
 		['View options', 'View is used as a noun'],
 		['Edit %s (has errors)', 'field'],
 		['Filter', 'verb'],
+		['<div>Page</div>%1$s<div>of %2$d</div>', 'paging'],
 	]) {
 		assert.equal(hooks.get('i18n.gettext_with_context')(source, source, context), bundled[source]);
 	}
-	for (const source of ['Sort by', 'Order', 'Density', 'Items per page', 'Properties', 'Add filter', 'No results']) {
+	for (const source of ['Sort by', 'Order', 'Density', 'Items per page', 'Properties', 'Add filter', 'No results', 'Actions']) {
 		assert.equal(hooks.get('i18n.gettext')(source, source, 'default'), bundled[source]);
 	}
 	assert.equal(registrations.length, 1);
@@ -97,6 +98,10 @@ test('exceptions preserve official translations, foreign domains, contexts and u
 	assert.equal(contextual('Comfortable', 'Comfortable', 'Density option for DataView layout', 'other'), 'Comfortable');
 	assert.equal(contextual('Edit %s', 'Edit %s', 'field'), 'Edit %s');
 	assert.equal(contextual('Filter', 'Filter', 'noun'), 'Filter');
+	const paging = '<div>Page</div>%1$s<div>of %2$d</div>';
+	assert.equal(contextual(paging, paging, 'other'), paging);
+	assert.equal(contextual(paging, paging, 'paging', 'other'), paging);
+	assert.equal(contextual('官方分页译文', paging, 'paging'), '官方分页译文');
 	assert.equal(plain('Filter', 'Filter'), 'Filter');
 	assert.equal(run({}).hooks.size, 0);
 });

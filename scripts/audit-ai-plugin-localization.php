@@ -340,6 +340,7 @@ function npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( string $text, ar
 		'View options' => 'View is used as a noun',
 		'Edit %s (has errors)' => 'field',
 		'Filter' => 'verb',
+		'<div>Page</div>%1$s<div>of %2$d</div>' => 'paging',
 	);
 	foreach ( $entry['calls'] as $call ) {
 		if ( ! in_array( $call['file'], array(
@@ -350,7 +351,7 @@ function npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( string $text, ar
 			return false;
 		}
 		$covered = ( '__' === $call['form'] && in_array( $text, array(
-			'Sort by', 'Order', 'Density', 'Items per page', 'Properties', 'Add filter', 'No results',
+			'Sort by', 'Order', 'Density', 'Items per page', 'Properties', 'Add filter', 'No results', 'Actions',
 		), true ) )
 			|| ( '_x' === $call['form'] && isset( $contexts[ $text ] ) && $contexts[ $text ] === $call['context'] )
 			|| ( '_n' === $call['form'] && (

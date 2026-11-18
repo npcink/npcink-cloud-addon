@@ -252,10 +252,12 @@ maca_assert(
 
 foreach ( array( 'build-scripts/experiments/mcp-adapter.js', 'build-scripts/experiments/abilities-explorer.js' ) as $bundle ) {
 	$entry = array();
-	npcink_cloud_addon_ai_i18n_audit_extract_domainless( '(0,t._x)("Filter","verb");(0,t._n)("%d Item selected","%d Items selected",d);', $bundle, $entry );
+	npcink_cloud_addon_ai_i18n_audit_extract_domainless( '(0,t._x)("Filter","verb");(0,t._x)("<div>Page</div>%1$s<div>of %2$d</div>","paging");(0,t.__)("Actions");(0,t._n)("%d Item selected","%d Items selected",d);', $bundle, $entry );
 	maca_assert(
 		npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( 'Filter', $entry['Filter'] )
-		&& npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( '%d Item selected', $entry['%d Item selected'] ),
+		&& npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( '%d Item selected', $entry['%d Item selected'] )
+		&& npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( 'Actions', $entry['Actions'] )
+		&& npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( '<div>Page</div>%1$s<div>of %2$d</div>', $entry['<div>Page</div>%1$s<div>of %2$d</div>'] ),
 		'AI 1.5 DataViews exception covers reviewed calls in ' . $bundle
 	);
 }

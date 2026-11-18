@@ -1520,7 +1520,7 @@ foreach ( $payload_hook_cases as $payload_hook_case => $payload_hook_allowed ) {
 	$bundled_payload = $GLOBALS['maca_localized_scripts'][0]['data']['bundledUiFallback'] ?? array();
 	maca_assert(
 		in_array( $payload_hook_case, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs', 'tools_page_ai-mcp-access', 'tools_page_ai-abilities-explorer' ), true )
-			? count( $bundled_payload ) === 17 : empty( $bundled_payload ),
+			? count( $bundled_payload ) === 19 : empty( $bundled_payload ),
 		'DataViews exceptions only ship on the four verified AI screens: ' . $payload_hook_case
 	);
 	maca_assert(
