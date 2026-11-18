@@ -124,11 +124,11 @@ if (
 				$scene_input['prompt'] = trim( $text . ( '' !== $block_content ? "\n\nBlock content:\n" . $block_content : '' ) . ( ! empty( $scene_input['review_types'] ) ? "\nReview types: " . implode( ', ', array_map( 'sanitize_key', $scene_input['review_types'] ) ) : '' ) );
 			}
 			if ( 'title_generation' === $task ) {
-				$context_input = is_array( $ability_context['input'] ?? null ) ? $ability_context['input'] : array();
 				$context_post_id = absint( $context_input['context'] ?? 0 );
 				$context_post = $context_post_id > 0 ? get_post( $context_post_id ) : null;
-				if ( $context_post instanceof \WP_Post && '' !== trim( (string) $context_post->post_title ) ) {
-					$existing_title = wp_strip_all_tags( (string) $context_post->post_title );
+				$existing_title = (string) ( $context_input['current_title'] ?? ( $context_post instanceof \WP_Post ? $context_post->post_title : '' ) );
+				if ( '' !== trim( $existing_title ) ) {
+					$existing_title = wp_strip_all_tags( $existing_title );
 					$scene_input['existing_title'] = function_exists( 'mb_substr' )
 						? mb_substr( $existing_title, 0, 160 )
 						: substr( $existing_title, 0, 160 );

@@ -912,6 +912,12 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 				'Translate paragraph and heading blocks into a different language. Requires an AI connector that includes support for text generation models.' => '将段落和标题区块翻译为其他语言。需要支持文本生成模型的 AI 连接器。',
 				'Custom Abilities' => '自定义能力',
 				'Register the plugin\'s custom WordPress Abilities for use via the Abilities API and MCP.' => '注册插件的自定义 WordPress 能力，供 Abilities API 和 MCP 使用。',
+				// Local WordPress AI 1.5 title-regeneration patch: fixed UI only.
+				'Title guidance (optional)' => '标题修改要求（可选）',
+				'For example: shorter, focus on the practical steps. Recent suggestions are avoided automatically.' => '例如：再简短一些，突出操作步骤。系统会避开最近生成的候选标题。',
+				'This repeats a recent title. Add a different angle in the title guidance and regenerate.' => '本次标题与最近候选重复。请在“标题修改要求”中换个角度，再点击“重新生成”。',
+				'The title, excerpt or content changed after this suggestion. Regenerate using your current draft before inserting.' => '生成建议后，标题、摘要或正文发生了变化。请先点击“重新生成”，再插入建议。',
+				'The title changed while AI was working. Your edit was kept. Generate again to use the current title.' => '生成期间你修改了标题，已保留你的修改。请再次点击“生成标题”，按当前标题重新生成。',
 				// WordPress AI plugin 1.5.0: fixed editor progress and recovery UI.
 				'%1$d block could not be reviewed: %2$s' => '有 %1$d 个区块未能完成检查：%2$s',
 				'%1$d blocks could not be reviewed: %2$s' => '有 %1$d 个区块未能完成检查：%2$s',

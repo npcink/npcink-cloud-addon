@@ -352,3 +352,21 @@ Draft persistence and original post 279790 were unchanged; temporary draft,
 session, and outbound-blocking MU helper were removed. No production or human
 visual acceptance is claimed. Playground is not applicable to this copy-only
 change because bootstrap/API/default connector state did not change.
+
+## Local AI 1.5 title-regeneration patch (2026-11-18)
+
+Five fixed ai-domain keys support the separately maintained upstream title patch:
+optional feedback, recent-candidate repetition, draft changes and recovery.
+The addon does not build those prompts, keep candidate history, save titles,
+or own the upstream modal. Its connector now forwards the explicitly supplied
+`current_title` as `existing_title`, including clearing the stored-title fallback
+when the draft title is empty; older callers retain the saved-title fallback.
+The text-model file remains within its existing 401-line ceiling.
+
+Real WordPress REST checks cover draft and empty overrides, legacy input,
+rejection of feedback over 500 characters/history over five candidates, and
+anonymous permission denial. Suggestions did not persist the disposable post.
+Native title review browser checks cover duplicate rejection without automatic
+retry, retained feedback/candidate, explicit draft adoption, and stale insertion
+blocked after author edits at PC 1440/1280. Errors stay inside the review modal.
+Evidence: task directory `editor-followthrough-20261118/title-*`.
