@@ -37,7 +37,9 @@ namespace {
 
 	$type = new \ReflectionClass( Npcink_Cloud_WordPress_AI_Text_Model::class );
 	$model = $type->newInstanceWithoutConstructor();
-	$type->getProperty( 'config' )->setValue( $model, new class {
+	$config = $type->getProperty( 'config' );
+	$config->setAccessible( true );
+	$config->setValue( $model, new class {
 		public function getFunctionDeclarations() { return null; }
 		public function getWebSearch() { return null; }
 		public function getCandidateCount(): int { return 1; }
