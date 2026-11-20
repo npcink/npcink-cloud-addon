@@ -385,6 +385,20 @@ is the bounded transport seam for the WordPress AI image generation feature.
 Both must be treated as scene runtimes, not as generic chat providers, image
 provider proxies, model proxies, or OpenAI-compatible endpoints.
 
+When WordPress HTTP cannot confirm that a native title-generation request
+completed, the Addon keeps the original idempotency key for up to 15 minutes.
+The same signed-in editor, draft, Cloud connection and unchanged title input
+can check the original receipt and result on the next click. That click does
+not send another execution request, even if the receipt is missing or still
+running. The transient stores no draft text or output. A recovered result must
+match the original run and pass the same suggestion-only result checks. A
+confirmed failed or canceled run, or a confirmed unavailable result on a
+successful run, is reported and clears the recovery key without replay.
+Unsaved contexts without a draft ID and other tasks retain their current
+behavior. This is best-effort recovery, not a guarantee that the transient or
+Cloud result is still available. It does not extend either timeout or change
+the Cloud retry, retention, or WordPress write rules.
+
 `execute_toolbox_image_generation_runtime()` is the bounded transport seam for
 Toolbox AI image candidate generation. It lets Toolbox keep the editor
 recommendation UI and `image_candidate.v1` normalization while the addon owns

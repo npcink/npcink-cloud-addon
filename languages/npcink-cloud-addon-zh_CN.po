@@ -3487,3 +3487,11 @@ msgstr "WordPress AI 图片编辑需要有效的 source_artifact_id。"
 #: includes/class-cloud-runtime-request-guards.php:578
 msgid "WordPress AI image editing prompt must be a nonempty string of at most 4000 characters."
 msgstr "WordPress AI 图片编辑提示词不能为空，且最多为 4000 个字符。"
+
+#: includes/class-cloud-wordpress-ai-text-model.php:373
+msgid "The title result is not available yet. Wait a moment, then try again with the same draft to check the original request."
+msgstr "暂未收到标题结果。请稍候，在同一草稿中保持内容不变，再点一次生成以查看原请求的结果。"
+
+#: includes/class-cloud-wordpress-ai-text-model.php:356
+msgid "The earlier title result is no longer available. Generate a new title to continue."
+msgstr "上一次的标题结果已无法取回，请重新生成标题。"
