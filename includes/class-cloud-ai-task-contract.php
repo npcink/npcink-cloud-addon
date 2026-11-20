@@ -32,6 +32,18 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Task_Contract' ) ) {
 		 * @var array<string,array<string,mixed>>
 		 */
 		private const AI_PLUGIN_COMPATIBILITY = array(
+			'ai/block-container-label-generation' => array(
+				'task'                 => 'block_container_label_generation',
+				'task_family'          => 'generation',
+				'context_requirements' => array( 'current_content' ),
+				'constraints'          => array( 'single_value', 'source_grounded' ),
+			),
+			'ai/revision-change-summary' => array(
+				'task'                 => 'revision_change_summary',
+				'task_family'          => 'analysis',
+				'context_requirements' => array( 'current_content' ),
+				'constraints'          => array( 'json_object', 'source_grounded', 'no_new_numbers' ),
+			),
 			'ai/alt-text-generation' => array(
 				'task'                 => 'alt_text_suggest',
 				'task_family'         => 'generation',

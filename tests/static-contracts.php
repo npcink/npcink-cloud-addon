@@ -750,7 +750,10 @@ maca_assert(
 	&& false !== strpos( $runtime_guards, "WORDPRESS_OPERATION_CONTRACT = 'wordpress_operation.v1'" )
 	&& false !== strpos( $runtime_guards, "'ability_name'        => 'npcink-cloud/connector-runtime'" )
 	&& false !== strpos( $runtime_guards, "'channel'             => 'editor'" )
-	&& false !== strpos( $runtime_guards, "'execution_kind'      => \$is_alt_text ? 'vision' : 'text'" )
+	&& (
+		false !== strpos( $runtime_guards, "'execution_kind'      => \$is_alt_text ? 'vision' : 'text'" )
+		|| false !== strpos( $runtime_guards, "'execution_kind'      => ( \$is_alt_text || \$is_image_editing ) ? ( \$is_image_editing ? 'image_generation' : 'vision' ) : 'text'" )
+	)
 	&& false !== strpos( $runtime_guards, "'site_id'             => \$site_id" )
 	&& false !== strpos( $runtime_guards, "'site_url'           => \$site_url" )
 	&& false !== strpos( $runtime_guards, "'platform_kind'      => 'wordpress'" )
@@ -957,7 +960,7 @@ maca_assert(
 	&& false !== strpos( $wpai_alt_text_handoff, 'class Npcink_Cloud_WordPress_AI_Alt_Text_Handoff' )
 	&& false !== strpos( $wpai_alt_text_handoff, 'upload_wordpress_ai_alt_text_source' )
 	&& false !== strpos( $wordpress_ai_connector, "add_action( 'wp_before_execute_ability'" )
-	&& false !== strpos( $wordpress_ai_connector, "'ai/alt-text-generation' === \$ability_name" )
+	&& false !== strpos( $wordpress_ai_connector, "'ai/alt-text-generation' === ( \$context['ability_id'] ?? '' )" )
 	&& false !== strpos( $wordpress_ai_connector, 'consume_alt_text_ability_context' )
 	&& false !== strpos( $wpai_alt_text_handoff, 'fstat( $handle )' )
 	&& false !== strpos( $wpai_alt_text_handoff, 'getimagesizefromstring( $contents )' )
@@ -969,8 +972,8 @@ maca_assert(
 	&& false !== strpos( $wordpress_ai_connector, "'reference_image_not_supported'" )
 	&& false === strpos( $wpai_bundle_scope, "'response_format'  => \$this->response_format()" )
 	&& false === strpos( $wpai_bundle_scope, 'private function response_format(): string' )
-	&& false !== strpos( $wpai_text_model, 'detect_scene_ability_name' )
-	&& false !== strpos( $wpai_text_model, 'WordPress\\\\AI\\\\Abilities\\\\Title_Generation\\\\Title_Generation' )
+	&& false === strpos( $wpai_text_model, 'debug_backtrace' )
+	&& false !== strpos( $wpai_text_model, 'consume_text_ability_context' )
 	&& false !== strpos( $wpai_text_model, "'scene_not_supported', 'cloud_wp_ai_scene_not_supported'" )
 	&& false !== strpos( $wpai_image_model, "'chat_history_not_supported', 'cloud_wp_ai_chat_history_not_supported'" )
 	&& false !== strpos( $wpai_image_model, "'tools_not_supported', 'cloud_wp_ai_tools_not_supported'" )
@@ -2375,18 +2378,18 @@ $complexity_ratchet_limits = array(
 	'includes/class-cloud-runtime-client.php'          => 1751,
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 392,
-	'includes/class-cloud-runtime-request-guards.php'  => 2129,
+	'includes/class-cloud-runtime-request-guards.php'  => 2175,
 	'includes/class-cloud-settings-page.php'           => 2840,
 	'includes/class-cloud-settings-actions.php'        => 1260,
-	'includes/class-cloud-wordpress-ai-connector.php'  => 1134,
+	'includes/class-cloud-wordpress-ai-connector.php'  => 1158,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
-	'includes/class-cloud-wordpress-ai-image-model.php' => 496,
-	'includes/class-cloud-wordpress-ai-scene-model.php' => 159,
-	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 178,
+	'includes/class-cloud-wordpress-ai-image-model.php' => 606,
+	'includes/class-cloud-wordpress-ai-scene-model.php' => 175,
+	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 181,
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
 	'includes/class-cloud-wordpress-ai-text-model.php' => 401,
-	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 126,
+	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 138,
 	'includes/class-cloud-media-derivative-transport.php' => 724,
 	'includes/class-cloud-media-governance-validation.php' => 282,
 	'includes/class-cloud-media-plan-projection.php' => 709,

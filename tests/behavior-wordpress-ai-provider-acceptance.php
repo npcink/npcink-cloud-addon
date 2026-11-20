@@ -13,6 +13,31 @@ require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-text-model
 require_once dirname( __DIR__ ) . '/includes/class-cloud-wordpress-ai-vision-text-model.php';
 require_once dirname( __DIR__ ) . '/scripts/wordpress-ai-provider-acceptance-functions.php';
 
+$budget_cases = array( array( 'ability' => 'ai/excerpt-generation' ) );
+foreach ( array( '', '0', '-1', '1.5', '10calls' ) as $invalid_maximum ) {
+	$budget = new Npcink_Cloud_Acceptance_Budget( $invalid_maximum, array( 'ai/excerpt-generation' ), $budget_cases, 'https://cloud.example' );
+	maca_assert( is_wp_error( $budget->guard( false, array( 'method' => 'POST' ), 'https://cloud.example/v1/runtime/execute' ) ) && 0 === $budget->dispatched, 'Missing or malformed spend limits block before outbound transport.' );
+}
+$budget = new Npcink_Cloud_Acceptance_Budget( '1', array(), $budget_cases, 'https://cloud.example' );
+maca_assert( 'live_opt_in_required' === $budget->stop_reason, 'Acceptance requires an explicit Ability allowlist as well as a call limit.' );
+$budget = new Npcink_Cloud_Acceptance_Budget( '1', array( 'ai/excerpt-generation' ), array_merge( $budget_cases, $budget_cases ), 'https://cloud.example' );
+maca_assert( 'selection_exceeds_budget_or_empty' === $budget->stop_reason, 'Duplicate scenarios cannot silently expand a one-call selection.' );
+$budget = new Npcink_Cloud_Acceptance_Budget( '2', array( 'ai/excerpt-generation', 'ai/nonexistent' ), $budget_cases, 'https://cloud.example' );
+maca_assert( 'unknown_ability_selection' === $budget->stop_reason && is_wp_error( $budget->guard( false, array( 'method' => 'GET' ), 'https://cloud.example/v1/entitlements/current' ) ), 'Unknown Ability selections fail before even the quota read.' );
+$budget = new Npcink_Cloud_Acceptance_Budget( '1', array( 'ai/excerpt-generation' ), $budget_cases, 'https://cloud.example' );
+$mocked = array( 'response' => array( 'code' => 200 ) );
+maca_assert( $mocked === $budget->guard( $mocked, array( 'method' => 'POST' ), 'https://cloud.example/v1/runtime/execute' ) && 0 === $budget->dispatched, 'Prior replay responses consume zero runtime submissions.' );
+maca_assert( false === $budget->guard( false, array( 'method' => 'GET' ), 'https://cloud.example/v1/entitlements/current' ) && 0 === $budget->dispatched, 'Read-only quota checks do not consume the generation allowance.' );
+maca_assert( false === $budget->guard( false, array( 'method' => 'POST' ), 'https://cloud.example/v1/runtime/execute' ) && 1 === $budget->dispatched, 'The guard reserves the first runtime submission before sending it.' );
+maca_assert( is_wp_error( $budget->guard( false, array( 'method' => 'POST' ), 'https://cloud.example/v1/runtime/execute' ) ) && 1 === $budget->dispatched, 'Nested Ability requests and retries cannot exceed the HTTP submission ceiling.' );
+$budget = new Npcink_Cloud_Acceptance_Budget( '2', array( 'ai/excerpt-generation' ), $budget_cases, 'https://cloud.example' );
+$budget->observe( new WP_Error( 'timeout' ), 'response' );
+maca_assert( is_wp_error( $budget->guard( false, array( 'method' => 'POST' ), 'https://cloud.example/v1/runtime/execute' ) ) && 0 === $budget->dispatched, 'An HTTP failure stops further calls even inside the same Ability.' );
+foreach ( array( 'https://other.example/v1/runtime/execute', 'https://cloud.example.evil/v1/runtime/execute', 'https://cloud.example/v1/runs/run_x/retry', 'https://cloud.example/v1/runtime/media/jobs' ) as $unexpected_url ) {
+	$budget = new Npcink_Cloud_Acceptance_Budget( '2', array( 'ai/excerpt-generation' ), $budget_cases, 'https://cloud.example' );
+	maca_assert( is_wp_error( $budget->guard( false, array( 'method' => 'POST' ), $unexpected_url ) ) && 0 === $budget->dispatched, 'Unexpected destinations, runtime retries and media jobs fail closed.' );
+}
+
 if ( ! function_exists( 'parse_blocks' ) ) {
 	function parse_blocks( $content ) {
 		preg_match_all( '/<!-- wp:[^>]+-->/', (string) $content, $matches );
@@ -226,8 +251,14 @@ $quota_probe_source = <<<'PHP'
 require $argv[1] . '/tests/helpers.php';
 function get_user_by( $field, $value ) { return (object) array( 'ID' => 1 ); }
 function wp_set_current_user( $id ) {}
-function wp_get_ability( $ability ) { return true; }
-function rest_do_request( $request ) { fwrite( STDERR, 'unexpected Ability execution' ); exit(42); }
+function wp_get_ability( $ability ) { return new class { public function get_output_schema() { return array( 'type'=>'string' ); } }; }
+class WP_REST_Request { public function __construct( ...$args ) {} public function set_header( ...$args ) {} public function set_body( ...$args ) {} }
+function rest_do_request( $request ) {
+    if ( 'failure' !== ( $GLOBALS['argv'][2] ?? '' ) || ! empty( $GLOBALS['request_seen'] ) ) { fwrite( STDERR, 'unexpected Ability execution' ); exit(42); }
+    $GLOBALS['request_seen'] = true;
+    return new class { public function get_status() { return 500; } public function get_data() { return array( 'code'=>'synthetic_failure' ); } };
+}
+class Npcink_Cloud_Addon_Settings { public static function get_effective_base_url() { return 'https://cloud.example'; } }
 class Npcink_Cloud_AI_Task_Contract {
     public static function project_registered_ability( $ability ) {
         if ( 'ai/title-generation' === $ability ) { return new WP_Error( 'contract_drift' ); }
@@ -240,10 +271,33 @@ function npcink_cloud_addon_get_toolbox_runtime_entitlement( $trace_id ) {
     ) ) ) );
 }
 foreach ( array( 'WP_AI_ACCEPTANCE_ABILITIES', 'WP_AI_ACCEPTANCE_COMMENT_ID', 'WP_AI_ACCEPTANCE_ALT_TEXT_ATTACHMENT_ID', 'WP_AI_ACCEPTANCE_IMAGE_GENERATION' ) as $key ) { putenv( $key ); }
+putenv( 'WP_AI_ACCEPTANCE_MAX_CALLS' );
+putenv( 'WP_AI_ACCEPTANCE_SCENARIOS' );
+if ( 'quota' === ( $argv[2] ?? '' ) ) {
+    putenv( 'WP_AI_ACCEPTANCE_MAX_CALLS=2' );
+    putenv( 'WP_AI_ACCEPTANCE_ABILITIES=ai/excerpt-generation,ai/title-generation' );
+} elseif ( 'failure' === ( $argv[2] ?? '' ) ) {
+    putenv( 'WP_AI_ACCEPTANCE_MAX_CALLS=2' );
+    putenv( 'WP_AI_ACCEPTANCE_ABILITIES=ai/excerpt-generation,ai/meta-description' );
+}
 require $argv[1] . '/scripts/smoke-wordpress-ai-provider-acceptance.php';
 PHP;
 file_put_contents( $quota_probe_file, $quota_probe_source );
-exec( escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $quota_probe_file ) . ' ' . escapeshellarg( dirname( __DIR__ ) ), $quota_probe_lines, $quota_probe_status );
+$probe_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $quota_probe_file ) . ' ' . escapeshellarg( dirname( __DIR__ ) );
+exec( $probe_command, $default_probe_lines, $default_probe_status );
+$default_report = json_decode( implode( "\n", $default_probe_lines ), true );
+maca_assert( 2 === $default_probe_status && 'not_requested' === ( $default_report['preflight']['state'] ?? '' ) && 0 === ( $default_report['call_budget']['runtime_submissions'] ?? -1 ) && 'live_opt_in_required' === ( $default_report['call_budget']['stop_reason'] ?? '' ), 'Running the actual default acceptance command performs no entitlement or Ability request.' );
+exec( $probe_command . ' quota', $quota_probe_lines, $quota_probe_status );
+$failure_probe_source = str_replace( "'remaining' => 0", "'remaining' => 100", $quota_probe_source );
+file_put_contents( $quota_probe_file, $failure_probe_source );
+exec( $probe_command . ' failure', $failure_probe_lines, $failure_probe_status );
+$failure_report = json_decode( implode( "\n", $failure_probe_lines ), true );
+maca_assert( 2 === $failure_probe_status && 'executed' === ( $failure_report['cases'][0]['execution_state'] ?? '' ) && 'not_executed' === ( $failure_report['cases'][1]['execution_state'] ?? '' ) && 'case_failed' === ( $failure_report['call_budget']['stop_reason'] ?? '' ), 'The actual runner stops after the first failed Ability instead of continuing through the selection.' );
+$unavailable_probe_source = str_replace( "'remaining' => 0", "'remaining' => null", $quota_probe_source );
+file_put_contents( $quota_probe_file, $unavailable_probe_source );
+exec( $probe_command . ' failure', $unavailable_probe_lines, $unavailable_probe_status );
+$unavailable_report = json_decode( implode( "\n", $unavailable_probe_lines ), true );
+maca_assert( 2 === $unavailable_probe_status && 'quota_preflight_unavailable' === ( $unavailable_report['call_budget']['stop_reason'] ?? '' ) && array( 'not_executed' ) === array_values( array_unique( array_column( $unavailable_report['cases'], 'execution_state' ) ) ), 'An unknown quota preflight stops the actual runner before any Ability execution.' );
 unlink( $quota_probe_file );
 $quota_probe_report = json_decode( implode( "\n", $quota_probe_lines ), true );
 $quota_probe_cases = $quota_probe_report['cases'] ?? array();
@@ -324,5 +378,15 @@ $empty = npcink_cloud_acceptance_finalize_report( array( 'write_detected' => fal
 maca_assert( 'local_failed' === $empty['evidence_state'] && 'failed' === $empty['quality_status'], 'Acceptance cannot pass an empty capability list.' );
 $all_good = npcink_cloud_acceptance_finalize_report( array( 'write_detected' => false, 'cases' => array( $good, $good ) ) );
 maca_assert( 'local_verified' === $all_good['evidence_state'] && 2 === $all_good['passed'], 'Acceptance verifies the batch only when every case has passing evidence.' );
+$budget_stopped = npcink_cloud_acceptance_finalize_report( array_merge( $all_good, array( 'call_budget' => array( 'stop_reason' => 'call_budget_exhausted' ) ) ) );
+maca_assert( 'local_failed' === $budget_stopped['evidence_state'], 'Passing case output cannot turn a budget-stopped invocation into verified acceptance.' );
 Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
+
+maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/block-container-label-generation', 'Connector Approval Process' ), 'AI 1.5 acceptance accepts a descriptive block label.' );
+maca_assert( 'block_label_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/block-container-label-generation', 'Content' ), 'AI 1.5 acceptance rejects a generic label.' );
+$revision_fixture = array( 'summary' => 'Added connector approval.', 'changes' => array(), 'truncated' => false, 'revision_id' => 23, 'from_revision_id' => 22 );
+$revision_input = array( 'revision_id' => 23, 'from_revision_id' => 22 );
+maca_assert( null === npcink_cloud_acceptance_quality_failure( 'ai/revision-change-summary', $revision_fixture, $revision_input ), 'AI 1.5 acceptance validates the exact host revision identity.' );
+$revision_fixture['revision_id'] = 999;
+maca_assert( 'revision_summary_invalid' === npcink_cloud_acceptance_quality_failure( 'ai/revision-change-summary', $revision_fixture, $revision_input ), 'AI 1.5 acceptance refuses a summary bound to another revision.' );

@@ -1,5 +1,13 @@
 # Cloud Addon Complexity Budget
 
+2026-11-17 media acceptance safety: image-model ceiling 497→506 for a fixed,
+payload-free delivery-stage marker (contract, download, byte verification,
+ACK, ACK verification, candidate conversion); vision-model ceiling 127→138
+to reject structured/truncated JSON, markup, multiline and oversized ALT text
+before native adoption. Existing request logs retain only bounded failure
+stage/reason metadata. Acceptance HTTP budgets live in development scripts,
+default to zero, and add no runtime option, UI or billing/policy ownership.
+
 Status: active for `npcink-cloud-addon`.
 
 ## Purpose
@@ -83,14 +91,16 @@ connector classes so they cannot grow unnoticed:
   `class-cloud-runtime-request-guards.php`,
   `class-cloud-runtime-diagnostics.php`, and
   `class-cloud-runtime-media-payloads.php`)
-- `includes/class-cloud-runtime-request-guards.php` — 2129 lines (three added lines validate the optional
+- `includes/class-cloud-runtime-request-guards.php` — 2175 lines (includes both the image-editing guard and the optional
   task-scoped rewrite action before HTTP; raised by 99
   lines for the fixed article-review snapshot guard, UTF-16/byte bounds and
   behavior coverage, including strict Cloud envelope identity and portable UTF-16 counting; pure
   `normalize_*` request validators, forbidden-key walkers, PII scan, and
   bounded-text/sanitize helpers with zero instance state; 2026-10-30 adds five
   lines to require factual references and distinguish their mode from optional
-  style, with behavior coverage in `tests/behavior-ai-task-contract.php`)
+  style, with behavior coverage in `tests/behavior-ai-task-contract.php`; 2026-11-17
+  adds the artifact-referenced single-image-edit contract, bounded prompt checks,
+  and the image-editing runtime profile projection)
 - `includes/class-cloud-runtime-diagnostics.php` — 392 lines (static readiness
   projection and secret redaction over probe arrays and the caller's
   configuration snapshot; 2026-11-12 adds five lines for exact
@@ -118,7 +128,7 @@ connector classes so they cannot grow unnoticed:
   path keeps exchanged credentials in the unverified state instead of
   discarding them; raised again for the 2026-10-12 server-side no-JS disconnect
   confirmation guard; raised by one line to distinguish scheduled recovery notices from completed delivery; raised by two lines to return current admin status fragments with existing authenticated reads; raised from 1170 with reason: the 2026-10-20 local disconnect remembers Cloud Base URL so reconnect does not fall back to localhost:8010)
-- `includes/class-cloud-wordpress-ai-connector.php` — 1134 lines (raised from 1090 for plain Cloud AI error families and the last-AI-error support code) (was 2767 before the
+- `includes/class-cloud-wordpress-ai-connector.php` — 1158 lines (includes the bounded native Ability context lifecycle and preserves editor recovery guidance; was 2767 before the
   2026-10-06 per-class split into seven satellite files; raised from 1002 with
   reason: the 2026-10-11 in-progress run probe shares one
   `response_indicates_in_progress_run()` helper across the three models; raised
@@ -127,15 +137,24 @@ connector classes so they cannot grow unnoticed:
   raised from 1035 with reason: the 2026-10-20 connector-runtime request-log
   bridge maps Cloud `result.usage` tokens_in/out into host tokens_input/output)
 - `includes/class-cloud-wordpress-ai-alt-text-handoff.php` — 338 lines
+- `includes/class-cloud-wordpress-ai-approval.php` — 68 lines (stateless adapter to the host's existing approval store; typed SDK errors preserve origin without a last-denial slot)
+- `includes/class-cloud-wordpress-ai-approval-exception.php` — 15 lines (typed SDK denial, lazy-loaded only when the SDK is present)
 - `includes/class-cloud-wordpress-ai-availability.php` — 32 lines
-- `includes/class-cloud-wordpress-ai-image-model.php` — 496 lines (raised from
-  492 for the 2026-10-12 precise expired-artifact classification before
-  verified media delivery)
-- `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
+- `includes/class-cloud-wordpress-ai-image-model.php` — 606 lines (native SDK
+  base64 extraction replaces speculative getters; operation-bound edit delivery
+  unwraps the existing connector result; one shared host
+  approval check before provider execution; previously raised from 497 for the
+  2026-11-17 bounded WordPress AI reference-file upload, artifact-only image-edit
+  contract, and verified candidate delivery path)
+- `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 181 lines
+  (three lines declare the existing reference-image transport's text+image
+  input combination so the native WordPress SDK can select it for refinement)
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
 - `includes/class-cloud-wordpress-ai-text-model.php` — 401 lines (seven added lines preserve AI 1.5 excerpt user-message roles and forward the validated resize action; four earlier lines reuse WordPress AI source normalization before short-text transport)
-- `includes/class-cloud-wordpress-ai-vision-text-model.php` — 126 lines
-- `includes/class-cloud-wordpress-ai-scene-model.php` — 159 lines (shared
+- `includes/class-cloud-wordpress-ai-vision-text-model.php` — 138 lines (host approval check and bounded ALT result validation)
+- `includes/class-cloud-wordpress-ai-scene-model.php` — 175 lines (six added lines
+  preserve the approval exception type through the SDK without rewriting unrelated errors; shared host
+  approval enforcement with no new approval store; shared
   metadata/config plumbing, prompt/result projection helpers, and the
   single plain-text exception sink `throw_user_facing()` required by the
   strict Plugin Check gate)

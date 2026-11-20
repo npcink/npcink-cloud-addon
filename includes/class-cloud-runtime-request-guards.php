@@ -33,6 +33,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 		private const WP_AI_CONNECTOR_MAX_SCENE_TEXT_CHARS = 12000;
 		private const WP_AI_CONNECTOR_MAX_RETENTION_TTL = 86400;
 		private const WP_AI_IMAGE_GENERATION_CONTRACT = 'image_generation_request.v1';
+		private const WP_AI_IMAGE_EDITING_MAX_PROMPT_CHARS = 4000;
 		private const WP_AI_IMAGE_GENERATION_MAX_REQUEST_BYTES = 65536;
 		private const WP_AI_IMAGE_GENERATION_MAX_PROMPT_CHARS = 4000;
 		private const WP_AI_IMAGE_GENERATION_MAX_RETENTION_TTL = 86400;
@@ -136,6 +137,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 			'meta_description',
 			'slug_generation',
 			'title_generation',
+			'image_editing',
 		);
 		private const WP_AI_CONNECTOR_SOURCE_TEXT_TASKS = array(
 			'content_rewrite',
@@ -279,6 +281,12 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 					return $scene_request;
 				}
 			}
+			if ( 'image_editing' === $task ) {
+				$scene_request = self::normalize_wordpress_ai_image_editing_request( $scene_request );
+				if ( is_wp_error( $scene_request ) ) {
+					return $scene_request;
+				}
+			}
 
 			if ( in_array( $task, self::WP_AI_CONNECTOR_SOURCE_TEXT_TASKS, true ) ) {
 				foreach ( array( 'prompt', 'post_title', 'post_excerpt' ) as $forbidden_text_field ) {
@@ -385,17 +393,18 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 				);
 			}
 			$is_alt_text = 'alt_text_suggest' === $task;
+			$is_image_editing = 'image_editing' === $task;
 			$contains_pii = self::wordpress_ai_scene_contains_obvious_pii( $scene_request );
 
 			return array(
 				'site_id'             => $site_id,
 				'ability_name'        => 'npcink-cloud/connector-runtime',
-				'ability_family'      => $is_alt_text ? 'vision' : 'text',
+				'ability_family'      => ( $is_alt_text || $is_image_editing ) ? 'vision' : 'text',
 				'contract_version'    => self::CLOUD_CONNECTOR_RUNTIME_CONTRACT,
 				'channel'             => 'editor',
-				'execution_kind'      => $is_alt_text ? 'vision' : 'text',
+				'execution_kind'      => ( $is_alt_text || $is_image_editing ) ? ( $is_image_editing ? 'image_generation' : 'vision' ) : 'text',
 				'execution_pattern'   => 'inline',
-				'profile_id'          => '' !== $profile_id ? $profile_id : 'text.balanced',
+				'profile_id'          => '' !== $profile_id ? $profile_id : ( $is_image_editing ? 'wp-ai.image-editing' : 'text.balanced' ),
 				'input'               => array(
 					'site_url'           => $site_url,
 					'platform_kind'      => 'wordpress',
@@ -537,6 +546,43 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Request_Guards' ) ) {
 			}
 
 			return $normalized;
+		}
+
+		/**
+		 * Normalizes the artifact-referenced WordPress AI image-edit scene.
+		 *
+		 * @param array<string,mixed> $request Raw image-edit scene request.
+		 * @return array<string,mixed>|WP_Error
+		 */
+		private static function normalize_wordpress_ai_image_editing_request( array $request ) {
+			$allowed_fields = array( 'source_artifact_id', 'prompt' );
+			if ( array() !== array_diff( array_keys( $request ), $allowed_fields ) ) {
+				return new WP_Error(
+					'cloud_wp_ai_image_editing_request_fields_not_allowed',
+					__( 'WordPress AI image editing accepts only an Artifact id and bounded prompt.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+			$source_artifact_id = $request['source_artifact_id'] ?? null;
+			if ( ! is_string( $source_artifact_id ) || 1 !== preg_match( self::MEDIA_ARTIFACT_ID_PATTERN, $source_artifact_id ) ) {
+				return new WP_Error(
+					'cloud_wp_ai_image_editing_source_artifact_id_invalid',
+					__( 'WordPress AI image editing requires a valid source_artifact_id.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+			$prompt = $request['prompt'] ?? null;
+			if ( ! is_string( $prompt ) || '' === trim( $prompt ) || self::text_length( trim( $prompt ) ) > self::WP_AI_IMAGE_EDITING_MAX_PROMPT_CHARS ) {
+				return new WP_Error(
+					'cloud_wp_ai_image_editing_prompt_invalid',
+					__( 'WordPress AI image editing prompt must be a nonempty string of at most 4000 characters.', 'npcink-cloud-addon' ),
+					array( 'status' => 400 )
+				);
+			}
+			return array(
+				'source_artifact_id' => $source_artifact_id,
+				'prompt'            => trim( $prompt ),
+			);
 		}
 
 		/**

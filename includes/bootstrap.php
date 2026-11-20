@@ -40,6 +40,7 @@ require_once __DIR__ . '/class-cloud-addon-localization.php';
 require_once __DIR__ . '/class-ai-plugin-localization.php';
 require_once __DIR__ . '/class-cloud-wordpress-ai-alt-text-handoff.php';
 require_once __DIR__ . '/class-cloud-wordpress-ai-availability.php';
+require_once __DIR__ . '/class-cloud-wordpress-ai-approval.php';
 require_once __DIR__ . '/class-cloud-wordpress-ai-connector.php';
 require_once __DIR__ . '/class-cloud-wordpress-ai-scene-model.php';
 require_once __DIR__ . '/class-cloud-wordpress-ai-image-model.php';

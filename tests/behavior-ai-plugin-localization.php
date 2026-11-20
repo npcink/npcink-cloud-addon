@@ -1498,6 +1498,7 @@ $payload_guard->setAccessible( true );
 $payload_hook_cases = array(
 	'settings_page_ai-wp-admin'     => true,
 	'tools_page_ai-request-logs'    => true,
+	'tools_page_ai-mcp-access' => true,
 	'tools_page_ai-abilities-explorer' => true,
 	'tools_page_ai-mcp-access' => true,
 	'options-connectors'            => true,
@@ -1557,6 +1558,17 @@ $rest_message = static function ( $message = 'Unsupported schema version: 999.',
 };
 maca_assert( '不支持的结构版本：999。' === $rest_message(), 'REST settings import localizes its exact version error.' );
 maca_assert( '未生成别名建议。' === $rest_message( 'No slug suggestion was generated.', 'no_results', '/wp-abilities/v1/abilities/ai/slug-generation/run' ), 'REST slug ability localizes its fixed no-results error.' );
+foreach ( array(
+	array( 'No label was generated.', 'no_results', 'block-container-label-generation', '未生成标签。' ),
+	array( 'No summary of the changes was generated.', 'no_results', 'revision-change-summary', '未生成变更摘要。' ),
+	array( 'Could not parse the AI response as a summary of changes.', 'invalid_response', 'revision-change-summary', '无法将 AI 返回的内容解析为变更摘要。' ),
+) as $case ) {
+	$route = '/wp-abilities/v1/abilities/ai/' . $case[2] . '/run';
+	maca_assert( $case[3] === $rest_message( $case[0], $case[1], $route ), 'New AI 1.5 REST UI errors retain exact origin: ' . $case[2] );
+	maca_assert( $case[0] === $rest_message( $case[0], 'other_error', $route ), 'A different REST code is not rewritten for ' . $case[2] );
+	maca_assert( $case[0] === $rest_message( $case[0], $case[1], $route, 'POST', 'en_US' ), 'English REST callers keep their error for ' . $case[2] );
+	maca_assert( $case[0] === $rest_message( $case[0], $case[1], $route, 'POST', 'zh_CN', false ), 'Unauthorized REST callers keep their error for ' . $case[2] );
+}
 foreach ( array(
 	array( '官方译文' ),
 	array( 'Unsupported schema version: 999.', 'other_error' ),

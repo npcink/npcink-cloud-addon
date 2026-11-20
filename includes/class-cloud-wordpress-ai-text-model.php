@@ -34,8 +34,10 @@ if (
 			// A failed request must never inherit the previous Cloud run ID.
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
-			$ability_name = $this->detect_scene_ability_name();
-			if ( '' === $ability_name ) {
+			$ability_context = Npcink_Cloud_WordPress_AI_Connector::consume_text_ability_context();
+			self::assert_connector_approved();
+			$ability_name = (string) ( $ability_context['ability_id'] ?? '' );
+			if ( '' === $ability_name || 'ai/alt-text-generation' === $ability_name ) {
 				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_not_supported', 'cloud_wp_ai_scene_not_supported' ) );
 			}
 			$task_contract = npcink_cloud_addon_project_ai_task_contract( $ability_name );
@@ -56,8 +58,6 @@ if (
 			if ( '' === $text ) {
 				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_input_required', 'cloud_wp_ai_scene_input_required' ) );
 			}
-			$ability_context = Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context();
-
 			$scene_input = array(
 				'response_format'    => $this->response_format_hint( $task, $task_contract ),
 				'candidate_count'    => $this->config->getCandidateCount(),
@@ -205,14 +205,15 @@ if (
 			}
 
 			$output_text = $this->extract_text( is_array( $response ) ? $response : array(), $task );
-			if ( '' === $output_text ) {
+			$output_valid = '' !== $output_text && $this->valid_editor_output( $task, $output_text );
+			if ( ! $output_valid ) {
 				$cloud_run_id = Npcink_Cloud_WordPress_AI_Connector::cloud_run_id_from_response( $response );
 				Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( $cloud_run_id );
 				$run_in_progress = Npcink_Cloud_WordPress_AI_Connector::response_indicates_in_progress_run( $response );
 				Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_evidence( array(
 					'run_id'         => $cloud_run_id,
 					'error_stage'    => 'output_validation',
-					'quality_reason' => $run_in_progress ? 'run_in_progress' : 'output_missing',
+					'quality_reason' => $run_in_progress ? 'run_in_progress' : ( '' === $output_text ? 'output_missing' : 'output_invalid' ),
 				) );
 				$log_event['validation_error'] = new WP_Error(
 					$run_in_progress ? 'cloud_wp_ai_run_in_progress' : 'cloud_wp_ai_output_missing',
@@ -363,39 +364,34 @@ if (
 		}
 
 		/**
-		 * Detects the registered ai-wp-admin Ability behind a compatibility call.
+		 * Rejects malformed new editor outputs before the official Ability consumes them.
+		 * The host still owns revision IDs, truncation state, sanitization and writes.
 		 *
-		 * Future callers should use the explicit registered-task runtime helper and
-		 * avoid stack inspection entirely.
-		 *
-		 * @return string
+		 * @param string $task Task identifier.
+		 * @param string $text Generated text.
+		 * @return bool
 		 */
-		private function detect_scene_ability_name(): string {
-			$map = array(
-				'WordPress\\AI\\Abilities\\Image\\Generate_Image_Prompt' => 'ai/image-prompt-generation',
-				'WordPress\\AI\\Abilities\\Content_Classification\\Content_Classification' => 'ai/content-classification',
-				'WordPress\\AI\\Abilities\\Comment_Moderation\\Comment_Analysis'           => 'ai/comment-analysis',
-				'WordPress\\AI\\Abilities\\Content_Resizing\\Content_Resizing'              => 'ai/content-resizing',
-				'WordPress\\AI\\Abilities\\Content_Translation\\Content_Translation'        => 'ai/content-translation',
-				'WordPress\\AI\\Abilities\\Editorial_Updates\\Editorial_Updates'            => 'ai/editorial-updates',
-				'WordPress\\AI\\Abilities\\Editorial_Notes\\Editorial_Notes'                => 'ai/editorial-notes',
-				'WordPress\\AI\\Abilities\\Excerpt_Generation\\Excerpt_Generation'          => 'ai/excerpt-generation',
-				'WordPress\\AI\\Abilities\\Meta_Description\\Meta_Description'              => 'ai/meta-description',
-				'WordPress\\AI\\Abilities\\Slug_Generation\\Slug_Generation'                => 'ai/slug-generation',
-				'WordPress\\AI\\Abilities\\Suggest_Reply\\Suggest_Reply'                    => 'ai/suggest-reply',
-				'WordPress\\AI\\Abilities\\Title_Generation\\Title_Generation'              => 'ai/title-generation',
-				'WordPress\\AI\\Abilities\\Summarization\\Summarization'                    => 'ai/summarization',
-			);
-
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- Compatibility bridge for ai-wp-admin versions without explicit task metadata.
-			foreach ( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 24 ) as $frame ) {
-				$class = isset( $frame['class'] ) ? (string) $frame['class'] : '';
-				if ( isset( $map[ $class ] ) ) {
-					return $map[ $class ];
+		private function valid_editor_output( string $task, string $text ): bool {
+			if ( 'block_container_label_generation' === $task ) {
+				return 1 === preg_match( '/^[^<>\r\n`#*]{1,80}$/u', $text )
+					&& ! in_array( strtolower( trim( $text ) ), array( 'content', 'section', 'text', 'group', 'columns', 'container' ), true );
+			}
+			if ( 'revision_change_summary' !== $task ) {
+				return true;
+			}
+			// The official parser consumes only summary/changes and supplies all revision fields itself.
+			$value = json_decode( $text, true );
+			if ( ! is_array( $value ) || ! is_string( $value['summary'] ?? null ) || '' === trim( $value['summary'] )
+				|| ! is_array( $value['changes'] ?? null ) || array_values( $value['changes'] ) !== $value['changes']
+				|| array_diff( array_keys( $value ), array( 'summary', 'changes', 'truncated', 'revision_id', 'from_revision_id' ) ) ) {
+				return false;
+			}
+			foreach ( $value['changes'] as $change ) {
+				if ( ! is_string( $change ) || '' === trim( $change ) ) {
+					return false;
 				}
 			}
-
-			return '';
+			return true;
 		}
 	}
 }
