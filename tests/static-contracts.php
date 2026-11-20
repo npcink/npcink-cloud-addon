@@ -460,7 +460,7 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'wordpress_write_attempted: false' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "const providerLedgerValidation = env('WP_AI_TEXT_VALIDATE_PROVIDER_QUALITY') === '1'" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'provider_call_ledger_evidence: providerLedgerEvidence' )
-	&& false !== strpos( $wp_ai_text_browser_smoke, "['1.2.0', '1.3.0', '1.4.0'].includes(readiness.ai_version)" )
+	&& false !== strpos( $wp_ai_text_browser_smoke, "['1.2.0', '1.3.0', '1.4.0', '1.5.0'].includes(readiness.ai_version)" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, "['shorten', 'expand', 'rephrase']" )
 	&& false === strpos( $wp_ai_text_browser_smoke, "'lengthen'" )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'pre_save_post_writes' )
@@ -509,7 +509,7 @@ maca_assert(
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'title_acceptance_evidence' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'content_fields_recorded: false' )
 	&& false !== strpos( $wp_ai_text_browser_smoke, 'removeFakeProvider(fakeProvider)' )
-	&& false !== strpos( $local_test_guide, 'official WordPress AI 1.2.0, 1.3.0, or 1.4.0 plugin' )
+	&& false !== strpos( $local_test_guide, 'official WordPress AI 1.2.0, 1.3.0, 1.4.0, or 1.5.0 plugin' )
 	&& false !== strpos( $local_test_guide, 'composer run smoke:wp-ai-text-browser:preflight' )
 	&& false !== strpos( $local_test_guide, 'It does not create a draft, start a' )
 	&& false !== strpos( $local_test_guide, 'WP_AI_TEXT_FAKE_PROVIDER=1' )
@@ -522,7 +522,7 @@ maca_assert(
 	&& false !== strpos( $local_test_guide, 'not real-editor usefulness, acceptance, or a multi-site cohort' )
 	&& false !== strpos( $local_test_guide, '`cloud_run_id` only inside metadata-only request context for correlation' )
 	&& false !== strpos( $local_test_guide, 'proves zero post writes before the explicit Save/Update click' ),
-	'Opt-in browser acceptance uses the official AI 1.2.0/1.3.0/1.4.0 UI, supports a local expiring fake Provider, preserves suggestion-only review, records content-free adoption evidence, and cleans up its local fixture.'
+	'Opt-in browser acceptance uses the official AI 1.2.0/1.3.0/1.4.0/1.5.0 UI, supports a local expiring fake Provider, preserves suggestion-only review, records content-free adoption evidence, and cleans up its local fixture.'
 );
 
 maca_assert(
@@ -1791,7 +1791,7 @@ maca_assert(
 	&& false === strpos( $settings_page, 'npcink-cloud-advanced-stack' )
 	&& false === strpos( $admin_css, '.npcink-cloud-advanced-stack' )
 	&& false === strpos( $settings_page, 'Run the bounded connection checks' )
-	&& false !== strpos( $settings_page, 'Run detailed checks' )
+	&& false !== strpos( $settings_page, 'Check connection and account access' )
 	&& false === strpos( $settings_page, 'function render_secondary_tab_navigation' )
 	&& false === strpos( $settings_page, 'self::advanced_section_labels()' )
 	&& false === strpos( $settings_page, "if ( 'checks' === \$active_view )" )
@@ -2050,7 +2050,7 @@ maca_assert(
 	&& false === strpos( $settings_page, 'Updating · %d waiting' )
 	&& false === strpos( $settings_page, 'Updates waiting: %d' )
 	&& false !== strpos( $settings_page, 'Ready to index' )
-	&& false !== strpos( $settings_page, 'Up to date' )
+	&& false !== strpos( $settings_page, 'Automatic content updates are enabled.' )
 	&& false !== strpos( $settings_page, 'View checks' )
 	&& false !== strpos( $settings_page, 'npcink-cloud-sk-delivery' )
 	&& false !== strpos( $settings_page, 'format_readiness_detail_markup' )
@@ -2372,20 +2372,20 @@ maca_assert(
 // complexity may stay, but these files must not grow unnoticed: raise a limit
 // only with a documented reason in docs/cloud-addon-complexity-budget.md.
 $complexity_ratchet_limits = array(
-	'includes/class-cloud-runtime-client.php'          => 1743,
+	'includes/class-cloud-runtime-client.php'          => 1751,
 	'includes/class-cloud-runtime-media-payloads.php'  => 280,
 	'includes/class-cloud-runtime-diagnostics.php'     => 392,
-	'includes/class-cloud-runtime-request-guards.php'  => 2124,
+	'includes/class-cloud-runtime-request-guards.php'  => 2129,
 	'includes/class-cloud-settings-page.php'           => 2840,
 	'includes/class-cloud-settings-actions.php'        => 1260,
-	'includes/class-cloud-wordpress-ai-connector.php'  => 1130,
+	'includes/class-cloud-wordpress-ai-connector.php'  => 1134,
 	'includes/class-cloud-wordpress-ai-alt-text-handoff.php' => 338,
 	'includes/class-cloud-wordpress-ai-availability.php' => 32,
 	'includes/class-cloud-wordpress-ai-image-model.php' => 496,
 	'includes/class-cloud-wordpress-ai-scene-model.php' => 159,
 	'includes/class-cloud-wordpress-ai-model-metadata-directory.php' => 178,
 	'includes/class-cloud-wordpress-ai-provider.php' => 79,
-	'includes/class-cloud-wordpress-ai-text-model.php' => 394,
+	'includes/class-cloud-wordpress-ai-text-model.php' => 401,
 	'includes/class-cloud-wordpress-ai-vision-text-model.php' => 126,
 	'includes/class-cloud-media-derivative-transport.php' => 724,
 	'includes/class-cloud-media-governance-validation.php' => 282,

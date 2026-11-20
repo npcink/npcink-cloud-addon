@@ -149,6 +149,13 @@ namespace {
 	$projection_model = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
 	$projection_method = new \ReflectionMethod( 'Npcink_Cloud_WordPress_AI_Text_Model', 'project_short_text_scene_request' );
 	$projection_method->setAccessible( true );
+	// The deployed AI 1.5 user message already contains the full source and context.
+	$modern_excerpt = '<content>' . str_repeat( '正文内容。', 3000 ) . '</content><additional-context>Category: 技术</additional-context>';
+	$modern_projection = $projection_method->invoke( $projection_model, 'excerpt_generation', $modern_excerpt, array( 'content' => '正文内容。' ), true );
+	maca_assert(
+		$modern_excerpt === ( $modern_projection['source_text'] ?? '' ) && ! isset( $modern_projection['system_instruction'] ),
+		'Behavior: source-bearing excerpts preserve the complete upstream user prompt once, outside the instruction budget.'
+	);
 	$excerpt_projection = $projection_method->invoke(
 		$projection_model,
 		'excerpt_generation',
@@ -443,6 +450,22 @@ namespace {
 	);
 
 	$plain_cases = array(
+		array( 'cloud_provider_output_incomplete', 'provider.output_incomplete:provider_output', 'Select a smaller section' ),
+		array( 'cloud_provider_output_too_large', 'provider.output_too_large', 'Select a smaller section' ),
+		array( 'cloud_wordpress_operation_source_text_too_large', 'wordpress_operation.source_text_too_large:validation', '50,000' ),
+		array( 'cloud_wordpress_operation_system_instruction_too_large', 'wordpress_operation.system_instruction_too_large:validation', '12,000' ),
+		array( 'cloud_provider_context_overflow', 'provider.context_overflow:provider_input', 'larger context window' ),
+		array( 'wordpress_operation.source_text_too_large', '', '50,000' ),
+		array( 'cloud_runtime_error', 'wordpress_operation.source_text_too_large', '50,000' ),
+		array( 'cloud_runtime_error', 'wordpress_operation.system_instruction_too_large', '12,000' ),
+		array( 'provider.context_overflow', '', 'larger context window' ),
+		array( 'cloud_provider_context_overflow', 'provider.context_overflow', 'larger context window' ),
+		array( 'cloud_wp_ai_connector_request_too_large', '', 'shorter input' ),
+		array( 'cloud_wp_ai_connector_source_text_too_large', '', 'shorter input' ),
+		array( 'cloud_wp_ai_connector_prompt_too_large', '', 'shorter input' ),
+		array( 'cloud_wp_ai_image_generation_request_too_large', '', 'shorter input' ),
+		array( 'cloud_wp_ai_image_generation_prompt_too_large', '', 'shorter input' ),
+		array( 'cloud_wp_ai_connector_system_instruction_too_large', '', 'Shorten the custom instructions' ),
 		array( 'cloud_insufficient_credits', 'cloud_insufficient_credits', 'run out' ),
 		array( 'cloud_quota_exhausted', '', 'run out' ),
 		array( 'cloud_credential_expired', '', 'Reconnect' ),

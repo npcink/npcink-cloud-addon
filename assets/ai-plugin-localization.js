@@ -20,7 +20,7 @@
 	wp.i18n.setLocaleData( fallback, 'ai' );
 	// DataViews bundled by AI uses default-domain strings. Never register the
 	// full AI dictionary in that domain. PHP supplies only the reviewed keys
-	// and only on the AI settings and request-log screens.
+	// and only on the AI settings, request-log, MCP access and ability explorer screens.
 	const bundled = config.bundledUiFallback || {};
 	if ( ! wp.hooks || ! wp.hooks.addFilter || ! Object.keys( bundled ).length ) {
 		return;
@@ -28,7 +28,7 @@
 	const isDefault = ( domain ) => ! domain || domain === 'default';
 	wp.hooks.addFilter( 'i18n.gettext', 'npcink/ai-bundled-ui',
 		( translation, source, domain ) => {
-			const supported = [ 'Sort by', 'Order', 'Density', 'Items per page', 'Properties', 'Add filter', 'No results' ].includes( source );
+			const supported = [ 'Sort by', 'Order', 'Density', 'Items per page', 'Properties', 'Add filter', 'No results', 'Actions' ].includes( source );
 			return isDefault( domain ) && supported && bundled[ source ] && translation === source ?
 				bundled[ source ] : translation;
 		} );
@@ -43,7 +43,9 @@
 		( translation, source, context, domain ) => {
 			const supported = ( [ 'Comfortable', 'Balanced', 'Compact' ].includes( source ) && context === 'Density option for DataView layout' ) ||
 				( source === 'View options' && context === 'View is used as a noun' ) ||
-				( source === 'Edit %s (has errors)' && context === 'field' );
+				( source === 'Edit %s (has errors)' && context === 'field' ) ||
+				( source === 'Filter' && context === 'verb' ) ||
+				( source === '<div>Page</div>%1$s<div>of %2$d</div>' && context === 'paging' );
 			return isDefault( domain ) && supported && bundled[ source ] && translation === source ?
 				bundled[ source ] : translation;
 		} );

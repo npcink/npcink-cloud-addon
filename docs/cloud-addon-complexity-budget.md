@@ -71,7 +71,8 @@ Is this transport/detail, or is it control/write truth?
 `tests/static-contracts.php` enforces a line-count ratchet on the four widest
 connector classes so they cannot grow unnoticed:
 
-- `includes/class-cloud-runtime-client.php` — 1742 lines (three additional lines
+- `includes/class-cloud-runtime-client.php` — 1751 lines (eight additional lines for the bounded read-only
+  idempotency receipt lookup; three additional lines
   give article review ten seconds of transport headroom to receive the existing
   thirty-second runtime timeout receipt, without retries or a longer model budget;
   previously raised by twelve lines
@@ -82,7 +83,8 @@ connector classes so they cannot grow unnoticed:
   `class-cloud-runtime-request-guards.php`,
   `class-cloud-runtime-diagnostics.php`, and
   `class-cloud-runtime-media-payloads.php`)
-- `includes/class-cloud-runtime-request-guards.php` — 2124 lines (raised by 99
+- `includes/class-cloud-runtime-request-guards.php` — 2129 lines (three added lines validate the optional
+  task-scoped rewrite action before HTTP; raised by 99
   lines for the fixed article-review snapshot guard, UTF-16/byte bounds and
   behavior coverage, including strict Cloud envelope identity and portable UTF-16 counting; pure
   `normalize_*` request validators, forbidden-key walkers, PII scan, and
@@ -116,7 +118,7 @@ connector classes so they cannot grow unnoticed:
   path keeps exchanged credentials in the unverified state instead of
   discarding them; raised again for the 2026-10-12 server-side no-JS disconnect
   confirmation guard; raised by one line to distinguish scheduled recovery notices from completed delivery; raised by two lines to return current admin status fragments with existing authenticated reads; raised from 1170 with reason: the 2026-10-20 local disconnect remembers Cloud Base URL so reconnect does not fall back to localhost:8010)
-- `includes/class-cloud-wordpress-ai-connector.php` — 1130 lines (raised from 1090 for plain Cloud AI error families and the last-AI-error support code) (was 2767 before the
+- `includes/class-cloud-wordpress-ai-connector.php` — 1134 lines (raised from 1090 for plain Cloud AI error families and the last-AI-error support code) (was 2767 before the
   2026-10-06 per-class split into seven satellite files; raised from 1002 with
   reason: the 2026-10-11 in-progress run probe shares one
   `response_indicates_in_progress_run()` helper across the three models; raised
@@ -131,7 +133,7 @@ connector classes so they cannot grow unnoticed:
   verified media delivery)
 - `includes/class-cloud-wordpress-ai-model-metadata-directory.php` — 178 lines
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
-- `includes/class-cloud-wordpress-ai-text-model.php` — 394 lines (four lines reuse WordPress AI source normalization before short-text transport)
+- `includes/class-cloud-wordpress-ai-text-model.php` — 401 lines (seven added lines preserve AI 1.5 excerpt user-message roles and forward the validated resize action; four earlier lines reuse WordPress AI source normalization before short-text transport)
 - `includes/class-cloud-wordpress-ai-vision-text-model.php` — 126 lines
 - `includes/class-cloud-wordpress-ai-scene-model.php` — 159 lines (shared
   metadata/config plumbing, prompt/result projection helpers, and the
@@ -507,9 +509,39 @@ actions, options, or public APIs are removed.
 
 Normative UI copy for those 2026-10-21 surfaces (status card, usage 本期已用, consent ask-once, commercial.* vs provider.* errors, handoff self-check) lives in `docs/admin-surface-standard.md`; this file only tracks line ceilings.
 
+## Editor notice navigation — 2026-11-16
+
+2026-11-16 editor notice navigation: the existing enqueue implementation moves
+into `class-cloud-editor-error-actions.php` as the actual change now covers
+twelve error families. The connector ceiling stays unchanged. This helper only
+projects exact messages into existing destinations; it is not an error registry,
+runtime retry layer, diagnostic store, or WordPress write owner.
+
 ## Single-image preview exception — 2026-11-12
 
 The runtime-client ceiling is 1743 lines and derivative-transport ceiling is 724
 lines for the optional `save_as_new.v1` purpose. The shared pause helper checks
 the exact manual preserve-dimensions request before source uploads and signing.
 No crop, batch, governance, settings, write authority or new runtime is enabled.
+
+### 2026-11-17 long-text transport adjustment
+
+Request guards gain two lines for a separate 50,000 source-character bound and
+portable Unicode counting without mbstring. The connector ceiling is 1131 lines
+for structured Cloud input/instruction and model context-overflow guidance.
+The caller text envelope is bounded at 512 KiB; image/ALT limits, instructions (12,000),
+timeouts, prompts and WordPress write ownership remain unchanged.
+
+The follow-up 2026-11-17 audit keeps class line ceilings unchanged: image caller
+bytes (64 KiB) and other text caller bytes (128 KiB) now accommodate the existing
+Unicode character contracts. Article review/schema measure UTF-8 JSON; shared
+bounded text returns Unicode substrings without a secondary byte cut. No new
+product surface, prompt owner, provider call, queue or WordPress write is added.
+
+2026-11-17 output completeness: three connector lines add one localized next-step
+message and structured terminal-error classification. Ceiling 1134; no provider
+execution, retries or WordPress writes are added to Addon.
+
+2026-11-17 formatting budget alignment changes the existing guard expression only;
+runtime-client ceiling remains 1751. Unicode characters and UTF-8 bytes are checked
+separately; no new facade, settings, control plane or writes.

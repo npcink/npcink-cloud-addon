@@ -88,6 +88,7 @@ Allowed runtime/read endpoints:
 - `POST /v1/runtime/execute`
 - `POST /v1/runtime/media/uploads` for bounded image source uploads only
 - `POST /v1/runtime/media/jobs`
+- `GET /v1/runs/by-idempotency/{key}` for read-only receipt recovery
 - `GET /v1/runs/{run_id}`
 - `GET /v1/runs/{run_id}/result`
 - `GET /v1/runs/nightly-inspection/recent`

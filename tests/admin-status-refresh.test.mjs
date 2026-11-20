@@ -78,14 +78,20 @@ test('knowledge read failure offers a Chinese retry; retry replaces the whole ol
 	const connection = node();
 	connection.innerHTML = 'Old warning';
 	const knowledge = node('Updating and old recovery controls');
+	const timeDetail = node();
+	timeDetail.open = true;
+	knowledge.querySelector = (selector) => '.npcink-cloud-delivery-time' === selector ? timeDetail : null;
 	const newRetry = node();
 	newRetry.hidden = true;
 	const replacement = node('All public content is up to date');
+	const nextTimeDetail = node();
+	nextTimeDetail.open = false;
 	const replacementReadStatus = node();
 	replacementReadStatus.hidden = true;
 	const replacementWaiting = node('Updates waiting: 0');
 	replacementWaiting.hidden = true;
 	replacement.querySelector = (selector) => {
+		if ( '.npcink-cloud-delivery-time' === selector ) { return nextTimeDetail; }
 		if ( '[data-npcink-site-knowledge-status-retry]' === selector ) { return newRetry; }
 		if ( '[data-npcink-site-knowledge-read-status]' === selector ) { return replacementReadStatus; }
 		if ( '[data-npcink-site-knowledge-waiting]' === selector ) { return replacementWaiting; }
@@ -126,6 +132,7 @@ test('knowledge read failure offers a Chinese retry; retry replaces the whole ol
 	retry.listeners.click();
 	await settle();
 	assert.equal(replaced, true);
+	assert.equal(nextTimeDetail.open, true, 'an asynchronous read preserves the expanded full timestamp');
 	assert.equal(connection.innerHTML, '');
 	assert.equal(newRetry.hidden, true);
 	assert.equal(replacementReadStatus.hidden, true);

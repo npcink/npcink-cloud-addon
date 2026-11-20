@@ -59,6 +59,54 @@ function maca_wordpress_operation_request( string $task, array $scene_request, a
 	);
 }
 
+foreach ( array( 'shorten', 'expand', 'rephrase' ) as $rewrite_action ) {
+	$normalized = Npcink_Cloud_Runtime_Request_Guards::normalize_wordpress_ai_connector_request(
+		maca_wordpress_operation_request( 'content_rewrite', array( 'source_text' => '<content>保留链接和事实。</content>', 'rewrite_action' => $rewrite_action ) ),
+		'site_test', 'https://wordpress.example.test', '0.4.4'
+	);
+	maca_assert( ! is_wp_error( $normalized ) && $rewrite_action === $normalized['input']['operation_contract']['request']['rewrite_action'], 'Behavior: rewrite intent survives the signed transport projection: ' . $rewrite_action );
+}
+$before_invalid_action = count( $GLOBALS['maca_http_requests'] );
+foreach ( array( '', 'invent', null, array(), 1 ) as $invalid_action ) {
+	$rejected_action = $client->execute_wordpress_ai_connector_runtime( maca_wordpress_operation_request( 'content_rewrite', array( 'source_text' => 'source', 'rewrite_action' => $invalid_action ) ) );
+	maca_assert( is_wp_error( $rejected_action ) && 'cloud_wp_ai_connector_rewrite_action_invalid' === $rejected_action->get_error_code(), 'Behavior: invalid rewrite intent is rejected before HTTP.' );
+}
+$wrong_action_task = $client->execute_wordpress_ai_connector_runtime( maca_wordpress_operation_request( 'title_generation', array( 'source_text' => 'source', 'rewrite_action' => 'expand' ) ) );
+maca_assert( is_wp_error( $wrong_action_task ) && $before_invalid_action === count( $GLOBALS['maca_http_requests'] ), 'Behavior: rewrite actions cannot change another task or spend a provider request.' );
+
+// Over-limit source fails locally; the old 4,200-Chinese-character failure is covered below.
+require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
+$oversize_http_count = count( $GLOBALS['maca_http_requests'] );
+$oversize_result = $client->execute_wordpress_ai_connector_runtime(
+	maca_wordpress_operation_request( 'title_generation', array( 'source_text' => str_repeat( '文', 50001 ) ) )
+);
+$oversize_message = is_wp_error( $oversize_result ) ? Npcink_Cloud_WordPress_AI_Connector::user_facing_runtime_failure( $oversize_result->get_error_code(), '', $oversize_result->get_error_message() ) : '';
+maca_assert(
+	is_wp_error( $oversize_result ) && 'cloud_wp_ai_connector_source_text_too_large' === $oversize_result->get_error_code()
+	&& $oversize_http_count === count( $GLOBALS['maca_http_requests'] )
+	&& str_contains( $oversize_message, 'shorter input' ) && ! str_contains( $oversize_message, 'Try again later' )
+	&& ! str_contains( $oversize_message, 'contact support' )
+	&& 'cloud_wp_ai_connector_source_text_too_large' === ( get_option( Npcink_Cloud_WordPress_AI_Connector::LAST_AI_ERROR_OPTION, array() )['code'] ?? '' ),
+	'Behavior: oversized Chinese title input fails locally without HTTP and asks for shorter input while retaining the real error code.'
+);
+
+// Count Unicode code points, preserve markup, and bound auxiliary bytes/instructions.
+$formatted_source = '<!-- wp:paragraph --><p>' . str_repeat( '文😀', 24900 ) . '</p><!-- /wp:paragraph -->';
+$formatted_source .= str_repeat( '文', 50000 - preg_match_all( '/./us', $formatted_source ) );
+foreach ( array( str_repeat( '文', 4200 ), $formatted_source ) as $long_source ) {
+    $normalized = Npcink_Cloud_Runtime_Request_Guards::normalize_wordpress_ai_connector_request(
+        maca_wordpress_operation_request( 'title_generation', array( 'source_text' => $long_source, 'system_instruction' => str_repeat( '词', 12000 ) ) ), 'site_test', 'https://wordpress.example.test', '0.1.3-test'
+    );
+    maca_assert( ! is_wp_error( $normalized ) && $long_source === $normalized['input']['operation_contract']['request']['source_text'], 'Behavior: Chinese text up to 50,000 code points including formatting is preserved with 12,000 instruction characters.' );
+}
+foreach ( array(
+    array( array( 'source_text' => 'valid', 'system_instruction' => str_repeat( '词', 12001 ) ), 'cloud_wp_ai_connector_system_instruction_too_large' ),
+    array( array( 'source_text' => 'valid', 'extra_context' => str_repeat( 'x', 524288 ) ), 'cloud_wp_ai_connector_request_too_large' ),
+) as $boundary_case ) {
+    $rejected = $client->execute_wordpress_ai_connector_runtime( maca_wordpress_operation_request( 'title_generation', $boundary_case[0] ) );
+    maca_assert( is_wp_error( $rejected ) && $boundary_case[1] === $rejected->get_error_code() && $oversize_http_count === count( $GLOBALS['maca_http_requests'] ), 'Behavior: instructions and the 512 KiB envelope retain independent local bounds without HTTP.' );
+}
+
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 200 ),
 	'body'     => wp_json_encode(
@@ -86,7 +134,7 @@ $result = $client->execute_wordpress_ai_connector_runtime(
 	maca_wordpress_operation_request(
 		'title_generation',
 		array(
-			'source_text'       => '<content>A concise article about the verified Cloud connector.</content>',
+			'source_text'       => $formatted_source,
 			'existing_title'   => '当前文章标题',
 			'system_instruction' => 'Return one concise title.',
 			'site_knowledge_reference' => array(
@@ -133,7 +181,7 @@ maca_assert(
 	&& true === (bool) ( $request_body['input']['suggestion_only'] ?? false )
 	&& 'wordpress_operation.v1' === (string) ( $request_body['input']['operation_contract']['contract_version'] ?? '' )
 	&& 'title_generation' === (string) ( $request_body['input']['operation_contract']['task'] ?? '' )
-	&& '<content>A concise article about the verified Cloud connector.</content>' === (string) ( $request_body['input']['operation_contract']['request']['source_text'] ?? '' )
+	&& $formatted_source === (string) ( $request_body['input']['operation_contract']['request']['source_text'] ?? '' )
 	&& '当前文章标题' === (string) ( $request_body['input']['operation_contract']['request']['existing_title'] ?? '' )
 	&& 'Return one concise title.' === (string) ( $request_body['input']['operation_contract']['request']['system_instruction'] ?? '' )
 	&& true === (bool) ( $request_body['input']['operation_contract']['request']['site_knowledge_reference']['enabled'] ?? false )
@@ -143,6 +191,11 @@ maca_assert(
 	&& ! isset( $request_body['input']['operation_contract']['request']['post_excerpt'] ),
 	'Behavior: WordPress AI connector runtime projects a scene-bound no-chat no-write Cloud payload and leaves provider fallback policy to Cloud.'
 );
+
+$text_body = (string) $request['args']['body'];
+$text_headers = $request['args']['headers'];
+$text_canonical = implode( "\n", array( 'POST', '/v1/runtime/execute', 'site_test', 'key_test', $text_headers['X-Npcink-Timestamp'], $text_headers['X-Npcink-Nonce'], 'wp-ai-idempotency', $text_headers['traceparent'], hash( 'sha256', $text_body ) ) );
+maca_assert( str_contains( $text_body, '文😀' ) && ! str_contains( $text_body, '\\u6587' ) && hash_hmac( 'sha256', $text_canonical, 'secret_test' ) === $text_headers['X-Npcink-Signature'], 'Behavior: long Unicode text signs the exact UTF-8 bytes sent, without Chinese JSON escape inflation.' );
 
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 200 ),
@@ -352,7 +405,7 @@ maca_assert(
 );
 
 $large_source_text = $client->execute_wordpress_ai_connector_runtime(
-	maca_wordpress_operation_request( 'content_rewrite', array( 'source_text' => str_repeat( 'x', 12001 ) ) )
+	maca_wordpress_operation_request( 'content_rewrite', array( 'source_text' => str_repeat( 'x', 50001 ) ) )
 );
 maca_assert(
 	is_wp_error( $large_source_text ) && 'cloud_wp_ai_connector_source_text_too_large' === $large_source_text->get_error_code(),
@@ -720,7 +773,7 @@ $image_result = $client->execute_wordpress_ai_image_generation_runtime(
 	array(
 		'contract_version' => 'image_generation_request.v1',
 		'task'             => 'image_generation',
-		'prompt'           => 'A clean product image of a blue ceramic mug.',
+		'prompt'           => str_repeat( '中文😀', 1000 ),
 		'n'                => 2,
 		'aspect_ratio'     => '16:9',
 		'resolution'       => 'medium',
@@ -731,6 +784,11 @@ $image_result = $client->execute_wordpress_ai_image_generation_runtime(
 );
 $image_request      = end( $GLOBALS['maca_http_requests'] );
 $image_request_body = json_decode( (string) ( $image_request['args']['body'] ?? '' ), true );
+$image_body = (string) $image_request['args']['body'];
+$image_headers = $image_request['args']['headers'];
+$image_canonical = implode( "\n", array( 'POST', '/v1/runtime/execute', 'site_test', 'key_test', $image_headers['X-Npcink-Timestamp'], $image_headers['X-Npcink-Nonce'], 'wp-ai-image-idempotency', $image_headers['traceparent'], hash( 'sha256', $image_body ) ) );
+maca_assert( str_contains( $image_body, '中文😀' ) && hash_hmac( 'sha256', $image_canonical, 'secret_test' ) === $image_headers['X-Npcink-Signature'], 'Image transport preserves and signs exact UTF-8 bytes for a long localized prompt.' );
+
 
 maca_assert(
 	is_array( $image_result ) && 'run_wp_ai_image_1' === (string) ( $image_result['run_id'] ?? '' ),
@@ -1325,3 +1383,33 @@ foreach ( array( false, true ) as $alias_with_contract ) {
 }
 
 $retained_pause_policy->setValue( null, $retained_pause_snapshot );
+
+// Chinese and supplementary Unicode must reach the advertised image prompt cap.
+foreach ( array( 'normalize_wordpress_ai_image_generation_request', 'normalize_toolbox_image_generation_request' ) as $image_guard ) {
+    foreach ( array( '文', '😀' ) as $character ) {
+        $prompt = str_repeat( $character, 4000 );
+        $accepted = Npcink_Cloud_Runtime_Request_Guards::$image_guard( array( 'prompt' => $prompt ) );
+        maca_assert( ! is_wp_error( $accepted ) && $prompt === $accepted['input']['prompt'], 'Image prompt accepts and preserves exactly 4,000 Unicode characters in both surfaces.' );
+        $rejected = Npcink_Cloud_Runtime_Request_Guards::$image_guard( array( 'prompt' => $prompt . $character ) );
+        maca_assert( is_wp_error( $rejected ) && str_ends_with( $rejected->get_error_code(), 'prompt_too_large' ), 'Image prompt still rejects 4,001 characters at its character guard.' );
+    }
+    $rejected = Npcink_Cloud_Runtime_Request_Guards::$image_guard( array( 'prompt' => 'one image', 'extra' => str_repeat( 'x', 65536 ) ) );
+    maca_assert( is_wp_error( $rejected ) && str_ends_with( $rejected->get_error_code(), 'request_too_large' ), 'Image envelopes retain a finite auxiliary byte cap.' );
+}
+$bound_method = new ReflectionMethod( Npcink_Cloud_Runtime_Request_Guards::class, 'bounded_text' );
+$bound_method->setAccessible( true );
+foreach ( array( '文', '😀' ) as $character ) {
+    $source = str_repeat( $character, 800 );
+    maca_assert( $source === $bound_method->invoke( null, $source, 1200 ), 'Text below its character cap is not recut by its UTF-8 byte count.' );
+    $cut = $bound_method->invoke( null, str_repeat( $character, 1201 ), 1200 );
+    maca_assert( 1200 === preg_match_all( '/./us', $cut ) && 1 === preg_match( '//u', $cut ), 'Text over its cap is cut on Unicode boundaries with or without mbstring.' );
+}
+
+foreach ( array( '文', '😀' ) as $character ) {
+    $request = maca_wordpress_operation_request( 'comment_reply_suggest', array( 'prompt' => str_repeat( $character, 12000 ) ) );
+    $accepted = Npcink_Cloud_Runtime_Request_Guards::normalize_wordpress_ai_connector_request( $request, 'site_test', 'https://wordpress.example.test', '0.1.3-test' );
+    maca_assert( ! is_wp_error( $accepted ) && $request['operation_contract']['request']['prompt'] === $accepted['input']['operation_contract']['request']['prompt'], 'Other text tasks can reach their 12,000-character prompt cap with Chinese or emoji.' );
+    $request['operation_contract']['request']['prompt'] .= $character;
+    $rejected = Npcink_Cloud_Runtime_Request_Guards::normalize_wordpress_ai_connector_request( $request, 'site_test', 'https://wordpress.example.test', '0.1.3-test' );
+    maca_assert( is_wp_error( $rejected ) && 'cloud_wp_ai_connector_prompt_too_large' === $rejected->get_error_code(), 'Other text tasks retain their character cap after the envelope correction.' );
+}

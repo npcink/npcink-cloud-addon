@@ -187,8 +187,9 @@ maca_assert(
 	&& false !== strpos( (string) ( $health_assertions['stale']['message'] ?? '' ), 'out of date' )
 	&& 'warning' === (string) ( $health_assertions['unavailable']['severity'] ?? '' )
 	&& 'Temporarily unavailable' === (string) ( $health_assertions['unavailable']['label'] ?? '' )
-	&& 'Needs attention' === (string) ( $health_assertions['delivery_failure']['label'] ?? '' ),
-	'Behavior: fresh entitlement is reachable, stale entitlement is visibly out of date, and delivery failures retain priority.'
+	&& 'Not recently checked' === (string) ( $health_assertions['delivery_failure']['label'] ?? '' )
+	&& false !== strpos( (string) ( $health_assertions['delivery_failure']['message'] ?? '' ), 'out of date' ),
+	'Behavior: fresh entitlement is reachable, stale entitlement is visibly out of date, and Site Knowledge delivery failures stay out of the connection projection.'
 );
 $overview_metrics = $overview_metrics_method->invoke( null, $read_summary );
 $site_knowledge_input = array(
@@ -410,6 +411,8 @@ $GLOBALS['maca_http_response_queue'][] = array(
 );
 
 $client = new Npcink_Cloud_Runtime_Client( Npcink_Cloud_Addon_Settings::get_settings() );
+$prior_ai_failure = array( 'code' => 'cloud_wp_ai_connector_request_too_large', 'at' => '2026-11-17 01:21:34 UTC' );
+update_option( 'npcink_cloud_addon_last_ai_error', $prior_ai_failure, false );
 $probe  = $client->probe_connectivity();
 $readiness = is_array( $probe['readiness_result'] ?? null ) ? $probe['readiness_result'] : array();
 $readiness_support_facts = is_array( $readiness['copyable_support_facts'] ?? null ) ? $readiness['copyable_support_facts'] : array();
@@ -425,6 +428,7 @@ maca_assert(
 	&& 'probe_connectivity' === (string) ( $readiness['manual_test_action'] ?? '' )
 	&& 'ready' === (string) ( $readiness['status'] ?? '' )
 	&& 'ready' === (string) ( $readiness['bounded_status'] ?? '' )
+	&& $prior_ai_failure === get_option( 'npcink_cloud_addon_last_ai_error' )
 	&& 'cloud_addon' === (string) ( $readiness['owner_label'] ?? '' )
 	&& 'continue' === (string) ( $readiness['next_safe_action'] ?? '' )
 	&& 'read_only' === (string) ( $readiness['write_posture'] ?? '' )

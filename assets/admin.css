@@ -1918,7 +1918,7 @@ button.npcink-cloud-gen-test-dialog__chip:focus {
 .npcink-cloud-knowledge-control { align-items: center; display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .npcink-cloud-knowledge-control h2 { margin: 0; }
 .npcink-cloud-knowledge-control .npcink-cloud-local-permission { margin: 0; padding: 0; }
-.npcink-cloud-knowledge-control .npcink-cloud-local-permission__control { display: block; padding: 0; }
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission__control { align-items: center; display: flex; padding: 0; }
 .npcink-cloud-knowledge-control .npcink-cloud-local-permission__copy {
 	clip-path: inset(50%);
 	height: 1px;
@@ -1930,17 +1930,30 @@ button.npcink-cloud-gen-test-dialog__chip:focus {
 .npcink-cloud-knowledge-control .npcink-cloud-local-permission__feedback,
 .npcink-cloud-knowledge-control .npcink-cloud-local-permission__progress { margin: 8px 0 0; }
 .npcink-cloud-knowledge-area .npcink-cloud-site-knowledge-summary { margin-top: 8px; }
-.npcink-cloud-knowledge-description { margin: 0; }
-.npcink-cloud-knowledge-area .npcink-cloud-site-knowledge-summary__meta { gap: 12px; margin-top: 8px; }
+.npcink-cloud-knowledge-status-line { align-items: baseline; display: flex; flex-wrap: wrap; gap: 6px 20px; }
+.npcink-cloud-knowledge-state { margin: 0; }
+.npcink-cloud-knowledge-area .npcink-cloud-site-knowledge-summary__meta { margin: 0; }
+.npcink-cloud-delivery-time > summary { cursor: pointer; font-variant-numeric: tabular-nums; }
+.npcink-cloud-delivery-time > summary:hover,
+.npcink-cloud-delivery-time > summary:focus-visible { color: #2271b1; }
+.npcink-cloud-delivery-time > time { display: block; font-variant-numeric: tabular-nums; margin: 6px 0 0; }
+.npcink-cloud-knowledge-help { margin-top: 12px; }
+.npcink-cloud-knowledge-help > summary { color: #646970; cursor: pointer; font-size: 12px; width: fit-content; }
+.npcink-cloud-knowledge-help > summary:hover,
+.npcink-cloud-knowledge-help > summary:focus-visible { color: #2271b1; }
+.npcink-cloud-knowledge-help > .description { margin: 6px 0 0; }
 .npcink-cloud-knowledge-area .npcink-cloud-badge:not(.npcink-cloud-badge--pending) {
 	background: transparent;
-	color: #646970;
-	font-size: 12px;
+	color: #1d2327;
+	font-size: 13px;
 	font-weight: 400;
+	line-height: 1.6;
+	margin: 0;
 	padding: 0;
 }
+.npcink-cloud-knowledge-state .npcink-cloud-badge--pending { line-height: 1.5; margin: 0; }
 .npcink-cloud-knowledge-area .npcink-cloud-summary__actions { gap: 8px 20px; justify-content: flex-start; margin-top: 16px; }
-.npcink-cloud-knowledge-area .npcink-cloud-source-entry { color: #646970; font-size: 12px; }
+.npcink-cloud-knowledge-area .npcink-cloud-source-entry { color: #646970; font-size: 13px; margin: 0; }
 .npcink-cloud-local-permissions .npcink-ai-switch { grid-column: 2; grid-row: 1; }
 .npcink-cloud-local-permissions .npcink-cloud-local-permission__copy { grid-column: 1; grid-row: 1; }
 
@@ -2075,7 +2088,9 @@ button.npcink-cloud-gen-test-dialog__chip:focus {
 .npcink-cloud-editor-entry { margin: 8px 0 0; }
 .npcink-cloud-editor-entry .npcink-cloud-text-action { font-size: 13px; }
 .npcink-cloud-autosave-hint { color: #646970; font-size: 12px; }
-.npcink-cloud-knowledge-control .npcink-cloud-local-permission { display: grid; grid-template-columns: 44px auto; align-items: center; gap: 8px 12px; }
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission { display: grid; grid-template-columns: 50px auto; align-items: center; gap: 8px 12px; }
+.npcink-cloud-knowledge-control .npcink-cloud-local-permission__progress[hidden],
+.npcink-cloud-knowledge-control noscript:empty { display: none; }
 .npcink-cloud-knowledge-control .npcink-cloud-local-permission__feedback,
 .npcink-cloud-knowledge-control .npcink-cloud-local-permission__progress,
 .npcink-cloud-knowledge-control noscript { grid-column: 1 / -1; }

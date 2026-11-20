@@ -146,7 +146,16 @@
 					const parsed = new DOMParser().parseFromString( fragments.knowledge, 'text/html' );
 					const replacement = parsed.querySelector( '.npcink-cloud-site-knowledge-summary' );
 					if ( replacement ) {
+						const timeDetail = knowledge.querySelector( '.npcink-cloud-delivery-time' );
+						const nextTimeDetail = replacement.querySelector( '.npcink-cloud-delivery-time' );
+						const timeFocused = timeDetail && timeDetail.querySelector( 'summary' ) === document.activeElement;
+						if ( timeDetail && nextTimeDetail ) {
+							nextTimeDetail.open = timeDetail.open;
+						}
 						knowledge.replaceWith( replacement );
+						if ( timeFocused && nextTimeDetail ) {
+							nextTimeDetail.querySelector( 'summary' ).focus( { preventScroll: true } );
+						}
 						const statusRetry = replacement.querySelector( '[data-npcink-site-knowledge-status-retry]' );
 						if ( statusRetry ) {
 							retry = statusRetry;

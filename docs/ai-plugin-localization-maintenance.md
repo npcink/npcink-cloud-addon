@@ -46,7 +46,7 @@ The implementation is intentionally static:
 
 - It only runs in `wp-admin`.
 - It only runs for Chinese locales (`zh_*`).
-- It targets text domain `ai`, with the sixteen-key bundled component exception below.
+- It targets text domain `ai`, with the seventeen-key bundled component exception below.
 - Its inline JS locale payload enqueues only on surfaces that render
   `ai`-domain JS — the AI plugin's own admin screens (hook suffix containing
   `_page_ai-`), its Connectors screen (`options-connectors`), the core
@@ -78,15 +78,59 @@ can translate those calls. The earlier description of these calls as a build
 that "dropped" the `ai` domain was unproven; the shipped bundle identifies them
 as WordPress component code.
 
-At the user's explicit request to fix these remaining gaps, sixteen source keys
-(two plural pairs, five contextual strings, and seven plain labels) have a bounded compatibility
+At the user's explicit request to fix these remaining gaps, nineteen source keys
+(two plural pairs, seven contextual strings, and eight plain labels) have a bounded compatibility
 exception: `bundled_ui_fallback()` supplies only those keys on
-`settings_page_ai-wp-admin` and `tools_page_ai-request-logs`. The JS hooks check
+`settings_page_ai-wp-admin`, `tools_page_ai-request-logs`,
+`tools_page_ai-mcp-access` and `tools_page_ai-abilities-explorer`. The latter two
+screens also embed DataViews in AI 1.5.0. The `Actions` header and paging template were verified in the bundled table and
+pagination sources on 2026-11-18. The paging template is accepted only with
+`_x` context `paging`, retaining both placeholders and HTML wrappers.
+The added `Filter` key is accepted only
+with `_x` context `verb`; a plain call or another context must stand down.
+The JS hooks check
 the exact source, plural pair or context, accept only the default domain, and stand down
 when an existing translation is present. Never register the full AI dictionary
 in the default domain. Do not expand this exception to other keys or screens
 without evidence and review. Retire it when the bundled component translations
 work without the fallback.
+
+### AI 1.5.0 followthrough — 2026-11-18
+
+Reviewed 267 additional fixed UI/error keys, preserving placeholders, destructive
+scope and unknown/unverified wording. Two initially reported candidates are
+registration metadata (`WebMCP` and the text-to-speech Ability description),
+classified by exact source plus file; they are not translated. Settings labels
+in the same files remain fixed UI candidates. Localization does not enable audio,
+MCP, block labels, revision summaries or any paused/unsupported capability.
+
+Installed-plugin strict audit now passes: 1,326 discovered ai-domain keys, 1,070
+shim entries, zero fixed UI, Ability-error or uncovered default-domain gaps.
+The remaining 300 missing entries are 72 metadata/developer copy, 211 schema/JSON
+and 17 long-prompt entries; 27 stale entries remain for review. This bounded source
+audit does not prove every English word on every plugin page has been translated.
+
+A first zero-gap audit missed 113 actual `WP_Error` messages because wording
+heuristics classified them as metadata/schema/long prompts. The audit now scans
+PHP tokens for ai-domain strings inside the second `new WP_Error` argument and
+classifies those as error notices before prose heuristics. Comments, error codes,
+third-argument data and adjacent schema strings are excluded from that promotion.
+Four known admin/revision bundles also contribute nine fixed notices previously
+hidden by schema-word heuristics. These 122 keys are included in the 267 above.
+Never use a zero count alone without reviewing excluded groups.
+
+Local PC browser evidence at 1440 and 1280 covers settings, request logs,
+Abilities Explorer and MCP Access, including the real locale payload, exact
+default-domain/context stand-down behavior, view-options controls and cancelling
+log deletion. No feature or content was saved, no Ability/model invoked; the
+original post and feature-setting fingerprints are unchanged. Browser failures
+from intentionally blocked Gravatar are recorded separately. Evidence lives in
+the local `editor-localization-20261118/` artifact directory, with scripts and hashes.
+Remaining component/literal labels such as `PAGE`, `OF`, `Plugin`, `ACTIONS` and
+`Text`, and the existing wide/duplicated Explorer columns, are not fixed by this
+batch. Do not expand the default-domain dictionary or claim a layout redesign
+based on this strict audit. All fixed error states were reviewed in source/tests;
+they were not each triggered in the browser.
 
 ## Maintenance Problem
 
@@ -174,8 +218,9 @@ browser. Keys used in both `ai` and default domains need runtime review; their
 mere presence in a shared bundle is not proof of an untranslated UI.
 
 Known fixed UI source files take precedence over the length and schema-word
-heuristics: the reviewed settings import error, translation/slug/summary editor bundles, Abilities Explorer
-help, Markdown Feeds settings, and comment moderation controls. Long help text
+heuristics: the reviewed settings import error, translation/slug/summary/revision
+editor bundles, Abilities Explorer and MCP Access bundles, Explorer help,
+Markdown Feeds settings, and comment moderation controls. Long help text
 and UI notices mentioning JSON or schemas must remain review candidates; ability
 registration metadata and image prompt templates remain excluded.
 
@@ -293,3 +338,128 @@ for an authenticated Chinese-locale user with the existing corresponding
 capability. Only an exact untranslated message changes; routes, codes, status,
 permissions, payloads and existing official translations remain unchanged.
 All other REST errors and all front-end gettext calls retain their source behavior.
+
+## Settings compatibility update (2026-11-16, AI 1.5.0)
+
+The installed AI 1.5.0 changed the settings introduction and group descriptions,
+added fixed feature labels, and introduced usage disclosures. The local Addon
+mount resolves to this repository. Added 89 exact `ai`-domain entries for this
+settings surface, including when a feature runs, what it sends, and request
+counts. Preserve direct-save, automatic execution, plugin-install, plaintext-key
+and external-AI data-sharing consequences in Chinese. WebMCP remains a proper
+name. No feature was enabled and no upstream plugin file was edited.
+
+Maintenance lesson: check the whole affected settings surface, including the
+information buttons and accessible names, after an upstream update. Known
+upstream feature usage prose can appear in the audit's schema or long-copy
+groups; inspect its actual call site before deciding ownership. This does not
+authorize translating third-party ability metadata or automatically translating
+unknown strings at request time.
+
+The existing visible labels/descriptions and on-demand usage disclosures retain
+their positions; no content was moved or duplicated. Local PHP regressions, JS
+asset execution (33 tests), WordPress.org review guard and PHPStan passed.
+Browser evidence is under `ai15-settings-*.jpg` and
+`ai15-settings-receipt.json` in this task's evidence directory. The screenshot
+reported by the user and the updated real page are separate from automated
+dictionary coverage; feature checkbox values remain unchanged.
+
+The full installed-plugin strict audit still fails: UI coverage gaps decreased
+from 255 to 180. Residual editor, request-log, ability-explorer and other surfaces,
+including default-domain calls in the new MCP bundle, remain separate review
+work. This settings fix is not full AI 1.5 localization acceptance. No CI,
+merge or production deployment is claimed. Playground is not applicable:
+bootstrap, public APIs, default connector state and compatibility floors did
+not change.
+
+## 2026-11-18 editor followthrough
+
+Added nineteen exact ai-domain source keys for title/reply regeneration,
+translation progress and stale-editor protection, Notes review failures,
+classification adoption errors, and the existing revision-summary UI.
+Revision-summary localization does not map or enable its currently unsupported
+Ability. No default-domain exception, prompt, dynamic metadata, option,
+feature state, or layout changed. Existing official translations still win.
+
+This is a bounded editor slice of the 180-gap installed AI 1.5 baseline.
+Full strict coverage and browser acceptance are recorded separately below.
+
+Verification receipt: PHP suite/boundary checks, PHPStan and 38 JavaScript
+tests pass. Strict installed AI 1.5 audit now reports **161 UI gaps**
+(145 fixed candidates, two ability error notices, fourteen default-domain
+keys), down from 180; it remains red. The mounted Addon resolves to this
+checkout. A disposable real editor at PC 1440 and 1280 loaded all nineteen
+locale entries; the native title review modal and translation-progress button
+were rendered in Chinese. Screenshot/report: task evidence directory
+`editor-followthrough-20261118/ui-*`. Other newly translated error states and
+revision-summary controls were not individually triggered in this browser run.
+Draft persistence and original post 279790 were unchanged; temporary draft,
+session, and outbound-blocking MU helper were removed. No production or human
+visual acceptance is claimed. Playground is not applicable to this copy-only
+change because bootstrap/API/default connector state did not change.
+
+## Local AI 1.5 title-regeneration patch (2026-11-18)
+
+Five fixed ai-domain keys support the separately maintained upstream title patch:
+optional feedback, recent-candidate repetition, draft changes and recovery.
+The addon does not build those prompts, keep candidate history, save titles,
+or own the upstream modal. Its connector now forwards the explicitly supplied
+`current_title` as `existing_title`, including clearing the stored-title fallback
+when the draft title is empty; older callers retain the saved-title fallback.
+The text-model file remains within its existing 401-line ceiling.
+
+Real WordPress REST checks cover draft and empty overrides, legacy input,
+rejection of feedback over 500 characters/history over five candidates, and
+anonymous permission denial. Suggestions did not persist the disposable post.
+Native title review browser checks cover duplicate rejection without automatic
+retry, retained feedback/candidate, explicit draft adoption, and stale insertion
+blocked after author edits at PC 1440/1280. Errors stay inside the review modal.
+Evidence: task directory `editor-followthrough-20261118/title-*`.
+
+
+### List labels followthrough — 2026-11-18
+
+The installed AI 1.5 local patch now owns known request-log enum labels and
+known origin badge fallbacks. This addon adds nine fixed ai-domain translations
+(Success, Timeout, AI Client, MCP Tool, Text, Image, Audio, Embeddings, Metadata)
+and two exact component fallback keys; it does not translate dynamic IDs or
+change native list persistence/layout. Unknown extension enum codes and explicit
+custom origin labels remain readable without replacement.
+
+Local strict audit after rebuilding the native patch: 1335 discovered AI strings,
+1079 shim entries; zero fixed-UI/error/default-domain gaps; the same 300 reviewed
+non-UI strings remain excluded. This is bounded installed-plugin evidence,
+not complete English coverage or proof of every error branch. Four real admin
+pages were checked at 1440×1050 and 1280×960, including list options, legacy view
+recovery, keyboard row actions, log detail Escape/focus return, and cancelled
+purge confirmation. Five Gravatar requests were intentionally blocked; no
+unexpected request or console failures. Article 279790 and feature settings
+fingerprints stayed unchanged. Evidence lives in the local
+`editor-list-followthrough-20261118/final-3` report and sibling visual receipt.
+
+Native source commit `7c9381c` is local only. Rebuilding/upgrading native AI
+assets must reapply or replace its source patch; these addon translations alone
+do not fix duplicate columns or raw enum rendering. CI's stable AI 1.4 lane and
+local AI 1.5 evidence remain separate. Rollback only these addon dictionary/hook
+changes or the separately recorded native asset hashes; do not erase saved views.
+
+
+### Rename modal recovery — 2026-11-18
+
+The native local AI patch `f6e8c64` now rejects stale Rename results after post,
+title, excerpt or content changes and ignores late responses after closing the
+original form. It owns in-modal errors and connector recovery actions. This addon
+only adds two fixed ai-domain messages: changed-draft recovery and duplicate-name
+recovery that names Rename's actual controls. No new default-domain key or prompt
+ownership is introduced.
+
+Installed strict audit: 1337 discovered AI keys / 1081 shim entries, zero bounded
+UI/error/default-domain gaps; the same 300 non-UI entries remain excluded. PC
+1440×1000 and 1280×960 browser evidence covers duplicate requests/candidates,
+name/excerpt edits, close/reopen with delayed output, expected 503, missing-provider
+link and Escape/focus return. No content was saved; temporary post/auth/helper
+cleanup and original article fingerprint are recorded. The four earlier admin
+pages were not rerun for these editor-only strings. Native 30 tests and Addon
+PHP/JS/strict audit remain distinct from model quality, M4 and production evidence.
+Native patch artifact and browser receipts are linked from the Cloud followthrough
+record; upgrading AI must reapply/review the patch before claiming this behavior.

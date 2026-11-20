@@ -322,7 +322,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			sort( $keys );
 			$content = $request['content'] ?? null;
 			if ( array( 'content', 'format', 'source_sha256' ) !== $keys
-				|| ! is_string( $content ) || '' === $content || strlen( $content ) > 100000
+				|| ! is_string( $content ) || '' === $content || strlen( $content ) > 262144 || preg_match_all( '/./us', $content ) > 50000
 				|| 1 !== preg_match( '//u', $content )
 				|| 'html' !== ( $request['format'] ?? null )
 				|| hash( 'sha256', $content ) !== ( $request['source_sha256'] ?? null ) ) {
@@ -739,6 +739,14 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			return $this->request( 'GET', '/v1/runs/' . rawurlencode( $run_id ), null, '', $trace_id );
 		}
 
+		/** Read an existing dispatch receipt without creating or replaying a run. */
+		public function get_run_by_idempotency( string $key, string $trace_id = '' ) {
+			if ( ! preg_match( '/\A[A-Za-z0-9._:-]{1,128}\z/', $key ) || in_array( $key, array( '.', '..' ), true ) ) {
+				return new WP_Error( 'cloud_runtime_idempotency_invalid' );
+			}
+			return $this->request( 'GET', '/v1/runs/by-idempotency/' . rawurlencode( $key ), null, '', $trace_id );
+		}
+
 		/**
 		 * Reads one runtime run result.
 		 *
@@ -1105,7 +1113,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			if ( null !== $raw_body ) {
 				$body = $raw_body;
 			} elseif ( is_array( $payload ) ) {
-				$encoded = wp_json_encode( $payload );
+				$encoded = wp_json_encode( $payload, in_array( $payload['contract_version'] ?? '', array( 'cloud_connector_runtime.v1', 'image_generation_request.v1', 'article_review_cloud_request.v1' ), true ) ? JSON_UNESCAPED_UNICODE : 0 );
 				if ( ! is_string( $encoded ) || '' === $encoded ) {
 					return new WP_Error(
 						'cloud_runtime_encode_failed',

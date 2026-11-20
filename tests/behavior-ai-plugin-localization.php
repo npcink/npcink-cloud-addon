@@ -80,6 +80,57 @@ maca_assert(
 	'AI plugin localization covers the audited fixed UI candidates without translating dynamic ability metadata.'
 );
 
+$settings_15_translations = array(
+	'The title, excerpt or content changed while AI was working. Your edit was kept. Generate again using the current draft.' => '生成期间标题、摘要或正文发生了变化，已保留你的修改。请按当前草稿重新生成标题。',
+	'This repeats a recent title. Edit the name and regenerate.' => '本次建议与最近标题重复。请先修改上方名称，再点击“重新生成标题”。',
+	'Open Notes' => '打开编辑建议',
+	'Applies pending editorial Notes and saves the post. Save your current edits first.' => '应用待处理的编辑建议并保存文章。请先保存当前修改。',
+	'Save your current edits and wait for saving to finish before applying Editorial Updates.' => '请先点击编辑器右上角的“保存”，等待保存完成后，再点击“应用编辑更新”。',
+	'No usable block content was returned. The original block is unchanged.' => '未返回可用的区块内容，原区块保持不变。请在“编辑建议”侧栏检查该建议后重试。',
+	'The post changed while AI was working. No updates were applied or saved. Save your edits, then try again.' => 'AI 生成期间文章发生了修改，本次结果未应用或保存。请先点击右上角“保存”，再重试。',
+	'The post save could not be confirmed. Editor content is preserved and Notes remain pending. Check the Save status before trying again.' => '无法确认文章是否保存成功。生成内容保留在编辑器中，建议仍待处理。请检查右上角的保存状态，确认保存后再处理建议。',
+	'Saved blocks: %1$d; failed blocks: %2$d. Failed Notes remain pending. Review them in the Notes sidebar before trying again. %3$s' => '已保存 %1$d 个区块，%2$d 个区块失败。失败建议仍待处理，请在“编辑建议”侧栏查看后重试。原因：%3$s',
+	'The post was saved, but %d Notes could not be marked complete. Review the saved content and resolve those Notes in the Notes sidebar.' => '文章已保存，但有 %d 条建议未能标记完成。请核对已保存内容，并在“编辑建议”侧栏中手动完成这些建议。',
+	'The complete Notes list could not be loaded. Try again before applying updates.' => '未能加载完整的编辑建议，本次未应用或保存任何结果。请刷新“编辑建议”侧栏后重试。',
+	'Turn on stable Features and early-stage Experiments. Experiments may change or be removed in any release, and some run automatically once enabled, so try them on a staging site first.' => '启用稳定功能和早期实验功能。实验功能可能在任何版本中变更或移除，部分功能启用后会自动运行，建议先在测试站点试用。',
+	'Early-stage AI tools for the block editor, including content generation and enhancement tools. Experiments may change or be removed in any release.' => '面向区块编辑器的早期 AI 工具，包括内容生成和增强工具。实验功能可能在任何版本中变更或移除。',
+	'Early-stage AI tools for the WordPress admin area, including exploration and testing tools. Experiments may change or be removed in any release.' => '面向 WordPress 后台的早期 AI 工具，包括探索和测试工具。实验功能可能在任何版本中变更或移除。',
+	'Block Container Label Generation' => '容器区块标签生成',
+	'Generate concise labels for content blocks. Requires an AI connector that includes support for text generation models.' => '为内容区块生成简短标签。需要支持文本生成模型的 AI 连接器。',
+	'Revision Change Summary' => '修订变更摘要',
+	'When %s runs and what it sends' => '%s何时运行、发送哪些内容',
+	'Runs automatically' => '自动运行',
+	'When you click Apply Editorial Updates, which also saves the post' => '点击“应用编辑更新”时，同时会保存文章',
+	'Nothing to your AI provider. Depending on the tool called, the post title, status, and a short text preview of each block go to the AI model the agent browser uses' => '不向你的 AI 提供方发送内容。根据调用的工具，文章标题、状态和各区块的简短文本预览会发送给智能体浏览器使用的 AI 模型',
+);
+foreach ( $settings_15_translations as $source => $expected ) {
+	maca_assert(
+		$expected === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( $source, $source, 'ai' ),
+		'AI 1.5 fixed settings copy and operational consequences translate through PHP: ' . $source
+	);
+}
+
+$reviewed_ui_15 = array(
+	'C2PA Content Credentials detected (not verified)' => '检测到 C2PA 内容凭证（尚未验证）',
+	'Could not check on audio generation. It may still be running in the background.' => '无法查询音频生成状态，任务可能仍在后台运行。',
+	'Choose the "Test" action from an ability\'s row actions in the list.' => '在能力列表中打开对应行的操作菜单，选择“测试”。',
+	'Delete all logs?' => '删除全部日志？',
+	'No logs older than the selected age were found.' => '未找到超过所选期限的日志。',
+	'Field "%1$s" must be at most %2$s' => '字段“%1$s”的值不能大于 %2$s',
+	'A minimum of %d characters is required for translation.' => '翻译内容至少需要 %d 个字符。',
+	'You do not have permission to generate titles.' => '你无权生成标题。',
+	'The specified target language is not supported for translation.' => '翻译功能不支持指定的目标语言。',
+	'No translated content was generated.' => '未生成翻译内容。',
+);
+foreach ( $reviewed_ui_15 as $source => $expected ) {
+	maca_assert(
+		$expected === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( $source, $source, 'ai' )
+		&& '官方译文' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( '官方译文', $source, 'ai' )
+		&& $source === Npcink_Cloud_AI_Plugin_Localization::filter_gettext( $source, $source, 'default' ),
+		'AI 1.5 UI preserves uncertainty, destructive scope and official/domain ownership: ' . $source
+	);
+}
+
 maca_assert(
 	'能力浏览器' === Npcink_Cloud_AI_Plugin_Localization::filter_gettext(
 		'Abilities Explorer',
@@ -1370,6 +1421,12 @@ $localized_script = $GLOBALS['maca_localized_scripts'][0] ?? array();
 $locale_data = isset( $localized_script['data']['localeData'] ) && is_array( $localized_script['data']['localeData'] )
 	? $localized_script['data']['localeData']
 	: array();
+foreach ( $settings_15_translations as $source => $expected ) {
+	maca_assert(
+		$expected === ( $locale_data[ $source ][0] ?? '' ),
+		'AI 1.5 fixed settings copy ships in the ai-domain JS locale payload: ' . $source
+	);
+}
 foreach ( $audit_gap_translations as $source => $expected ) {
 	maca_assert(
 		$expected === ( $locale_data[ $source ][0] ?? '' ),
@@ -1442,6 +1499,7 @@ $payload_hook_cases = array(
 	'settings_page_ai-wp-admin'     => true,
 	'tools_page_ai-request-logs'    => true,
 	'tools_page_ai-abilities-explorer' => true,
+	'tools_page_ai-mcp-access' => true,
 	'options-connectors'            => true,
 	'edit-comments.php'             => true,
 	'index.php'                     => true,
@@ -1463,9 +1521,9 @@ foreach ( $payload_hook_cases as $payload_hook_case => $payload_hook_allowed ) {
 	Npcink_Cloud_AI_Plugin_Localization::enqueue_script_locale_data( $payload_hook_case );
 	$bundled_payload = $GLOBALS['maca_localized_scripts'][0]['data']['bundledUiFallback'] ?? array();
 	maca_assert(
-		in_array( $payload_hook_case, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs' ), true )
-			? count( $bundled_payload ) === 16 : empty( $bundled_payload ),
-		'DataViews exceptions only ship on the two verified AI screens: ' . $payload_hook_case
+		in_array( $payload_hook_case, array( 'settings_page_ai-wp-admin', 'tools_page_ai-request-logs', 'tools_page_ai-mcp-access', 'tools_page_ai-abilities-explorer' ), true )
+			? count( $bundled_payload ) === 19 : empty( $bundled_payload ),
+		'DataViews exceptions only ship on the four verified AI screens: ' . $payload_hook_case
 	);
 	maca_assert(
 		( $payload_hook_allowed ? 1 : 0 ) === count( $GLOBALS['maca_enqueued_scripts'] )

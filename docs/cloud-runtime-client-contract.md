@@ -135,6 +135,7 @@ It returns a `WP_Error` until the addon settings have passed Save and Verify.
 | `request_image_context_evidence()` | `POST /v1/runtime/execute` |
 | `upload_media_artifact()` | `POST /v1/runtime/media/uploads` |
 | `create_media_job()` | `POST /v1/runtime/media/jobs` |
+| `get_run_by_idempotency()` | `GET /v1/runs/by-idempotency/{key}` (read only; no execution/replay) |
 | `get_run()` | `GET /v1/runs/{run_id}` |
 | `get_run_result()` | `GET /v1/runs/{run_id}/result` |
 | `get_recent_nightly_inspection_runs()` | `GET /v1/runs/nightly-inspection/recent` |
@@ -518,19 +519,41 @@ Those three tasks reject legacy `prompt`, `post_title`, and `post_excerpt`
 fields; embedded content tags are transported as opaque text. Other bounded
 tasks such as alt text may keep their task-specific prompt field.
 
-Excerpt and meta-description source projection reuses the active WordPress AI
-`normalize_content()` helper when available, including content resolved through
-a post context. This matches the Ability's cleanup of editor HTML before model
-execution; it preserves the full normalized text and official instruction.
+With WordPress AI 1.5+, excerpt generation preserves the complete opaque AI
+Client user message as `source_text`, including upstream additional context.
+Only the actual AI Client system instruction enters `system_instruction`;
+article text must not be duplicated there. Legacy excerpt and meta-description
+source projection reuses the active WordPress AI `normalize_content()` helper
+when available, including content resolved through a post context. This matches
+the Ability's cleanup and preserves the full normalized text and instruction.
 Raw Gutenberg markup must not inflate an otherwise bounded short-text request.
 Existing byte/character limits and prompt ownership are unchanged. Without the
 upstream helper, existing source projection remains in effect.
+
+Content resizing projects the validated local action as optional
+`request.rewrite_action` (`shorten`, `expand`, or `rephrase`), only for
+`content_rewrite`. Omitted upstream action uses the Ability's default `rephrase`.
+Invalid values/tasks fail before HTTP. Cloud respects the requested length
+change and gives expansion a larger computed default output budget, capped by
+the existing output/token/model limits. Positive explicit caller budgets remain
+authoritative. Deploy the matching Cloud first; an old Cloud may accept the
+additive field while still using the old conflicting length instruction.
 
 The method rejects generic chat or provider-control fields such as `messages`,
 `conversation_id`, `session_id`, `thread_id`, `tools`, `tool_calls`,
 `functions`, `function_call`, `stream`, credentials, cookies, nonces, and signed
 headers. It also bounds source/prompt/body size and clamps timeout to 60
 seconds, retention, and retry values.
+
+Source-text tasks now accept 50,000 Unicode characters including markup, with
+an independent 12,000-character system-instruction cap and a 512 KiB caller
+UTF-8 JSON envelope; the fixed normalized identity wrapper adds bounded overhead. The signature covers the exact transmitted body; Chinese is not
+expanded into JSON Unicode escapes. Non-source prompt/ALT and image character limits,
+output budgets and the maximum 60-second text timeout are unchanged. Model
+context capacity is checked separately in Cloud and may reject smaller inputs.
+No automatic truncation or multi-call chunking is introduced. See the Cloud
+[long-text contract](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/wordpress-text-input-limits-v1.md)
+for cross-repository rollout and regression requirements.
 
 Text and alt-text consumers accept one result shape only:
 `response.data.result.contract_version=cloud_connector_result.v1`,
@@ -734,3 +757,32 @@ All crop, batch, auto-safe and governance jobs retain their release pauses.
 The complete predicate is checked before uploads and before signing; missing or
 unknown purposes do not unpause anything. Historical artifact delivery remains
 available. Core approval and Toolkit new-attachment writes stay in WordPress.
+
+### Localized input budget correction — 2026-11-17
+
+Other text tasks keep 12,000 prompt characters with a 128 KiB caller envelope;
+ALT keeps its 24,000-byte envelope and 500 prompt characters. Both image surfaces
+keep 4,000 prompt characters with a 64 KiB caller envelope. Article review keeps
+its 120,000-byte envelope and existing UTF-16/block/raw-byte bounds. These three
+transports measure and transmit Unicode as UTF-8 JSON, signing the exact final
+body. Schema projection likewise matches Cloud's 12,000 UTF-8-byte budget.
+Bounded text no longer falls through from a successful character check to an
+accidental byte cut. Tests include Chinese and supplementary Unicode with and
+without mbstring. See the Cloud
+[limit audit](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/wordpress-input-limit-audit-2026-11-17.md)
+for confirmed reproductions and separate unresolved Toolbox findings.
+
+## Approved text-budget follow-through — 2026-11-17
+
+Development candidate, not a production release. Formatting facade now accepts
+up to 50,000 Unicode code points including HTML and 256 KiB UTF-8 source bytes;
+exact source/hash/contract checks remain. Cloud/PHP/browser output consumers cap
+formatting candidates at 512 KiB UTF-8. No prompt or WordPress write ownership
+moves into Addon. Whole-text WordPress transformations now surface structured
+`provider.output_incomplete` / `provider.output_too_large` errors with localized
+next steps; partial results are not adopted and upstream usage remains recorded.
+The default output token budget is owned by Cloud; title/summary/ALT remain short.
+
+Current budgets and layered evidence supersede the preceding 12k output-clipping
+checkpoint; see [Cloud's authoritative contract](https://github.com/npcink/npcink-ai-cloud/blob/master/docs/wordpress-text-budget-followthrough-2026-11-17.md)
+and compatibility matrix. Existing pauses and reviewed write ownership remain.

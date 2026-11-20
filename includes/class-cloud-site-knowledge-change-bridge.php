@@ -503,6 +503,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( ! Npcink_Cloud_Addon_Settings::is_verified() ) {
 				return self::record_delivery_result( false, 0, __( 'Connect this site first.', 'npcink-cloud-addon' ), 'cloud_addon_unverified' );
 			}
+			$recovered = self::recover_dispatch_receipt();
+			if ( is_wp_error( $recovered ) ) {
+				self::schedule_flush( self::RETRY_SECONDS );
+				return self::record_delivery_result( false, 0, $recovered->get_error_message(), $recovered->get_error_code() );
+			}
 
 			if ( self::process_source_operations() ) {
 				return self::get_status();
@@ -1958,6 +1963,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 
 		/** Every mutation path registers immutable payload/key BEFORE HTTP. */
 		public static function dispatch_mutation( array $payload, string $key = '', string $purpose = 'producer', string $operation = '' ) {
+			$recovered = self::recover_dispatch_receipt();
+			if ( is_wp_error( $recovered ) ) { return $recovered; }
 			self::retire_terminal_deliveries();
 			$before = self::delivery_state();
 			$namespace = self::lifecycle_scope();
@@ -2014,40 +2021,85 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$next = $before;
 			$scope['dispatches'][ $key ] = array_merge( $entry, array( 'source_fingerprint' => $source_fingerprint, 'payload' => $payload, 'fingerprint' => $fingerprint, 'key' => $key, 'purpose' => $entry['purpose'] ?? $purpose, 'operation' => $entry['operation'] ?? $operation, 'send_state' => 'sending' ) );
 			$next['_lifecycle']['scopes'][ $namespace ] = $scope;
-			$next['_lifecycle']['owner'] = array( 'token' => $token, 'scope' => $namespace, 'key' => $key );
+			$next['_lifecycle']['owner'] = array( 'token' => $token, 'scope' => $namespace, 'key' => $key, 'phase' => 'preparing' );
 			if ( strlen( serialize( $next ) ) > 4194304 ) { return self::lifecycle_error( 'durability_full' ); }
 			if ( ! self::compare_and_swap_delivery_state( $before, $next ) ) {
 				return self::lifecycle_error( 'owner_changed' );
 			}
-			// This CAS is the dispatch linearization point: a concurrent intent can
-			// retain this writer, but cannot erase it or authorize a new send owner.
+			// A preparing owner is cancellable: the sender MUST still win the
+			// exact transition below before it can perform HTTP.
+			self::schedule_flush( self::RETRY_SECONDS );
 			if ( self::delivery_state() !== $next ) {
+				self::release_unsent_owner( $token, $namespace, $key );
+				return self::lifecycle_error( 'owner_changed' );
+			}
+			$sending = $next;
+			$sending['_lifecycle']['owner']['phase'] = 'sending';
+			if ( ! self::compare_and_swap_delivery_state( $next, $sending ) ) {
 				self::release_unsent_owner( $token, $namespace, $key );
 				return self::lifecycle_error( 'owner_changed' );
 			}
 			$client = new Npcink_Cloud_Runtime_Client();
 			$result = $client->execute_runtime( $payload, 'trace_site_knowledge_delivery_' . wp_generate_uuid4(), $key );
-			$current = self::delivery_state();
-			if ( ( $current['_lifecycle']['owner']['token'] ?? '' ) === $token ) {
-				$after = $current;
-				$record = &$after['_lifecycle']['scopes'][ $namespace ]['dispatches'][ $key ];
-				$record['send_state'] = 'uncertain';
-				if ( is_array( $result ) ) {
-					$run_id = self::cloud_run_id( $result );
-					if ( '' !== $run_id ) {
-						$record['run_id'] = $run_id;
-						$record['send_state'] = 'accepted';
-						// Exact run/key identity is sufficient for later writer witnesses.
-						// Only a lost response needs the immutable body for replay.
-						unset( $record['payload'] );
-					}
-				}
-				unset( $record, $after['_lifecycle']['owner'] );
-				// Concurrent pending writes may win this CAS. Never discard the owner
-				// on a failed persistence attempt; it remains visibly blocked.
-				self::compare_and_swap_delivery_state( $current, $after );
+			$run_id = is_array( $result ) ? self::cloud_run_id( $result ) : '';
+			if ( ! self::finish_dispatch_owner( $sending['_lifecycle']['owner'], $fingerprint, '' !== $run_id ? 'accepted' : 'uncertain', $run_id ) ) {
+				self::schedule_flush( 30 );
+				return self::lifecycle_error( 'receipt_not_saved' );
 			}
 			return $result;
+		}
+
+		/** Cancel fenced preparing senders or recover a terminal receipt, never from time. */
+		private static function recover_dispatch_receipt() {
+			$state = self::delivery_state();
+			$owner = $state['_lifecycle']['owner'] ?? array();
+			if ( empty( $owner ) ) { return true; }
+			$namespace = self::lifecycle_scope();
+			if ( ( $owner['scope'] ?? '' ) !== $namespace ) { return self::lifecycle_error( 'dispatch_owned' ); }
+			$key = $owner['key'] ?? '';
+			$entry = $state['_lifecycle']['scopes'][ $namespace ]['dispatches'][ $key ] ?? array();
+			$encoded = wp_json_encode( $entry['payload'] ?? null );
+			if ( empty( $entry['payload'] ) || ! is_string( $entry['fingerprint'] ?? null ) || ! is_string( $encoded ) || $key !== ( $entry['key'] ?? '' ) || ! hash_equals( $entry['fingerprint'], hash( 'sha256', $encoded ) ) ) {
+				return self::lifecycle_error( 'dispatch_owned' );
+			}
+			// Cancelling this exact preparing token fences even a paused PHP sender:
+			// its mandatory preparing->sending CAS can no longer succeed.
+			if ( 'preparing' === ( $owner['phase'] ?? '' ) ) {
+				return self::finish_dispatch_owner( $owner, $entry['fingerprint'], 'not_sent' ) ? true : self::lifecycle_error( 'receipt_not_saved' );
+			}
+			$client = new Npcink_Cloud_Runtime_Client();
+			$response = $client->get_run_by_idempotency( $key, 'trace_site_knowledge_receipt_' . wp_generate_uuid4() );
+			$run = is_array( $response ) ? ( $response['data'] ?? array() ) : array();
+			$run_id = is_array( $run ) ? self::cloud_run_id( $run ) : '';
+			if ( '' === $run_id || is_wp_error( Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_writer_witness( array( 'run_id' => $run_id, 'key' => $key ) ) ) || self::lifecycle_scope() !== $namespace ) {
+				return self::lifecycle_error( 'dispatch_owned' );
+			}
+			if ( ! self::finish_dispatch_owner( $owner, $entry['fingerprint'], 'accepted', $run_id ) ) {
+				return self::lifecycle_error( 'receipt_not_saved' );
+			}
+			return true;
+		}
+
+		/** Merge only this dispatch into fresh state; preserve concurrent source intents. */
+		private static function finish_dispatch_owner( array $owner, string $fingerprint, string $send_state, string $run_id = '' ): bool {
+			for ( $attempt = 0; $attempt < 4; $attempt++ ) {
+				$current = self::delivery_state();
+				$entry = $current['_lifecycle']['scopes'][ $owner['scope'] ]['dispatches'][ $owner['key'] ] ?? array();
+				if ( ( $entry['fingerprint'] ?? '' ) !== $fingerprint ) { return false; }
+				if ( ( $current['_lifecycle']['owner'] ?? array() ) !== $owner ) {
+					return $send_state === ( $entry['send_state'] ?? '' ) && $run_id === ( $entry['run_id'] ?? '' );
+				}
+				$after = $current;
+				$record = &$after['_lifecycle']['scopes'][ $owner['scope'] ]['dispatches'][ $owner['key'] ];
+				$record['send_state'] = $send_state;
+				if ( '' !== $run_id ) {
+					$record['run_id'] = $run_id;
+					unset( $record['payload'] );
+				}
+				unset( $record, $after['_lifecycle']['owner'] );
+				if ( self::compare_and_swap_delivery_state( $current, $after ) ) { return true; }
+			}
+			return false;
 		}
 
 		/** Upload only at dispatch, and only when Cloud cannot fetch the source URL. */
@@ -2134,13 +2186,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 
 		private static function release_unsent_owner( string $token, string $namespace, string $key ): void {
 			$state = self::delivery_state();
-			if ( ( $state['_lifecycle']['owner']['token'] ?? '' ) !== $token ) {
+			if ( ( $state['_lifecycle']['owner']['token'] ?? '' ) !== $token || 'preparing' !== ( $state['_lifecycle']['owner']['phase'] ?? '' ) ) {
 				return;
 			}
-			$next = $state;
-			$next['_lifecycle']['scopes'][ $namespace ]['dispatches'][ $key ]['send_state'] = 'not_sent';
-			unset( $next['_lifecycle']['owner'] );
-			self::compare_and_swap_delivery_state( $state, $next );
+			$entry = $state['_lifecycle']['scopes'][ $namespace ]['dispatches'][ $key ];
+			self::finish_dispatch_owner( $state['_lifecycle']['owner'], $entry['fingerprint'], 'not_sent' );
 		}
 
 		private static function suppress_payload( array $payload, array $sources ) {
@@ -2704,8 +2754,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				}
 
 				$changed = 1 === (int) $result;
-				if ( $changed && function_exists( 'wp_cache_delete' ) ) {
+				if ( function_exists( 'wp_cache_delete' ) ) {
 					wp_cache_delete( self::MAINTENANCE_OPTION, 'options' );
+					// A losing CAS may have read a request-local stale option value.
+					if ( ! $changed ) { wp_cache_delete( 'alloptions', 'options' ); }
 				}
 
 				return $changed;

@@ -17,6 +17,7 @@ $allowed_requests = array(
 	array( 'GET', '/v1/entitlements/current' ),
 	array( 'GET', '/v1/runs/nightly-inspection/recent?limit=5' ),
 	array( 'GET', '/v1/runs/run_1' ),
+	array( 'GET', '/v1/runs/by-idempotency/site_knowledge_source_123' ),
 	array( 'GET', '/v1/runs/run_1/result' ),
 	array( 'POST', '/v1/runs/run_1/retry' ),
 	array( 'GET', '/v1/runtime/media/artifacts/art_0123456789abcdef0123456789abcdef/download' ),
@@ -38,6 +39,10 @@ foreach ( $allowed_requests as $request ) {
 }
 
 $denied_requests = array(
+	array( 'POST', '/v1/runs/by-idempotency/key' ),
+	array( 'GET', '/v1/runs/by-idempotency/key?other=1' ),
+	array( 'GET', '/v1/runs/by-idempotency/' . str_repeat( 'x', 129 ) ),
+	array( 'GET', '/v1/runs/by-idempotency/key/result' ),
 	array( 'GET', 'https://cloud.example.test/v1/entitlements/current' ),
 	array( 'GET', '//cloud.example.test/v1/entitlements/current' ),
 	array( 'GET', 'v1/entitlements/current' ),

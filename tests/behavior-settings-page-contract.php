@@ -23,7 +23,7 @@ if ( ! function_exists( 'wp_get_ability' ) ) {
 
 if ( ! function_exists( 'current_user_can' ) ) {
 	function current_user_can( string $capability ): bool {
-		return 'manage_options' === $capability || ( 'edit_posts' === $capability && ! empty( $GLOBALS['maca_beginner_edit_posts'] ) );
+		return ( 'manage_options' === $capability && ( $GLOBALS['maca_manage_options'] ?? true ) ) || ( 'edit_posts' === $capability && ! empty( $GLOBALS['maca_beginner_edit_posts'] ) );
 	}
 }
 
@@ -36,6 +36,12 @@ if ( ! function_exists( 'esc_html' ) ) {
 if ( ! function_exists( 'esc_attr' ) ) {
 	function esc_attr( $value ): string {
 		return esc_html( $value );
+	}
+}
+
+if ( ! function_exists( 'esc_textarea' ) ) {
+	function esc_textarea( $value ): string {
+		return htmlspecialchars( (string) $value, ENT_QUOTES, 'UTF-8' );
 	}
 }
 
@@ -665,7 +671,7 @@ maca_assert(
 	&& false !== strpos( $checks_rendered, 'npcink-cloud-kv' )
 	&& false !== strpos( $checks_rendered, 'Reading credits' )
 	&& false === strpos( $checks_rendered, 'Nightly site check' )
-	&& false !== strpos( $checks_rendered, 'Run detailed checks' )
+	&& false !== strpos( $checks_rendered, 'Check connection and account access' )
 	&& false === strpos( $checks_rendered, '<table' )
 	&& false === strpos( $checks_rendered, 'Change account' )
 	&& false === strpos( $checks_rendered, 'npcink-cloud-secondary-tabs' )
@@ -676,6 +682,55 @@ maca_assert(
 		|| false !== strpos( $checks_rendered, 'Activate the WordPress AI plugin' )
 	),
 	'Behavior: Checks leads with verification context, folds troubleshooting facts, and exposes generation tests or AI plugin guidance.'
+);
+
+$_GET['support'] = 'ai-error';
+ob_start();
+$checks_renderer->invoke( null, Npcink_Cloud_Addon_Settings::get_settings(), Npcink_Cloud_Addon_Settings::get_credential_state(), array( 'available' => false ), true );
+$support_landing = (string) ob_get_clean();
+unset( $_GET['support'] );
+maca_assert(
+	false !== strpos( $support_landing, 'id="npcink-cloud-checks-more" open' )
+	&& false !== strpos( $support_landing, 'id="npcink-cloud-copy-troubleshooting"' )
+	&& false === strpos( $checks_rendered, 'id="npcink-cloud-checks-more" open' ),
+	'Behavior: editor support link opens the existing troubleshooting disclosure and has a stable copy-button anchor, while ordinary Checks stays folded.'
+);
+
+$before_localized = count( $GLOBALS['maca_localized_scripts'] );
+$before_error = get_option( Npcink_Cloud_WordPress_AI_Connector::LAST_AI_ERROR_OPTION, array() );
+Npcink_Cloud_WordPress_AI_Connector::enqueue_editor_error_actions( 'plugins.php' );
+maca_assert( $before_localized === count( $GLOBALS['maca_localized_scripts'] ), 'Editor error actions: unrelated admin screens enqueue no notice navigation.' );
+Npcink_Cloud_WordPress_AI_Connector::enqueue_editor_error_actions( 'post.php' );
+$error_rules = end( $GLOBALS['maca_localized_scripts'] )['data']['rules'];
+maca_assert(
+	12 === count( $error_rules )
+	&& str_contains( $error_rules[1]['url'], 'tab=checks' ) && str_ends_with( $error_rules[1]['url'], '#npcink-cloud-checks-actions' )
+	&& str_ends_with( $error_rules[4]['url'], '/portal/billing' ) && $error_rules[4]['url'] === $error_rules[5]['url']
+	&& str_ends_with( $error_rules[6]['url'], '#npcink-cloud-copy-troubleshooting' )
+	&& $before_error === get_option( Npcink_Cloud_WordPress_AI_Connector::LAST_AI_ERROR_OPTION, array() ),
+	'Editor error actions: connection, billing and troubleshooting have specific routes; building navigation never records a new AI failure.'
+);
+$GLOBALS['maca_manage_options'] = false;
+Npcink_Cloud_WordPress_AI_Connector::enqueue_editor_error_actions( 'post-new.php' );
+$restricted_rules = end( $GLOBALS['maca_localized_scripts'] )['data']['rules'];
+unset( $GLOBALS['maca_manage_options'] );
+maca_assert(
+	array() === array_filter( $restricted_rules, static fn( $rule ) => '' !== $rule['url'] )
+	&& str_contains( $restricted_rules[1]['message'], 'Ask your site administrator' ),
+	'Editor error actions: non-administrators get no inaccessible settings or account link and receive an explicit administrator handoff.'
+);
+ob_start();
+$checks_renderer->invoke( null, Npcink_Cloud_Addon_Settings::get_settings(), Npcink_Cloud_Addon_Settings::get_credential_state(), array( 'state' => 'unavailable' ), true );
+$failed_checks = (string) ob_get_clean();
+$failed_doc = new DOMDocument();
+@$failed_doc->loadHTML( '<?xml encoding="utf-8" ?>' . $failed_checks );
+$failed_xpath = new DOMXPath( $failed_doc );
+$support_href = $failed_xpath->evaluate( 'string(//a[normalize-space(.)="Contact support"]/@href)' );
+maca_assert(
+	str_contains( $support_href, '/portal/support?' ) && str_contains( $support_href, 'new=1' )
+	&& 1 === $failed_xpath->query( '//div[@id="npcink-cloud-checks-actions"]/a[@href="#npcink-cloud-copy-troubleshooting"]' )->length
+	&& str_contains( $failed_checks, 'id="npcink-cloud-checks-more" open' ),
+	'Checks failure: Contact support opens the ticket form, with an adjacent link to the expanded copy-information action rather than the Portal home.'
 );
 
 ob_start();
@@ -981,9 +1036,62 @@ $site_knowledge_renderer->invoke(
 $built_index_rendered = (string) ob_get_clean();
 maca_assert(
 	false === strpos( $built_index_rendered, 'Start indexing' )
-	&& false !== strpos( $built_index_rendered, 'Up to date' )
+	&& false !== strpos( $built_index_rendered, 'Automatic content updates are enabled.' )
 	&& false === strpos( $built_index_rendered, 'Ready to index' ),
 	'Behavior: the initial indexing bootstrap disappears once the knowledge base has been built.'
+);
+
+// A Cloud sample gap is not proof that a job is running; excluded content can be absent.
+$GLOBALS['maca_transients'][ $status_cache_key ]['article_coverage'] = array( 'not_indexed_count' => 1, 'has_more' => true );
+$idle_delivery = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
+$idle_delivery['buffer_count'] = 0;
+$idle_delivery['maintenance_status'] = 'completed';
+$idle_delivery['maintenance_active'] = false;
+$idle_delivery['last_delivery_at'] = '2026-11-16T06:30:56Z';
+ob_start();
+$site_knowledge_renderer->invoke( null, $idle_delivery, Npcink_Cloud_Addon_Settings::get_settings(), true );
+$coverage_gap_html = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $coverage_gap_html, 'Automatic content updates are enabled.' )
+	&& false !== strpos( $coverage_gap_html, 'Last sent to Cloud:' )
+	&& false === strpos( $coverage_gap_html, 'Sending public content' )
+	&& false === strpos( $coverage_gap_html, 'Updating automatically' )
+	&& false === strpos( $coverage_gap_html, 'Up to date' ),
+	'Behavior: sampled Cloud coverage gaps and a completed cursor never claim active updates or indexing completion; the date identifies content sending.'
+);
+$idle_delivery['buffer_count'] = 2;
+ob_start();
+$site_knowledge_renderer->invoke( null, $idle_delivery, Npcink_Cloud_Addon_Settings::get_settings(), true );
+$waiting_delivery_html = (string) ob_get_clean();
+maca_assert(
+	false !== strpos( $waiting_delivery_html, 'Content changes are waiting to be sent automatically.' )
+	&& false === strpos( $waiting_delivery_html, 'Sending public content' )
+	&& false === strpos( $waiting_delivery_html, '>Update knowledge base<' ),
+	'Behavior: buffered content is waiting, not already sending, and does not invite duplicate manual recovery.'
+);
+unset( $GLOBALS['maca_transients'][ $status_cache_key ]['article_coverage'] );
+
+$delivery_time_formatter = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'format_delivery_time' );
+if ( PHP_VERSION_ID < 80100 ) { $delivery_time_formatter->setAccessible( true ); }
+$calendar_now = strtotime( '2026-11-16T12:00:00Z' );
+foreach ( array(
+	'2026-11-16T06:30:56Z' => 'Today 06:30',
+	'2026-11-15T06:30:56Z' => 'Yesterday 06:30',
+	'2026-11-14T06:30:56Z' => '11-14 06:30',
+	'2025-11-16T06:30:56Z' => '2025-11-16 06:30',
+) as $at => $expected_label ) {
+	$formatted = $delivery_time_formatter->invoke( null, $at, $calendar_now );
+	maca_assert( $expected_label === $formatted['label'] && 19 === strlen( $formatted['full'] ) && strtotime( $at ) === strtotime( $formatted['iso'] ), 'Delivery time: compact calendar label retains the full timestamp and instant: ' . $expected_label );
+}
+$new_year_time = $delivery_time_formatter->invoke( null, '2025-12-31T23:59:59Z', strtotime( '2026-01-01T00:01:00Z' ) );
+maca_assert( 'Yesterday 23:59' === $new_year_time['label'], 'Delivery time: yesterday crosses the calendar-year boundary.' );
+maca_assert( array() === $delivery_time_formatter->invoke( null, '', $calendar_now ) && array() === $delivery_time_formatter->invoke( null, 'not-a-date', $calendar_now ), 'Delivery time: missing or invalid evidence does not manufacture a date.' );
+maca_assert(
+	false === strpos( $site_knowledge_rendered, 'Let AI reference your public posts and pages when generating content.' )
+	&& false !== strpos( $overview_rendered, '<details class="npcink-cloud-knowledge-help">' )
+	&& false !== strpos( $overview_rendered, 'Content changes are sent to Cloud automatically. Excluded content is not sent.' )
+	&& false !== strpos( $coverage_gap_html, '<details class="npcink-cloud-delivery-time" data-npcink-site-knowledge-last-updated>' ),
+	'Behavior: static purpose and update mechanics are in closed help outside refreshed status; the full timestamp is expandable.'
 );
 
 $dropped_status = Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot();
@@ -1001,13 +1109,27 @@ $site_knowledge_renderer->invoke(
 $dropped_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $dropped_rendered, 'Needs attention' )
-	&& false !== strpos( $dropped_rendered, '3 content updates could not be delivered and were dropped. Use Sync to include them again.' )
+	&& false !== strpos( $dropped_rendered, '3 content updates could not be delivered and were dropped. Click Update knowledge base to resend them.' )
+	&& false === strpos( $dropped_rendered, 'href="#npcink-cloud-site-knowledge"' )
 	&& false !== strpos( $dropped_rendered, '>Update knowledge base<' )
 	&& false !== strpos( $dropped_rendered, 'Update knowledge base' )
 	&& false === strpos( $dropped_rendered, 'Update again' )
 	&& false === strpos( $dropped_rendered, 'Updating ·' )
 	&& false === strpos( $dropped_rendered, 'The system will keep trying automatically.' ),
 	'Behavior: dropped content changes surface one attention row with Sync recovery instead of a false auto-retry promise.'
+);
+
+$dropped_disabled_settings = Npcink_Cloud_Addon_Settings::get_settings();
+$dropped_disabled_settings['site_knowledge_delivery_enabled'] = false;
+$dropped_disabled_status = $dropped_status;
+$dropped_disabled_status['delivery_enabled'] = false;
+ob_start();
+$site_knowledge_renderer->invoke( null, $dropped_disabled_status, $dropped_disabled_settings, true );
+$dropped_disabled_html = (string) ob_get_clean();
+maca_assert(
+	str_contains( $dropped_disabled_html, '3 content updates could not be delivered and were dropped. Turn on Site Knowledge, then click Update knowledge base to resend them.' )
+	&& ! str_contains( $dropped_disabled_html, '>Update knowledge base<' ),
+	'Knowledge recovery guidance: when delivery is off, enable it first rather than promising a currently unavailable recovery button.'
 );
 
 foreach ( array( 'queued', 'delivering', 'retrying', 'blocked' ) as $maintenance_state ) {
@@ -1023,7 +1145,7 @@ foreach ( array( 'queued', 'delivering', 'retrying', 'blocked' ) as $maintenance
 	$is_recovering = in_array( $maintenance_state, array( 'queued', 'delivering', 'retrying' ), true );
 	maca_assert(
 		$is_recovering
-			? false !== strpos( $recovery_html, 'Public content is being re-sent to Cloud.' ) && false !== strpos( $recovery_html, '>Updating<' ) && false === strpos( $recovery_html, '>Update knowledge base<' ) && false === strpos( $recovery_html, 'were dropped' )
+			? false !== strpos( $recovery_html, 'Public content is being re-sent to Cloud.' ) && false !== strpos( $recovery_html, 'delivering' === $maintenance_state ? 'Sending public content to Cloud. No action is needed.' : 'Content changes are waiting to be sent automatically.' ) && false === strpos( $recovery_html, '>Update knowledge base<' ) && false === strpos( $recovery_html, 'were dropped' )
 			: false !== strpos( $recovery_html, 'Needs attention' ) && false !== strpos( $recovery_html, '>Update knowledge base<' ),
 		'Behavior: recovery progress replaces historical-drop warnings while retrying or blocked delivery keeps recovery visible: ' . $maintenance_state
 	);
@@ -1042,7 +1164,7 @@ $dropped_cleared_rendered = (string) ob_get_clean();
 maca_assert(
 	false === strpos( $dropped_cleared_rendered, 'were dropped' )
 	&& false === strpos( $dropped_cleared_rendered, 'Update again' )
-	&& false !== strpos( $dropped_cleared_rendered, 'Up to date' )
+	&& false !== strpos( $dropped_cleared_rendered, 'Automatic content updates are enabled.' )
 	&& false === strpos( $dropped_cleared_rendered, 'All public content is up to date' ),
 	'Behavior: the dropped-change recovery entry hides again once the dropped fact is cleared.'
 );
@@ -1166,17 +1288,88 @@ foreach ( array( array(), array( 'dropped_count' => 1 ), array( 'last_delivery_e
 			'Behavior: stale warning renders without Cloud reads and dropped content exposes the Site Knowledge recovery action.'
 		);
 	} else {
-		// Connection/auth SK failure: top summary only (not duplicated as Overview notice).
+		// Site Knowledge delivery failures stay on Overview/Checks and do not
+		// turn a successful connection into a duplicate connection warning.
 		maca_assert(
-			false !== strpos( $summary_html, 'Needs attention' )
+			false !== strpos( $summary_html, 'out of date' )
 			&& false !== strpos( $summary_html, 'name="action" value="npcink_cloud_addon_save"' )
-			&& false === strpos( $overview_html, 'Site Knowledge needs attention' )
-			&& false !== strpos( $summary_html, 'dashicons-external' )
+			&& false !== strpos( $overview_html, 'Site Knowledge needs attention' )
+			&& false === strpos( $overview_html, 'A recent Site Knowledge delivery could not reach or authenticate with Cloud.' )
 			&& $http_before === count( $GLOBALS['maca_http_requests'] ),
-			'Behavior: stale warning renders without Cloud reads and dropped content exposes the Site Knowledge recovery action.'
+			'Behavior: stale connection evidence remains actionable while Site Knowledge delivery failures stay on the product surface.'
 		);
 	}
 }
+
+// A fresh signed Cloud read must not duplicate an independent Site Knowledge
+// delivery failure in the page-level connection summary.
+$fresh_delivery = array( 'delivery_enabled' => true, 'last_delivery_error' => 'Failed', 'last_error_code' => 'fixture_failed' );
+ob_start();
+$render_summary->invoke( null, $settings, $state, array( 'available' => true, 'stale' => false, 'state' => 'fresh' ), $fresh_delivery );
+$fresh_summary_html = (string) ob_get_clean();
+ob_start();
+$render_overview->invoke( null, $settings, $state, array( 'available' => true, 'stale' => false, 'state' => 'fresh' ), array(), $fresh_delivery, true );
+$fresh_overview_html = (string) ob_get_clean();
+maca_assert(
+	'' === $fresh_summary_html
+	&& false !== strpos( $fresh_overview_html, 'Site Knowledge needs attention' )
+	&& false !== strpos( $fresh_overview_html, '>Update knowledge base<' )
+	&& false !== strpos( $fresh_overview_html, 'Click Update knowledge base to resend public content.' )
+	&& false === strpos( $fresh_overview_html, '#npcink-cloud-connection-summary' ),
+	'Behavior: a successful connection check hides the duplicate connection banner while preserving the Site Knowledge recovery action.'
+);
+
+// Exhausted image removal is not repaired by resending articles. Keep the
+// effective support path even when an article failure is also recorded.
+$delivery_detail_renderer = new ReflectionMethod( Npcink_Cloud_Settings_Page::class, 'render_site_knowledge_bridge_health_detail' );
+$delivery_detail_renderer->setAccessible( true );
+$saved_maintenance = $GLOBALS['maca_options'][ Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION ] ?? null;
+$support_operations = array();
+for ( $i = 0; $i < 100; $i++ ) {
+	$support_operations[] = array( 'id' => sprintf( 'operation-fixture-%03d', $i ), 'action' => 'withdraw_media', 'status' => 'blocked', 'reason' => 'withdrawal_unconfirmed', 'polls' => 50, 'secret' => 'must-not-leak', 'items' => array( 'retained-content' ) );
+}
+$GLOBALS['maca_options'][ Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION ] = array( '_lifecycle' => array( 'scopes' => array( Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope() => array( 'operations' => $support_operations ) ) ) );
+foreach ( array(
+	array( 'last_error_code' => 'media_withdrawal_blocked' ),
+	array( 'last_error_code' => 'article_failure', 'last_delivery_error' => 'Article failed', 'media_cleanup_error' => 'media_withdrawal_blocked' ),
+) as $failure ) {
+	$http_before = count( $GLOBALS['maca_http_requests'] );
+	$delivery = array_merge( array( 'delivery_enabled' => true ), $failure );
+	ob_start();
+	$site_knowledge_renderer->invoke( null, $delivery, $settings, true );
+	$blocked_media_html = (string) ob_get_clean();
+	ob_start();
+	$delivery_detail_renderer->invoke( null, $delivery );
+	$blocked_detail_html = (string) ob_get_clean();
+	preg_match( '/<textarea[^>]*>(.*?)<\/textarea>/s', $blocked_media_html, $packet_match );
+	$packet = json_decode( html_entity_decode( $packet_match[1] ?? '', ENT_QUOTES, 'UTF-8' ), true );
+	preg_match( '/href="([^"]*\/portal\/support\?[^"]*)"/', $blocked_media_html, $support_link );
+	parse_str( (string) parse_url( html_entity_decode( $support_link[1] ?? '', ENT_QUOTES, 'UTF-8' ), PHP_URL_QUERY ), $prefill );
+	$prefill_summary = json_decode( strstr( $prefill['description'] ?? '', '{' ) ?: '', true );
+	maca_assert(
+		str_contains( $blocked_media_html, 'WordPress has no self-service recovery' )
+		&& str_contains( $blocked_media_html, 'Copy fault information' )
+		&& str_contains( $blocked_media_html, '/portal/support?' )
+		&& str_contains( $blocked_media_html, 'topic=site' )
+		&& str_contains( $blocked_media_html, 'site=' . rawurlencode( (string) $settings['site_id'] ) )
+		&& 'Knowledge base image removal stuck' === ( $prefill['title'] ?? '' )
+		&& str_contains( $prefill['description'] ?? '', 'media_withdrawal_blocked' )
+		&& ! str_contains( $prefill['description'] ?? '', (string) $settings['secret'] )
+		&& 100 === ( $prefill_summary['operation_count'] ?? 0 ) && 5 === count( $prefill_summary['operations'] ?? array() )
+		&& 100 === count( $packet['operations'] ?? array() )
+		&& strlen( $support_link[1] ?? '' ) < 4000
+		&& ! str_contains( $blocked_media_html, 'must-not-leak' ) && ! str_contains( $blocked_media_html, 'retained-content' )
+		&& ! str_contains( $blocked_media_html, 'name="action" value="npcink_cloud_addon_refresh_site_knowledge"' )
+		&& str_contains( $blocked_detail_html, 'Review or add details, then submit' )
+		&& str_contains( $blocked_detail_html, 'media_withdrawal_blocked' )
+		&& ! str_contains( $blocked_detail_html, '#npcink-cloud-connection-summary' )
+		&& is_array( $packet ) && array( 'issue', 'site_id', 'operations' ) === array_keys( $packet )
+		&& 'media_withdrawal_blocked' === $packet['issue'] && $settings['site_id'] === $packet['site_id']
+		&& $http_before === count( $GLOBALS['maca_http_requests'] ),
+		'Behavior: blocked media removal offers copyable site evidence and a site-scoped support ticket with submission instructions, without an ineffective article resend or connection loop.'
+	);
+}
+$GLOBALS['maca_options'][ Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION ] = $saved_maintenance;
 
 foreach ( array( 'queued', 'delivering', 'blocked' ) as $maintenance_state ) {
 	$delivery = array( 'dropped_count' => 11, 'maintenance_status' => $maintenance_state );
@@ -1219,7 +1412,7 @@ $http_before_fragments = count( $GLOBALS['maca_http_requests'] );
 $healthy_fragments = Npcink_Cloud_Settings_Page::get_admin_status_fragments( true );
 maca_assert(
 	'' === trim( $healthy_fragments['connection'] )
-	&& false !== strpos( $healthy_fragments['knowledge'], 'Up to date' )
+	&& false !== strpos( $healthy_fragments['knowledge'], 'Automatic content updates are enabled.' )
 	&& false === strpos( $healthy_fragments['knowledge'], 'All public content is up to date' )
 	&& false === strpos( $healthy_fragments['knowledge'], '>Update knowledge base<' )
 	&& false !== strpos( $healthy_fragments['knowledge'], 'View knowledge base in Cloud' )
@@ -1348,6 +1541,7 @@ $checks_dom = new DOMDocument();
 $checks_xpath = new DOMXPath( $checks_dom );
 maca_assert(
 	false !== strpos( $healthy_checks, 'The last connection verification passed.' )
+	&& 1 === $checks_xpath->query( '//div[contains(@class,"npcink-cloud-checks-simple")]/p[contains(text(),"Connection checks do not generate AI content or resolve failed editor requests.")]' )->length
 	&& strpos( $healthy_checks, 'Connection verified:' ) < strpos( $healthy_checks, 'Check connection' )
 	&& 1 === $checks_xpath->query( '//input[@name="return_tab" and @value="checks"]' )->length
 	&& 0 === $checks_xpath->query( '//details[@id="npcink-cloud-checks-more" and @open]' )->length,
@@ -1471,7 +1665,7 @@ maca_assert(
 	'Diagnostics hierarchy: healthy configuration is summarized without generation claims; routine buffer facts stay in closed technical details with zero HTTP.'
 );
 maca_assert(
-	strpos( $compact_diagnostic, 'Run detailed checks' ) < strpos( $compact_diagnostic, 'Technical details' )
+	strpos( $compact_diagnostic, 'Check connection and account access' ) < strpos( $compact_diagnostic, 'Technical details' )
 	&& strpos( $compact_diagnostic, 'Technical details' ) < strpos( $compact_diagnostic, 'Copy troubleshooting information' )
 	&& 1 === $diagnostic_xpath->query( '//button[contains(@class,"button-link") and text()="Copy troubleshooting information"]' )->length,
 	'Diagnostics hierarchy: check action precedes technical evidence and the quiet support-copy action.'

@@ -242,6 +242,44 @@ maca_assert(
 	&& 'long_prompt_copy' === npcink_cloud_addon_ai_i18n_audit_classify_missing( str_repeat( 'Image generation prompt. ', 12 ), array( 'build-scripts/features/image-generation.js' ) ),
 	'AI localization audit keeps dynamic metadata, schema fields, and image prompts separate from fixed UI.'
 );
+maca_assert(
+	'dynamic_ability_metadata' === npcink_cloud_addon_ai_i18n_audit_classify_missing( 'WebMCP', array( 'includes/Experiments/WebMCP/WebMCP.php' ) )
+	&& 'dynamic_ability_metadata' === npcink_cloud_addon_ai_i18n_audit_classify_missing( 'Generates speech audio from text or from a post&#8217;s content.', array( 'includes/Experiments/Text_To_Speech/Text_To_Speech.php' ) )
+	&& 'fixed_ui_candidates' === npcink_cloud_addon_ai_i18n_audit_classify_missing( 'Voice', array( 'includes/Experiments/Text_To_Speech/Text_To_Speech.php' ) )
+	&& 'fixed_ui_candidates' === npcink_cloud_addon_ai_i18n_audit_classify_missing( 'WebMCP', array( 'build-scripts/admin/new-page.js' ) ),
+	'Reviewed registration metadata stays outside the shim without excluding settings labels or unrelated UI sources.'
+);
+
+foreach ( array( 'build-scripts/experiments/mcp-adapter.js', 'build-scripts/experiments/abilities-explorer.js' ) as $bundle ) {
+	$entry = array();
+	npcink_cloud_addon_ai_i18n_audit_extract_domainless( '(0,t._x)("Filter","verb");(0,t._x)("<div>Page</div>%1$s<div>of %2$d</div>","paging");(0,t.__)("Actions");(0,t._n)("%d Item selected","%d Items selected",d);', $bundle, $entry );
+	maca_assert(
+		npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( 'Filter', $entry['Filter'] )
+		&& npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( '%d Item selected', $entry['%d Item selected'] )
+		&& npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( 'Actions', $entry['Actions'] )
+		&& npcink_cloud_addon_ai_i18n_audit_bundled_call_covered( '<div>Page</div>%1$s<div>of %2$d</div>', $entry['<div>Page</div>%1$s<div>of %2$d</div>'] ),
+		'AI 1.5 DataViews exception covers reviewed calls in ' . $bundle
+	);
+}
+
+$error_source = <<<'PHP'
+<?php
+// new WP_Error( 'ignored', __( 'Comment is not an error', 'ai' ) );
+$schema = array( 'description' => __( 'The current content.', 'ai' ) );
+new \WP_Error( 'invalid', sprintf( __( 'The JSON input is invalid: %s', 'ai' ), $value ), array( 'description' => __( 'Error data schema', 'ai' ) ) );
+new WP_Error( 'short', esc_html__( 'A minimum of %d characters is required.', 'ai' ) );
+PHP;
+$error_strings = array();
+npcink_cloud_addon_ai_i18n_audit_extract_strings( $error_source, 'includes/Abilities/Demo/Demo.php', $error_strings );
+npcink_cloud_addon_ai_i18n_audit_mark_error_messages( $error_source, 'includes/Abilities/Demo/Demo.php', $error_strings );
+$error_groups = npcink_cloud_addon_ai_i18n_audit_group_missing( array_keys( $error_strings ), $error_strings );
+maca_assert(
+	array( 'The JSON input is invalid: %s', 'A minimum of %d characters is required.' ) === $error_groups['ability_error_notices']
+	&& empty( $error_strings['Comment is not an error']['error_notice'] )
+	&& empty( $error_strings['The current content.']['error_notice'] )
+	&& empty( $error_strings['Error data schema']['error_notice'] ),
+	'WP_Error message arguments override schema wording without classifying comments, data or adjacent metadata as UI.'
+);
 
 ob_start();
 $strict_status = npcink_cloud_addon_ai_i18n_audit_main(

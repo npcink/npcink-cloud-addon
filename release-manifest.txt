@@ -9,6 +9,7 @@ assets/admin-source-selection.js
 assets/admin-status-fragments.js
 assets/admin.css
 assets/ai-plugin-localization.js
+assets/editor-error-actions.js
 includes/bootstrap.php
 includes/class-ai-plugin-localization.php
 includes/class-cloud-addon-cleanup.php
@@ -19,6 +20,7 @@ includes/class-cloud-discoverability-pause.php
 includes/class-cloud-credential-store.php
 includes/class-cloud-customer-journey.php
 includes/class-cloud-editor-assist-quality.php
+includes/class-cloud-editor-error-actions.php
 includes/class-cloud-entitlement-summary.php
 includes/class-cloud-media-artifact-verification.php
 includes/class-cloud-media-derivative-transport.php
