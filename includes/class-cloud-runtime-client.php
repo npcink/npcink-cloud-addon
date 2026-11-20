@@ -1171,7 +1171,7 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 				return new WP_Error(
 					'cloud_runtime_request_failed',
 					$this->format_transport_error_message( $response->get_error_message() ),
-					array( 'status' => 502 )
+					array( 'status' => 502, 'dispatch_unconfirmed' => 'http_request_failed' === $response->get_error_code() )
 				);
 			}
 
