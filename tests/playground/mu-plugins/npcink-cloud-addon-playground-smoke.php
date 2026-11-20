@@ -11,9 +11,23 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/npcink-cloud-addon-playground-ai-context.php';
+
 add_action(
 	'rest_api_init',
 	static function (): void {
+		foreach ( array( 'read', 'failure' ) as $kind ) {
+			register_rest_route( 'npcink-cloud-addon-playground/v1', '/context-' . $kind, array(
+				'methods' => 'GET', 'permission_callback' => '__return_true',
+				'callback' => static function () use ( $kind ) {
+					if ( 'read' === $kind ) {
+						return rest_ensure_response( Npcink_Cloud_WordPress_AI_Connector::current_text_ability_context() );
+					}
+					$failed = npcink_playground_context_ability( 'fixture/failure', static function () { return new WP_Error( 'fixture_failure', 'Controlled callback failure.' ); } );
+					return $failed->execute( array() );
+				},
+			) );
+		}
 		register_rest_route(
 			'npcink-cloud-addon-playground/v1',
 			'/smoke',
@@ -77,6 +91,7 @@ function npcink_cloud_addon_playground_compatibility_response() {
 			'addon_active'               => $addon_active,
 			'abilities_api_present'      => $abilities_api_present,
 			'connector_runtime_present'  => $connector_runtime_present,
+			'context_execution_checks'   => npcink_playground_verify_ai_context(),
 			'active_plugin_names'        => $active_plugin_names,
 		)
 	);

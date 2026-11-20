@@ -335,3 +335,9 @@ maca_assert( ! is_wp_error( $accepted ), 'Ability schema byte cap uses UTF-8 JSO
 $unicode_schema_contract['output_schema']['description'] = str_repeat( '文', 4001 );
 $rejected = Npcink_Cloud_AI_Task_Contract::normalize( $unicode_schema_contract );
 maca_assert( is_wp_error( $rejected ) && 'cloud_ai_task_output_schema_invalid' === $rejected->get_error_code(), 'Ability schema retains the 12,000 UTF-8-byte ceiling.' );
+
+foreach ( array( 'ai/block-container-label-generation' => 'generation', 'ai/revision-change-summary' => 'analysis' ) as $new_ability => $family ) {
+	$GLOBALS['maca_abilities'][ $new_ability ] = new Maca_AI_Task_Test_Ability( $new_ability, array(), array( 'type' => 'analysis' === $family ? 'object' : 'string' ) );
+	$new_contract = Npcink_Cloud_AI_Task_Contract::project_registered_ability( $new_ability );
+	maca_assert( is_array( $new_contract ) && $family === $new_contract['task_family'] && 'suggestion_only' === $new_contract['write_posture'], 'AI 1.5 editor Ability uses the bounded family runtime with host-owned schema: ' . $new_ability );
+}

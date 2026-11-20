@@ -92,6 +92,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Scene_Model' ) ) {
 		}
 
 		/**
+		 * Enforces the host's optional connector approval before any provider spend.
+		 */
+		protected static function assert_connector_approved(): void {
+			$error = Npcink_Cloud_WordPress_AI_Approval::check();
+			if ( is_wp_error( $error ) ) {
+				self::throw_user_facing( $error->get_error_message(), true );
+			}
+		}
+
+		/**
 		 * Throws the shared user-facing runtime exception.
 		 *
 		 * The message comes from the connector's plain-text user-facing
@@ -100,10 +110,16 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Scene_Model' ) ) {
 		 * carries that exception-to-escaping decision for every scene model.
 		 *
 		 * @param string $message Plain-text user-facing failure message.
+		 * @param bool $approval Whether this is the host approval denial.
 		 * @return void
 		 * @throws \WordPress\AiClient\Common\Exception\RuntimeException Always.
 		 */
-		protected static function throw_user_facing( string $message ): void {
+		protected static function throw_user_facing( string $message, bool $approval = false ): void {
+			if ( $approval ) {
+				require_once __DIR__ . '/class-cloud-wordpress-ai-approval-exception.php';
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- plain text; the host escapes exception text.
+				throw new Npcink_Cloud_WordPress_AI_Approval_Exception( $message );
+			}
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- plain text by contract; the AI client escapes at render time.
 			throw new \WordPress\AiClient\Common\Exception\RuntimeException( $message );
 		}

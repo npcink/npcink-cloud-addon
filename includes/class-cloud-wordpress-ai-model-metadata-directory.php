@@ -151,7 +151,10 @@ if (
 				array(
 					new \WordPress\AiClient\Providers\Models\DTO\SupportedOption(
 						\WordPress\AiClient\Providers\Models\Enums\OptionEnum::inputModalities(),
-						array( array( \WordPress\AiClient\Messages\Enums\ModalityEnum::text() ) )
+						array(
+							array( \WordPress\AiClient\Messages\Enums\ModalityEnum::text() ),
+							array( \WordPress\AiClient\Messages\Enums\ModalityEnum::text(), \WordPress\AiClient\Messages\Enums\ModalityEnum::image() )
+						)
 					),
 					new \WordPress\AiClient\Providers\Models\DTO\SupportedOption(
 						\WordPress\AiClient\Providers\Models\Enums\OptionEnum::outputModalities(),

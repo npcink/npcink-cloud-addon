@@ -24,18 +24,14 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		public const SETTING_NAME = 'npcink_cloud_addon_wp_ai_connector_connected';
 
 		/**
-		 * Current validated WordPress AI alt-text ability input.
+		 * Request-scoped stack of validated Ability inputs.
 		 *
-		 * @var array<string,mixed>
-		 */
-		private static $alt_text_ability_context = array();
-
-		/**
-		 * Current validated WordPress AI text ability context.
-		 *
-		 * @var array<string,mixed>
+		 * @var list<array<string,mixed>>
 		 */
 		private static $text_ability_context = array();
+
+		/** @var list<array{request: mixed, context: array}> Suspended REST caller frames. */
+		private static $rest_ability_context = array();
 
 		/**
 		 * Cloud run ID returned by the current text runtime call, when present.
@@ -75,7 +71,14 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			add_filter( 'wpai_generated_image_filename', array( __CLASS__, 'filter_generated_image_filename' ), 10, 2 );
 			add_filter( 'wp_get_abilities_result', array( __CLASS__, 'prioritize_wordpress_ai_abilities_for_rest_list' ), 20, 2 );
 			add_action( 'wp_before_execute_ability', array( __CLASS__, 'begin_wordpress_ai_ability_context' ), 10, 3 );
-			add_action( 'wp_after_execute_ability', array( __CLASS__, 'end_wordpress_ai_ability_context' ), 10, 4 );
+			if ( version_compare( (string) ( $GLOBALS['wp_version'] ?? '6.9' ), '7.1', '>=' ) ) {
+				add_filter( 'wp_ability_execute_result', array( __CLASS__, 'finish_wordpress_ai_ability_context' ), 10, 4 );
+			} else {
+				add_action( 'wp_after_execute_ability', array( __CLASS__, 'end_wordpress_ai_ability_context' ), 10, 4 );
+			}
+			add_filter( 'rest_request_before_callbacks', array( __CLASS__, 'begin_rest_ability_context' ), 10, 3 );
+			add_filter( 'rest_request_after_callbacks', array( __CLASS__, 'clear_rest_ability_context' ), 10, 3 );
+			add_filter( 'rest_request_after_callbacks', array( 'Npcink_Cloud_WordPress_AI_Approval', 'explain_blocked_rest_error' ) );
 			add_action( 'shutdown', array( __CLASS__, 'reset_wordpress_ai_ability_context' ), 1 );
 		}
 
@@ -115,21 +118,15 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 */
 		public static function begin_wordpress_ai_ability_context( string $ability_name, $input, $ability = null ): void {
 			unset( $ability );
-			// Title and summary abilities invoke nested guideline abilities.
-			// Preserve the outer editor context until its own after-execute hook.
-			if ( 'ai/alt-text-generation' === $ability_name && is_array( $input ) ) {
-				self::$alt_text_ability_context = $input;
-			}
-			if ( is_array( $input ) && self::is_text_scene_ability( $ability_name ) ) {
-				self::$text_ability_context = array(
-					'ability_id' => $ability_name,
-					'input'      => $input,
-				);
-			}
+			// Track every frame: an unrelated nested Ability cannot borrow its parent's identity.
+			self::$text_ability_context[] = array(
+				'ability_id' => $ability_name,
+				'input'      => is_array( $input ) ? $input : array(),
+			);
 		}
 
 		/**
-		 * Clears the one-request ability context after successful execution.
+		 * Releases the matching Ability frame after every callback outcome.
 		 *
 		 * @param string $ability_name Ability name.
 		 * @param mixed  $input Ability input.
@@ -139,12 +136,46 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 */
 		public static function end_wordpress_ai_ability_context( string $ability_name, $input, $result, $ability = null ): void {
 			unset( $input, $result, $ability );
-			if ( 'ai/alt-text-generation' === $ability_name ) {
-				self::$alt_text_ability_context = array();
+			$context = end( self::$text_ability_context );
+			if ( is_array( $context ) && $ability_name === $context['ability_id'] ) {
+				array_pop( self::$text_ability_context );
 			}
-			if ( self::is_text_scene_ability( $ability_name ) && $ability_name === (string) ( self::$text_ability_context['ability_id'] ?? '' ) ) {
-				self::$text_ability_context = array();
+		}
+
+		/**
+		 * Releases context even on callback errors/output-validation failures in WP 7.1.
+		 *
+		 * @param mixed $result Unchanged callback result.
+		 * @param string $name Ability name.
+		 * @param mixed $input Validated Ability input.
+		 * @param mixed $ability Ability object.
+		 * @return mixed
+		 */
+		public static function finish_wordpress_ai_ability_context( $result, string $name, $input, $ability = null ) {
+			self::end_wordpress_ai_ability_context( $name, $input, $result, $ability );
+			return $result;
+		}
+
+		/** @param mixed $response Unchanged REST result. @param mixed $handler Handler. @param mixed $request REST request. @return mixed */
+		public static function begin_rest_ability_context( $response, $handler = array(), $request = null ) {
+			unset( $handler );
+			self::$rest_ability_context[] = array( 'request' => $request, 'context' => self::$text_ability_context );
+			self::$text_ability_context = array();
+			return $response;
+		}
+
+		/** @param mixed $response Unchanged REST result. @param mixed $handler Handler. @param mixed $request REST request. @return mixed */
+		public static function clear_rest_ability_context( $response, $handler = array(), $request = null ) {
+			unset( $handler );
+			// Restore the matching caller, discarding any scopes aborted by a nested callback exception.
+			while ( $scope = array_pop( self::$rest_ability_context ) ) {
+				if ( $scope['request'] === $request ) {
+					self::$text_ability_context = $scope['context'];
+					return $response;
+				}
 			}
+			self::$text_ability_context = array();
+			return $response;
 		}
 
 		/**
@@ -153,7 +184,8 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return bool
 		 */
 		public static function has_alt_text_ability_context(): bool {
-			return array() !== self::$alt_text_ability_context;
+			$context = self::current_text_ability_context();
+			return 'ai/alt-text-generation' === ( $context['ability_id'] ?? '' ) && ! empty( $context['input'] );
 		}
 
 		/**
@@ -162,10 +194,10 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return array<string,mixed>
 		 */
 		public static function consume_alt_text_ability_context(): array {
-			$context = self::$alt_text_ability_context;
-			self::$alt_text_ability_context = array();
-
-			return $context;
+			if ( ! self::has_alt_text_ability_context() ) {
+				return array();
+			}
+			return self::consume_text_ability_context()['input'];
 		}
 
 		/**
@@ -174,7 +206,7 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return void
 		 */
 		public static function reset_wordpress_ai_ability_context(): void {
-			self::$alt_text_ability_context = array();
+			self::$rest_ability_context = array();
 			self::$text_ability_context = array();
 			self::$last_cloud_run_id         = '';
 			self::reset_runtime_failure_evidence();
@@ -342,7 +374,18 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 		 * @return array<string,mixed>
 		 */
 		public static function current_text_ability_context(): array {
-			return self::$text_ability_context;
+			$context = end( self::$text_ability_context );
+			return is_array( $context ) && empty( $context['consumed'] ) ? $context : array();
+		}
+
+		/** @return array<string,mixed> One-use validated text context. */
+		public static function consume_text_ability_context(): array {
+			$context = self::current_text_ability_context();
+			$key = array_key_last( self::$text_ability_context );
+			if ( null !== $key ) {
+				self::$text_ability_context[ $key ]['consumed'] = true;
+			}
+			return $context;
 		}
 
 		/**
@@ -672,6 +715,14 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 				'direct_wordpress_write'     => false,
 				'content_storage'            => 'omitted_metadata_only',
 			);
+			if ( $is_error ) {
+				// Fixed connector metadata only; never copy exception detail or provider payloads.
+				$failure = self::current_runtime_failure_evidence();
+				if ( $run_id === ( $failure['run_id'] ?? null ) && 'artifact_validation' === ( $failure['error_stage'] ?? '' ) && in_array( $failure['quality_reason'] ?? '', array( 'artifact_contract', 'artifact_download', 'artifact_byte_verification', 'artifact_delivery_ack', 'artifact_ack_verification', 'candidate_conversion' ), true ) ) {
+					$context['error_stage'] = 'artifact_validation';
+					$context['quality_reason'] = (string) ( $failure['quality_reason'] ?? '' );
+				}
+			}
 
 			$log_data = array(
 				// WordPress AI log types describe the caller, not the content modality.
@@ -1103,32 +1154,5 @@ if ( ! class_exists( 'Npcink_Cloud_WordPress_AI_Connector' ) ) {
 			return substr( $value, 0, $max_length );
 		}
 
-		/**
-		 * Returns whether the current WordPress AI call is a supported text scene.
-		 *
-		 * @param string $ability_name Registered Ability name.
-		 * @return bool
-		 */
-		private static function is_text_scene_ability( string $ability_name ): bool {
-			return in_array(
-				$ability_name,
-				array(
-					'ai/comment-analysis',
-					'ai/content-classification',
-					'ai/content-resizing',
-					'ai/content-translation',
-					'ai/editorial-notes',
-					'ai/editorial-updates',
-					'ai/excerpt-generation',
-					'ai/image-prompt-generation',
-					'ai/meta-description',
-					'ai/slug-generation',
-					'ai/suggest-reply',
-					'ai/summarization',
-					'ai/title-generation',
-				),
-				true
-			);
-		}
 	}
 	}

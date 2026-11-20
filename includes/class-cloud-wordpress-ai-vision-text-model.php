@@ -23,6 +23,17 @@ if (
 		\WordPress\AiClient\Providers\Models\Contracts\ModelInterface,
 		\WordPress\AiClient\Providers\Models\TextGeneration\Contracts\TextGenerationModelInterface {
 
+		/** Reject structured, truncated, or marked-up output before the host fills an ALT field. */
+		protected function extract_text( array $response, string $expected_task ): string {
+			$text = parent::extract_text( $response, $expected_task );
+			$length = function_exists( 'mb_strlen' ) ? mb_strlen( $text, 'UTF-8' ) : preg_match_all( '/./us', $text );
+			if ( 'alt_text_suggest' !== $expected_task || ! is_int( $length ) || $length > 240 || 1 !== preg_match( '//u', $text )
+				|| preg_match( '/^[\s\x{FEFF}]*(?:[\{\[]|```)|<\/?[a-z][^>]*>|[\r\n]/iu', $text ) ) {
+				return '';
+			}
+			return $text;
+		}
+
 		/**
 		 * Generates alt text through the bounded Cloud vision runtime seam.
 		 *
@@ -33,6 +44,7 @@ if (
 			// Clear a prior ability's evidence before any validation or runtime call.
 			Npcink_Cloud_WordPress_AI_Connector::record_cloud_run_id( '' );
 			Npcink_Cloud_WordPress_AI_Connector::reset_runtime_failure_evidence();
+			self::assert_connector_approved();
 			$ability_input = Npcink_Cloud_WordPress_AI_Connector::consume_alt_text_ability_context();
 			if ( array() === $ability_input ) {
 				self::throw_user_facing( Npcink_Cloud_WordPress_AI_Connector::user_facing_connector_error( 'scene_not_supported', 'cloud_wp_ai_scene_not_supported' ) );

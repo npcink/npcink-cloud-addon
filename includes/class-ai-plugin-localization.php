@@ -91,7 +91,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		}
 
 		/**
-		 * Localizes two fixed UI errors returned outside wp-admin by REST.
+		 * Localizes reviewed fixed UI errors returned outside wp-admin by REST.
 		 *
 		 * @param WP_HTTP_Response $response Dispatched response.
 		 * @param WP_REST_Server   $server REST server.
@@ -99,7 +99,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		 * @return WP_HTTP_Response
 		 */
 		public static function filter_rest_ui_error( $response, $server, $request ) {
-			if ( ! in_array( $request->get_route(), array( '/ai/v1/settings/import', '/wp-abilities/v1/abilities/ai/slug-generation/run' ), true )
+			if ( ! in_array( $request->get_route(), array( '/ai/v1/settings/import', '/wp-abilities/v1/abilities/ai/slug-generation/run', '/wp-abilities/v1/abilities/ai/block-container-label-generation/run', '/wp-abilities/v1/abilities/ai/revision-change-summary/run' ), true )
 				|| 'POST' !== $request->get_method() || $response->get_status() < 400 ) {
 				return $response;
 			}
@@ -136,6 +136,16 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 			}
 			if ( '/wp-abilities/v1/abilities/ai/slug-generation/run' === $route && 'no_results' === $code
 				&& 'No slug suggestion was generated.' === $message ) {
+				return self::translations()[ $message ];
+			}
+			$fixed_errors = array(
+				'/wp-abilities/v1/abilities/ai/block-container-label-generation/run' => array( 'no_results' => 'No label was generated.' ),
+				'/wp-abilities/v1/abilities/ai/revision-change-summary/run' => array(
+					'no_results' => 'No summary of the changes was generated.',
+					'invalid_response' => 'Could not parse the AI response as a summary of changes.',
+				),
+			);
+			if ( $message === ( $fixed_errors[ $route ][ $code ] ?? null ) ) {
 				return self::translations()[ $message ];
 			}
 			return $message;
@@ -222,6 +232,7 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 					'Items per page',
 					'Properties',
 					'Add filter',
+					'Filter',
 					'View options',
 					'No results',
 					'Comfortable',
@@ -309,6 +320,8 @@ if ( ! class_exists( 'Npcink_Cloud_AI_Plugin_Localization' ) ) {
 		 */
 		private static function translation_entries(): array {
 			return array(
+				'Generates speech audio from text or from a post&#8217;s content.' => '根据文本或文章内容生成语音音频。',
+				'WebMCP' => 'WebMCP',
 				'AI' => 'AI',
 				// WordPress AI plugin 1.5.0: fixed settings labels and usage disclosures.
 				'Turn on stable Features and early-stage Experiments. Experiments may change or be removed in any release, and some run automatically once enabled, so try them on a staging site first.' => '启用稳定功能和早期实验功能。实验功能可能在任何版本中变更或移除，部分功能启用后会自动运行，建议先在测试站点试用。',

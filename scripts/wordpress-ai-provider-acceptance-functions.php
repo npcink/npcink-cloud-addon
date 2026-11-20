@@ -1,6 +1,65 @@
 <?php
 /** Development acceptance helpers; no Provider execution or WordPress writes. */
 
+/** Process-local safety guard for opt-in development acceptance, never plugin runtime. */
+final class Npcink_Cloud_Acceptance_Budget {
+	public int $dispatched = 0;
+	public string $stop_reason = '';
+	private int $maximum;
+	private string $base_url;
+
+	public function __construct( string $maximum, array $abilities, array $cases, string $base_url ) {
+		$this->maximum = preg_match( '/^[1-9][0-9]{0,2}$/D', $maximum ) ? (int) $maximum : 0;
+		$this->base_url = rtrim( $base_url, '/' );
+		if ( 0 === $this->maximum || empty( $abilities ) ) {
+			$this->stop_reason = 'live_opt_in_required';
+		} elseif ( empty( $cases ) || count( $cases ) > $this->maximum ) {
+			$this->stop_reason = 'selection_exceeds_budget_or_empty';
+		} elseif ( array_diff( $abilities, array_column( $cases, 'ability' ) ) ) {
+			$this->stop_reason = 'unknown_ability_selection';
+		} elseif ( '' === $this->base_url ) {
+			$this->stop_reason = 'cloud_destination_required';
+		}
+	}
+
+	/** Last pre-HTTP filter: reserve each outbound runtime submission, including nested attempts. */
+	public function guard( $preempt, array $args, string $url ) {
+		// A prior mock/error does not send traffic and must not consume budget.
+		if ( false !== $preempt ) {
+			return $preempt;
+		}
+		$path = str_starts_with( $url, $this->base_url . '/' ) ? substr( $url, strlen( $this->base_url ) ) : '';
+		$method = strtoupper( (string) ( $args['method'] ?? 'GET' ) );
+		$generation = 'POST' === $method && '/v1/runtime/execute' === $path;
+		$read = 'GET' === $method && ( '/v1/entitlements/current' === $path || preg_match( '#^/v1/runs/[A-Za-z0-9_-]+(?:/result)?$#D', $path ) || preg_match( '#^/v1/runtime/media/artifacts/art_[a-f0-9]{32}/download$#D', $path ) );
+		$delivery = 'POST' === $method && ( '/v1/runtime/media/uploads' === $path || preg_match( '#^/v1/runtime/media/artifacts/art_[a-f0-9]{32}/delivery-ack$#D', $path ) );
+		if ( '' === $this->stop_reason && ! $generation && ! $read && ! $delivery ) {
+			$this->stop_reason = 'unexpected_outbound_request';
+		}
+		if ( '' === $this->stop_reason && $generation && $this->dispatched >= $this->maximum ) {
+			$this->stop_reason = 'call_budget_exhausted';
+		}
+		if ( '' !== $this->stop_reason ) {
+			return new WP_Error( 'acceptance_' . $this->stop_reason, 'Acceptance stopped before outbound HTTP.' );
+		}
+		if ( $generation ) {
+			++$this->dispatched;
+		}
+		return false;
+	}
+
+	/** A failed HTTP request stops further submissions within the same Ability. */
+	public function observe( $response, string $context ): void {
+		if ( 'response' === $context && ( is_wp_error( $response ) || (int) wp_remote_retrieve_response_code( $response ) >= 400 ) ) {
+			$this->stop_reason = $this->stop_reason ?: 'http_request_failed';
+		}
+	}
+
+	public function receipt(): array {
+		return array( 'maximum_runtime_submissions' => $this->maximum, 'runtime_submissions' => $this->dispatched, 'stop_reason' => $this->stop_reason ?: null, 'upstream_provider_attempts' => 'not_measured' );
+	}
+}
+
 /** Preserve case evidence independently from the overall acceptance outcome. */
 function npcink_cloud_acceptance_finalize_report( array $report ): array {
 	$report['cases'] = $report['cases'] ?? array();
@@ -22,7 +81,7 @@ function npcink_cloud_acceptance_finalize_report( array $report ): array {
 	$report['failed'] = count( $report['cases'] ) - $passed;
 	$report['quality_status'] = ! empty( $report['cases'] ) && 0 === $report['failed'] ? 'passed' : 'failed';
 	$states = array_column( $report['cases'], 'evidence_state' );
-	if ( empty( $states ) || in_array( 'local_failed', $states, true ) || true === ( $report['write_detected'] ?? null ) ) {
+	if ( empty( $states ) || in_array( 'local_failed', $states, true ) || true === ( $report['write_detected'] ?? null ) || ! empty( $report['call_budget']['stop_reason'] ) ) {
 		$report['evidence_state'] = 'local_failed';
 	} elseif ( in_array( 'local_executed', $states, true ) || false !== ( $report['write_detected'] ?? null ) ) {
 		$report['evidence_state'] = 'local_executed';
@@ -83,9 +142,8 @@ function npcink_cloud_acceptance_quota_preflight_from_response( $response ): arr
 /**
  * Performs a read-only quota check before a batch acceptance run.
  *
- * An unavailable entitlement does not block the run, because the existing
- * request path remains the source of runtime diagnostics. An exhausted quota
- * is safe to block before any Provider call.
+ * The acceptance runner blocks model submissions when this read is unavailable
+ * or exhausted; diagnostic uncertainty must not spend the user's allowance.
  *
  * @return array<string,mixed>
  */
@@ -279,6 +337,25 @@ function npcink_cloud_acceptance_quality_failure( $ability, $data, array $input 
 	if ( 'ai/image-prompt-generation' === $ability && '' === npcink_cloud_acceptance_string( $data ) ) {
 		return 'image_prompt_empty';
 	}
+	if ( 'ai/block-container-label-generation' === $ability ) {
+		return is_string( $data ) && '' !== trim( $data ) && 1 === preg_match( '/^[^<>\r\n`#*]{1,80}$/u', $data )
+			&& ! in_array( strtolower( trim( $data ) ), array( 'content', 'section', 'text', 'group', 'columns', 'container' ), true ) ? null : 'block_label_invalid';
+	}
+	if ( 'ai/revision-change-summary' === $ability ) {
+		if ( ! is_array( $data ) || ! is_string( $data['summary'] ?? null ) || '' === trim( $data['summary'] )
+			|| ! is_array( $data['changes'] ?? null ) || ! is_bool( $data['truncated'] ?? null )
+			|| ( $data['revision_id'] ?? null ) !== ( $input['revision_id'] ?? null )
+			|| ( $data['from_revision_id'] ?? null ) !== ( $input['from_revision_id'] ?? null ) ) {
+			return 'revision_summary_invalid';
+		}
+		foreach ( $data['changes'] as $change ) {
+			if ( ! is_string( $change ) || '' === trim( $change ) ) {
+				return 'revision_summary_invalid';
+			}
+		}
+		return null;
+	}
+
 	if ( 'ai/image-generation' === $ability ) {
 		if ( ! is_array( $data )
 			|| 'image_generation_result.v1' !== (string) ( $data['contract_version'] ?? '' )

@@ -7,8 +7,9 @@
 
 declare(strict_types=1);
 
-// Three sandboxes must stay in subprocesses because their process-global
+// These sandboxes must stay in subprocesses because their process-global
 // replacements cannot coexist with the shared-process tests below:
+// - the approval test supplies host authorization and Ability execution stubs;
 // - the alt-text handoff test replaces current_user_can/get_post and the two
 //   plugin seam functions with signatures the real plugin code and the
 //   settings-page and site-knowledge sandboxes cannot share;
@@ -17,6 +18,12 @@ declare(strict_types=1);
 // - the cleanup custom-option test pins NPCINK_CLOUD_ADDON_OPTION_NAME to a
 //   custom value, which behavior-performance-guards.php already fixes to the
 //   default by loading the plugin file, and constants cannot be redefined.
+$approval_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-wordpress-ai-approval.php' );
+passthru( $approval_command, $approval_status );
+if ( 0 !== $approval_status ) {
+	exit( $approval_status );
+}
+
 $alt_text_handoff_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-wordpress-ai-alt-text-artifact-handoff.php' );
 passthru( $alt_text_handoff_command, $alt_text_handoff_status );
 if ( 0 !== $alt_text_handoff_status ) {

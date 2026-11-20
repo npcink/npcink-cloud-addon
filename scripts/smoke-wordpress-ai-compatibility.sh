@@ -204,13 +204,15 @@ if (!result.wordpress_ai_active) errors.push('WordPress AI is not active');
 if (!result.addon_active) errors.push('Cloud Addon is not active');
 if (!result.abilities_api_present) errors.push('Abilities API is not present');
 if (!result.connector_runtime_present) errors.push('Cloud connector runtime is not present');
+const contextChecks = result.context_execution_checks;
+if (!contextChecks || Object.keys(contextChecks).length !== 13 || Object.values(contextChecks).some(value => value !== true)) errors.push('Native Ability/REST context execution checks failed');
 if (!Array.isArray(result.active_plugin_names) || !result.active_plugin_names.includes('ai/ai.php')) errors.push('ai/ai.php is not active');
 if (!Array.isArray(result.active_plugin_names) || !result.active_plugin_names.includes('npcink-cloud-addon/npcink-cloud-addon.php')) errors.push('npcink-cloud-addon is not active');
 if (errors.length > 0) {
 	console.error(JSON.stringify({ lane, errors, result }, null, 2));
 	process.exit(gate === 'non_blocking_warning' ? 0 : 1);
 }
-console.log(JSON.stringify({ lane, wordpress_version: result.wordpress_version, wordpress_ai_version: result.wordpress_ai_version, php_version: result.php_version, addon_active: result.addon_active, abilities_api_present: result.abilities_api_present, connector_runtime_present: result.connector_runtime_present }));
+console.log(JSON.stringify({ lane, wordpress_version: result.wordpress_version, wordpress_ai_version: result.wordpress_ai_version, php_version: result.php_version, addon_active: result.addon_active, abilities_api_present: result.abilities_api_present, connector_runtime_present: result.connector_runtime_present, context_execution_checks: contextChecks }));
 NODE
 then
 	if [ "${GATE}" = 'non_blocking_warning' ]; then
@@ -220,4 +222,4 @@ then
 	fi
 fi
 
-echo "PASS: ${LANE} compatibility discovery and Addon boundary checks passed."
+echo "PASS: ${LANE} compatibility discovery, native context execution and Addon boundary checks passed."

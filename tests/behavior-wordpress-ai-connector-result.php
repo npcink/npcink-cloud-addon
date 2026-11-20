@@ -18,30 +18,6 @@ namespace WordPress\AI {
 	}
 }
 
-namespace WordPress\AI\Abilities\Suggest_Reply {
-	final class Suggest_Reply {
-		public function detected_scene_ability_name(): string {
-			$model  = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
-			$method = new \ReflectionMethod( $model, 'detect_scene_ability_name' );
-			$method->setAccessible( true );
-
-			return (string) $method->invoke( $model );
-		}
-	}
-}
-
-namespace WordPress\AI\Abilities\Image {
-	final class Generate_Image_Prompt {
-		public function detected_scene_ability_name(): string {
-			$model  = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
-			$method = new \ReflectionMethod( $model, 'detect_scene_ability_name' );
-			$method->setAccessible( true );
-
-			return (string) $method->invoke( $model );
-		}
-	}
-}
-
 namespace {
 	require_once __DIR__ . '/helpers.php';
 
@@ -49,6 +25,18 @@ namespace {
 	// class_exists guards on these shared empty classes.
 	require_once __DIR__ . '/wordpress-ai-client-stubs.php';
 	maca_load_addon_classes();
+	if ( ! function_exists( 'npcink_cloud_addon_upload_toolbox_site_media_visual_source' ) ) {
+		function npcink_cloud_addon_upload_toolbox_site_media_visual_source( array $file, string $trace_id = '', string $idempotency_key = '' ) {
+			$client = Npcink_Cloud_Runtime_Client_Factory::configured();
+			return $client ? $client->upload_media_artifact( $file, $trace_id, $idempotency_key ) : new \WP_Error( 'cloud_runtime_unconfigured', 'Npcink Cloud is not configured.' );
+		}
+	}
+	if ( ! function_exists( 'npcink_cloud_addon_execute_wordpress_ai_connector_runtime' ) ) {
+		function npcink_cloud_addon_execute_wordpress_ai_connector_runtime( array $request, string $trace_id = '', string $idempotency_key = '' ) {
+			$client = Npcink_Cloud_Runtime_Client_Factory::configured();
+			return $client ? $client->execute_wordpress_ai_connector_runtime( $request, $trace_id, $idempotency_key ) : new \WP_Error( 'cloud_runtime_unconfigured', 'Npcink Cloud is not configured.' );
+		}
+	}
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-scene-model.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-text-model.php';
@@ -94,10 +82,51 @@ namespace {
 		return (string) $parser->invoke( $model, $response, $expected_task );
 	}
 
+	if ( ! class_exists( 'Maca_Test_Image_Config' ) ) {
+		/** Minimal image config used to exercise the model transport seam. */
+		final class Maca_Test_Image_Config {
+			public function getFunctionDeclarations() {
+				return null;
+			}
+
+			public function getWebSearch() {
+				return null;
+			}
+
+			public function getCandidateCount() {
+				return 1;
+			}
+
+			public function getOutputMediaAspectRatio() {
+				return null;
+			}
+
+			public function getOutputMediaOrientation() {
+				return null;
+			}
+		}
+	}
+
 	$parser_models = array(
 		'Npcink_Cloud_WordPress_AI_Text_Model'        => 'content_summary',
 		'Npcink_Cloud_WordPress_AI_Vision_Text_Model' => 'alt_text_suggest',
 	);
+	$alt_response = array( 'data' => array( 'result' => array(
+		'contract_version' => 'cloud_connector_result.v1', 'suggestion_only' => true, 'connector_id' => 'npcink-cloud-addon',
+		'operation_contract' => array( 'contract_version' => 'wordpress_operation.v1', 'task' => 'alt_text_suggest' ),
+	) ) );
+	foreach ( array(
+		'{ "contractversion": "imagecontextevidence.v1", "artifacttype": "imagecontextevidence", "items": [ { "attachmentid": "20240628153729", "visualsummary": "红色太阳正在海平面上落下，天空被染成橙红色。',
+		'{"alt_text":"A garden."}', '["A garden."]', '```json {"alt_text":"A garden."}',
+		'<p>A garden.</p>', "A garden.\nMore explanation.", "Broken UTF-8 \xB1", str_repeat( '字', 241 ),
+	) as $bad_alt ) {
+		$alt_response['data']['result']['output']['output_text'] = $bad_alt;
+		maca_assert( '' === maca_invoke_connector_result_parser( 'Npcink_Cloud_WordPress_AI_Vision_Text_Model', $alt_response, 'alt_text_suggest' ), 'Vision rejects the captured truncated evidence JSON, structured output, markup, multiline and oversized ALT before host adoption.' );
+	}
+	foreach ( array( 'Sunset over the sea.', '蓝绿色编辑器模块围绕文档图标的插画。', str_repeat( '字', 240 ) ) as $good_alt ) {
+		$alt_response['data']['result']['output']['output_text'] = $good_alt;
+		maca_assert( $good_alt === maca_invoke_connector_result_parser( 'Npcink_Cloud_WordPress_AI_Vision_Text_Model', $alt_response, 'alt_text_suggest' ), 'Vision preserves bounded plain text in English and Chinese.' );
+	}
 	$parser_successes  = true;
 	$parser_rejections = true;
 	foreach ( $parser_models as $parser_model => $parser_task ) {
@@ -147,6 +176,16 @@ namespace {
 	);
 
 	$projection_model = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Text_Model' ) )->newInstanceWithoutConstructor();
+	maca_reset_test_state();
+	Npcink_Cloud_WordPress_AI_Connector::begin_wordpress_ai_ability_context( 'ai/alt-text-generation', array( 'attachment_id' => 123 ) );
+	$alt_text_rejected = false;
+	try {
+		$projection_model->generateTextResult( array() );
+	} catch ( \WordPress\AiClient\Common\Exception\RuntimeException $error ) {
+		$alt_text_rejected = true;
+	}
+	maca_assert( $alt_text_rejected && empty( $GLOBALS['maca_http_requests'] ), 'Text-only provider rejects ALT generation before HTTP; attachment input must use the vision provider.' );
+	Npcink_Cloud_WordPress_AI_Connector::reset_wordpress_ai_ability_context();
 	$projection_method = new \ReflectionMethod( 'Npcink_Cloud_WordPress_AI_Text_Model', 'project_short_text_scene_request' );
 	$projection_method->setAccessible( true );
 	// The deployed AI 1.5 user message already contains the full source and context.
@@ -215,15 +254,20 @@ namespace {
 		'Behavior: short-text projection keeps the original prompt when the Ability provides no content.'
 	);
 
-	maca_assert(
-		'ai/suggest-reply' === ( new \WordPress\AI\Abilities\Suggest_Reply\Suggest_Reply() )->detected_scene_ability_name(),
-		'Behavior: the text connector recognizes the WordPress AI suggest reply ability as a bounded scene.'
-	);
-	maca_assert(
-		'ai/image-prompt-generation' === ( new \WordPress\AI\Abilities\Image\Generate_Image_Prompt() )->detected_scene_ability_name(),
-		'Behavior: the text connector recognizes the current WordPress AI image-prompt ability class as a bounded scene.'
-	);
+	$editor_validator = new ReflectionMethod( $projection_model, 'valid_editor_output' );
+	$editor_validator->setAccessible( true );
+	foreach ( array( 'Product Features', '产品功能概览' ) as $label ) {
+		maca_assert( $editor_validator->invoke( $projection_model, 'block_container_label_generation', $label ), 'Block labels accept concise plain text in the source language.' );
+	}
+	foreach ( array( 'Content', "Features\nExplanation", '<b>Features</b>', str_repeat( 'x', 81 ) ) as $label ) {
+		maca_assert( ! $editor_validator->invoke( $projection_model, 'block_container_label_generation', $label ), 'Block labels reject generic, multiline, markup or unbounded output.' );
+	}
+	maca_assert( $editor_validator->invoke( $projection_model, 'revision_change_summary', '{"summary":"Added an approval step.","changes":["Requires administrator approval."]}' ), 'Revision summary accepts the model response before host-owned revision fields are attached.' );
+	foreach ( array( 'Plain text', '{"summary":"","changes":[]}', '{"summary":"Changed.","changes":[42]}', '{"summary":"Changed.","changes":[],"unexpected":999}' ) as $summary ) {
+		maca_assert( ! $editor_validator->invoke( $projection_model, 'revision_change_summary', $summary ), 'Revision summary rejects malformed content and undeclared fields.' );
+	}
 
+	maca_assert( $editor_validator->invoke( $projection_model, 'revision_change_summary', '{"summary":"Changed.","changes":[],"revision_id":999,"truncated":true}' ), 'Public-schema revision fields are accepted only for the official parser to discard and recompute from local revisions.' );
 	maca_reset_test_state();
 	maca_seed_settings( true );
 	$image_bytes = base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', true );
@@ -233,6 +277,9 @@ namespace {
 	$image_checksum    = 'sha256:' . hash( 'sha256', $image_bytes );
 	$image_expires_at  = gmdate( 'Y-m-d\TH:i:s\Z', time() + 1800 );
 	$image_ack_deadline = gmdate( 'Y-m-d\TH:i:s\Z', time() + 600 );
+	// Production Python ISO timestamps include microseconds and a UTC offset.
+	$image_expires_at = gmdate( 'Y-m-d\TH:i:s', time() + 1800 ) . '.702090+00:00';
+	$image_ack_deadline = $image_expires_at;
 	$image_result = array(
 		'contract_version'     => 'image_generation_result.v1',
 		'artifact_type'        => 'image_generation_artifacts',
@@ -292,6 +339,7 @@ namespace {
 			)
 		),
 	);
+	$image_http_queue = $GLOBALS['maca_http_response_queue'];
 	$image_model  = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Image_Model' ) )->newInstanceWithoutConstructor();
 	$image_parser = new \ReflectionMethod( $image_model, 'download_artifact_images' );
 	$image_parser->setAccessible( true );
@@ -309,6 +357,178 @@ namespace {
 		&& 'POST' === ( $image_ack_request['args']['method'] ?? null ),
 		'Behavior: image candidate recovery uses only the signed artifact pull and verified-transfer ACK endpoints.'
 	);
+
+	// Exercise the full WordPress AI File -> source upload -> artifact-only edit
+	// runtime path. The result remains a candidate; no WordPress write is made.
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	$edit_upload_artifact = array(
+		'artifact_id'    => 'art_' . str_repeat( 'c', 32 ),
+		'media_kind'     => 'image',
+		'status'         => 'available',
+		'content_type'   => 'image/png',
+		'format'         => 'png',
+		'width'          => 1,
+		'height'         => 1,
+		'filesize_bytes' => strlen( $image_bytes ),
+		'checksum'       => 'sha256:' . hash( 'sha256', $image_bytes ),
+		'expires_at'     => gmdate( 'Y-m-d\TH:i:s', time() + 1800 ) . '.702090+00:00',
+		'purged_at'      => null,
+	);
+	$edit_artifact_id = $edit_upload_artifact['artifact_id'];
+	$edit_delivery_id = 'mdl_' . str_repeat( 'd', 32 );
+	$edit_expires_at  = $edit_upload_artifact['expires_at'];
+	$edit_result = $image_result;
+	$edit_result['operation'] = 'image.edit.v1';
+	$edit_result['artifacts'][0] = array_merge(
+		$edit_result['artifacts'][0],
+		array(
+			'artifact_id'        => $edit_artifact_id,
+			'operation'          => 'image.edit.v1',
+			'artifact_reference' => array( 'artifact_id' => $edit_artifact_id ),
+			'filesize_bytes'     => strlen( $image_bytes ),
+			'checksum'           => $edit_upload_artifact['checksum'],
+			'expires_at'         => $edit_expires_at,
+		)
+	);
+	$GLOBALS['maca_http_response_queue'][] = array(
+		'response' => array( 'code' => 200 ),
+		'body'     => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data'   => array(
+					'result' => array(
+						'artifact_type'    => 'media_upload_artifact',
+						'contract_version' => 'media_upload_result.v1',
+						'artifact'         => $edit_upload_artifact,
+					),
+				),
+			)
+		),
+	);
+	$GLOBALS['maca_http_response_queue'][] = array(
+		'response' => array( 'code' => 200 ),
+		'body'     => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data'   => array(
+					'run_id' => 'run_wp_ai_image_edit_1',
+					'status' => 'succeeded',
+					'result' => array( 'contract_version' => 'cloud_connector_result.v1', 'output' => $edit_result ),
+				),
+			)
+		),
+	);
+	$GLOBALS['maca_http_response_queue'][] = array(
+		'response' => array( 'code' => 200 ),
+		'headers'  => array(
+			'Content-Type'                   => 'image/png',
+			'Content-Length'                 => (string) strlen( $image_bytes ),
+			'X-Npcink-Artifact-Id'           => $edit_artifact_id,
+			'X-Npcink-Artifact-Checksum'     => $edit_upload_artifact['checksum'],
+			'X-Npcink-Delivery-Id'            => $edit_delivery_id,
+			'X-Npcink-Delivery-Ack-Deadline' => $edit_expires_at,
+		),
+		'body'     => $image_bytes,
+	);
+	$GLOBALS['maca_http_response_queue'][] = array(
+		'response' => array( 'code' => 200 ),
+		'headers'  => array( 'Content-Type' => 'application/json' ),
+		'body'     => wp_json_encode(
+			array(
+				'status' => 'ok',
+				'data'   => array(
+					'contract_version'      => 'media_artifact_delivery_ack.v1',
+					'delivery_id'           => $edit_delivery_id,
+					'artifact_id'           => $edit_artifact_id,
+					'status'                => 'acknowledged',
+					'received_byte_size'    => strlen( $image_bytes ),
+					'received_checksum'     => $edit_upload_artifact['checksum'],
+					'byte_size_verified'    => true,
+					'checksum_verified'     => true,
+					'acknowledged_at'       => gmdate( 'Y-m-d\TH:i:s\Z' ),
+					'artifact_expires_at'   => $edit_expires_at,
+					'idempotent_replay'     => false,
+					'acknowledgement_scope' => 'verified_transfer_only',
+				),
+			)
+		),
+	);
+	$edit_model = ( new \ReflectionClass( 'Npcink_Cloud_WordPress_AI_Image_Model' ) )->newInstanceWithoutConstructor();
+	$edit_config_property = new \ReflectionProperty( $edit_model, 'config' );
+	$edit_config_property->setAccessible( true );
+	$edit_config_property->setValue( $edit_model, new Maca_Test_Image_Config() );
+	$edit_file = new \WordPress\AiClient\Files\DTO\File( base64_encode( $image_bytes ), 'image/png' );
+	$edit_prompt = new \WordPress\AiClient\Messages\DTO\Message(
+		\WordPress\AiClient\Messages\Enums\MessageRoleEnum::user(),
+		array(
+			new \WordPress\AiClient\Messages\DTO\MessagePart( 'Remove the background.' ),
+			new \WordPress\AiClient\Messages\DTO\MessagePart( $edit_file ),
+		)
+	);
+	$edit_result = $edit_model->generateImageResult( array( $edit_prompt ) );
+	$edit_upload_request  = $GLOBALS['maca_http_requests'][0] ?? array();
+	$edit_runtime_request = $GLOBALS['maca_http_requests'][1] ?? array();
+	$edit_upload_body     = (string) ( $edit_upload_request['args']['body'] ?? '' );
+	$edit_runtime_body    = json_decode( (string) ( $edit_runtime_request['args']['body'] ?? '' ), true );
+	maca_assert(
+		$edit_result instanceof \WordPress\AiClient\Results\DTO\GenerativeAiResult
+		&& 1 === count( $edit_result->candidates )
+		&& false !== strpos( $edit_upload_body, $image_bytes )
+		&& 'image_editing' === (string) ( $edit_runtime_body['input']['operation_contract']['task'] ?? '' )
+		&& $edit_artifact_id === (string) ( $edit_runtime_body['input']['operation_contract']['request']['source_artifact_id'] ?? '' )
+		&& 'Remove the background.' === (string) ( $edit_runtime_body['input']['operation_contract']['request']['prompt'] ?? '' )
+		&& false === strpos( (string) ( $edit_runtime_request['args']['body'] ?? '' ), base64_encode( $image_bytes ) )
+		&& str_ends_with( (string) ( $GLOBALS['maca_http_requests'][2]['url'] ?? '' ), '/v1/runtime/media/artifacts/' . $edit_artifact_id . '/download' )
+		&& str_ends_with( (string) ( $GLOBALS['maca_http_requests'][3]['url'] ?? '' ), '/v1/runtime/media/artifacts/' . $edit_artifact_id . '/delivery-ack' ),
+		'Behavior: a WordPress AI reference File is uploaded once, the edit runtime carries only source_artifact_id, and the result returns through verified candidate delivery without a WordPress write.'
+	);
+	maca_reset_test_state();
+	$remote_prompt = new \WordPress\AiClient\Messages\DTO\Message(
+		\WordPress\AiClient\Messages\Enums\MessageRoleEnum::user(),
+		array( new \WordPress\AiClient\Messages\DTO\MessagePart( 'Edit the reference.' ), new \WordPress\AiClient\Messages\DTO\MessagePart( new \WordPress\AiClient\Files\DTO\File( 'https://example.test/private.png', 'image/png' ) ) )
+	);
+	$remote_rejected = false;
+	try {
+		$edit_model->generateImageResult( array( $remote_prompt ) );
+	} catch ( \Throwable $error ) {
+		$remote_rejected = true;
+	}
+	maca_assert( $remote_rejected && empty( $GLOBALS['maca_http_requests'] ), 'Behavior: an SDK remote File has no inline bytes and is rejected without fetching its URL.' );
+	maca_reset_test_state();
+	maca_assert( array() === $image_parser->invoke( $edit_model, $image_result, '', 'image.edit.v1' ) && empty( $GLOBALS['maca_http_requests'] ), 'Behavior: an edit request never downloads or acknowledges a generation-typed result.' );
+	$stage_property = new \ReflectionProperty( $image_model, 'delivery_stage' );
+	$stage_property->setAccessible( true );
+	foreach ( array( 'artifact_download', 'artifact_byte_verification', 'artifact_delivery_ack', 'artifact_ack_verification', 'artifact_contract' ) as $failed_stage ) {
+		maca_reset_test_state();
+		maca_seed_settings( true );
+		$replay_queue = $image_http_queue;
+		$replay_result = $image_result;
+		if ( 'artifact_download' === $failed_stage ) {
+			$replay_queue[0] = new \WP_Error( 'http_request_failed', 'private download detail' );
+		} elseif ( 'artifact_byte_verification' === $failed_stage ) {
+			$replay_queue[0]['body'] = 'corrupt bytes';
+		} elseif ( 'artifact_delivery_ack' === $failed_stage ) {
+			$replay_queue[1] = new \WP_Error( 'http_request_failed', 'private ack detail' );
+		} elseif ( 'artifact_ack_verification' === $failed_stage ) {
+			$ack_body = json_decode( $replay_queue[1]['body'], true );
+			$ack_body['data']['artifact_expires_at'] = gmdate( 'Y-m-d\TH:i:s\Z', time() + 3600 );
+			$replay_queue[1]['body'] = wp_json_encode( $ack_body );
+		} else {
+			$replay_result['artifacts'][] = array_merge( $image_result['artifacts'][0], array( 'content_type' => 'application/json' ) );
+		}
+		$GLOBALS['maca_http_response_queue'] = $replay_queue;
+		$replay_failed = false;
+		try {
+			$image_parser->invoke( $image_model, $replay_result, 'trace-delivery-stage' );
+		} catch ( \Throwable $error ) {
+			$replay_failed = true;
+		}
+		$expected_requests = in_array( $failed_stage, array( 'artifact_download', 'artifact_byte_verification' ), true ) ? 1 : 2;
+		maca_assert( $replay_failed && $failed_stage === $stage_property->getValue( $image_model ) && $expected_requests === count( $GLOBALS['maca_http_requests'] ), 'Delivery failures retain their precise stage; invalid bytes never send a delivery acknowledgement.' );
+	}
+	maca_reset_test_state();
+	maca_seed_settings( true );
 	$connector_source = file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-connector.php' );
 	$image_model_source = file_get_contents( MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-image-model.php' );
 	$legacy_bypass_scope = ( is_string( $connector_source ) ? $connector_source : '' )
