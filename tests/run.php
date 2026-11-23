@@ -10,6 +10,7 @@ declare(strict_types=1);
 // These sandboxes must stay in subprocesses because their process-global
 // replacements cannot coexist with the shared-process tests below:
 // - the approval test supplies host authorization and Ability execution stubs;
+// - the title recovery test supplies a title-only Ability registration fixture;
 // - the alt-text handoff test replaces current_user_can/get_post and the two
 //   plugin seam functions with signatures the real plugin code and the
 //   settings-page and site-knowledge sandboxes cannot share;
@@ -22,6 +23,12 @@ $approval_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__
 passthru( $approval_command, $approval_status );
 if ( 0 !== $approval_status ) {
 	exit( $approval_status );
+}
+
+$title_recovery_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-wordpress-ai-title-recovery.php' );
+passthru( $title_recovery_command, $title_recovery_status );
+if ( 0 !== $title_recovery_status ) {
+	exit( $title_recovery_status );
 }
 
 $alt_text_handoff_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-wordpress-ai-alt-text-artifact-handoff.php' );

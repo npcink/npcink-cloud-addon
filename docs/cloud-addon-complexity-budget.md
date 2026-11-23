@@ -150,7 +150,7 @@ connector classes so they cannot grow unnoticed:
   (three lines declare the existing reference-image transport's text+image
   input combination so the native WordPress SDK can select it for refinement)
 - `includes/class-cloud-wordpress-ai-provider.php` — 79 lines
-- `includes/class-cloud-wordpress-ai-text-model.php` — 401 lines (seven added lines preserve AI 1.5 excerpt user-message roles and forward the validated resize action; four earlier lines reuse WordPress AI source normalization before short-text transport)
+- `includes/class-cloud-wordpress-ai-text-model.php` — 492 lines (bounded native title receipt recovery preserves the original run after an ambiguous transport failure; no local queue, content storage, or automatic re-dispatch)
 - `includes/class-cloud-wordpress-ai-vision-text-model.php` — 138 lines (host approval check and bounded ALT result validation)
 - `includes/class-cloud-wordpress-ai-scene-model.php` — 175 lines (six added lines
   preserve the approval exception type through the SDK without rewriting unrelated errors; shared host

@@ -23,6 +23,10 @@ if (
 		\WordPress\AiClient\Providers\Models\Contracts\ModelInterface,
 		\WordPress\AiClient\Providers\Models\TextGeneration\Contracts\TextGenerationModelInterface {
 
+		private const TITLE_RECOVERY_TTL = 900;
+		private const TITLE_RECOVERY_PENDING = 'cloud_wp_ai_title_recovery_pending';
+		private const TITLE_RECOVERY_UNAVAILABLE = 'cloud_wp_ai_title_recovery_unavailable';
+
 		/**
 		 * Generates a text result through the bounded Cloud runtime seam.
 		 *
@@ -165,13 +169,11 @@ if (
 				$journey_session_id
 			);
 
-			$started  = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
-			$response = npcink_cloud_addon_execute_registered_ai_task_runtime(
-				$ability_name,
-				$scene_input,
-				'trace_wp_ai_connector_' . wp_generate_uuid4(),
-				'wp_ai_connector_' . wp_generate_uuid4()
-			);
+			$started = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_start();
+			$trace_id = 'trace_wp_ai_connector_' . wp_generate_uuid4();
+			$response = 'ai/title-generation' === $ability_name && 'title_generation' === $task
+				? $this->execute_title_runtime( $ability_name, $scene_input, $trace_id, absint( $context_input['context'] ?? 0 ) )
+				: npcink_cloud_addon_execute_registered_ai_task_runtime( $ability_name, $scene_input, $trace_id, 'wp_ai_connector_' . wp_generate_uuid4() );
 			$duration_ms = Npcink_Cloud_WordPress_AI_Connector::runtime_timer_elapsed_ms( $started );
 			$log_event = array(
 					'type'                       => 'text',
@@ -189,12 +191,18 @@ if (
 				$evidence = Npcink_Cloud_WordPress_AI_Connector::record_runtime_failure_from_wp_error( $response );
 				$log_event['cloud_run_id'] = (string) ( $evidence['run_id'] ?? '' );
 				Npcink_Cloud_WordPress_AI_Connector::maybe_log_wordpress_ai_request_evidence( $log_event );
+				if ( self::TITLE_RECOVERY_PENDING === $error_code ) {
+					self::throw_user_facing( $response->get_error_message() );
+				}
 				Npcink_Cloud_Customer_Journey::capture_generation_failure(
 					$task,
 					$journey_session_id,
 					$duration_ms,
 					$response->get_error_code()
 				);
+				if ( self::TITLE_RECOVERY_UNAVAILABLE === $error_code ) {
+					self::throw_user_facing( $response->get_error_message() );
+				}
 				$cloud_code = $evidence['cloud_error_code'];
 				$error_stage = $evidence['error_stage'];
 				$diagnostic = '' !== $cloud_code ? $cloud_code : $error_code;
@@ -277,6 +285,93 @@ if (
 					'task'             => $task,
 					'suggestion_only'  => true,
 				)
+			);
+		}
+
+		/**
+		 * Retains only a short-lived key for an ambiguous title dispatch.
+		 *
+		 * @param string              $ability_name Native title Ability.
+		 * @param array<string,mixed> $input Projected scene request.
+		 * @param string              $trace_id Request trace.
+		 * @param int                 $post_id Editor context.
+		 * @return array<string,mixed>|\WP_Error
+		 */
+		private function execute_title_runtime( string $ability_name, array $input, string $trace_id, int $post_id ) {
+			$user_id = get_current_user_id();
+			$settings = Npcink_Cloud_Addon_Settings::get_settings();
+			$scope = wp_json_encode( array( $settings['base_url'] ?? '', $settings['site_id'] ?? '', $settings['key_id'] ?? '', $user_id, $post_id, $input ) );
+			$cache_key = $user_id > 0 && $post_id > 0 && is_string( $scope )
+				? 'npcink_cloud_title_recovery_' . hash_hmac( 'sha256', $scope, wp_salt( 'auth' ) )
+				: '';
+			$pending_key = '' !== $cache_key ? get_transient( $cache_key ) : false;
+			if ( is_string( $pending_key ) && '' !== $pending_key ) {
+				return $this->recover_title_result( $cache_key, $pending_key, $trace_id );
+			}
+
+			$key = 'wp_ai_connector_' . wp_generate_uuid4();
+			$response = npcink_cloud_addon_execute_registered_ai_task_runtime( $ability_name, $input, $trace_id, $key );
+			if ( '' !== $cache_key && is_wp_error( $response ) ) {
+				$data = $response->get_error_data();
+				if ( is_array( $data ) && ! empty( $data['dispatch_unconfirmed'] )
+					&& set_transient( $cache_key, $key, self::TITLE_RECOVERY_TTL ) ) {
+					return $this->title_recovery_pending();
+				}
+			}
+			return $response;
+		}
+
+		/**
+		 * Reads only the original receipt/result; missing is not permission to replay.
+		 *
+		 * @param string $cache_key Local transient key.
+		 * @param string $key Original idempotency key.
+		 * @param string $trace_id Request trace.
+		 * @return array<string,mixed>|\WP_Error
+		 */
+		private function recover_title_result( string $cache_key, string $key, string $trace_id ) {
+			$client = Npcink_Cloud_Runtime_Client_Factory::configured();
+			$receipt = $client ? $client->get_run_by_idempotency( $key, $trace_id ) : null;
+			$data = is_array( $receipt ) && is_array( $receipt['data'] ?? null ) ? $receipt['data'] : array();
+			$run_id = is_string( $data['run_id'] ?? null ) ? $data['run_id'] : '';
+			if ( '' === $run_id || $key !== ( $data['idempotency_key'] ?? null ) ) {
+				return $this->title_recovery_pending();
+			}
+
+			if ( in_array( $data['status'] ?? null, array( 'failed', 'canceled' ), true ) ) {
+				delete_transient( $cache_key );
+				return new \WP_Error( 'cloud_runtime_request_failed', '', array(
+					'cloud_error_code' => $data['error_code'] ?? '',
+					'cloud_error_data' => array( 'run_id' => $run_id, 'error_stage' => $data['error_stage'] ?? '' ),
+				) );
+			}
+			if ( $client && 'succeeded' === ( $data['status'] ?? null ) ) {
+				$result = $client->get_run_result( $run_id, $trace_id );
+				$error_data = is_wp_error( $result ) ? $result->get_error_data() : null;
+				if ( is_array( $error_data ) && in_array( $error_data['cloud_error_code'] ?? null, array( 'runtime.result_not_ready', 'runtime.result_expired' ), true ) ) {
+					// The successful run is already terminal: no retained result will arrive.
+					delete_transient( $cache_key );
+					return new \WP_Error(
+						self::TITLE_RECOVERY_UNAVAILABLE,
+						__( 'The earlier title result is no longer available. Generate a new title to continue.', 'npcink-cloud-addon' ),
+						array( 'cloud_error_data' => array( 'run_id' => $run_id ) )
+					);
+				}
+				if ( is_array( $result ) && $run_id === ( $result['data']['run_id'] ?? null )
+					&& 'succeeded' === ( $result['data']['status'] ?? null ) && '' !== $this->extract_text( $result, 'title_generation' ) ) {
+					delete_transient( $cache_key );
+					return $result;
+				}
+			}
+			return $this->title_recovery_pending( $run_id );
+		}
+
+		/** Returns a nonterminal notice without exposing the idempotency key. */
+		private function title_recovery_pending( string $run_id = '' ): \WP_Error {
+			return new \WP_Error(
+				self::TITLE_RECOVERY_PENDING,
+				__( 'The title result is not available yet. Wait a moment, then try again with the same draft to check the original request.', 'npcink-cloud-addon' ),
+				array( 'cloud_error_data' => array( 'run_id' => $run_id ) )
 			);
 		}
 
