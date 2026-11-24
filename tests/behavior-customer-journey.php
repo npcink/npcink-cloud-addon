@@ -229,3 +229,141 @@ maca_assert(
 	&& $before_invalid === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: an invalid journey cohort fails closed before outbound HTTP.'
 );
+
+/** Builds a signed transport's stubbed Cloud response. */
+function maca_journey_delivery_response( int $status, array $envelope ): array {
+	return array( 'response' => array( 'code' => $status ), 'body' => wp_json_encode( $envelope ) );
+}
+
+$invalid_reference = array(
+	'status' => 'error',
+	'error_code' => 'customer_journey.run_reference_invalid',
+	'message' => 'Run reference rejected.',
+);
+$accepted_one = maca_journey_delivery_response( 200, array( 'status' => 'ok', 'data' => array( 'accepted_count' => 1 ) ) );
+$rejected_batch = maca_journey_delivery_response( 400, $invalid_reference );
+$capture_journey_runs = static function ( array $run_ids ): array {
+	maca_reset_test_state();
+	maca_seed_settings( true );
+	maca_set_monitoring_enabled( true );
+	foreach ( $run_ids as $run_id ) {
+		Npcink_Cloud_Customer_Journey::capture_generation( 'title_generation', 'succeeded', 'journey_session_for_delivery', 1, $run_id );
+	}
+	return maca_customer_journey_events();
+};
+
+$capture_journey_runs( array( 'run_valid_first', 'run_invalid', 'run_valid_last' ) );
+$GLOBALS['maca_http_response_queue'] = array( $rejected_batch, $accepted_one, $rejected_batch, $rejected_batch, $accepted_one );
+$recovered = Npcink_Cloud_Customer_Journey::flush_buffer();
+$status = get_option( Npcink_Cloud_Customer_Journey::STATUS_OPTION );
+$requested_runs = array_map(
+	static function ( array $request ): array {
+		return array_column( json_decode( $request['args']['body'], true )['events'], 'run_id' );
+	},
+	$GLOBALS['maca_http_requests']
+);
+maca_assert(
+	! empty( $recovered['ok'] )
+	&& 2 === $recovered['sent_count']
+	&& 1 === $recovered['rejected_count']
+	&& 2 === $status['total_sent']
+	&& 1 === $status['last_rejected_count']
+	&& array() === maca_customer_journey_events()
+	&& array( array( 'run_valid_first', 'run_invalid', 'run_valid_last' ), array( 'run_valid_first' ), array( 'run_invalid', 'run_valid_last' ), array( 'run_invalid' ), array( 'run_valid_last' ) ) === $requested_runs,
+	'Behavior: a definitive run rejection is isolated in order and does not block valid neighbors or count as delivered.'
+);
+
+foreach ( array(
+	maca_journey_delivery_response( 401, $invalid_reference ),
+	maca_journey_delivery_response( 429, $invalid_reference ),
+	maca_journey_delivery_response( 400, array_replace( $invalid_reference, array( 'error_code' => 'customer_journey.occurred_at_out_of_range' ) ) ),
+	new WP_Error( 'http_request_failed', 'Connection timed out.' ),
+) as $non_isolating_response ) {
+	$original = $capture_journey_runs( array( 'run_valid', 'run_invalid' ) );
+	$GLOBALS['maca_http_response_queue'] = array( $non_isolating_response );
+	$failed = Npcink_Cloud_Customer_Journey::flush_buffer();
+	maca_assert(
+		empty( $failed['ok'] )
+		&& 0 === $failed['rejected_count']
+		&& $original === maca_customer_journey_events()
+		&& 1 === count( $GLOBALS['maca_http_requests'] ),
+		'Behavior: neither a matching message, a non-400 code, nor a network failure can trigger isolation.'
+	);
+}
+
+$original = $capture_journey_runs( array( '' ) );
+$GLOBALS['maca_http_response_queue'] = array( $rejected_batch );
+$failed = Npcink_Cloud_Customer_Journey::flush_buffer();
+maca_assert(
+	empty( $failed['ok'] ) && 0 === $failed['rejected_count'] && $original === maca_customer_journey_events(),
+	'Behavior: even the exact Run rejection cannot discard a singleton that has no Run reference.'
+);
+
+$original = $capture_journey_runs( array( 'run_confirmed', 'run_still_pending', 'run_invalid', 'run_valid_last' ) );
+$GLOBALS['maca_http_response_queue'] = array( $rejected_batch, $accepted_one );
+$partial = Npcink_Cloud_Customer_Journey::flush_buffer();
+maca_assert(
+	! empty( $partial['ok'] )
+	&& 0 === $partial['rejected_count']
+	&& 1 === $partial['sent_count']
+	&& array_slice( $original, 1 ) === maca_customer_journey_events()
+	&& 2 === count( $GLOBALS['maca_http_requests'] ),
+	'Behavior: a partially acknowledged child removes only its accepted prefix and defers the later half.'
+);
+
+$original = $capture_journey_runs( array( 'run_confirmed', 'run_invalid', 'run_response_lost' ) );
+$GLOBALS['maca_http_response_queue'] = array( $rejected_batch, $accepted_one, $rejected_batch, $rejected_batch, new WP_Error( 'http_request_failed', 'Connection timed out.' ) );
+$failed = Npcink_Cloud_Customer_Journey::flush_buffer();
+$status = get_option( Npcink_Cloud_Customer_Journey::STATUS_OPTION );
+$lost_request_key = $GLOBALS['maca_http_requests'][4]['args']['headers']['Idempotency-Key'] ?? '';
+maca_assert(
+	empty( $failed['ok'] )
+	&& 1 === $failed['sent_count']
+	&& 1 === $failed['rejected_count']
+	&& 1 === $status['total_sent']
+	&& 1 === $status['total_rejected']
+	&& '' !== $status['last_real_upload_at']
+	&& array_slice( $original, 2 ) === maca_customer_journey_events(),
+	'Behavior: an ambiguous failure retains only unresolved events and preserves counters from earlier responses.'
+);
+$GLOBALS['maca_http_response_queue'][] = static function () {
+	Npcink_Cloud_Customer_Journey::capture_generation( 'title_generation', 'started', 'journey_session_during_upload' );
+	return maca_journey_delivery_response( 200, array( 'status' => 'ok', 'data' => array( 'accepted_count' => 1, 'stored_count' => 0, 'duplicate_count' => 1 ) ) );
+};
+$duplicate = Npcink_Cloud_Customer_Journey::flush_buffer();
+$retry_key = $GLOBALS['maca_http_requests'][5]['args']['headers']['Idempotency-Key'] ?? '';
+maca_assert(
+	'' !== $retry_key && $lost_request_key === $retry_key
+	&& 1 === $duplicate['sent_count'] && 1 === $duplicate['duplicate_count'] && 0 === $duplicate['stored_count']
+	&& array( 'journey_session_during_upload' ) === array_column( maca_customer_journey_events(), 'anonymous_session_id' ),
+	'Behavior: retry uses the same key for the same sub-batch, honors Cloud deduplication and preserves events captured during HTTP.'
+);
+
+$original = $capture_journey_runs( array_merge( array_fill( 0, 8, 'run_invalid' ), array_fill( 0, 44, 'run_valid' ) ) );
+$respond_to_sub_batch = static function ( string $url, array $args ) use ( $rejected_batch ): array {
+	$events = json_decode( $args['body'], true )['events'];
+	if ( in_array( 'run_invalid', array_column( $events, 'run_id' ), true ) ) {
+		return $rejected_batch;
+	}
+	return maca_journey_delivery_response( 200, array( 'status' => 'ok', 'data' => array( 'accepted_count' => count( $events ) ) ) );
+};
+$GLOBALS['maca_http_response_queue'] = array_fill( 0, 9, $respond_to_sub_batch );
+$first = Npcink_Cloud_Customer_Journey::flush_buffer();
+$first_request = json_decode( $GLOBALS['maca_http_requests'][0]['args']['body'], true );
+maca_assert(
+	! empty( $first['ok'] )
+	&& 8 === count( $GLOBALS['maca_http_requests'] )
+	&& 50 === count( $first_request['events'] )
+	&& 0 < $first['rejected_count'] && 0 === $first['sent_count']
+	&& array_slice( $original, $first['rejected_count'] ) === maca_customer_journey_events(),
+	'Behavior: the request cap preserves the untouched FIFO tail while still making progress through invalid references.'
+);
+for ( $round = 0; $round < 10 && ! empty( maca_customer_journey_events() ); ++$round ) {
+	$GLOBALS['maca_http_response_queue'] = array_fill( 0, 8, $respond_to_sub_batch );
+	Npcink_Cloud_Customer_Journey::flush_buffer();
+}
+$status = get_option( Npcink_Cloud_Customer_Journey::STATUS_OPTION );
+maca_assert(
+	array() === maca_customer_journey_events() && 44 === $status['total_sent'] && 8 === $status['total_rejected'],
+	'Behavior: subsequent ordinary flushes drain the remaining valid events without treating Run rejections as deliveries.'
+);
