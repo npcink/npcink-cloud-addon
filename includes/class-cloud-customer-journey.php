@@ -23,6 +23,7 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 
 		private const MAX_BUFFER_ITEMS = 200;
 		private const MAX_BATCH_ITEMS = 50;
+		private const MAX_FLUSH_REQUESTS = 8;
 		private const TRACKED_TASKS = array(
 			'title_generation' => 'title_generation',
 			'content_summary'  => 'summary_generation',
@@ -166,7 +167,7 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 		}
 
 		/**
-		 * Uploads one bounded batch through the signed customer-journey endpoint.
+		 * Uploads one bounded batch, isolating definitively rejected run references.
 		 *
 		 * @return array<string,mixed>
 		 */
@@ -179,54 +180,83 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 				return self::remember_flush_result( array( 'ok' => true, 'sent_count' => 0, 'buffer_count' => 0 ) );
 			}
 
-			$batch = array_slice( $buffer, 0, self::MAX_BATCH_ITEMS );
+			$pending = array( array_slice( $buffer, 0, self::MAX_BATCH_ITEMS ) );
 			$client = new Npcink_Cloud_Runtime_Client();
-			$result = $client->send_customer_journey_events(
-				$batch,
-				'trace_customer_journey_' . wp_generate_uuid4(),
-				self::batch_idempotency_key( $batch )
+			$resolved_ids = array();
+			$outcome = array(
+				'ok'              => true,
+				'sent_count'      => 0,
+				'stored_count'    => 0,
+				'duplicate_count' => 0,
+				'rejected_count'  => 0,
 			);
-			if ( is_wp_error( $result ) ) {
-				return self::remember_flush_result( array(
-					'ok'           => false,
-					'sent_count'   => 0,
-					'buffer_count' => count( $buffer ),
-					'error'        => sanitize_text_field( $result->get_error_message() ),
-				) );
+			for ( $attempt = 0; $attempt < self::MAX_FLUSH_REQUESTS && ! empty( $pending ); ++$attempt ) {
+				$batch = array_pop( $pending );
+				$result = $client->send_customer_journey_events(
+					$batch,
+					'trace_customer_journey_' . wp_generate_uuid4(),
+					self::batch_idempotency_key( $batch )
+				);
+				if ( is_wp_error( $result ) ) {
+					$error_data = $result->get_error_data();
+					if ( is_array( $error_data )
+						&& 400 === ( $error_data['cloud_http_status'] ?? null )
+						&& 'customer_journey.run_reference_invalid' === ( $error_data['cloud_error_code'] ?? null )
+					) {
+						if ( count( $batch ) > 1 ) {
+							// Cloud rejected the entire batch before writing. Process the older half first.
+							$midpoint = intdiv( count( $batch ), 2 );
+							$pending[] = array_slice( $batch, $midpoint );
+							$pending[] = array_slice( $batch, 0, $midpoint );
+							continue;
+						}
+						if ( ! empty( $batch[0]['run_id'] ) ) {
+							$resolved_ids[] = (string) $batch[0]['event_id'];
+							++$outcome['rejected_count'];
+							continue;
+						}
+					}
+
+					$outcome['ok'] = false;
+					$outcome['error'] = sanitize_text_field( $result->get_error_message() );
+					break;
+				}
+
+				$data = is_array( $result['data'] ?? null ) ? $result['data'] : array();
+				if ( ! is_numeric( $data['accepted_count'] ?? null ) ) {
+					$outcome['ok'] = false;
+					$outcome['error'] = __( 'Cloud customer journey response did not include an accepted event count.', 'npcink-cloud-addon' );
+					break;
+				}
+				$accepted = min( count( $batch ), max( 0, (int) $data['accepted_count'] ) );
+				$resolved_ids = array_merge( $resolved_ids, array_column( array_slice( $batch, 0, $accepted ), 'event_id' ) );
+				$outcome['sent_count'] += $accepted;
+				$outcome['stored_count'] += min( $accepted, max( 0, absint( $data['stored_count'] ?? $accepted ) ) );
+				$outcome['duplicate_count'] += min( $accepted, max( 0, absint( $data['duplicate_count'] ?? 0 ) ) );
+				if ( $accepted < count( $batch ) ) {
+					break;
+				}
 			}
 
-			$data = is_array( $result['data'] ?? null ) ? $result['data'] : array();
-			if ( ! array_key_exists( 'accepted_count', $data ) || ! is_numeric( $data['accepted_count'] ) ) {
-				return self::remember_flush_result( array(
-					'ok' => false,
-					'sent_count' => 0,
-					'buffer_count' => count( $buffer ),
-					'error' => __( 'Cloud customer journey response did not include an accepted event count.', 'npcink-cloud-addon' ),
-				) );
+			// Refresh the non-autoloaded option after HTTP; another request may have appended events.
+			if ( function_exists( 'wp_cache_delete' ) ) {
+				wp_cache_delete( self::BUFFER_OPTION, 'options' );
 			}
-			$accepted = min( count( $batch ), max( 0, (int) $data['accepted_count'] ) );
-			if ( $accepted > 0 ) {
-				$latest = self::buffer();
-				$accepted_ids = array_column( array_slice( $batch, 0, $accepted ), 'event_id' );
-				$latest = array_values(
+			$buffer = self::buffer();
+			if ( ! empty( $resolved_ids ) ) {
+				$buffer = array_values(
 					array_filter(
-						$latest,
-						static function ( array $event ) use ( $accepted_ids ): bool {
-							return ! in_array( (string) ( $event['event_id'] ?? '' ), $accepted_ids, true );
+						$buffer,
+						static function ( array $event ) use ( $resolved_ids ): bool {
+							return ! in_array( (string) ( $event['event_id'] ?? '' ), $resolved_ids, true );
 						}
 					)
 				);
-				update_option( self::BUFFER_OPTION, $latest, false );
-				$buffer = $latest;
+				update_option( self::BUFFER_OPTION, $buffer, false );
 			}
 
-			return self::remember_flush_result( array(
-				'ok'              => true,
-				'sent_count'      => $accepted,
-				'stored_count'    => min( $accepted, max( 0, absint( $data['stored_count'] ?? $accepted ) ) ),
-				'duplicate_count' => min( $accepted, max( 0, absint( $data['duplicate_count'] ?? 0 ) ) ),
-				'buffer_count'    => count( $buffer ),
-			) );
+			$outcome['buffer_count'] = count( $buffer );
+			return self::remember_flush_result( $outcome );
 		}
 
 		/**
@@ -241,9 +271,10 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 			$previous = is_array( $previous ) ? $previous : array();
 			$ok = ! empty( $result['ok'] );
 			$sent = absint( $result['sent_count'] ?? 0 );
-			$total_sent = absint( $previous['total_sent'] ?? 0 ) + ( $ok ? $sent : 0 );
+			$total_sent = absint( $previous['total_sent'] ?? 0 ) + $sent;
+			$rejected = absint( $result['rejected_count'] ?? 0 );
 			$last_real_upload_at = sanitize_text_field( (string) ( $previous['last_real_upload_at'] ?? '' ) );
-			if ( $ok && $sent > 0 ) {
+			if ( $sent > 0 ) {
 				$last_real_upload_at = gmdate( 'c' );
 			}
 
@@ -252,8 +283,10 @@ if ( ! class_exists( 'Npcink_Cloud_Customer_Journey' ) ) {
 				'last_flush_at' => gmdate( 'c' ),
 				'last_flush_error' => $ok ? '' : sanitize_text_field( (string) ( $result['error'] ?? '' ) ),
 				'last_sent_count' => $sent,
+				'last_rejected_count' => $rejected,
 				'buffer_count' => absint( $result['buffer_count'] ?? 0 ),
 				'total_sent' => $total_sent,
+				'total_rejected' => absint( $previous['total_rejected'] ?? 0 ) + $rejected,
 				'last_real_upload_at' => $last_real_upload_at,
 			);
 			update_option( self::STATUS_OPTION, $status, false );

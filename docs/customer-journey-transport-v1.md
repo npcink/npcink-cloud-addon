@@ -52,10 +52,29 @@ wp config delete NPCINK_CLOUD_ADDON_CUSTOMER_JOURNEY_COHORT_ID
 
 ## Delivery and Query
 
-The local option buffer is capped at 200 events. Each best-effort flush sends at
-most 50 events to `POST /v1/customer-journey/events` using a content-addressed
-idempotency key. Failed or uncertain uploads retain the batch; accepted events
-alone are removed.
+The local option buffer is capped at 200 events. Each best-effort flush takes
+the oldest 50 events and normally sends them in one signed request to
+`POST /v1/customer-journey/events`. Each request uses a content-addressed
+idempotency key for exactly the events it sends.
+
+Only HTTP 400 with `customer_journey.run_reference_invalid` starts recovery:
+Cloud checks the Run references before storing any event in the rejected batch.
+The Addon bisects that batch, tries the older half first, and removes a rejected
+event only when the same response is returned for that event alone and it has a
+Run reference. It does not rewrite the reference or relax Cloud's authenticated
+site check. Every flush is capped at eight requests, including the first one.
+Unsent events are left for the next scheduled flush. A partial acknowledgement
+removes only the accepted prefix and ends the flush. Any other failure, including
+timeout, rate limiting, authentication or a different validation error, stops
+the flush and retains every event not already acknowledged or rejected alone.
+
+`local:journey:inspect` exposes the last and cumulative recovery counters so an
+operator can distinguish this bounded cleanup from a normal upload failure.
+`sent_count` and `total_sent` count Cloud-acknowledged events (including Cloud
+duplicates), even if a later sub-batch fails. Confirmed invalid references use
+separate local counters (`last_rejected_count`, `total_rejected`); they never
+advance the successful-upload timestamp or count as delivered. Recovery does
+not affect the separate native editor adoption feedback channel.
 
 `npcink_cloud_addon_get_customer_journey_summary()` performs a manual signed
 read from `GET /v1/customer-journey/summary`. It is deliberately a PHP helper,
