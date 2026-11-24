@@ -102,6 +102,10 @@ events; it does not create them.
   uploaded; compare Cloud storage with prior expected_cloud_event_id/run_id
   evidence."
 
+For an existing backlog after natural acceptance, follow the
+[Local recovery and reconciliation procedure](verification-evidence-standard.md#customer-journey-natural-delivery-and-local-backlog-recovery).
+Manual backlog recovery is not a substitute for natural WP-Cron evidence.
+
 ## Ownership Boundary
 
 Cloud owns metadata ingestion and read-only aggregation. WordPress continues to
