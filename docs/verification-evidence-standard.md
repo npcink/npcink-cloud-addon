@@ -100,6 +100,52 @@ a site-linked checkout update separate from Git cleanup.
 See the [2026-10-17 reconciliation retrospective](site-knowledge-reconciliation-retrospective-and-handoff-2026-10-17.md)
 for the dated case and remaining recovery acceptance.
 
+### Customer Journey: natural delivery and Local backlog recovery
+
+1. Confirm the Local site's mounted Addon and Web worker identity, the intended
+   development Cloud, monitoring consent, and Cloud health. Inspect the existing
+   queue with `composer run local:journey:inspect`. Keep a timestamped baseline
+   of event hashes and the expected journey steps outside the Git worktree.
+2. Use ordinary hourly WP-Cron for acceptance. For a blocked-batch fix, observe
+   an unassisted run that rejects a confirmed invalid reference and still
+   delivers a valid event from the same backlog. When diagnosing a transport
+   outage, verify unconfirmed events stay queued; do not classify connection
+   errors as invalid references. A healthy endpoint alone is not evidence of
+   successful delivery.
+3. After natural acceptance, an operator may authorize faster backlog recovery
+   for that Local development site only. From its verified WP-CLI context, run
+   only `wp cron event run npcink_cloud_addon_flush_observability`, one round at
+   a time and away from a due natural run. This is a shared observability hook:
+   confirm its other buffered uploads are in scope before running it. After
+   each round check Cloud health, queue progress, acknowledgements and explicit
+   rejections. Stop on rate limits, connectivity or unexpected errors, or a
+   nonempty queue with no progress. Resume only after the cause clears, with
+   pacing appropriate to the active rate limit. Do not bypass the hook, delete
+   queued events, alter limits, or add a faster recurring schedule. Recheck the
+   next due time and unchanged hourly recurrence; a manual run may move the
+   next due time.
+4. Reconcile the baseline read-only against the same authenticated site's Cloud
+   records. Distinguish stored events, confirmed single-event rejections absent
+   from Cloud, and anything unresolved. Verify the expected editor steps for
+   the original Run without rerunning generation or resaving content. Queue
+   zero is not a delivery receipt. Commit only aggregate evidence; retain
+   event hashes, Run references and other site-specific evidence privately.
+
+**2026-11-24 Local-to-M4 development case (Addon #365):** Web PHP-FPM was
+still loading the previous Addon after WP-CLI showed the intended version.
+Reloading only the Local site's PHP service and checking fresh Web assets
+established the loaded version. A separate M4 Docker disk-full failure reset
+connections; 152 queued events were retained. After the host operator restored
+disk capacity and Docker health without replacing volumes, a natural run
+delivered one valid event and rejected one invalid reference. A subsequent
+manual drain stopped on a short-window rate limit and resumed at a slower
+pace; that interval was not adopted as a site setting. Final read-only
+reconciliation of the 171 baseline events found 138 stored and 33 confirmed
+invalid and absent; the queue was empty and the expected title generation,
+acceptance and save steps matched. No new model invocation or editor write
+was needed. This closes the development transport incident, not production
+acceptance or evidence of user value.
+
 ## 跨系统回执与中断恢复验收
 
 变更“远端接受 → 本地保存回执/释放 owner → 后续推进”路径，或修复该路径卡住时，
