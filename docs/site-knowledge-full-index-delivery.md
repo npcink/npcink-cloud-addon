@@ -218,8 +218,11 @@ fresh presence 只证明 relational_index；必须独立以真实 backend 执行
 仍是一个既有 option/CAS，没有新队列、锁、表或框架。每次 JSON payload 上限 900,000
 字节，整个 serialized maintenance envelope 上限 4,194,304 字节；包含 full cursor、
 8 个以内 credential scopes、每 scope 最多 500 个 source/dispatch 和 100 个未决意图。
-自动媒体对账也必须写入当前 credential scope；当维护信封已有 8 个其他 scope 时，
-对账会停在本地并记录 `durability_full`，不会凭空创建第 9 个命名空间或推进游标。
+新增 scope 撞到 8 个上限时，最多用同一次 CAS 替换一个已知仅有媒体对账游标的旧
+scope；以后重连旧 scope 只需从头扫描。只有明确从新安装开始记录且三类记录
+（source、operation、dispatch）均为空的扫描位置可回收。任何 owner、旧版全量
+游标、未知字段、排除标记、意图、回执或 producer generation 都不作为可回收状态。
+没有安全候选时仍保留原记录并返回 `durability_full`；没有 TTL，也不会创建第 9 个 scope。
 达到 400 条派发或 2 MiB 压力后，每次最多核对 8 个 producer：只有 Cloud 正面 writer
 终态或确证 not_sent 且没有 active/blocked 操作引用、没有当前 full 请求引用才退休。
 unknown/inflight 不按时间清除；总预算满时拒绝新发、保留已有证据。

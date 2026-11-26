@@ -1852,9 +1852,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		}
 
 		private static function can_write_scope( array $state, string $namespace ): bool {
-			$scopes = $state['_lifecycle']['scopes'] ?? array();
-			return isset( $scopes[ $namespace ] ) || count( $scopes ) < self::MAX_DELIVERY_SCOPES;
+			return null !== self::make_room_for_scope( $state, $namespace );
 		}
+
 
 		/** Strict typed identities, bounded BEFORE deduplication; never absint(). */
 		public static function normalize_source_selection( $items ) {
@@ -1907,8 +1907,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				}
 			}
 			$before = self::delivery_state();
-			$next = $before;
 			$namespace = self::lifecycle_scope();
+			$next = self::make_room_for_scope( $before, $namespace );
 			$scope = $next['_lifecycle']['scopes'][ $namespace ] ?? array( 'sources' => array(), 'operations' => array(), 'dispatches' => array(), 'legacy_unknown' => empty( $before['_lifecycle']['coverage_started_without_credentials'] ) );
 			// Completed intents may retire; pending/blocked identities never age out.
 			foreach ( $scope['operations'] as $operation_id => $completed ) {
@@ -1919,7 +1919,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				}
 			}
 			$added_sources = count( array_filter( $items, static function ( $item ) use ( $scope ) { return ! isset( $scope['sources'][ self::source_key( $item ) ] ); } ) );
-			if ( count( $scope['operations'] ) >= 100 || count( $scope['sources'] ) + $added_sources > 500 || ! self::can_write_scope( $before, $namespace ) ) {
+			if ( null === $next || count( $scope['operations'] ) >= 100 || count( $scope['sources'] ) + $added_sources > 500 ) {
 				return self::lifecycle_error( 'durability_full' );
 			}
 			foreach ( $items as $item ) {
@@ -1964,7 +1964,8 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( ! empty( $before['_lifecycle']['owner'] ) ) {
 				return self::lifecycle_error( 'dispatch_owned' );
 			}
-			if ( ! self::can_write_scope( $before, $namespace ) ) { return self::lifecycle_error( 'durability_full' ); }
+			$next = self::make_room_for_scope( $before, $namespace );
+			if ( null === $next ) { return self::lifecycle_error( 'durability_full' ); }
 			if ( 'producer' === $purpose ) {
 				$payload = self::suppress_payload( $payload, $scope['sources'] );
 				if ( is_wp_error( $payload ) ) {
@@ -2010,7 +2011,6 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( ! is_string( $encoded ) || strlen( $encoded ) > 900000 ) { return self::lifecycle_error( 'payload_invalid' ); }
 			$fingerprint = hash( 'sha256', $encoded );
 			$token = wp_generate_uuid4();
-			$next = $before;
 			$scope['dispatches'][ $key ] = array_merge( $entry, array( 'source_fingerprint' => $source_fingerprint, 'payload' => $payload, 'fingerprint' => $fingerprint, 'key' => $key, 'purpose' => $entry['purpose'] ?? $purpose, 'operation' => $entry['operation'] ?? $operation, 'send_state' => 'sending' ) );
 			$next['_lifecycle']['scopes'][ $namespace ] = $scope;
 			$next['_lifecycle']['owner'] = array( 'token' => $token, 'scope' => $namespace, 'key' => $key, 'phase' => 'preparing' );
@@ -2605,11 +2605,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( is_wp_error( $result ) ) { self::record_media_reconciliation( $result->get_error_code() ); return; }
 			$current = self::delivery_state();
 			if ( self::lifecycle_scope() !== $namespace || $after !== (int) ( $current['_lifecycle']['scopes'][ $namespace ]['media_reconcile_after'] ?? 0 ) ) { return; }
-			if ( ! self::can_write_scope( $current, $namespace ) ) {
+			$next = self::make_room_for_scope( $current, $namespace );
+			if ( null === $next ) {
 				self::record_media_reconciliation( 'durability_full' );
 				return;
 			}
-			$next = $current;
 			$next['_lifecycle']['scopes'][ $namespace ] = array_merge( array( 'sources' => array(), 'operations' => array(), 'dispatches' => array(), 'legacy_unknown' => empty( $current['_lifecycle']['coverage_started_without_credentials'] ) ), $current['_lifecycle']['scopes'][ $namespace ] ?? array(), array( 'media_reconcile_after' => $page['next_after_source_id'] ) );
 			if ( $next === $current || self::compare_and_swap_delivery_state( $current, $next ) ) { self::record_media_reconciliation( '' ); }
 		}
@@ -2917,6 +2917,45 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			}
 
 			return '';
+		}
+
+		/**
+		 * At the scope cap, select at most one scan-only scope to replace in the
+		 * caller's existing CAS. Reconnecting that scope restarts enumeration.
+		 *
+		 * @param array<string,mixed> $state Original delivery envelope.
+		 * @param string              $namespace Scope being written.
+		 * @return array<string,mixed>|null Replacement base, or null if capacity cannot be reclaimed.
+		 */
+		private static function make_room_for_scope( array $state, string $namespace ): ?array {
+			$lifecycle = $state['_lifecycle'] ?? array();
+			if ( ! is_array( $lifecycle ) ) {
+				return null;
+			}
+			$scopes = $lifecycle['scopes'] ?? array();
+			if ( ! is_array( $scopes ) ) { return null; }
+			if ( isset( $scopes[ $namespace ] ) || count( $scopes ) < self::MAX_DELIVERY_SCOPES ) {
+				return $state;
+			}
+			// A legacy full cursor or any dispatch owner can still need old state.
+			if ( self::MAX_DELIVERY_SCOPES !== count( $scopes ) || 1 !== count( $state )
+				|| true !== ( $lifecycle['coverage_started_without_credentials'] ?? null )
+				|| array_diff_key( $lifecycle, array( 'coverage_started_without_credentials' => true, 'scopes' => true ) ) ) {
+				return null;
+			}
+			foreach ( $scopes as $key => $scope ) {
+				if ( ! is_string( $key ) || 1 !== preg_match( '/\A[a-f0-9]{64}\z/', $key ) || ! is_array( $scope ) || 5 !== count( $scope ) ) {
+					continue;
+				}
+				$cursor = $scope['media_reconcile_after'] ?? null;
+				if ( false === ( $scope['legacy_unknown'] ?? null ) && is_int( $cursor ) && $cursor >= 0
+					&& array() === ( $scope['sources'] ?? null ) && array() === ( $scope['operations'] ?? null )
+					&& array() === ( $scope['dispatches'] ?? null ) ) {
+					unset( $state['_lifecycle']['scopes'][ $key ] );
+					return $state;
+				}
+			}
+			return null;
 		}
 	}
 }

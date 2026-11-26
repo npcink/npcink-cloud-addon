@@ -46,8 +46,10 @@ class TypedOptionCAS {
  }
 	public string $options = 'fixture_options';
 	public int $writes = 0;
+	public $before_update = null;
 	public $after_update = null;
 	public function update( $table, $values, $where, $formats, $where_formats ): int {
+		if ( $this->before_update ) { $callback = $this->before_update; $this->before_update = null; $callback(); }
 		$current = get_option( $where['option_name'], array() );
 		if ( serialize( $current ) !== $where['option_value'] ) { return 0; }
 		$GLOBALS['maca_options'][ $where['option_name'] ] = unserialize( $values['option_value'] );
@@ -808,6 +810,68 @@ foreach ( array( false, true ) as $fills_during_read ) {
 		&& 'durability_full' === Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['media_reconcile_error'],
 		'Media reconciliation preserves the entire envelope when the eighth scope is taken ' . ( $fills_during_read ? 'during' : 'before' ) . ' the Cloud read.'
 	);
+}
+
+// Only a known scan-only scope is reusable; replacement is part of the original envelope CAS.
+foreach ( array( 'media', 'operation', 'dispatch', 'multiple', 'oversized', 'during_read', 'during_cas', 'owner', 'legacy_cursor' ) as $case ) {
+	$cloud = media_reset();
+	maca_add_public_post_fixture( 42 );
+	$state = typed_state();
+	$scopes = array();
+	for ( $i = 1; $i <= 8; $i++ ) {
+		$scopes[ hash( 'sha256', 'retained-scope-' . $i ) ] = array(
+			'sources' => array(), 'operations' => array(), 'dispatches' => array(),
+			'legacy_unknown' => false, 'media_reconcile_after' => $i,
+		);
+	}
+	$keys = array_keys( $scopes );
+	$prunable = $keys[7];
+	$scopes[ $keys[0] ]['sources'] = array( 'post:42' => array( 'state' => 'excluded' ) );
+	$scopes[ $keys[1] ]['operations'] = array( 'pending_intent' => array( 'status' => 'pending' ) );
+	$scopes[ $keys[2] ]['dispatches'] = array( 'uncertain_writer' => array( 'send_state' => 'uncertain' ) );
+	$scopes[ $keys[3] ]['legacy_unknown'] = true;
+	$scopes[ $keys[4] ]['producer_generation'] = 'restore_fixture';
+	$scopes[ $keys[5] ]['retire_cursor'] = 0;
+	unset( $scopes[ $keys[6] ]['legacy_unknown'] );
+	if ( 'multiple' === $case ) {
+		$scopes[ $keys[6] ]['legacy_unknown'] = false;
+		$prunable = $keys[6];
+	} elseif ( 'oversized' === $case ) {
+		$scopes[ hash( 'sha256', 'scope-from-a-legacy-over-budget-envelope' ) ] = $scopes[ $prunable ];
+	}
+	$state['_lifecycle']['scopes'] = $scopes;
+	if ( 'owner' === $case ) {
+		$state['_lifecycle']['owner'] = array( 'scope' => $prunable, 'key' => 'legacy_receipt', 'phase' => 'sending' );
+	} elseif ( 'legacy_cursor' === $case ) {
+		$state['request_id'] = 'legacy_full_delivery';
+	}
+	update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, $state );
+	$save_receipt = static function () use ( $state, $prunable ): void {
+		$state['_lifecycle']['scopes'][ $prunable ]['dispatches']['new_receipt'] = array( 'send_state' => 'uncertain' );
+		update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, $state );
+	};
+	if ( 'during_read' === $case ) {
+		$cloud->during_send = $save_receipt;
+	} elseif ( 'during_cas' === $case ) {
+		$GLOBALS['wpdb']->before_update = $save_receipt;
+	}
+	if ( 'operation' === $case ) {
+		Npcink_Cloud_Site_Knowledge_Change_Bridge::request_source_operation( 'exclude', typed_selection( 'post' ) );
+	} elseif ( 'dispatch' === $case ) {
+		Npcink_Cloud_Site_Knowledge_Change_Bridge::request_public_post_refresh( 42 );
+	} else {
+		Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+	}
+	$after = typed_state()['_lifecycle']['scopes'];
+	if ( in_array( $case, array( 'media', 'operation', 'dispatch', 'multiple' ), true ) ) {
+		unset( $scopes[ $prunable ] );
+		maca_assert( 8 === count( $after ) && ! isset( $after[ $prunable ] ) && array_intersect_key( $after, $scopes ) === $scopes && ! empty( typed_scope() ), 'A ' . $case . ' allocation replaces only the known scan-only scope.' );
+	} else {
+		if ( in_array( $case, array( 'during_read', 'during_cas' ), true ) ) {
+			$state['_lifecycle']['scopes'][ $prunable ]['dispatches']['new_receipt'] = array( 'send_state' => 'uncertain' );
+		}
+		maca_assert( $state === typed_state() && empty( typed_scope() ) && ! $cloud->mutations, 'Scope retirement retains the whole envelope for ' . $case . '.' );
+	}
 }
 
 $cloud=media_reset(); maca_add_public_post_fixture(42); typed_image(); $cloud->sources=array('media:501'=>true);
