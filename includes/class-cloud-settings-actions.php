@@ -159,7 +159,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$return_tab = is_string( $_POST['return_tab'] ?? null ) && in_array( $_POST['return_tab'], array( 'checks', 'connection' ), true ) ? $_POST['return_tab'] : '';
 
 			$base_url = isset( $_POST['base_url'] ) ? sanitize_text_field( wp_unslash( $_POST['base_url'] ) ) : '';
-			$api_key  = isset( $_POST['api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['api_key'] ) ) : '';
+			// Keep invalid submitted values distinct from an intentionally blank key.
+			$api_key  = isset( $_POST['api_key'] ) ? wp_unslash( $_POST['api_key'] ) : '';
 			$timeout  = isset( $_POST['timeout'] ) ? absint( wp_unslash( $_POST['timeout'] ) ) : 8;
 			$monitoring_enabled = ! empty( $_POST['monitoring_enabled'] );
 			$site_knowledge_delivery_enabled = ! empty( $_POST['site_knowledge_delivery_enabled'] );
@@ -201,7 +202,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$raw_state = filter_input( INPUT_GET, 'state', FILTER_UNSAFE_RAW );
 			$raw_code = filter_input( INPUT_GET, 'code', FILTER_UNSAFE_RAW );
 			$state = is_string( $raw_state ) ? sanitize_text_field( wp_unslash( $raw_state ) ) : '';
-			$code  = is_string( $raw_code ) ? sanitize_text_field( wp_unslash( $raw_code ) ) : '';
+			$code  = is_string( $raw_code ) ? $raw_code : '';
 			$auth_state = self::consume_authorization_state( $state );
 			if ( empty( $auth_state ) || '' === $code ) {
 				self::set_admin_notice( 'error', __( 'The connection link expired. Click Connect again.', 'npcink-cloud-addon' ) );
@@ -218,7 +219,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$settings = Npcink_Cloud_Addon_Settings::build_settings_from_admin_payload(
 				array(
 					'base_url' => $base_url,
-					'api_key'  => (string) ( $exchange['cloud_api_key'] ?? '' ),
+					'api_key'  => $exchange['cloud_api_key'],
 					'timeout'  => (int) ( Npcink_Cloud_Addon_Settings::get_settings()['timeout'] ?? 8 ),
 					'activation_state' => (string) ( $exchange['activation_state'] ?? '' ),
 					'activation_reason' => (string) ( $exchange['activation_reason'] ?? '' ),
@@ -776,6 +777,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 * @return array<string,mixed>|WP_Error
 		 */
 		private static function exchange_authorization_code( string $base_url, string $code, string $state ) {
+			if ( strlen( $code ) > 512 || 1 !== preg_match( '/\A[A-Za-z0-9_-]+\z/', $code ) ) {
+				return new WP_Error( 'cloud_authorization_code_invalid', __( 'The connection link expired. Click Connect again.', 'npcink-cloud-addon' ) );
+			}
 			$response = Npcink_Cloud_Outbound_Policy::request_json(
 				untrailingslashit( $base_url ) . '/portal/v1/addon-connections/exchange',
 				array(
@@ -808,14 +812,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$status = (int) wp_remote_retrieve_response_code( $response );
 			$body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 			$data = is_array( $body ) && is_array( $body['data'] ?? null ) ? $body['data'] : array();
-			$cloud_api_key = (string) ( $data['cloud_api_key'] ?? '' );
+			$cloud_api_key = $data['cloud_api_key'] ?? '';
 			if ( $status < 200 || $status >= 300 ) {
 				return new WP_Error(
 					'cloud_authorization_exchange_failed',
 					self::format_authorization_exchange_error( is_array( $body ) ? $body : array() )
 				);
 			}
-			if ( '' === $cloud_api_key ) {
+			if ( ! is_string( $cloud_api_key ) || '' === $cloud_api_key ) {
 				return new WP_Error(
 					'cloud_authorization_exchange_failed',
 					__( 'Connection failed. Click Connect again.', 'npcink-cloud-addon' )

@@ -277,6 +277,22 @@ if ( PHP_VERSION_ID < 80100 ) {
 	$authorization_exchange->setAccessible( true );
 }
 
+$request_count = count( $GLOBALS['maca_http_requests'] );
+foreach ( array( 'code%20suffix', 'code+suffix', 'code=', "code\n", "code\xc3\xa9", str_repeat( 'a', 513 ) ) as $invalid_code ) {
+	$rejected_code = $authorization_exchange->invoke( null, 'https://cloud.example.test', $invalid_code, 'local-state' );
+	maca_assert( is_wp_error( $rejected_code ) && 'cloud_authorization_code_invalid' === $rejected_code->get_error_code(), 'Behavior: malformed authorization code is rejected before exchange.' );
+}
+maca_assert( $request_count === count( $GLOBALS['maca_http_requests'] ), 'Behavior: no HTTP requests are made for malformed authorization codes.' );
+
+foreach ( array( array(), array( 'cloud_api_key' => '' ), array( 'cloud_api_key' => array( 'fixture' ) ) ) as $invalid_exchange_data ) {
+	$GLOBALS['maca_http_response_queue'][] = array(
+		'response' => array( 'code' => 200 ),
+		'body'     => wp_json_encode( array( 'status' => 'ok', 'data' => $invalid_exchange_data ) ),
+	);
+	$rejected_exchange = $authorization_exchange->invoke( null, 'https://cloud.example.test', 'one-time-code', 'local-state' );
+	maca_assert( is_wp_error( $rejected_exchange ) && 'cloud_authorization_exchange_failed' === $rejected_exchange->get_error_code(), 'Behavior: an exchange without a nonempty string key cannot reuse the old connection.' );
+}
+
 $GLOBALS['maca_http_response_queue'][] = array(
 	'response' => array( 'code' => 409 ),
 	'headers'  => array( 'Content-Type' => 'application/json' ),
