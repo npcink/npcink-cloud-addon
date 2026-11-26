@@ -71,8 +71,37 @@ jobs:
           MATRIX_RESULT: ${{ needs.php-contracts.result }}
         run: test "$MATRIX_RESULT" = success
 
+  wordpress-ai-scope:
+    name: WordPress AI compatibility scope
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.scope.outputs.docs_only }}
+    steps:
+      - name: Checkout PR merge commit
+        id: checkout
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Detect documentation-only PR
+        id: scope
+        if: steps.checkout.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # A PR that edits the classifier must still be classified by the base.
+          if classifier=$(git show "${PR_BASE_SHA}:scripts/ci-wp-ai-compatibility-scope.sh"); then
+            bash <<< "$classifier" >> "$GITHUB_OUTPUT"
+          fi
+
   wordpress-ai-compatibility:
     name: WordPress AI ${{ matrix.lane }} / PHP ${{ matrix.php }}
+    needs: wordpress-ai-scope
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.wordpress-ai-scope.result != 'success' || needs.wordpress-ai-scope.outputs.docs_only != 'true') }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.gate == 'non_blocking_warning' }}
 
@@ -134,6 +163,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           WP_AI_COMPAT_LANE: ${{ matrix.lane }}
+          NPCINK_COMPAT_CI_RETRY_BOOTSTRAP: '1'
           NPCINK_COMPAT_PLAYGROUND_PORT: 9427
           NPCINK_COMPAT_WORDPRESS_VERSION: ${{ matrix.wordpress }}
           NPCINK_COMPAT_PHP_VERSION: ${{ matrix.php }}
@@ -142,7 +172,7 @@ jobs:
 
   wordpress-ai-compatibility-required:
     name: WordPress AI compatibility blocking lanes
-    needs: wordpress-ai-compatibility
+    needs: [wordpress-ai-scope, wordpress-ai-compatibility]
     if: always()
     runs-on: ubuntu-latest
 
@@ -150,7 +180,15 @@ jobs:
       - name: Require blocking compatibility lanes
         env:
           MATRIX_RESULT: ${{ needs.wordpress-ai-compatibility.result }}
-        run: test "$MATRIX_RESULT" = success
+          DOCS_ONLY: ${{ needs.wordpress-ai-scope.outputs.docs_only }}
+          SCOPE_RESULT: ${{ needs.wordpress-ai-scope.result }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$EVENT_NAME" == pull_request && "$SCOPE_RESULT" == success && "$DOCS_ONLY" == true && "$MATRIX_RESULT" == skipped ]]; then
+            echo 'Documentation-only PR: WordPress AI compatibility matrix not applicable.'
+          else
+            test "$MATRIX_RESULT" = success
+          fi
 
   release-static:
     name: Release static gates
@@ -191,6 +229,9 @@ jobs:
 
       - name: JavaScript syntax
         run: composer run check:js
+
+      - name: WordPress AI compatibility CI policy tests
+        run: bash tests/behavior-wp-ai-compatibility-ci.sh
 
       - name: Capture generated POT
         run: php scripts/run-wp-cli.php i18n make-pot . /tmp/generated.pot --slug=npcink-cloud-addon --domain=npcink-cloud-addon --exclude=build,dist,sj,tests,scripts --skip-js

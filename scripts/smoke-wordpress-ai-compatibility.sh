@@ -15,12 +15,23 @@ SERVER_PID=""
 fail() { echo "[fail] $*" >&2; exit 1; }
 warn() { echo "[warning] $*" >&2; }
 
+stop_server() {
+	if [ -n "${SERVER_PID}" ]; then
+		local process_group="-${SERVER_PID}" i
+		kill -TERM -- "$process_group" 2>/dev/null || true
+		for ((i=0; i<20; i++)); do
+			kill -0 -- "$process_group" 2>/dev/null || break
+			command sleep 0.1
+		done
+		kill -KILL -- "$process_group" 2>/dev/null || true
+		wait "${SERVER_PID}" 2>/dev/null || true
+		SERVER_PID=""
+	fi
+}
+
 cleanup() {
 	local status=$?
-	if [ -n "${SERVER_PID}" ] && kill -0 "${SERVER_PID}" 2>/dev/null; then
-		kill "${SERVER_PID}" 2>/dev/null || true
-		wait "${SERVER_PID}" 2>/dev/null || true
-	fi
+	stop_server
 	if [ "${NPCINK_COMPAT_KEEP_ARTIFACTS:-0}" = '1' ]; then
 		echo "[debug] keeping compatibility artifacts at ${TEMP_DIR}" >&2
 	elif [ -n "${TEMP_DIR}" ] && [ -d "${TEMP_DIR}" ]; then
@@ -28,7 +39,9 @@ cleanup() {
 	fi
 	exit "${status}"
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 [ -n "${LANE}" ] || fail 'Pass a lane id, for example stable-primary.'
 [ -f "${MATRIX_PATH}" ] || fail 'Compatibility matrix fixture is missing.'
@@ -158,39 +171,75 @@ fs.writeFileSync(outputPath, JSON.stringify(blueprint, null, 2));
 NODE
 
 echo "== WordPress AI compatibility lane ${LANE} (WP ${WP_VERSION}; AI ${AI_VERSION}; PHP ${PHP_VERSION}) =="
-npx --yes "@wp-playground/cli@${PLAYGROUND_CLI_VERSION}" server \
-	--port="${PLAYGROUND_PORT}" \
-	--site-url="http://127.0.0.1:${PLAYGROUND_PORT}" \
-	--wp="${WP_URL}" \
-	--php="${PHP_VERSION}" \
-	--mount-before-install="${AI_ROOT}:/wordpress/wp-content/plugins/ai" \
-	--mount-before-install="${ROOT_DIR}:/wordpress/wp-content/plugins/npcink-cloud-addon" \
-	--mount-before-install="${ROOT_DIR}/tests/playground/mu-plugins:/wordpress/wp-content/mu-plugins" \
-	--blueprint="${BLUEPRINT_PATH}" \
-	--verbosity=normal >"${SERVER_LOG}" 2>&1 &
-SERVER_PID=$!
+# Resolve the executable before polling. Track the CLI itself, not an npm
+# parent that can exit without releasing the port for a second attempt.
+PLAYGROUND_CLI="$(npx --yes --package="@wp-playground/cli@${PLAYGROUND_CLI_VERSION}" -c 'command -v wp-playground-cli')" \
+	|| fail 'Could not resolve the Playground CLI.'
+[ -x "${PLAYGROUND_CLI}" ] || fail 'Playground CLI is not executable.'
 
-for _ in $(seq 1 120); do
-	if curl --location --fail --silent --show-error "http://127.0.0.1:${PLAYGROUND_PORT}/wp-json/npcink-cloud-addon-playground/v1/compatibility" >"${RESULT_JSON}" 2>/dev/null; then
-		break
-	fi
-	if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
-		wait "${SERVER_PID}" 2>/dev/null || true
-		SERVER_PID=""
-		break
-	fi
-	sleep 1
-done
+probe_compatibility_route() {
+	local deadline remaining curl_status http_code refused_only=1
+	# Give the server and its descendants an isolated process group to clean up.
+	set -m
+	"${PLAYGROUND_CLI}" server \
+		--port="${PLAYGROUND_PORT}" \
+		--site-url="http://127.0.0.1:${PLAYGROUND_PORT}" \
+		--wp="${WP_URL}" \
+		--php="${PHP_VERSION}" \
+		--mount-before-install="${AI_ROOT}:/wordpress/wp-content/plugins/ai" \
+		--mount-before-install="${ROOT_DIR}:/wordpress/wp-content/plugins/npcink-cloud-addon" \
+		--mount-before-install="${ROOT_DIR}/tests/playground/mu-plugins:/wordpress/wp-content/mu-plugins" \
+		--blueprint="${BLUEPRINT_PATH}" \
+		--verbosity=normal >"${SERVER_LOG}" 2>&1 &
+	SERVER_PID=$!
+	set +m
+	deadline=$((SECONDS + 120))
 
-if [ ! -s "${RESULT_JSON}" ]; then
+	while :; do
+		remaining=$((deadline - SECONDS))
+		(( remaining > 0 )) || break
+		(( remaining <= 5 )) || remaining=5
+		curl_status=0
+		http_code="$(curl --noproxy '*' --fail --silent --connect-timeout 1 --max-time "$remaining" --output "${RESULT_JSON}" --write-out '%{http_code}' \
+			"http://127.0.0.1:${PLAYGROUND_PORT}/wp-json/npcink-cloud-addon-playground/v1/compatibility")" || curl_status=$?
+		kill -0 "${SERVER_PID}" 2>/dev/null || return 1
+		if [ "${curl_status}" -eq 0 ] && [[ "$http_code" == 2?? ]]; then
+			[ -s "${RESULT_JSON}" ] && return 0
+			return 1
+		fi
+		if [ "${curl_status}" -ne 7 ] || [ "$http_code" != 000 ]; then
+			refused_only=0
+		fi
+		(( SECONDS < deadline )) || break
+		sleep 1 || return 1
+	done
+	# Only a still-live CLI that never accepted a loopback connection is
+	# eligible. HTTP errors, CLI exits and malformed responses are not.
+	if [ "${refused_only}" -eq 1 ] && kill -0 "${SERVER_PID}" 2>/dev/null; then
+		return 75
+	fi
+	return 1
+}
+
+for attempt in 1 2; do
+	status=0
+	probe_compatibility_route || status=$?
+	[ "$status" -eq 0 ] && break
+	stop_server
+	cat "${SERVER_LOG}" >&2 || true
 	if [ "${GATE}" = 'non_blocking_warning' ]; then
 		warn "Lane ${LANE} did not reach its compatibility route; upstream lane remains warning-only."
-		cat "${SERVER_LOG}" >&2 || true
 		exit 0
 	fi
-	cat "${SERVER_LOG}" >&2 || true
-	fail "Blocking lane ${LANE} did not reach its compatibility route."
-fi
+	if [ "$status" -ne 75 ] || [ "${NPCINK_COMPAT_CI_RETRY_BOOTSTRAP:-0}" != '1' ]; then
+		fail "Blocking lane ${LANE} did not reach its compatibility route (probe status ${status})."
+	fi
+	if [ "$attempt" -eq 2 ]; then
+		echo "::error title=Playground bootstrap timeout::Lane ${LANE} (PHP ${PHP_VERSION}) was unreachable on both attempts; compatibility was not verified."
+		exit 75
+	fi
+	echo "::warning title=Playground bootstrap timeout::Lane ${LANE} (PHP ${PHP_VERSION}) was unreachable; retrying once."
+done
 
 if ! node - "${RESULT_JSON}" "${LANE}" "${WP_VERSION}" "${AI_VERSION}" "${PHP_VERSION}" "${GATE}" <<'NODE'
 const fs = require('fs');
