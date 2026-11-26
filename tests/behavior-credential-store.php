@@ -88,6 +88,38 @@ maca_assert(
 	'Behavior: server-side settings retain the existing public PHP shape after an encrypted round trip.'
 );
 
+$settings_option = Npcink_Cloud_Addon_Settings::option_name();
+$legacy_stored = $stored;
+$legacy_stored['settings_schema_version'] = 1;
+$legacy_stored['wordpress_ai_connector_enabled'] = false;
+$GLOBALS['maca_options'][ $settings_option ] = $legacy_stored;
+$writes_before = $GLOBALS['maca_option_update_counts'][ $settings_option ];
+for ( $read = 0; $read < 2; ++$read ) {
+	Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
+	$legacy_projection = Npcink_Cloud_Addon_Settings::get_settings();
+	maca_assert( $roundtrip === $legacy_projection, 'Behavior: legacy verified settings retain their enabled connector projection.' );
+}
+maca_assert(
+	$legacy_stored === get_option( $settings_option ) && $writes_before === $GLOBALS['maca_option_update_counts'][ $settings_option ],
+	'Behavior: reading a legacy schema in two uncached requests never writes the option.'
+);
+maca_assert(
+	Npcink_Cloud_Addon_Settings::write_settings( $roundtrip )
+	&& $stored === get_option( $settings_option )
+	&& $writes_before + 1 === $GLOBALS['maca_option_update_counts'][ $settings_option ],
+	'Behavior: the next explicit save upgrades the schema without replacing the credential envelope.'
+);
+maca_assert(
+	Npcink_Cloud_Addon_Settings::write_settings( $roundtrip )
+	&& $writes_before + 1 === $GLOBALS['maca_option_update_counts'][ $settings_option ],
+	'Behavior: a second unchanged save does not rewrite the upgraded option.'
+);
+$GLOBALS['maca_options'][ $settings_option ]['wordpress_ai_connector_enabled'] = false;
+Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
+maca_assert( false === Npcink_Cloud_Addon_Settings::get_settings()['wordpress_ai_connector_enabled'], 'Behavior: the current schema honors the explicit connector recovery switch.' );
+$GLOBALS['maca_options'][ $settings_option ] = $stored;
+Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
+
 $replacement_key = 'mak1_' . rtrim( strtr( base64_encode( wp_json_encode( array( 'site_id' => 'site_replacement', 'key_id' => 'key_replacement', 'secret' => 'fixture_replacement' ) ) ), '+/', '-_' ), '=' );
 $blank_key_settings = Npcink_Cloud_Addon_Settings::build_settings_from_admin_payload( array( 'api_key' => '', 'timeout' => 19 ) );
 $replacement_settings = Npcink_Cloud_Addon_Settings::build_settings_from_admin_payload( array( 'api_key' => $replacement_key ) );
