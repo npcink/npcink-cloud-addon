@@ -73,6 +73,8 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 
 ## History (dated closeouts, retrospectives, handoffs)
 
+- [Cloud Addon audit closeout](cloud-addon-audit-closeout-2026-11-26.md) —
+  disposition of H1–H2, M1–M12, and L1–L6; verification limits and lessons.
 - [WordPress AI 1.5 media safety follow-up](wordpress-ai-media-safety-followup-2026-11-17.md)
 - [WordPress AI image editing next-stage plan](wordpress-ai-next-stage-image-editing-plan-2026-11-17.md)
 - [WordPress AI 1.5 connector verification](wordpress-ai-15-connector-verification-2026-11-16.md)
