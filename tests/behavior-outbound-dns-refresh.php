@@ -67,6 +67,14 @@ function maca_dns_transport( string $url, array $args ): array|WP_Error {
 	};
 	$options = array( 'hooks' => $hooks, 'verify' => true, 'verifyname' => true, 'proxy' => $GLOBALS['maca_dns_proxy'] ?? false );
 	$headers = empty( $GLOBALS['maca_dns_drop_marker'] ) ? $args['headers'] : array( 'Accept' => 'application/json' );
+	if ( ! empty( $GLOBALS['maca_dns_replace_marker'] ) ) {
+		$headers['X-Npcink-Internal-Transport'] = 'replacement';
+	}
+	if ( ! empty( $GLOBALS['maca_dns_nested_request'] ) ) {
+		unset( $GLOBALS['maca_dns_nested_request'] );
+		$nested = Npcink_Cloud_Outbound_Policy::request_json( $url, array( 'headers' => array( 'Accept' => 'application/json' ) ) );
+		maca_assert( ! is_wp_error( $nested ), 'A nested addon request can bind the same URL independently.' );
+	}
 	try {
 		foreach ( $GLOBALS['maca_actions']['requests-requests.before_request'][PHP_INT_MAX] ?? array() as $entry ) {
 			$prepare = $entry['callback'];
@@ -79,6 +87,7 @@ function maca_dns_transport( string $url, array $args ): array|WP_Error {
 		maca_assert( array( 'Accept' => 'application/json' ) === $headers, 'The scoped marker is removed before transport.' );
 		( $hooks->before_send )( null );
 		$GLOBALS['maca_dns_dispatches'][] = $url;
+		$GLOBALS['maca_dns_bindings'][]   = $GLOBALS['maca_curl_options'][CURLOPT_RESOLVE];
 	} catch ( Maca_DNS_Requests_Exception $exception ) {
 		return new WP_Error( 'http_request_failed', $exception->getMessage() );
 	}
@@ -116,7 +125,7 @@ maca_assert(
 	'Behavior: a later empty DNS answer fails closed without dispatching another request.'
 );
 
-foreach ( array( 'maca_curl_available' => false, 'maca_curl_version' => 0x073A00, 'maca_dns_proxy' => true, 'maca_dns_drop_marker' => true, 'maca_curl_rejected_option' => CURLOPT_RESOLVE ) as $option => $value ) {
+foreach ( array( 'maca_curl_available' => false, 'maca_curl_version' => 0x073A00, 'maca_dns_proxy' => true, 'maca_dns_drop_marker' => true, 'maca_dns_replace_marker' => true, 'maca_curl_rejected_option' => CURLOPT_RESOLVE ) as $option => $value ) {
 	$GLOBALS[$option] = $value;
 	$GLOBALS['maca_dns_answers'][] = $public_answers;
 	$GLOBALS['maca_http_response_queue'][] = 'maca_dns_transport';
@@ -134,3 +143,15 @@ $GLOBALS['maca_dns_answers'][] = array_merge( $public_answers, array( array( 'ip
 $requests_before               = count( $GLOBALS['maca_http_requests'] );
 $mixed                         = Npcink_Cloud_Outbound_Policy::request_json( $url, $args );
 maca_assert( is_wp_error( $mixed ) && 'cloud_outbound_target_not_allowed' === $mixed->get_error_code() && $requests_before === count( $GLOBALS['maca_http_requests'] ), 'Behavior: a mixed address set is rejected as a whole before WordPress dispatch.' );
+
+$GLOBALS['maca_dns_nested_request']  = true;
+$GLOBALS['maca_dns_answers']         = array( $public_answers, array( array( 'ip' => '8.8.8.8' ) ) );
+$GLOBALS['maca_dns_bindings']        = array();
+$GLOBALS['maca_http_response_queue'] = array( 'maca_dns_transport', 'maca_dns_transport' );
+$outer = Npcink_Cloud_Outbound_Policy::request_json( $url, $args );
+maca_assert(
+	! is_wp_error( $outer )
+	&& array( array( $host . ':8443:8.8.8.8' ), array( $host . ':8443:1.1.1.1,[2606:4700:4700::1111]' ) ) === $GLOBALS['maca_dns_bindings']
+	&& empty( $GLOBALS['maca_actions']['requests-requests.before_request'][PHP_INT_MAX] ),
+	'Behavior: nested and outer requests bind their own DNS answers and remove both hooks.'
+);

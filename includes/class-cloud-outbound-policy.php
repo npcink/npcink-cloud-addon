@@ -25,6 +25,7 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 		public const MAX_RAW_RESPONSE_BYTES  = 26214400;
 		private const PIN_MARKER             = 'X-Npcink-Internal-Transport';
 		private const MULTI_ADDRESS_CURL     = 0x073B00; // 7.59.0 adds multiple peers per resolve entry.
+		private static ?string $active_pin_marker = null;
 
 		/**
 		 * Normalizes a configured Cloud base URL without performing DNS I/O.
@@ -194,6 +195,11 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 				throw new Requests_Exception( 'Cloud address binding is unavailable.', 'npcink_cloud_pinned_transport_unavailable' );
 			};
 			$prepare        = static function ( string $request_url, array &$headers, $data, string $method, array &$options ) use ( $url, $marker, $ips, $deny ): void {
+				// Only the innermost addon request owns the active WordPress dispatch,
+				// even when another addon request is already pending for the same URL.
+				if ( self::$active_pin_marker !== $marker ) {
+					return;
+				}
 				$marker_key = null;
 				foreach ( $headers as $name => $value ) {
 					if ( 0 === strcasecmp( (string) $name, self::PIN_MARKER ) ) {
@@ -201,13 +207,10 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 						break;
 					}
 				}
-				if ( null === $marker_key ) {
+				if ( null === $marker_key || $headers[ $marker_key ] !== $marker ) {
 					if ( $url === $request_url ) {
 						$deny();
 					}
-					return;
-				}
-				if ( $headers[ $marker_key ] !== $marker ) {
 					return;
 				}
 				unset( $headers[ $marker_key ] );
@@ -237,12 +240,15 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 				);
 			};
 
+			$previous_marker = self::$active_pin_marker;
+			self::$active_pin_marker = $marker;
 			add_action( 'requests-requests.before_request', $prepare, PHP_INT_MAX, 5 );
 			try {
 				$response = wp_safe_remote_request( $url, $args );
 				return $failure ?? $response;
 			} finally {
 				remove_action( 'requests-requests.before_request', $prepare, PHP_INT_MAX );
+				self::$active_pin_marker = $previous_marker;
 			}
 		}
 
