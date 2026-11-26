@@ -190,16 +190,21 @@ is not applicable in the handoff or PR verification record.
 WordPress AI compatibility CI lanes use the following stability policy:
 
 - A verified documentation-only PR skips the compatibility matrix, not its
-  required aggregator or Release static gates. Push, nightly, mixed and
+  aggregator or Release static gates. Push, nightly, mixed and
   undetermined changes still run the matrix.
 - A blocking lane that runs out of its 120-second probe budget while the
   Playground CLI stays alive and never accepts a connection is retried once.
   A second identical timeout is annotated as a bootstrap incident, not a proven
-  product regression. It still blocks merge because compatibility was not
-  verified; investigate repeated incidents as CI infrastructure work.
+  product regression. The stable-lane aggregator still fails because
+  compatibility was not verified; investigate repeated incidents as CI
+  infrastructure work.
 - CLI exits, HTTP/response failures, archive and fixture errors, and failed
   compatibility assertions remain blocking in stable lanes. Do not extend
   the deadline or admin-merge around these checks. Release static still
   runs its independent Playground activation smoke.
+
+The aggregator enforces the stable lanes within CI. GitHub only enforces
+the configured required checks at merge time, so inspect the complete PR
+check rollup before declaring compatibility verified, even on a merged PR.
 
 Documentation may mention forbidden concepts only to describe what this addon must not own.
