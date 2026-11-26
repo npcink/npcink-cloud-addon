@@ -15,6 +15,7 @@ require_once __DIR__ . '/class-cloud-credential-store.php';
 require_once __DIR__ . '/class-cloud-outbound-policy.php';
 require_once __DIR__ . '/class-cloud-runtime-endpoint-policy.php';
 require_once __DIR__ . '/class-cloud-addon-settings.php';
+require_once __DIR__ . '/class-cloud-authorization-state.php';
 require_once __DIR__ . '/class-cloud-addon-cleanup.php';
 require_once __DIR__ . '/class-cloud-ai-task-contract.php';
 require_once __DIR__ . '/class-cloud-discoverability-pause.php';

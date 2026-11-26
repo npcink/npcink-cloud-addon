@@ -370,9 +370,11 @@ if ( ! function_exists( 'set_transient' ) ) {
 }
 
 if ( ! function_exists( 'delete_transient' ) ) {
-	function delete_transient( string $name ): void {
+	function delete_transient( string $name ): bool {
+		$existed = array_key_exists( $name, $GLOBALS['maca_transients'] );
 		unset( $GLOBALS['maca_transients'][ $name ] );
 		unset( $GLOBALS['maca_transient_expirations'][ $name ] );
+		return $existed;
 	}
 }
 
@@ -423,7 +425,7 @@ if ( ! function_exists( 'apply_filters' ) ) {
 
 if ( ! function_exists( 'get_current_user_id' ) ) {
 	function get_current_user_id(): int {
-		return 1;
+		return $GLOBALS['maca_current_user_id'] ?? 1;
 	}
 }
 
@@ -598,6 +600,7 @@ function maca_load_addon_classes(): void {
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-outbound-policy.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-runtime-endpoint-policy.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-settings.php';
+	require_once MACA_TEST_ROOT . '/includes/class-cloud-authorization-state.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-addon-cleanup.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-ai-task-contract.php';
 	require_once MACA_TEST_ROOT . '/includes/class-cloud-wordpress-ai-approval.php';

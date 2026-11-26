@@ -142,7 +142,7 @@ No. Final WordPress writes must go through local Core proposal, preflight, appro
 
 = What happens when I disconnect or uninstall the plugin? =
 
-Disconnect clears local credentials and keeps the configured Cloud Base URL. Site Knowledge delivery state needed for receipt recovery is retained. Uninstall removes the local delivery state and reconciliation cursor. Neither action deletes your Cloud data.
+Disconnect clears local credentials, previous connection diagnostics, and the reconciliation cursor, while keeping the Cloud Base URL, the answered monitoring reminder, and the Site Knowledge delivery state needed for receipt recovery. Uninstall removes those retained local settings and delivery state. Both invalidate pending Portal authorization links; the short-lived transient records expire normally. Neither action deletes your Cloud data.
 
 = Where can I review the Cloud service terms and privacy information? =
 
