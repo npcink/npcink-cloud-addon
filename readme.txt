@@ -140,6 +140,10 @@ Only when local host code explicitly invokes the media derivative transport. In 
 
 No. Final WordPress writes must go through local Core proposal, preflight, approval, and apply paths.
 
+= What happens when I disconnect or uninstall the plugin? =
+
+Disconnect clears local credentials and keeps the configured Cloud Base URL. Site Knowledge delivery state needed for receipt recovery is retained. Uninstall removes the local delivery state and reconciliation cursor. Neither action deletes your Cloud data.
+
 = Where can I review the Cloud service terms and privacy information? =
 
 Terms of Service: https://cloud.npc.ink/terms/en/terms.html
@@ -226,7 +230,7 @@ Terminal callback delivery is removed and media recognition continuation moves t
 * Moved media recognition continuation ownership to Workflow Toolbox.
 * Removed terminal callback delivery and cleared legacy media recognition state.
 * Fixed packaged builds to include the local permissions settings asset.
-* Made uninstall cleanup complete without a fatal error and removed the leftover site knowledge reconciliation cursor.
+* Fixed an uninstall cleanup error and removed the leftover Site Knowledge reconciliation cursor.
 * Kept the deprecated settings compatibility seam from returning the stored secret.
 
 = 0.1.9 =

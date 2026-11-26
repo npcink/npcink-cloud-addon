@@ -22,6 +22,16 @@ if ( PHP_VERSION_ID < 80100 ) {
 }
 $entitlement_key = $entitlement_cache_key_method->invoke( null, $settings );
 $site_knowledge_key = 'npcink_cloud_site_knowledge_status_' . md5( $seed );
+$delivery_state_option = 'npcink_cloud_addon_site_knowledge_maintenance_cursor';
+$reconciliation_option = 'npcink_cloud_addon_site_knowledge_reconciliation_cursor';
+$delivery_state = array(
+	'_lifecycle' => array(
+		'owner'  => array( 'phase' => 'sending', 'scope' => 'fixture-scope', 'key' => 'post:42' ),
+		'scopes' => array(
+			'fixture-scope' => array( 'sources' => array(), 'operations' => array(), 'dispatches' => array() ),
+		),
+	),
+);
 
 foreach (
 	array(
@@ -36,14 +46,14 @@ foreach (
 		'npcink_cloud_addon_editor_assist_pending',
 		'npcink_cloud_addon_site_knowledge_change_buffer',
 		'npcink_cloud_addon_site_knowledge_change_status',
-		'npcink_cloud_addon_site_knowledge_maintenance_cursor',
-		'npcink_cloud_addon_site_knowledge_reconciliation_cursor',
+		$reconciliation_option,
 		$entitlement_key . '_refresh_lock',
 		$site_knowledge_key . '_lock',
 	) as $option_name
 ) {
 	$GLOBALS['maca_options'][ $option_name ] = 'owned-state';
 }
+$GLOBALS['maca_options'][ $delivery_state_option ] = $delivery_state;
 $GLOBALS['maca_transients'][ $entitlement_key ] = array( 'cached' => true );
 $GLOBALS['maca_transients'][ $entitlement_key . '_refresh_failure' ] = array( 'message' => 'failed' );
 $GLOBALS['maca_transients'][ $legacy_entitlement_key ] = array( 'pre_schema' => true );
@@ -63,10 +73,25 @@ foreach (
 Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
 
 maca_assert(
-	array() === $GLOBALS['maca_options']
+	array( $delivery_state_option => $delivery_state ) === $GLOBALS['maca_options']
 	&& array() === $GLOBALS['maca_transients']
 	&& array() === $GLOBALS['maca_scheduled_events'],
-	'Behavior: unified disconnect cleanup removes settings, connector marker, credential-scoped caches, buffers, locks, and cron hooks.'
+	'Behavior: disconnect retains the Site Knowledge delivery envelope but removes credentials, the reconciliation cursor, caches, buffers, locks, and cron hooks.'
+);
+
+maca_reset_test_state();
+maca_seed_settings( true );
+$GLOBALS['maca_options'][ $delivery_state_option ] = $delivery_state;
+$GLOBALS['maca_options'][ $reconciliation_option ] = array( 'modified_gmt' => '2026-11-25 00:00:00', 'post_id' => 42 );
+$GLOBALS['maca_options']['npcink_cloud_addon_monitoring_prompt_answered'] = true;
+$GLOBALS['maca_options']['npcink_cloud_addon_last_ai_error'] = 'fixture-error';
+$GLOBALS['maca_transients']['npcink_cloud_addon_first_connection'] = true;
+define( 'WP_UNINSTALL_PLUGIN', 'npcink-cloud-addon/npcink-cloud-addon.php' );
+require dirname( __DIR__ ) . '/uninstall.php';
+
+maca_assert(
+	array() === $GLOBALS['maca_options'] && array() === $GLOBALS['maca_transients'],
+	'Behavior: the uninstall entrypoint removes the Site Knowledge delivery envelope, reconciliation cursor, and remaining test addon state.'
 );
 
 maca_reset_test_state();
