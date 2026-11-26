@@ -3,6 +3,7 @@
 .distignore
 .gitignore
 .DS_Store
+._*
 AGENTS.md
 README.md
 composer.json

@@ -139,7 +139,7 @@ rg "/v1/runtime/workflows/runs|wp_insert_post|wp_update_post" --glob '*.php' --g
 ```
 
 For cross-repo behavior changes, also run the central matrix from
-`/Users/muze/gitee/npcink-workflow-toolbox`:
+a checkout of `npcink-workflow-toolbox`:
 
 ```bash
 composer quality:matrix

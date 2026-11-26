@@ -197,14 +197,14 @@ buffer attempts=0、最近本地投递成功、dropped=0、无错误码、无活
 | 3 | F-02、F-03 分别在所属 owner 的任务中处理 | 使用各仓规则，不混入 Addon 功能或彼此自动结案 |
 | 4 | 有真实跨仓实现里程碑时收口 | 核对各仓分支/SHA/工作区后，由 Toolbox 运行完整矩阵；需要 M4 时显式选运行时通道 |
 
-只读复核可从以下命令开始，不调用付费模型、不修改 Cloud：
+只读复核可从以下命令开始，不调用付费模型、不修改 Cloud。把 `$NPCINK_CLOUD_ADDON`、`$NPCINK_AI_CLOUD` 和 `$NPCINK_WORKFLOW_TOOLBOX` 指向对应的本地检出：
 
 ```bash
-git -C /Users/muze/gitee/npcink-cloud-addon status --short --branch
-git -C /Users/muze/gitee/npcink-cloud-addon rev-parse HEAD
-git -C /Users/muze/gitee/npcink-ai-cloud status --short --branch
-git -C /Users/muze/gitee/npcink-ai-cloud rev-parse HEAD
-composer --working-dir=/Users/muze/gitee/npcink-workflow-toolbox quality:matrix
+git -C "$NPCINK_CLOUD_ADDON" status --short --branch
+git -C "$NPCINK_CLOUD_ADDON" rev-parse HEAD
+git -C "$NPCINK_AI_CLOUD" status --short --branch
+git -C "$NPCINK_AI_CLOUD" rev-parse HEAD
+composer --working-dir="$NPCINK_WORKFLOW_TOOLBOX" quality:matrix
 gh pr list --repo npcink/npcink-ai-cloud --state open --author app/dependabot --limit 30 --json number,title,headRefName,baseRefName,updatedAt,url
 gh api repos/npcink/npcink-cloud-addon/actions/workflows/ocr-review.yml --jq '{path,state,html_url}'
 ```

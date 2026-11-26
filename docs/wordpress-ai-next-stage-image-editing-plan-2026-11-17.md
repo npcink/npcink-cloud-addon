@@ -152,7 +152,7 @@ operation，不接受 Provider 自报 operation 作为判断依据。
 由 artifact 的只读数据库关联找回，receipt 已标明来源。旧 last_ai_error 仍保留
 先前 routing mismatch，不代表此次失败；未为诊断另增产品机制。
 
-本机验收临时挂载候选后已恢复 `/Users/muze/gitee/npcink-cloud-addon`，不表示站点
+本机验收临时挂载候选后已恢复本地 `npcink-cloud-addon` 检出，不表示站点
 永久安装了编辑功能。M4 运行仍是未提交 candidate；clean-master accepted、CI、合并
 及生产必须分别记账。人工基础编辑验收已完成，生产未授权。
 

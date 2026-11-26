@@ -66,7 +66,7 @@ release closeout.
 ### 2026-10-16 cross-repository closeout check
 
 After the language-pack verification, the central matrix was run from
-`/Users/muze/gitee/npcink-workflow-toolbox` at
+a checkout of `npcink-workflow-toolbox` at
 `2026-10-16T11:14:49Z` against the three primary master worktrees after PR
 #279 and #265 merged. All seven repository gates passed; M4 runtime
 acceptance was explicitly `not_requested`. The matrix is evidence for this
@@ -1226,7 +1226,7 @@ site:
 
 ```sh
 wp language plugin update npcink-cloud-addon \
-  --path="/Users/muze/Local Sites/npcink/app/public"
+  --path="$LOCAL_WP_PATH"
 ```
 
 or use the WordPress admin updates screen to refresh translations.

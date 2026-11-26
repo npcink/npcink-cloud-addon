@@ -3,7 +3,7 @@
 This repository is the standalone `npcink-cloud-addon` WordPress plugin.
 
 Cross-project platform coordination starts from
-`/Users/muze/gitee/npcink-workflow-toolbox/docs/platform/README.md`. This
+`docs/platform/README.md` in the `npcink-workflow-toolbox` repository. This
 repository remains the Cloud Addon transport owner; do not expand platform,
 Core governance, Toolkit ability, Adapter channel, product-surface, billing, or
 runtime truth rules here beyond addon-owned connector contracts.
@@ -73,11 +73,11 @@ runtime truth rules here beyond addon-owned connector contracts.
   both `composer run package:release` and `composer run package:verify` before
   publication and require the Release static gates result to be green.
 - The cross-repository contract is
-  `/Users/muze/gitee/npcink-workflow-toolbox/docs/platform/pr-publishing-standard-v1.md`.
-- For multi-repo milestones, run the central matrix from
-  `/Users/muze/gitee/npcink-workflow-toolbox` instead of copying the script into
-  this addon: `composer quality:matrix` for status and
-  `composer quality:matrix:run` before cross-repo closeout.
+  `docs/platform/pr-publishing-standard-v1.md` in the `npcink-workflow-toolbox` repository.
+- For multi-repo milestones, run the central matrix from a checkout of
+  `npcink-workflow-toolbox` (or `$NPCINK_WORKFLOW_TOOLBOX`) instead of
+  copying the script into this addon: `composer quality:matrix` for status
+  and `composer quality:matrix:run` before cross-repo closeout.
 
 ## Current Cloud Runtime Contract
 
@@ -92,7 +92,7 @@ Allowed runtime/read endpoints:
 - `GET /v1/runs/{run_id}`
 - `GET /v1/runs/{run_id}/result`
 - `GET /v1/runs/nightly-inspection/recent`
-- `POST /v1/runs/{run_id}/retry` for bounded runtime retry only
+- `POST /v1/runs/{run_id}/retry` retained for bounded runtime retry; currently paused (`retry_run()` returns `409 cloud_feature_paused` before signing or HTTP)
 - `GET /v1/runtime/media/artifacts/{artifact_id}/download` for bounded verified delivery
 - `POST /v1/runtime/media/artifacts/{artifact_id}/delivery-ack` after byte and image verification only
 - `GET /v1/entitlements/current`
@@ -114,12 +114,29 @@ bounded by the outbound policy):
 
 ## Local Verification
 
-Run before handing off changes:
+There are two verification tiers. Do not treat the local fast gate as the
+full PR gate, and do not claim CI cannot catch regressions that the PR/full
+gate already covers.
+
+Local fast gate (default handoff, `composer run test:all`): PHP lint,
+`php tests/run.php` contract and behavior tests, publisher-commit tests, and
+`check:boundary`. This path does not run JavaScript tests, PHPStan,
+packaging, Playground, or WordPress AI compatibility lanes.
 
 ```bash
 composer run test:all
 git diff --check
 ```
+
+PR / full gate: CI already runs the PHP contracts matrix, Release static
+gates (`composer run check:js`, POT freshness, package build/verify, Playground
+activation, and native MySQL reconciliation), the separate PHPStan workflow, WordPress AI
+compatibility lanes, and the PR body contract. PHPStan is not part of
+`test:all`; run `composer run stan` locally as described below. A closer
+local pre-publish equivalent is `composer run release:verify` (the fast gate
+plus JS, i18n, WordPress.org review, packaging, and plugin-check), plus
+`composer run stan` and, when the change touches bootstrap or compatibility,
+`composer run smoke:playground`.
 
 For AI-plugin localization changes or an installed AI-plugin update, run
 `composer run ai:i18n:check` and `composer run check:js`, inspect every audit
@@ -136,6 +153,9 @@ the per-release non-AI evidence anchor are defined in
 `test:all` includes `check:boundary`, which fails when any PHP file outside
 `build/` matches the forbidden boundary pattern
 `/v1/runtime/workflows/runs|\b(?:wp_insert_post|wp_update_post|wp_insert_attachment|wp_update_attachment_metadata|update_post_meta|wp_set_post_terms|set_post_thumbnail|media_handle_sideload)\s*\(`.
+
+This is a lexical tripwire, not a complete WordPress write barrier. Keep it
+fast; use code review and behavior tests for the relevant integration path.
 
 Advisory AI review gate (run before `composer pr:publish`):
 
@@ -154,10 +174,11 @@ Static analysis gate:
 composer run stan
 ```
 
-It runs PHPStan level 5 over first-party connector code against
-`phpstan-baseline.neon`; shrink the baseline instead of growing it. The
-`phpstan.yml` CI workflow ("PHPStan level 5") fails on new findings; whether
-it is a required branch check is a repository-settings decision.
+PHPStan level 5 analyzes first-party connector code against the PHP 8.0 support
+floor, independently of the PHP version that runs the analyzer. The
+`phpstan.yml` workflow fails on new findings; this policy does not change GitHub
+branch protection. Shrink `phpstan-baseline.neon` rather than raising the
+`test:all` limits of 38 entries and 42 suppressed occurrences.
 
 Also run `composer run smoke:playground` when a change affects plugin bootstrap,
 activation, the public connector API, the default credential/connector state,

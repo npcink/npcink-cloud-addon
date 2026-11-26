@@ -2,7 +2,7 @@
 
 ## 背景
 
-npcink-cloud-addon(插件仓库,当前 workspace,路径 /Users/muze/gitee/npcink-cloud-addon)与 npcink-ai-cloud(云端仓库,/Users/muze/gitee/npcink-ai-cloud)的跨仓库工作已闭环:站点容量语义重构 + 生产发布已上线 cloud.npc.ink。三篇文档已合并(addon master 已同步,PR #78/#80/#81;npcink master 含 #577-#586,之后另有 #82/#83 已合并)。
+npcink-cloud-addon（插件仓库，当前 workspace）与 npcink-ai-cloud（云端仓库）的跨仓库工作已闭环:站点容量语义重构 + 生产发布已上线 cloud.npc.ink。三篇文档已合并(addon master 已同步,PR #78/#80/#81;npcink master 含 #577-#586,之后另有 #82/#83 已合并)。
 
 文档家族:
 - 方法论文档:addon docs/development-experience-and-methodology-2026-08-08.md(怎么想)
@@ -40,5 +40,5 @@ npcink-cloud-addon build/npcink-cloud-addon.zip(v0.1.4,PCP 已过)。如要上�
 ## 环境须知
 
 - npcink-ai-cloud 目录写权限在 addon 仓库 reasonix.toml 的 [sandbox] allow_write 已配置;新会话如报只读,检查配置是否生效,必要时重启会话。
-- 服务器生产排查:SSH root@120.24.237.214,密钥 /Users/muze/gitee/数据/key/cloud-toolbox0801.pem;数据库在服务器 /opt/npcink-ai-cloud/shared/config/runtime-config.json(阿里云 RDS PostgreSQL);只读查询,勿改生产数据。
+- 服务器生产排查:SSH root@120.24.237.214,密钥使用运维 SSH 私钥（不要在文档中记录本机密钥路径）；数据库在服务器 /opt/npcink-ai-cloud/shared/config/runtime-config.json(阿里云 RDS PostgreSQL);只读查询,勿改生产数据。
 - 未跟踪遗留文件(0078、npcink-read-latest-evidence.py、production,位于 npcink-ai-cloud 根)非任务文件,勿提交。

@@ -208,7 +208,7 @@ Allowed Cloud contract endpoints:
 - `GET /v1/runs/{run_id}`
 - `GET /v1/runs/{run_id}/result`
 - `GET /v1/runs/nightly-inspection/recent`
-- `POST /v1/runs/{run_id}/retry`
+- `POST /v1/runs/{run_id}/retry` (retained contract; currently paused)
 - `GET /v1/runtime/media/artifacts/{artifact_id}/download`
 - `POST /v1/runtime/media/artifacts/{artifact_id}/delivery-ack`
 - `GET /v1/entitlements/current`
@@ -287,8 +287,9 @@ authority.
 
 Nightly Inspection runtime run detail may use `GET /v1/runs/nightly-inspection/recent`,
 `GET /v1/runs/{run_id}`, `GET /v1/runs/{run_id}/result`, and
-`POST /v1/runs/{run_id}/retry` only. These are bounded transport contracts for
-maintained integrations; the WordPress settings page does not expose their
+`POST /v1/runs/{run_id}/retry` only. The retry contract is retained, but
+`retry_run()` currently returns `409 cloud_feature_paused` before signing or
+HTTP. Run reads remain available. The WordPress settings page does not expose their
 history, status, result, retention, or retry controls. Cloud owns the
 run-state/detail surface.
 It must not submit scheduled reviews, reconstruct Toolbox snapshots, own a

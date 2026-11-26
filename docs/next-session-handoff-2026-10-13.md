@@ -37,7 +37,7 @@
 2. 获得单独的 WordPress.org 发布确认后，用临时 SVN 工作副本上传 trunk 和
    `tags/0.4.1`，核对 API、下载包、稳定版本、中文语言包和目录缓存。
 3. 待所有参与仓库的工作树进入干净窗口并获得用户确认后，从
-   `/Users/muze/gitee/npcink-workflow-toolbox` 运行
+   `npcink-workflow-toolbox` 的本地检出运行
    `composer quality:matrix:run`。
 4. Site Knowledge 真失败继续优先于 stale 标签；单独 stale、失败和缺失状态的浏览器案例已在隔离环境
    呈现，没有为了截图清除真实失败。Cloud 索引恢复可能涉及 Provider
@@ -97,7 +97,7 @@ M4、生产验收和人类视觉接受均 unmeasured，不声称已完成。
 本次 Playground not_applicable：只改后台状态投影及其原有刷新行为，不触及
 bootstrap、激活、默认凭据、公共 API 或兼容基线；引用 2026-10-10 Tier B。
 
-隔离交付工作树：`/Users/muze/.codex/worktrees/041-refresh-closeout/npcink-cloud-addon`。
+隔离交付工作树：041-refresh-closeout 的本地 Codex worktree。
 原工作区的恢复按钮及样式改动由另一聊天负责，用户明确要求本 PR 不纳入。
 本轮只运行只读 `composer quality:matrix`；其他仓库及原工作区仍有改动，
 没有运行跨仓矩阵门禁。监控在 2026-10-13T02:21:21Z 只读检查中已显示最近

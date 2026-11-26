@@ -365,4 +365,4 @@ The refactor reduced coupling without changing product ownership.
 - [Adapter integration interface](adapter-integration-seam.md).
 - [Cloud Addon complexity budget](cloud-addon-complexity-budget.md).
 - Platform PR standard:
-  `/Users/muze/gitee/npcink-workflow-toolbox/docs/platform/pr-publishing-standard-v1.md`.
+  `docs/platform/pr-publishing-standard-v1.md` in the `npcink-workflow-toolbox` repository.

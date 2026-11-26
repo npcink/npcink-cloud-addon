@@ -56,7 +56,7 @@
 ## 本地证据索引与限制
 
 证据目录：
-`/Users/muze/.codex/visualizations/2026/11/04/01a1a439-3be2-75c1-bed2-7cd56362d866/cloud-addon-focus/`。
+2026-11-04 Cloud Addon focus review 的本地可视化目录。
 
 | 证据文件 | 覆盖范围 |
 | --- | --- |
@@ -86,7 +86,7 @@
 - GitHub 未查到当前主题分支的 PR，远端没有该分支；本次修改尚未进入远端主干。
 - 仓库另有历史本地／远端分支；它们的归属与合并状态不能由本次 UI 证据推定。
 - 另有锁定的 detached worktree：
-  `/Users/muze/.codex/worktrees/local-vision-timeout-addon`，不属于本次 UI 工作；未清理。
+  local-vision-timeout-addon 的本地 Codex worktree，不属于本次 UI 工作；未清理。
 - 当前会话附件列表为空，不等于 `git worktree list` 为空。
 
 以上是核查快照，不是持续更新的 Git 状态源。不要删除其他任务的分支或锁定 worktree
@@ -167,7 +167,7 @@
 - 保留：`codex/cloud-addon-audit-fixes`、`codex/content-evidence-loop-20261030`
   存有未合并提交；远端对应未合并引用不能当作垃圾删除。
 - 保留：`codex/vision-timeout-20261031` 及锁定 worktree
-  `/Users/muze/.codex/worktrees/local-vision-timeout-addon`。其独立提交尚未补丁等价合并，
+  local-vision-timeout-addon 的本地 Codex worktree。其独立提交尚未补丁等价合并，
   锁属于其他任务；清洁 worktree 不等于可以丢弃的工作。
 - 保留其他 Dependabot PR 与分支，它们不属于本次 UI 任务。
 - 本次没有创建辅助 worktree；主工作区同步 master 与生产部署是两件事。

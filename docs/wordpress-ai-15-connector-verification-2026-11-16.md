@@ -128,7 +128,7 @@ alone does not mark this draft PR merged, installed permanently or released.
 ## Native integration acceptance — 2026-11-17
 
 The candidate was mounted only for a disposable local draft (post 283298) and
-then the original `/Users/muze/gitee/npcink-cloud-addon` symlink target was
+then the original local `npcink-cloud-addon` checkout symlink target was
 restored. After resetting the local PHP opcode cache, the candidate path was
 confirmed by reflection before the final replay checks.
 
