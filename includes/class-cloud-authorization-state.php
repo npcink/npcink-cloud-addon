@@ -62,16 +62,16 @@ final class Npcink_Cloud_Authorization_State {
 	}
 
 	public static function is_current( string $generation ): bool {
-		return '' !== $generation && $generation === ( self::stored_settings()[ self::GENERATION_FIELD ] ?? null );
+		return '' !== $generation && $generation === ( self::read_row()['settings'][ self::GENERATION_FIELD ] ?? null );
 	}
 
 	/** Starts a new connection attempt without modifying the existing credentials. */
 	public static function begin(): string {
-		$before = self::stored_settings();
+		$before = self::read_row();
 		$generation = wp_generate_password( 32, false, false );
-		$after = $before ?? array();
+		$after = $before['settings'] ?? array();
 		$after[ self::GENERATION_FIELD ] = $generation;
-		return self::replace( $before, $after ) ? $generation : '';
+		return self::replace( $before['value'] ?? null, $after ) ? $generation : '';
 	}
 
 	/**
@@ -81,28 +81,28 @@ final class Npcink_Cloud_Authorization_State {
 	 * @param array<string,mixed> $stored Encrypted settings payload.
 	 */
 	public static function commit( string $generation, array $stored ): bool {
-		$before = self::stored_settings();
-		if ( '' === $generation || null === $before || $generation !== ( $before[ self::GENERATION_FIELD ] ?? null ) ) {
+		$before = self::read_row();
+		if ( '' === $generation || null === $before || $generation !== ( $before['settings'][ self::GENERATION_FIELD ] ?? null ) ) {
 			return false;
 		}
 		$stored[ self::GENERATION_FIELD ] = $generation;
-		return self::replace( $before, $stored );
+		return self::replace( $before['value'], $stored );
 	}
 
 	/** Applies a settings-only edit to an existing row, never recreating it. */
 	public static function update_existing( callable $change ): bool {
-		$before = self::stored_settings();
-		if ( null === $before ) {
+		$before = self::read_row();
+		if ( null === $before || null === $before['settings'] ) {
 			return false;
 		}
-		$after = $change( $before );
+		$after = $change( $before['settings'] );
 		if ( ! is_array( $after ) ) {
 			return false;
 		}
-		if ( $after !== $before ) {
+		if ( $after !== $before['settings'] ) {
 			unset( $after[ self::GENERATION_FIELD ] );
 		}
-		return self::replace( $before, $after );
+		return self::replace( $before['value'], $after );
 	}
 
 	/**
@@ -114,43 +114,53 @@ final class Npcink_Cloud_Authorization_State {
 		self::replace( null, $stored );
 	}
 
-	/** @return array<string,mixed>|null */
-	private static function stored_settings(): ?array {
+	/** @return array{value:string,settings:array<string,mixed>|null}|null */
+	private static function read_row(): ?array {
 		global $wpdb;
 		$name = Npcink_Cloud_Addon_Settings::option_name();
 		if ( $wpdb instanceof wpdb ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Authorization cannot trust a request-local option snapshot.
-			$stored = maybe_unserialize( $wpdb->get_var( $wpdb->prepare( 'SELECT option_value FROM %i WHERE option_name = %s', $wpdb->options, $name ) ) );
+			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT option_value FROM %i WHERE option_name = %s', $wpdb->options, $name ), ARRAY_A );
+			$value = $row['option_value'] ?? null;
+			if ( ! is_string( $value ) ) {
+				return null;
+			}
+			$stored = maybe_unserialize( $value );
 		} else {
 			$stored = get_option( $name, false );
+			if ( false === $stored ) {
+				return null;
+			}
+			$value = serialize( $stored );
 		}
-		return is_array( $stored ) ? $stored : null;
+		return array( 'value' => $value, 'settings' => is_array( $stored ) ? $stored : null );
 	}
 
 	/**
 	 * Tests the exact settings version in the same statement that writes it.
 	 *
-	 * @param array<string,mixed>|null $before Expected row, or null for insert-only.
-	 * @param array<string,mixed>      $after Replacement row.
+	 * @param string|null         $before Expected raw value, or null for insert-only.
+	 * @param array<string,mixed> $after Replacement row.
 	 */
-	private static function replace( ?array $before, array $after ): bool {
+	private static function replace( ?string $before, array $after ): bool {
 		global $wpdb;
 		$name = Npcink_Cloud_Addon_Settings::option_name();
-		if ( $before === $after ) {
+		$encoded = serialize( $after );
+		if ( $before === $encoded ) {
 			return true;
 		}
 		if ( $wpdb instanceof wpdb ) {
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery -- The Options API cannot perform these conditional writes.
 			$changed = null === $before
-				? 1 === $wpdb->query( $wpdb->prepare( 'INSERT IGNORE INTO %i (option_name, option_value, autoload) VALUES (%s, %s, %s)', $wpdb->options, $name, serialize( $after ), 'off' ) )
-				: 1 === $wpdb->query( $wpdb->prepare( 'UPDATE %i SET option_value = %s WHERE option_name = %s AND HEX(option_value) = HEX(%s)', $wpdb->options, serialize( $after ), $name, serialize( $before ) ) );
+				? 1 === $wpdb->query( $wpdb->prepare( 'INSERT IGNORE INTO %i (option_name, option_value, autoload) VALUES (%s, %s, %s)', $wpdb->options, $name, $encoded, 'off' ) )
+				: 1 === $wpdb->query( $wpdb->prepare( 'UPDATE %i SET option_value = %s WHERE option_name = %s AND HEX(option_value) = HEX(%s)', $wpdb->options, $encoded, $name, $before ) );
 			// phpcs:enable WordPress.DB.DirectDatabaseQuery
 			wp_cache_delete( $name, 'options' );
 			wp_cache_delete( 'alloptions', 'options' );
 			wp_cache_delete( 'notoptions', 'options' );
 		} else {
 			// The standalone behavior harness uses in-memory options, not wpdb.
-			$changed = self::stored_settings() === $before && update_option( $name, $after, false );
+			$changed = ( self::read_row()['value'] ?? null ) === $before && update_option( $name, $after, false );
 		}
 		Npcink_Cloud_Addon_Settings::invalidate_settings_cache();
 		return $changed;

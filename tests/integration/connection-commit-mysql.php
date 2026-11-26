@@ -69,8 +69,10 @@ foreach ( array( 'disconnect', 'reconnect' ) as $action ) {
 	$assert( ( 'reconnect' === $action ? 'fixture_replacement' : '' ) === $settings['site_id'], 'The independent request did not retain its result.' );
 }
 
+delete_option( Npcink_Cloud_Addon_Settings::option_name() );
+add_option( Npcink_Cloud_Addon_Settings::option_name(), 'legacy_scalar_fixture', '', false );
 $generation = Npcink_Cloud_Authorization_State::begin();
-$assert( '' !== $generation && Npcink_Cloud_Addon_Settings::write_settings( $candidate( 'normal' ), $generation ), 'An uninterrupted commit did not succeed.' );
+$assert( '' !== $generation && Npcink_Cloud_Addon_Settings::write_settings( $candidate( 'normal' ), $generation ), 'An uninterrupted commit could not recover a scalar legacy row.' );
 $normal = Npcink_Cloud_Addon_Settings::get_settings();
 $assert( 'fixture_normal' === $normal['site_id'], 'The committed settings were not visible.' );
 $paused = false;
