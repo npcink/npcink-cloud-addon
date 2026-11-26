@@ -79,6 +79,12 @@ row exists so that class is caught at change time, not at the next release.
 
 ## Reconciliation And Closeout Evidence
 
+For Site Knowledge query changes, use `composer run smoke:site-knowledge-mysql`
+with Docker, native PHP `mysqli`, and WP-CLI. `Release static gates` runs it on
+a disposable WordPress install and MySQL 8.4 database. It shares the fixture
+with `smoke:playground` (SQLite), verifies the real `$wpdb` query and exact
+same-second page boundary, and does not exercise delivery, Cloud, or WP-Cron.
+
 Keep execution marks, scan-cursor progress, durable buffer retention, delivery
 acceptance, and Cloud documents/chunks as separate evidence. A recent delivery
 clock is not a scan-coverage watermark. A merged fix is not proof that the

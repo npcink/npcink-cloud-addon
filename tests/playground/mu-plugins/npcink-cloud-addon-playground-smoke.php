@@ -12,6 +12,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/npcink-cloud-addon-playground-ai-context.php';
+require_once __DIR__ . '/fixtures/site-knowledge-reconciliation.php';
 
 add_action(
 	'rest_api_init',
@@ -162,70 +163,6 @@ function npcink_cloud_addon_playground_smoke_response() {
  * @return WP_REST_Response|WP_Error
  */
 function npcink_cloud_addon_playground_site_knowledge_response() {
-	global $wpdb;
-	$fixture_ids = array();
-	$modified_gmt = '2026-08-25 00:00:00';
-	for ( $index = 0; $index < 51; $index++ ) {
-		$inserted = $wpdb->insert(
-			$wpdb->posts,
-			array(
-				'post_author' => 1,
-				'post_date' => $modified_gmt,
-				'post_date_gmt' => $modified_gmt,
-				'post_content' => 'Playground Site Knowledge fixture',
-				'post_title' => 'Playground fixture ' . $index,
-				'post_status' => 'publish',
-				'post_name' => 'npcink-playground-fixture-' . $index,
-				'post_modified' => $modified_gmt,
-				'post_modified_gmt' => $modified_gmt,
-				'post_type' => 'post',
-			),
-			array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
-		);
-		if ( false !== $inserted ) {
-			$fixture_ids[] = (int) $wpdb->insert_id;
-		}
-	}
-
-	$result = array( 'first_page' => 0, 'second_page' => 0, 'same_second_cursor' => false );
-	try {
-		$bridge = new ReflectionClass( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' );
-		$read_cursor = $bridge->getMethod( 'get_reconciliation_cursor' );
-		$read_cursor->setAccessible( true );
-		$query = $bridge->getMethod( 'query_reconciliation_posts' );
-		$query->setAccessible( true );
-		$old_status = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array() );
-		update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array( 'last_delivered_at' => '2027-01-01T00:00:00+00:00' ), false );
-		$initial_cursor = $read_cursor->invoke( null );
-		$first_page = $query->invoke( null, $initial_cursor );
-		$last = end( $first_page );
-		$cursor = array(
-			'modified_gmt' => (string) ( $last->post_modified_gmt ?? '' ),
-			'post_id' => (int) ( $last->ID ?? 0 ),
-		);
-		$second_page = $query->invoke( null, $cursor );
-		$first_fixture_ids = array_intersect( $fixture_ids, array_map( static function ( $post ) { return (int) ( $post->ID ?? 0 ); }, $first_page ) );
-		$second_fixture_ids = array_intersect( $fixture_ids, array_map( static function ( $post ) { return (int) ( $post->ID ?? 0 ); }, $second_page ) );
-		$result = array(
-			'first_page' => count( $first_page ),
-			'second_page' => count( $second_page ),
-			'first_fixture_page' => count( $first_fixture_ids ),
-			'second_fixture_page' => count( $second_fixture_ids ),
-			'same_second_cursor' => $cursor['modified_gmt'] === $modified_gmt && $cursor['post_id'] > 0,
-			'initial_cursor_unbounded' => array( 'modified_gmt' => '', 'post_id' => 0 ) === $initial_cursor,
-		);
-	} finally {
-		if ( isset( $old_status ) ) {
-			update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, $old_status, false );
-		}
-		foreach ( $fixture_ids as $fixture_id ) {
-			$wpdb->delete( $wpdb->posts, array( 'ID' => $fixture_id ), array( '%d' ) );
-		}
-	}
-
-	if ( 50 !== $result['first_fixture_page'] || 1 !== $result['second_fixture_page'] || ! $result['same_second_cursor'] || empty( $result['initial_cursor_unbounded'] ) ) {
-		return new WP_Error( 'npcink_cloud_addon_playground_site_knowledge_failed', 'The real WordPress reconciliation page did not preserve the ordered cursor.', array( 'status' => 500, 'data' => $result ) );
-	}
-
-	return rest_ensure_response( array( 'site_knowledge_reconciliation' => true ) );
+	$result = npcink_cloud_addon_reconciliation_fixture();
+	return is_wp_error( $result ) ? $result : rest_ensure_response( array( 'site_knowledge_reconciliation' => true ) );
 }
