@@ -101,10 +101,11 @@ bind the original request path; TLS verification stays enabled; JSON calls
 require a JSON response media type. JSON runtime responses are limited to 1
 MiB, authorization responses to 64 KiB, and raw artifact previews to 25 MiB.
 Only exact loopback hosts may use the explicit local-development exception.
-The Addon does not pin the pre-dispatch DNS answer to the eventual transport
-connection. WordPress safe HTTP validation and HTTPS certificate verification
-remain mandatory, but trusted Cloud DNS is still an operational requirement
-and sub-second DNS rebinding is a residual risk rather than a solved guarantee.
+The Addon checks hostname resolution for each outbound request without its own
+DNS cache, but does not pin the answer to the eventual transport connection.
+WordPress safe HTTP validation and HTTPS certificate verification remain
+mandatory. Trusted Cloud DNS is still required; rebinding between validation
+and connection remains a residual risk.
 
 For Cloud jobs that download artifacts, host code should use the bounded,
 verification-gated facade:
