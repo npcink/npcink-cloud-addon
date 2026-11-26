@@ -417,7 +417,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		 * @return void
 		 */
 		public static function buffer_recent_public_content(): void {
-			if ( ! self::is_enabled() || ! function_exists( 'get_posts' ) ) {
+			if ( ! self::is_enabled() ) {
 				return;
 			}
 			if ( class_exists( 'Npcink_Cloud_Site_Knowledge_Runtime_Bridge' ) ) {
@@ -427,6 +427,9 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			self::reconcile_media_sources();
 			$cursor = self::get_reconciliation_cursor();
 			$posts = self::query_reconciliation_posts( $cursor );
+			if ( null === $posts ) {
+				return; // A failed read is not a completed reconciliation.
+			}
 			if ( empty( $posts ) ) {
 				update_option( self::STATUS_OPTION, array_merge( self::get_status(), array( 'last_reconciled_at' => gmdate( 'c' ) ) ), false );
 				return;
@@ -437,9 +440,6 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			$buffered_ids = array_fill_keys( self::get_buffer()['post_ids'], true );
 			$available = max( 0, self::MAX_BUFFER_ITEMS - count( $buffered_ids ) );
 			foreach ( $posts as $post ) {
-				if ( is_scalar( $post ) && function_exists( 'get_post' ) ) {
-					$post = get_post( absint( $post ) );
-				}
 				$post_id = absint( is_object( $post ) ? ( $post->ID ?? 0 ) : ( $post['ID'] ?? 0 ) );
 				$modified_gmt = sanitize_text_field( (string) ( is_object( $post ) ? ( $post->post_modified_gmt ?? '' ) : ( $post['post_modified_gmt'] ?? '' ) ) );
 				if ( $post_id < 1 || '' === $modified_gmt ) {
@@ -1152,53 +1152,39 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 		/**
 		 * Returns one stable ascending reconciliation page.
 		 *
-		 * The SQL path preserves the `(modified_gmt, ID)` watermark across rows
-		 * sharing the same WordPress modification second. The fallback keeps the
-		 * lightweight behavior tests usable outside a loaded WordPress runtime.
+		 * The `(modified_gmt, ID)` watermark is applied before LIMIT so a full
+		 * page sharing one modification second cannot stall the next scan.
 		 *
 		 * @param array{modified_gmt:string,post_id:int} $cursor Cursor.
-		 * @return array<int,mixed>
+		 * @return array<int,mixed>|null Null on an unavailable or failed read.
 		 */
-		private static function query_reconciliation_posts( array $cursor ): array {
+		private static function query_reconciliation_posts( array $cursor ): ?array {
 			global $wpdb;
 			$modified_gmt = (string) ( $cursor['modified_gmt'] ?? '' );
 			$post_id = absint( $cursor['post_id'] ?? 0 );
 			$post_types = array_merge( self::post_types(), array( 'attachment' ) );
 
-			if ( isset( $wpdb ) && is_object( $wpdb ) && method_exists( $wpdb, 'prepare' ) && method_exists( $wpdb, 'get_results' ) && ! empty( $post_types ) ) {
-				$type_placeholders = implode( ', ', array_fill( 0, count( $post_types ), '%s' ) );
-				$sql = "SELECT ID, post_modified_gmt FROM {$wpdb->posts} WHERE post_status IN (%s, %s) AND post_type IN ({$type_placeholders})";
-				$params = array_merge( array( 'publish', 'inherit' ), $post_types );
-				if ( '' !== $modified_gmt ) {
-					$sql .= ' AND (post_modified_gmt > %s OR (post_modified_gmt = %s AND ID > %d))';
-					$params = array_merge( $params, array( $modified_gmt, $modified_gmt, $post_id ) );
-				}
-				$sql .= ' ORDER BY post_modified_gmt ASC, ID ASC LIMIT %d';
-				$params[] = self::RECONCILE_POSTS;
-				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- placeholders and values are assembled immediately above.
-				$prepared = $wpdb->prepare( $sql, $params );
-				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- bounded reconciliation read uses the prepared cursor query above.
-				$results = $wpdb->get_results( $prepared );
-
-				return is_array( $results ) ? $results : array();
+			if ( ! is_object( $wpdb ) || empty( $wpdb->posts ) || ! method_exists( $wpdb, 'prepare' ) || ! method_exists( $wpdb, 'get_results' ) ) {
+				return null;
 			}
-
-			$args = array(
-				'post_type' => $post_types,
-				'post_status' => array( 'publish', 'inherit' ),
-				'posts_per_page' => self::RECONCILE_POSTS,
-				'orderby' => 'modified ID',
-				'order' => 'ASC',
-				'fields' => 'all',
-				'no_found_rows' => true,
-			);
+			$type_placeholders = implode( ', ', array_fill( 0, count( $post_types ), '%s' ) );
+			$sql = "SELECT ID, post_modified_gmt FROM {$wpdb->posts} WHERE post_status IN (%s, %s) AND post_type IN ({$type_placeholders})";
+			$params = array_merge( array( 'publish', 'inherit' ), $post_types );
 			if ( '' !== $modified_gmt ) {
-				$args['date_query'] = array( array( 'column' => 'post_modified_gmt', 'after' => $modified_gmt, 'inclusive' => true ) );
+				$sql .= ' AND (post_modified_gmt > %s OR (post_modified_gmt = %s AND ID > %d))';
+				$params = array_merge( $params, array( $modified_gmt, $modified_gmt, $post_id ) );
 			}
+			$sql .= ' ORDER BY post_modified_gmt ASC, ID ASC LIMIT %d';
+			$params[] = self::RECONCILE_POSTS;
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- placeholders and values are assembled immediately above.
+			$prepared = $wpdb->prepare( $sql, $params );
+			if ( ! is_string( $prepared ) || '' === $prepared ) {
+				return null;
+			}
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- bounded reconciliation read uses the prepared cursor query above.
+			$results = $wpdb->get_results( $prepared );
 
-			$results = get_posts( $args );
-
-			return is_array( $results ) ? $results : array();
+			return is_array( $results ) && empty( $wpdb->last_error ) ? $results : null;
 		}
 
 		/**
