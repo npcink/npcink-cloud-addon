@@ -124,11 +124,11 @@ final class Npcink_Cloud_Authorization_State {
 			return true;
 		}
 		if ( $wpdb instanceof wpdb ) {
-			$sql = null === $before
-				? $wpdb->prepare( 'INSERT IGNORE INTO %i (option_name, option_value, autoload) VALUES (%s, %s, %s)', $wpdb->options, $name, serialize( $after ), 'off' )
-				: $wpdb->prepare( 'UPDATE %i SET option_value = %s WHERE option_name = %s AND HEX(option_value) = HEX(%s)', $wpdb->options, serialize( $after ), $name, serialize( $before ) );
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Ordinary WordPress option writes cannot perform compare-and-swap.
-			$changed = 1 === $wpdb->query( $sql );
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery -- The Options API cannot perform these conditional writes.
+			$changed = null === $before
+				? 1 === $wpdb->query( $wpdb->prepare( 'INSERT IGNORE INTO %i (option_name, option_value, autoload) VALUES (%s, %s, %s)', $wpdb->options, $name, serialize( $after ), 'off' ) )
+				: 1 === $wpdb->query( $wpdb->prepare( 'UPDATE %i SET option_value = %s WHERE option_name = %s AND HEX(option_value) = HEX(%s)', $wpdb->options, serialize( $after ), $name, serialize( $before ) ) );
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery
 			wp_cache_delete( $name, 'options' );
 			wp_cache_delete( 'alloptions', 'options' );
 			wp_cache_delete( 'notoptions', 'options' );
