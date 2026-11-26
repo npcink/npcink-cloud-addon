@@ -54,11 +54,13 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 		 * Deletes settings, credential-scoped caches, buffers, and cron hooks.
 		 *
 		 * Settings must be read before this method so dynamic keys remain known.
+		 * Disconnect retains the delivery envelope for receipt recovery.
 		 *
 		 * @param array<string,mixed> $settings Decrypted settings snapshot.
+		 * @param bool                $purge_delivery_state Whether to delete the envelope on uninstall.
 		 * @return void
 		 */
-		public static function delete_all( array $settings ): void {
+		public static function delete_all( array $settings, bool $purge_delivery_state = false ): void {
 			$option_name = defined( 'NPCINK_CLOUD_ADDON_OPTION_NAME' ) && '' !== (string) NPCINK_CLOUD_ADDON_OPTION_NAME
 				? (string) NPCINK_CLOUD_ADDON_OPTION_NAME
 				: 'npcink_cloud_addon_settings';
@@ -110,8 +112,11 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 					'npcink_cloud_addon_runtime_callback_registration',
 				) as $owned_option
 			) {
-				if ( 'npcink_cloud_addon_site_knowledge_maintenance_cursor' === $owned_option && ! empty( get_option( $owned_option, array() )['_lifecycle'] ) ) {
-					continue;
+				if ( ! $purge_delivery_state && 'npcink_cloud_addon_site_knowledge_maintenance_cursor' === $owned_option ) {
+					$delivery_state = get_option( $owned_option, array() );
+					if ( is_array( $delivery_state ) && ! empty( $delivery_state['_lifecycle'] ) ) {
+						continue;
+					}
 				}
 				delete_option( $owned_option );
 			}

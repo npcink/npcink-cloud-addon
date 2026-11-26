@@ -141,8 +141,11 @@ maca_assert(
 	&& false !== strpos( $cleanup, "'_lock'" )
 	&& false !== strpos( $uninstall, 'Npcink_Cloud_Addon_Settings::get_settings()' )
 	&& false !== strpos( $uninstall, 'Npcink_Cloud_Addon_Cleanup::delete_all' )
-	&& false !== strpos( $cleanup, 'npcink_cloud_addon_site_knowledge_reconciliation_cursor' ),
-	'Static: disconnect and uninstall share one addon-owned cleanup contract with credential-scoped cache removal and the site knowledge reconciliation cursor.'
+	&& false !== strpos( $uninstall, 'purge_delivery_state: true' )
+	&& false !== strpos( $cleanup, 'public static function delete_all( array $settings, bool $purge_delivery_state = false )' )
+	&& false !== strpos( $cleanup, 'npcink_cloud_addon_site_knowledge_reconciliation_cursor' )
+	&& false !== strpos( $cleanup, '! $purge_delivery_state' ),
+	'Static: disconnect retains unfinished Site Knowledge delivery state, while uninstall force-purges it; both paths remove credential-scoped caches and the reconciliation cursor.'
 );
 
 preg_match_all( "/require_once __DIR__ \. '\/includes\/([a-z0-9-]+\.php)'/", $uninstall, $uninstall_require_matches );
