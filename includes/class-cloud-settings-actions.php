@@ -422,14 +422,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			$enabled = ! empty( $_POST['enabled'] );
 			$settings = Npcink_Cloud_Addon_Settings::get_settings();
-			$settings[ $permission ] = $enabled;
 			if ( 'monitoring_enabled' === $permission ) {
 				self::clear_monitoring_consent_prompt();
 			}
-			if ( 'site_knowledge_delivery_enabled' === $permission ) {
-				$settings['site_knowledge_generation_reference_enabled'] = $enabled;
-			}
-			if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
+			if ( ! Npcink_Cloud_Addon_Settings::write_local_permission( $settings, $permission, $enabled ) ) {
 				self::set_local_permission_feedback(
 					'error',
 					__( 'The setting could not be saved and nothing was changed. Try again.', 'npcink-cloud-addon' ),

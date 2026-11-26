@@ -22,11 +22,14 @@ $candidate = static function ( string $account ): array {
 		'site_id'  => 'fixture_' . $account,
 		'key_id'   => 'fixture_key',
 		'secret'   => 'fixture_only_not_a_cloud_credential',
+		'verified' => true,
 	);
 };
 
 if ( defined( 'NPCINK_CONNECTION_FIXTURE_STEP' ) ) {
 	if ( 'disconnect' === NPCINK_CONNECTION_FIXTURE_STEP ) {
+		// Core reads the row to delete directly, even with a stale negative cache.
+		wp_cache_set( 'notoptions', array( Npcink_Cloud_Addon_Settings::option_name() => true ), 'options' );
 		Npcink_Cloud_Addon_Cleanup::delete_all( Npcink_Cloud_Addon_Settings::get_settings() );
 		Npcink_Cloud_Addon_Settings::restore_disconnected_base_url( 'https://connection.example.test/' );
 		$assert( ! Npcink_Cloud_Addon_Settings::is_configured(), 'Independent request did not disconnect.' );
@@ -68,8 +71,20 @@ foreach ( array( 'disconnect', 'reconnect' ) as $action ) {
 
 $generation = Npcink_Cloud_Authorization_State::begin();
 $assert( '' !== $generation && Npcink_Cloud_Addon_Settings::write_settings( $candidate( 'normal' ), $generation ), 'An uninterrupted commit did not succeed.' );
-$assert( 'fixture_normal' === Npcink_Cloud_Addon_Settings::get_settings()['site_id'], 'The committed settings were not visible.' );
-$run_worker( 'disconnect' );
+$normal = Npcink_Cloud_Addon_Settings::get_settings();
+$assert( 'fixture_normal' === $normal['site_id'], 'The committed settings were not visible.' );
+$paused = false;
+$before_permission_write = static function ( string $sql ) use ( &$paused, $run_worker ): string {
+	if ( ! $paused && str_starts_with( $sql, 'UPDATE ' ) && str_contains( $sql, 'HEX(option_value)' ) ) {
+		$paused = true;
+		$run_worker( 'disconnect' );
+	}
+	return $sql;
+};
+add_filter( 'query', $before_permission_write );
+$changed = Npcink_Cloud_Addon_Settings::write_local_permission( $normal, 'monitoring_enabled', true );
+remove_filter( 'query', $before_permission_write );
+$assert( $paused && ! $changed && ! Npcink_Cloud_Addon_Settings::is_configured(), 'A stale permission write recreated a disconnected connection.' );
 $assert( ! Npcink_Cloud_Authorization_State::is_current( $generation ) && ! Npcink_Cloud_Addon_Settings::write_settings( $candidate( 'normal' ), $generation ), 'Disconnect after commit did not fence subsequent writes.' );
 
 WP_CLI::success( 'Native MySQL retained disconnect and replacement results across independent WordPress processes; uninterrupted credential commit succeeded.' );

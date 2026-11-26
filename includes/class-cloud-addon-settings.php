@@ -429,6 +429,46 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		}
 
 		/**
+		 * Updates local consent without restoring credentials from an older request.
+		 *
+		 * @param array<string,mixed> $expected Connection displayed by the current request.
+		 * @param string              $permission Consent field to update.
+		 * @param bool                $enabled New consent value.
+		 */
+		public static function write_local_permission( array $expected, string $permission, bool $enabled ): bool {
+			if ( ! in_array( $permission, array( 'monitoring_enabled', 'site_knowledge_delivery_enabled', 'site_knowledge_generation_reference_enabled', 'wordpress_ai_connector_enabled' ), true ) ) {
+				return false;
+			}
+			return Npcink_Cloud_Authorization_State::update_existing( static function ( array $stored ) use ( $expected, $permission, $enabled ): ?array {
+				$current = self::settings_from_stored_option( $stored );
+				if ( empty( $current['verified'] ) ) {
+					return null;
+				}
+				foreach ( array( 'base_url', 'site_id', 'key_id', 'secret' ) as $field ) {
+					if ( $current[ $field ] !== ( $expected[ $field ] ?? null ) ) {
+						return null;
+					}
+				}
+				if ( self::SETTINGS_SCHEMA_VERSION > absint( $stored['settings_schema_version'] ?? 0 ) ) {
+					// Preserve the legacy default when consent is the first explicit save.
+					$current['wordpress_ai_connector_enabled'] = true;
+					$migrated = self::build_stored_option( $current, $stored['credential_envelope'] ?? null );
+					if ( is_wp_error( $migrated ) ) {
+						return null;
+					}
+					$stored = $migrated;
+				}
+				$stored[ $permission ] = $enabled;
+				if ( 'site_knowledge_delivery_enabled' === $permission ) {
+					$stored['site_knowledge_generation_reference_enabled'] = $enabled;
+				} elseif ( 'site_knowledge_generation_reference_enabled' === $permission && empty( $current['site_knowledge_delivery_enabled'] ) ) {
+					$stored[ $permission ] = false;
+				}
+				return $stored;
+			} );
+		}
+
+		/**
 		 * Checks whether settings can be encrypted without changing stored state.
 		 *
 		 * @param array<string,mixed> $settings Candidate settings.

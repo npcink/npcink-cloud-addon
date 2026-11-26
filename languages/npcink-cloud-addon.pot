@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-26T05:44:12+00:00\n"
+"POT-Creation-Date: 2026-11-26T05:53:20+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -157,32 +157,32 @@ msgstr ""
 
 #: includes/class-cloud-addon-settings.php:323
 #: includes/class-cloud-settings-actions.php:326
-#: includes/class-cloud-settings-actions.php:545
+#: includes/class-cloud-settings-actions.php:541
 msgid "The service address must start with https://."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:516
+#: includes/class-cloud-addon-settings.php:556
 msgid "Cloud verification completed, but the verified state could not be stored securely."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:735
+#: includes/class-cloud-addon-settings.php:775
 #: includes/class-cloud-credential-store.php:197
 msgid "Cloud credentials could not be stored or read securely. Reconnect this site after checking the WordPress security salts."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:766
+#: includes/class-cloud-addon-settings.php:806
 msgid "This recovery code is not valid. Reconnect this site in Npcink Cloud to get a new one."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:774
+#: includes/class-cloud-addon-settings.php:814
 msgid "Cloud API Key could not be decoded."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:782
+#: includes/class-cloud-addon-settings.php:822
 msgid "Cloud API Key format is invalid. Use a key issued by Npcink Cloud."
 msgstr ""
 
-#: includes/class-cloud-addon-settings.php:793
+#: includes/class-cloud-addon-settings.php:833
 msgid "Cloud API Key wrapper is missing required signing data."
 msgstr ""
 
@@ -1396,18 +1396,18 @@ msgstr ""
 #: includes/class-cloud-settings-actions.php:340
 #: includes/class-cloud-settings-actions.php:371
 #: includes/class-cloud-settings-actions.php:406
-#: includes/class-cloud-settings-actions.php:457
-#: includes/class-cloud-settings-actions.php:472
-#: includes/class-cloud-settings-actions.php:486
-#: includes/class-cloud-settings-actions.php:511
+#: includes/class-cloud-settings-actions.php:453
+#: includes/class-cloud-settings-actions.php:468
+#: includes/class-cloud-settings-actions.php:482
+#: includes/class-cloud-settings-actions.php:507
 msgid "You do not have permission to manage Npcink Cloud settings."
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:192
 #: includes/class-cloud-settings-actions.php:252
-#: includes/class-cloud-settings-actions.php:576
-#: includes/class-cloud-settings-actions.php:595
-#: includes/class-cloud-settings-actions.php:640
+#: includes/class-cloud-settings-actions.php:572
+#: includes/class-cloud-settings-actions.php:591
+#: includes/class-cloud-settings-actions.php:636
 msgid "The connection could not be saved on this site. Ask your host to check the site security keys, then connect again."
 msgstr ""
 
@@ -1416,13 +1416,13 @@ msgid "Saved. The site is connected."
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:219
-#: includes/class-cloud-settings-actions.php:761
+#: includes/class-cloud-settings-actions.php:757
 msgid "The connection link expired. Click Connect again."
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:257
-#: includes/class-cloud-settings-actions.php:677
-#: includes/class-cloud-settings-actions.php:908
+#: includes/class-cloud-settings-actions.php:673
+#: includes/class-cloud-settings-actions.php:904
 msgid "Connected, but this site still needs to be turned on in Npcink Cloud. Turn it on there, then check again here."
 msgstr ""
 
@@ -1456,137 +1456,137 @@ msgstr ""
 msgid "This setting is not supported."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:435
+#: includes/class-cloud-settings-actions.php:431
 msgid "The setting could not be saved and nothing was changed. Try again."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:444
+#: includes/class-cloud-settings-actions.php:440
 msgid "Enabled."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:444
+#: includes/class-cloud-settings-actions.php:440
 msgid "Disabled."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:522
+#: includes/class-cloud-settings-actions.php:518
 msgid "Connection and account checks passed. AI generation was not tested."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:539
+#: includes/class-cloud-settings-actions.php:535
 msgid "The connection link could not be created. Click Connect again."
 msgstr ""
 
 #. translators: %s: entitlement refresh message.
-#: includes/class-cloud-settings-actions.php:614
+#: includes/class-cloud-settings-actions.php:610
 #, php-format
 msgid "Connected, but credits could not be loaded. Check again later. (%s)"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:615
+#: includes/class-cloud-settings-actions.php:611
 msgid "Unknown entitlement refresh result."
 msgstr ""
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:648
+#: includes/class-cloud-settings-actions.php:644
 #, php-format
 msgid "The connection could not be checked (%s). Click Check again on this page."
 msgstr ""
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:658
+#: includes/class-cloud-settings-actions.php:654
 #, php-format
 msgid "The new account could not be connected, so the current one was kept. (%s)"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:672
+#: includes/class-cloud-settings-actions.php:668
 msgid "The check finished, but the result could not be saved. Try again."
 msgstr ""
 
 #. translators: %s: request error message.
-#: includes/class-cloud-settings-actions.php:786
+#: includes/class-cloud-settings-actions.php:782
 #, php-format
 msgid "Connection failed (%s). Click Connect again."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:805
-#: includes/class-cloud-settings-actions.php:813
-#: includes/class-cloud-settings-actions.php:871
+#: includes/class-cloud-settings-actions.php:801
+#: includes/class-cloud-settings-actions.php:809
+#: includes/class-cloud-settings-actions.php:867
 msgid "Connection failed. Click Connect again."
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:843
+#: includes/class-cloud-settings-actions.php:839
 #, php-format
 msgid "Your account has no free site slots. Turn off another site or upgrade in Npcink Cloud, then connect again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:849
+#: includes/class-cloud-settings-actions.php:845
 #, php-format
 msgid "Your account has reached its site limit. Remove an unused site in Npcink Cloud, then connect again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:858
+#: includes/class-cloud-settings-actions.php:854
 #, php-format
 msgid "The connection link expired. Click Connect again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:865
+#: includes/class-cloud-settings-actions.php:861
 #, php-format
 msgid "Connection failed. Connect again, or send this code to support: %s"
 msgstr ""
 
 #. translators: %s: liveness error.
-#: includes/class-cloud-settings-actions.php:914
+#: includes/class-cloud-settings-actions.php:910
 #, php-format
 msgid "Could not reach Npcink Cloud: %s"
 msgstr ""
 
 #. translators: %s: signed verification error.
-#: includes/class-cloud-settings-actions.php:921
+#: includes/class-cloud-settings-actions.php:917
 #, php-format
 msgid "Npcink Cloud did not accept this site: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:928
+#: includes/class-cloud-settings-actions.php:924
 msgid "The connection check failed. Try again."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1177
+#: includes/class-cloud-settings-actions.php:1173
 msgid "WordPress AI connector"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1178
+#: includes/class-cloud-settings-actions.php:1174
 msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1181
+#: includes/class-cloud-settings-actions.php:1177
 msgid "Enable Site Knowledge"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1182
+#: includes/class-cloud-settings-actions.php:1178
 msgid "Keep public posts and pages updated automatically so AI can reference them."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1185
+#: includes/class-cloud-settings-actions.php:1181
 msgid "Reference site content during generation"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1186
+#: includes/class-cloud-settings-actions.php:1182
 msgid "Use indexed public articles as generation context."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1189
+#: includes/class-cloud-settings-actions.php:1185
 msgid "Send anonymous diagnostics"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1190
+#: includes/class-cloud-settings-actions.php:1186
 msgid "Sends anonymous error reports to help us fix problems. Never includes your content."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1191
+#: includes/class-cloud-settings-actions.php:1187
 msgid "Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time."
 msgstr ""
 

@@ -89,6 +89,22 @@ final class Npcink_Cloud_Authorization_State {
 		return self::replace( $before, $stored );
 	}
 
+	/** Applies a settings-only edit to an existing row, never recreating it. */
+	public static function update_existing( callable $change ): bool {
+		$before = self::stored_settings();
+		if ( null === $before ) {
+			return false;
+		}
+		$after = $change( $before );
+		if ( ! is_array( $after ) ) {
+			return false;
+		}
+		if ( $after !== $before ) {
+			unset( $after[ self::GENERATION_FIELD ] );
+		}
+		return self::replace( $before, $after );
+	}
+
 	/**
 	 * Restores a disconnected endpoint only if no newer attempt has created a row.
 	 *
