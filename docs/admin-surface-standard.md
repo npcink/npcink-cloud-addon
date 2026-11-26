@@ -34,6 +34,11 @@ router, workflows, or runtime policy.
 The primary connection and inactive-site recovery actions use a same-tab,
 click-time authorization form. This supplies fresh return context so Cloud
 confirmation returns to WordPress for credential exchange and verification.
+Only the latest connection attempt can commit credentials. Starting a new
+Portal or manual connection, changing saved settings, or disconnecting can
+invalidate an older attempt; start again if its link is no longer current.
+Disconnect and uninstall remove the same settings row that authorizes the
+commit, so a response still in flight cannot recreate the connection.
 The folded custom-endpoint entry may open in a new browser tab. Cloud owns explicit
 activation and any customer-selected site replacement; the Addon owns only
 the handoff and verification. The separate activation recheck stays available

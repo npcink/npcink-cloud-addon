@@ -368,8 +368,28 @@ maca_assert(
 	'Behavior: disconnect invalidates pending links and a fresh authorization still works.'
 );
 
-$state_before_probe = Npcink_Cloud_Authorization_State::consume( $issue_state() );
+$earlier_link = $issue_state();
+$latest_link = $issue_state();
+maca_assert(
+	array() === Npcink_Cloud_Authorization_State::consume( $earlier_link )
+	&& ! empty( Npcink_Cloud_Authorization_State::consume( $latest_link ) ),
+	'Behavior: only the latest issued connection link is accepted.'
+);
+
+maca_seed_settings( true );
+$before_permission = Npcink_Cloud_Authorization_State::consume( $issue_state() );
+$permission_settings = Npcink_Cloud_Addon_Settings::get_settings();
+$permission_settings['monitoring_enabled'] = ! $permission_settings['monitoring_enabled'];
+maca_assert(
+	Npcink_Cloud_Addon_Settings::write_local_permission( $permission_settings, 'monitoring_enabled', $permission_settings['monitoring_enabled'] )
+	&& ! Npcink_Cloud_Addon_Settings::write_settings( array_replace( $permission_settings, array( 'site_id' => 'unaccepted_site' ) ), $before_permission['generation'] )
+	&& 'site_test' === Npcink_Cloud_Addon_Settings::get_settings()['site_id']
+	&& $permission_settings['monitoring_enabled'] === Npcink_Cloud_Addon_Settings::get_settings()['monitoring_enabled'],
+	'Behavior: a saved permission change cannot be overwritten by a pending connection.'
+);
+
 maca_seed_settings( false );
+$state_before_probe = Npcink_Cloud_Authorization_State::consume( $issue_state() );
 $settings_before_probe = Npcink_Cloud_Addon_Settings::get_settings();
 $exchanged_settings = array_replace( $settings_before_probe, array( 'key_id' => 'new_fixture_key', 'secret' => 'new_fixture_secret' ) );
 $GLOBALS['maca_http_response_queue'][] = static function () use ( $settings_before_probe ): WP_Error {

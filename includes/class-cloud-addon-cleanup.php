@@ -61,15 +61,13 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 		 * @return void
 		 */
 		public static function delete_all( array $settings, bool $purge_delivery_state = false ): void {
-			Npcink_Cloud_Authorization_State::invalidate_pending();
+			// The settings deletion also fences in-flight credential commits.
+			delete_option( Npcink_Cloud_Addon_Settings::option_name() );
 			delete_transient( 'npcink_cloud_addon_first_connection' );
 			if ( $purge_delivery_state ) {
 				delete_option( 'npcink_cloud_addon_monitoring_prompt_answered' );
 			}
 
-			$option_name = defined( 'NPCINK_CLOUD_ADDON_OPTION_NAME' ) && '' !== (string) NPCINK_CLOUD_ADDON_OPTION_NAME
-				? (string) NPCINK_CLOUD_ADDON_OPTION_NAME
-				: 'npcink_cloud_addon_settings';
 			$credential_seed = implode(
 				'|',
 				array(
@@ -98,7 +96,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Cleanup' ) ) {
 
 			foreach (
 				array(
-					$option_name,
+					'npcink_cloud_addon_auth_generation', // Legacy separate generation option.
 					'npcink_cloud_addon_last_ai_error',
 					'npcink_cloud_addon_wp_ai_connector_connected',
 					'npcink_cloud_addon_observability_buffer',

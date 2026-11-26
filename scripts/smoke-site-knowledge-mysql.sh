@@ -64,3 +64,4 @@ mkdir -p "${TEMP_DIR}/wp-content/plugins"
 ln -s "${ROOT_DIR}" "${TEMP_DIR}/wp-content/plugins/npcink-cloud-addon"
 wp_fixture plugin activate npcink-cloud-addon
 wp_fixture eval 'require WP_PLUGIN_DIR . "/npcink-cloud-addon/tests/integration/site-knowledge-mysql.php";'
+wp_fixture eval 'require WP_PLUGIN_DIR . "/npcink-cloud-addon/tests/integration/connection-commit-mysql.php";'

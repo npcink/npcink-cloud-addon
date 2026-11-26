@@ -10,12 +10,6 @@ parameters:
 			message: '#^Strict comparison using \!\=\= between '''' and ''npcink_cloud_addon…'' will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
-			path: includes/class-cloud-addon-cleanup.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between '''' and ''npcink_cloud_addon…'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
 			path: includes/class-cloud-addon-settings.php
 
 		-
