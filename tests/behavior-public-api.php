@@ -21,6 +21,27 @@ if ( ! function_exists( 'plugin_basename' ) ) {
 require_once MACA_TEST_ROOT . '/includes/bootstrap.php';
 maca_seed_settings( true );
 
+$documented_signatures = array();
+foreach ( array( 'get_recent_nightly_inspection_runs', 'retry_run' ) as $client_method ) {
+	$method = new ReflectionMethod( Npcink_Cloud_Runtime_Client::class, $client_method );
+	$parameters = array();
+	foreach ( $method->getParameters() as $parameter ) {
+		$declaration = $parameter->getType() . ' $' . $parameter->getName();
+		if ( $parameter->isDefaultValueAvailable() ) {
+			$declaration .= ' = ' . var_export( $parameter->getDefaultValue(), true );
+		}
+		$parameters[] = $declaration;
+	}
+	$documented_signatures[] = $client_method . '(' . implode( ', ', $parameters ) . ')';
+}
+
+$api_readme = maca_read( MACA_TEST_ROOT . '/README.md' );
+$api_contract = maca_read( MACA_TEST_ROOT . '/docs/cloud-runtime-client-contract.md' );
+foreach ( $documented_signatures as $signature ) {
+	maca_assert( in_array( $signature, preg_split( '/\R/', $api_readme ), true ), 'README matches the runtime client signature: ' . $signature );
+	maca_assert( str_contains( $api_contract, '| `' . $signature . '` |' ), 'Runtime client contract matches the PHP signature: ' . $signature );
+}
+
 $state = npcink_cloud_addon_get_connection_state();
 maca_assert(
 	true === ( $state['configured'] ?? null )

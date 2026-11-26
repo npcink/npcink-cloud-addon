@@ -22,7 +22,12 @@ maca_assert( is_wp_error( $paused_dispatch ) && 'cloud_feature_paused' === $paus
 $paused_plan = Npcink_Cloud_Media_Plan_Projection::build_media_optimization_payload( array(), array(), array(), array() );
 maca_assert( is_wp_error( $paused_plan ) && 'cloud_feature_paused' === $paused_plan->get_error_code(), 'New media optimization plans are paused.' );
 $retry = $pause_client->retry_run( 'run_retained', array() );
-maca_assert( is_wp_error( $retry ) && 'cloud_feature_paused' === $retry->get_error_code(), 'Old inspection retries remain paused.' );
+maca_assert(
+	is_wp_error( $retry )
+	&& 'cloud_feature_paused' === $retry->get_error_code()
+	&& 409 === ( $retry->get_error_data()['status'] ?? null ),
+	'Configured inspection retries remain paused with status 409.'
+);
 maca_assert( array() === $GLOBALS['maca_http_requests'], 'Paused executions and retries make zero HTTP requests.' );
 $GLOBALS['maca_http_response_queue'][] = array( 'response' => array( 'code' => 200 ), 'body' => wp_json_encode( array( 'status' => 'ok', 'data' => array() ) ) );
 $pause_client->get_run( 'run_retained' );

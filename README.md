@@ -92,7 +92,7 @@ The addon owns:
   - `GET /v1/runs/{run_id}`
   - `GET /v1/runs/{run_id}/result`
   - `GET /v1/runs/nightly-inspection/recent`
-  - `POST /v1/runs/{run_id}/retry`
+  - `POST /v1/runs/{run_id}/retry` (retained contract; currently paused)
   - `GET /v1/runtime/media/artifacts/{artifact_id}/download`
   - `POST /v1/runtime/media/artifacts/{artifact_id}/delivery-ack`
   - `GET /v1/entitlements/current`
@@ -231,8 +231,8 @@ upload_media_artifact(array $file, string $trace_id = '', string $idempotency_ke
 create_media_job(array $payload, string $trace_id = '', string $idempotency_key = '')
 get_run(string $run_id, string $trace_id = '')
 get_run_result(string $run_id, string $trace_id = '')
-get_recent_nightly_inspection_runs(int $limit = 5, string $trace_id = '')
-retry_run(string $run_id, array $payload = array(), string $trace_id = '', string $idempotency_key = '')
+get_recent_nightly_inspection_runs(int $limit = 10, string $trace_id = '')
+retry_run(string $run_id, array $input, string $trace_id = '', string $idempotency_key = '')
 pull_media_artifact(string $artifact_id, string $trace_id = '')
 acknowledge_media_artifact_delivery(string $artifact_id, array $payload, string $trace_id = '', string $idempotency_key = '')
 get_current_entitlement(string $trace_id = '')
@@ -243,6 +243,11 @@ get_agent_feedback_summary(int $window_hours = 24, string $trace_id = '')
 get_observability_summary(int $window_hours = 24, string $trace_id = '')
 get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '', string $trace_id = '')
 ```
+
+`retry_run()` requires `$input`, even while retry is paused. With a configured
+client and a valid run ID, it returns `WP_Error` with code `cloud_feature_paused`
+and status `409` before signing or sending any HTTP request. Historical run
+reads remain available.
 
 The low-level signed request method is private and endpoint-allowlisted. New
 callers should use the named methods above instead of sending arbitrary Cloud
