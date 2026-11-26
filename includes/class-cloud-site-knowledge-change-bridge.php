@@ -39,6 +39,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			private const MAX_DOCUMENT_CHARS = 1800;
 		private const MAX_POST_TEXT_BYTES = 48000;
 		private const MAX_TAXONOMY_TERMS = 10;
+		private const MAX_DELIVERY_SCOPES = 8;
 		/** @var array<int,array{post_id:int,approved:bool}> */
 		private static array $removed_comment_context = array();
 		/** @var array<int,bool> */
@@ -1864,6 +1865,11 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			return hash( 'sha256', implode( '|', array( (string) ( $settings['base_url'] ?? '' ), (string) ( $settings['site_id'] ?? '' ), (string) ( $settings['key_id'] ?? '' ) ) ) );
 		}
 
+		private static function can_write_scope( array $state, string $namespace ): bool {
+			$scopes = $state['_lifecycle']['scopes'] ?? array();
+			return isset( $scopes[ $namespace ] ) || count( $scopes ) < self::MAX_DELIVERY_SCOPES;
+		}
+
 		/** Strict typed identities, bounded BEFORE deduplication; never absint(). */
 		public static function normalize_source_selection( $items ) {
 			if ( ! is_array( $items ) || array_values( $items ) !== $items || count( $items ) < 1 || count( $items ) > 100 ) {
@@ -1927,7 +1933,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 				}
 			}
 			$added_sources = count( array_filter( $items, static function ( $item ) use ( $scope ) { return ! isset( $scope['sources'][ self::source_key( $item ) ] ); } ) );
-			if ( count( $scope['operations'] ) >= 100 || count( $scope['sources'] ) + $added_sources > 500 || count( $next['_lifecycle']['scopes'] ?? array() ) >= 8 && ! isset( $next['_lifecycle']['scopes'][ $namespace ] ) ) {
+			if ( count( $scope['operations'] ) >= 100 || count( $scope['sources'] ) + $added_sources > 500 || ! self::can_write_scope( $before, $namespace ) ) {
 				return self::lifecycle_error( 'durability_full' );
 			}
 			foreach ( $items as $item ) {
@@ -1972,7 +1978,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( ! empty( $before['_lifecycle']['owner'] ) ) {
 				return self::lifecycle_error( 'dispatch_owned' );
 			}
-			if ( ! isset( $before['_lifecycle']['scopes'][ $namespace ] ) && count( $before['_lifecycle']['scopes'] ?? array() ) >= 8 ) { return self::lifecycle_error( 'durability_full' ); }
+			if ( ! self::can_write_scope( $before, $namespace ) ) { return self::lifecycle_error( 'durability_full' ); }
 			if ( 'producer' === $purpose ) {
 				$payload = self::suppress_payload( $payload, $scope['sources'] );
 				if ( is_wp_error( $payload ) ) {
@@ -2601,7 +2607,7 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( ! self::is_enabled() || ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_col' ) ) { return; }
 			$before = self::delivery_state();
 			$namespace = self::lifecycle_scope();
-			if ( ! isset( $before['_lifecycle']['scopes'][ $namespace ] ) && count( $before['_lifecycle']['scopes'] ?? array() ) >= 8 ) {
+			if ( ! self::can_write_scope( $before, $namespace ) ) {
 				self::record_media_reconciliation( 'durability_full' );
 				return;
 			}
@@ -2613,6 +2619,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( is_wp_error( $result ) ) { self::record_media_reconciliation( $result->get_error_code() ); return; }
 			$current = self::delivery_state();
 			if ( self::lifecycle_scope() !== $namespace || $after !== (int) ( $current['_lifecycle']['scopes'][ $namespace ]['media_reconcile_after'] ?? 0 ) ) { return; }
+			if ( ! self::can_write_scope( $current, $namespace ) ) {
+				self::record_media_reconciliation( 'durability_full' );
+				return;
+			}
 			$next = $current;
 			$next['_lifecycle']['scopes'][ $namespace ] = array_merge( array( 'sources' => array(), 'operations' => array(), 'dispatches' => array(), 'legacy_unknown' => empty( $current['_lifecycle']['coverage_started_without_credentials'] ) ), $current['_lifecycle']['scopes'][ $namespace ] ?? array(), array( 'media_reconcile_after' => $page['next_after_source_id'] ) );
 			if ( $next === $current || self::compare_and_swap_delivery_state( $current, $next ) ) { self::record_media_reconciliation( '' ); }

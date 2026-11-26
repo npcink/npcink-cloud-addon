@@ -783,15 +783,32 @@ maca_assert(3===count(typed_scope()['operations'])&&!$cloud->mutations,'Three re
 typed_tick(15);
 maca_assert(array('media:2','post:1')===array_keys($cloud->sources),'Missed notifications are repaired without deleting current attachments or same-ID text.');
 
-$cloud=media_reset();
-$scope_state=typed_state();
-$scope_state['_lifecycle']['scopes']=array();
-for($scope_id=1;$scope_id<=8;$scope_id++){$scope_state['_lifecycle']['scopes']['fixture-scope-'.$scope_id]=array('sources'=>array(),'operations'=>array(),'dispatches'=>array());}
-update_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION,$scope_state);
-$http_before_scope_cap=count($GLOBALS['maca_http_requests']);
-Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
-$scope_capped_state=typed_state();
-maca_assert(8===count($scope_capped_state['_lifecycle']['scopes'])&&!isset($scope_capped_state['_lifecycle']['scopes'][Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope()])&&$http_before_scope_cap===count($GLOBALS['maca_http_requests'])&&'durability_full'===Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['media_reconcile_error'],'Media reconciliation refuses to create a ninth credential scope and does not read or advance a cursor.');
+foreach ( array( false, true ) as $fills_during_read ) {
+	$cloud = media_reset();
+	$scope_state = typed_state();
+	$scope_state['_lifecycle']['scopes'] = array();
+	for ( $scope_id = 1; $scope_id <= 8; $scope_id++ ) {
+		$scope_state['_lifecycle']['scopes'][ hash( 'sha256', 'fixture-scope-' . $scope_id ) ] = array(
+			'sources' => array(), 'operations' => array(), 'dispatches' => array(), 'media_reconcile_after' => $scope_id,
+		);
+	}
+	$initial_scope_state = $scope_state;
+	if ( $fills_during_read ) {
+		array_pop( $initial_scope_state['_lifecycle']['scopes'] );
+		$cloud->during_send = static function () use ( $scope_state ): void {
+			update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, $scope_state );
+		};
+	}
+	update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION, $initial_scope_state );
+	$http_before_scope_cap = count( $GLOBALS['maca_http_requests'] );
+	Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+	maca_assert(
+		$scope_state === typed_state()
+		&& $http_before_scope_cap + ( $fills_during_read ? 1 : 0 ) === count( $GLOBALS['maca_http_requests'] )
+		&& 'durability_full' === Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['media_reconcile_error'],
+		'Media reconciliation preserves the entire envelope when the eighth scope is taken ' . ( $fills_during_read ? 'during' : 'before' ) . ' the Cloud read.'
+	);
+}
 
 $cloud=media_reset(); maca_add_public_post_fixture(42); typed_image(); $cloud->sources=array('media:501'=>true);
 Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
