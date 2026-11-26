@@ -27,6 +27,36 @@ if ( ! function_exists( 'current_user_can' ) ) {
 	}
 }
 
+function maca_require_admin_request_nonce( string $action, string $field ): void {
+	if ( 'nonce-' . $action !== ( $_REQUEST[ $field ] ?? '' ) ) {
+		throw new RuntimeException( 'invalid-nonce', 403 );
+	}
+}
+
+if ( ! function_exists( 'check_ajax_referer' ) ) {
+	function check_ajax_referer( string $action, string $field ): void {
+		maca_require_admin_request_nonce( $action, $field );
+	}
+}
+
+if ( ! function_exists( 'check_admin_referer' ) ) {
+	function check_admin_referer( string $action ): void {
+		maca_require_admin_request_nonce( $action, '_wpnonce' );
+	}
+}
+
+if ( ! function_exists( 'wp_send_json_error' ) ) {
+	function wp_send_json_error( array $data, int $status ): void {
+		throw new RuntimeException( (string) $data['message'], $status );
+	}
+}
+
+if ( ! function_exists( 'wp_die' ) ) {
+	function wp_die( string $message ): void {
+		throw new RuntimeException( $message, 403 );
+	}
+}
+
 if ( ! function_exists( 'esc_html' ) ) {
 	function esc_html( $value ): string {
 		return htmlspecialchars( (string) $value, ENT_QUOTES, 'UTF-8' );
@@ -234,6 +264,38 @@ foreach ( $expected_hooks as $hook_name => $hook_contract ) {
 		'Behavior: settings hook remains callable: ' . $hook_name
 	);
 }
+
+$request_before_guard_checks = $_REQUEST;
+maca_seed_settings( true );
+foreach (
+	array(
+		array( 'handle_refresh_entitlement', Npcink_Cloud_Settings_Actions::ACTION_REFRESH_ENTITLEMENT, 'nonce' ),
+		array( 'handle_refresh_site_knowledge_status', Npcink_Cloud_Settings_Actions::ACTION_REFRESH_SITE_KNOWLEDGE_STATUS, 'nonce' ),
+		array( 'handle_run_manual_readiness_test', Npcink_Cloud_Settings_Actions::ACTION_RUN_MANUAL_READINESS_TEST, '_wpnonce' ),
+	) as list( $handler, $action, $field )
+) {
+	foreach ( array( false, true ) as $has_capability ) {
+		$GLOBALS['maca_manage_options'] = $has_capability;
+		$_REQUEST = $has_capability ? array() : array( $field => 'nonce-' . $action );
+		$http_count = count( $GLOBALS['maca_http_requests'] );
+		$denial = null;
+		try {
+			Npcink_Cloud_Settings_Actions::$handler();
+		} catch ( RuntimeException $error ) {
+			$denial = $error;
+		}
+		maca_assert(
+			$denial instanceof RuntimeException
+			&& 403 === $denial->getCode()
+			&& ( $has_capability ? 'invalid-nonce' === $denial->getMessage() : false !== strpos( $denial->getMessage(), 'You do not have permission' ) )
+			&& $http_count === count( $GLOBALS['maca_http_requests'] ),
+			'Behavior: ' . $handler . ' denies ' . ( $has_capability ? 'a missing nonce' : 'insufficient capability despite a valid nonce' ) . ' before Cloud HTTP.'
+		);
+	}
+}
+$_REQUEST = $request_before_guard_checks;
+unset( $GLOBALS['maca_manage_options'] );
+maca_reset_test_state();
 
 $authorization_url_builder = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'build_authorization_url_for_base_url' );
 if ( PHP_VERSION_ID < 80100 ) {

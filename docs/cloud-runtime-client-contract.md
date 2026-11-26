@@ -73,6 +73,30 @@ get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '', str
 
 The low-level signed `request()` helper is private implementation detail. It must enforce the endpoint allowlist in this contract and must not be exposed as a generic public Cloud proxy.
 
+### Caller authorization
+
+Public PHP facades use the site's Cloud identity. They are not WordPress user
+authorization checks, and Cloud request signing does not convey the caller's
+WordPress permissions. A REST, AJAX, admin-form, or other user-facing adapter
+**must**, before calling any signed helper:
+
+- Authenticate the caller and require the WordPress capability for that action.
+- Check object access for the actual post, attachment, run, or artifact in
+  context. Resolve Cloud IDs against the caller's authorized local context
+  when applicable; accepting a well-formed ID is not an access check.
+- Validate the applicable nonce for cookie-authenticated requests using the
+  host entry point's rules. A valid nonce does not replace a capability check.
+
+Deny the request before uploading bytes, submitting work, or reading signed
+results. The WordPress AI approval adapter governs provider approval for the
+calling extension when the host enables that feature; it does not authorize a
+WordPress user or substitute for these checks.
+
+Trusted background continuations and WP-CLI are not required to have an
+interactive WordPress user. They are responsible for the provenance, scope,
+and authorization of the task or CLI invocation they are executing. The Addon
+does not impose a blanket `manage_options` check in PHP transport functions.
+
 The article-language review facade is a fixed read-only transport for Toolbox's
 editor report. It accepts only `article_review_cloud_request.v1` with a
 `zh-CN` language, `language` check, UTF-16 offset declaration, and bounded
