@@ -1445,7 +1445,6 @@ maca_assert(
 	&& false !== strpos( $settings, 'Npcink_Cloud_Outbound_Policy::normalize_base_url' )
 	&& false !== strpos( $outbound_policy, "'https' === \$scheme" )
 	&& false !== strpos( $outbound_policy, 'local_requests_allowed' )
-	&& false !== strpos( $outbound_policy, 'host_resolves_publicly' )
 	&& false !== strpos( $outbound_policy, "'redirection'" )
 	&& false !== strpos( $outbound_policy, 'wp_safe_remote_request' )
 	&& false !== strpos( $outbound_policy, 'MAX_AUTH_RESPONSE_BYTES = 65536' )

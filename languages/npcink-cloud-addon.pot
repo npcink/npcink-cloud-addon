@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-26T05:53:20+00:00\n"
+"POT-Creation-Date: 2026-11-26T11:37:19+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
@@ -754,15 +754,19 @@ msgstr ""
 msgid "Cloud Addon"
 msgstr ""
 
-#: includes/class-cloud-outbound-policy.php:99
+#: includes/class-cloud-outbound-policy.php:106
 msgid "Cloud returned an unexpected response type."
 msgstr ""
 
-#: includes/class-cloud-outbound-policy.php:154
+#: includes/class-cloud-outbound-policy.php:161
 msgid "Cloud response exceeds the local size limit."
 msgstr ""
 
-#: includes/class-cloud-outbound-policy.php:410
+#: includes/class-cloud-outbound-policy.php:192
+msgid "Cloud hostname requests require a direct cURL connection with verified DNS addresses."
+msgstr ""
+
+#: includes/class-cloud-outbound-policy.php:498
 msgid "Cloud request target is not allowed by the local connector policy."
 msgstr ""
 

@@ -453,15 +453,19 @@ msgstr "渠道适配器"
 msgid "Cloud Addon"
 msgstr "云端扩展"
 
-#: includes/class-cloud-outbound-policy.php:99
+#: includes/class-cloud-outbound-policy.php:106
 msgid "Cloud returned an unexpected response type."
 msgstr "Cloud 返回了意外的响应类型。"
 
-#: includes/class-cloud-outbound-policy.php:154
+#: includes/class-cloud-outbound-policy.php:161
 msgid "Cloud response exceeds the local size limit."
 msgstr "Cloud 响应超出本地大小限制。"
 
-#: includes/class-cloud-outbound-policy.php:410
+#: includes/class-cloud-outbound-policy.php:192
+msgid "Cloud hostname requests require a direct cURL connection with verified DNS addresses."
+msgstr "Cloud 域名请求需要通过 cURL 直连已验证的 DNS 地址。"
+
+#: includes/class-cloud-outbound-policy.php:498
 msgid "Cloud request target is not allowed by the local connector policy."
 msgstr "本地连接器策略不允许此 Cloud 请求目标。"
 

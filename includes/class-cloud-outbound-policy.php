@@ -7,6 +7,10 @@
 
 declare(strict_types=1);
 
+use WpOrg\Requests\Capability;
+use WpOrg\Requests\Exception as Requests_Exception;
+use WpOrg\Requests\Transport\Curl;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -19,6 +23,9 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 		public const MAX_JSON_RESPONSE_BYTES = 1048576;
 		public const MAX_AUTH_RESPONSE_BYTES = 65536;
 		public const MAX_RAW_RESPONSE_BYTES  = 26214400;
+		private const PIN_MARKER             = 'X-Npcink-Internal-Transport';
+		private const MULTI_ADDRESS_CURL     = 0x073B00; // 7.59.0 adds multiple peers per resolve entry.
+		private static ?string $active_pin_marker = null;
 
 		/**
 		 * Normalizes a configured Cloud base URL without performing DNS I/O.
@@ -141,7 +148,7 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 
 			$response = $is_local
 				? wp_remote_request( $url, $args )
-				: wp_safe_remote_request( $url, $args );
+				: self::request_public( $url, $args, $target['ips'] );
 			if ( is_wp_error( $response ) ) {
 				return $response;
 			}
@@ -160,10 +167,96 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 		}
 
 		/**
+		 * Uses WordPress HTTP policy, but does not let a public DNS target fall
+		 * back to a transport that could resolve it again.
+		 *
+		 * @param string              $url Validated URL.
+		 * @param array<string,mixed> $args WordPress HTTP arguments.
+		 * @param list<string>        $ips Validated addresses (empty for literal IPs).
+		 * @return array<string,mixed>|WP_Error
+		 */
+		private static function request_public( string $url, array $args, array $ips ) {
+			if ( empty( $ips ) ) {
+				return wp_safe_remote_request( $url, $args );
+			}
+
+			// WordPress bridges this Requests hook without the original HTTP args.
+			// Match a per-request marker, then strip it before any transport runs.
+			$marker          = wp_generate_uuid4();
+			$args['headers'] = (array) ( $args['headers'] ?? array() );
+			$args['headers'][ self::PIN_MARKER ] = $marker;
+			$failure        = null;
+			$deny           = static function () use ( &$failure ): void {
+				$failure = new WP_Error(
+					'cloud_outbound_pinned_transport_unavailable',
+					__( 'Cloud hostname requests require a direct cURL connection with verified DNS addresses.', 'npcink-cloud-addon' ),
+					array( 'status' => 502 )
+				);
+				throw new Requests_Exception( 'Cloud address binding is unavailable.', 'npcink_cloud_pinned_transport_unavailable' );
+			};
+			$prepare        = static function ( string $request_url, array &$headers, $data, string $method, array &$options ) use ( $url, $marker, $ips, $deny ): void {
+				// Only the innermost addon request owns the active WordPress dispatch,
+				// even when another addon request is already pending for the same URL.
+				if ( self::$active_pin_marker !== $marker ) {
+					return;
+				}
+				$marker_key = null;
+				foreach ( $headers as $name => $value ) {
+					if ( 0 === strcasecmp( (string) $name, self::PIN_MARKER ) ) {
+						$marker_key = $name;
+						break;
+					}
+				}
+				if ( null === $marker_key || $headers[ $marker_key ] !== $marker ) {
+					if ( $url === $request_url ) {
+						$deny();
+					}
+					return;
+				}
+				unset( $headers[ $marker_key ] );
+				$host = wp_parse_url( $request_url, PHP_URL_HOST );
+				$port = wp_parse_url( $request_url, PHP_URL_PORT ) ?? 443;
+				if ( ! is_string( $host ) || strtolower( $host ) !== strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) )
+					|| $port !== ( wp_parse_url( $url, PHP_URL_PORT ) ?? 443 ) || 'https' !== wp_parse_url( $request_url, PHP_URL_SCHEME )
+					|| ! empty( $options['proxy'] ) || empty( $options['verify'] ) || empty( $options['verifyname'] )
+					|| ! defined( 'CURLOPT_RESOLVE' ) || ! Curl::test( array( Capability::SSL => true ) )
+					|| ( curl_version()['version_number'] ?? 0 ) < self::MULTI_ADDRESS_CURL ) {
+					$deny();
+				}
+
+				$addresses = array_map( static fn( string $ip ): string => str_contains( $ip, ':' ) ? '[' . $ip . ']' : $ip, $ips );
+				$resolve   = $host . ':' . $port . ':' . implode( ',', $addresses );
+				$options['transport']       = Curl::class;
+				$options['follow_redirects'] = false;
+				$options['hooks']->register(
+					'curl.before_send',
+					static function ( $handle ) use ( $resolve, $deny ): void {
+						// Disable implicit environment proxies as well: the verified address is the peer.
+						// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt -- WordPress still dispatches the request; these options bind its existing handle to the validated peer set.
+						if ( ! curl_setopt( $handle, CURLOPT_PROXY, '' ) || ! curl_setopt( $handle, CURLOPT_RESOLVE, array( $resolve ) ) ) {
+							$deny();
+						}
+					}
+				);
+			};
+
+			$previous_marker = self::$active_pin_marker;
+			self::$active_pin_marker = $marker;
+			add_action( 'requests-requests.before_request', $prepare, PHP_INT_MAX, 5 );
+			try {
+				$response = wp_safe_remote_request( $url, $args );
+				return $failure ?? $response;
+			} finally {
+				remove_action( 'requests-requests.before_request', $prepare, PHP_INT_MAX );
+				self::$active_pin_marker = $previous_marker;
+			}
+		}
+
+		/**
 		 * Validates one outbound URL and its resolved target.
 		 *
 		 * @param string $url URL.
-		 * @return array{local:bool}|WP_Error
+		 * @return array{local:bool,ips:list<string>}|WP_Error
 		 */
 		private static function validate_request_target( string $url ) {
 			$parts = wp_parse_url( $url );
@@ -182,32 +275,31 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 					return self::target_error();
 				}
 
-				return array( 'local' => true );
+				return array( 'local' => true, 'ips' => array() );
 			}
 
-			if ( 'https' !== $scheme || ! self::host_resolves_publicly( $host ) ) {
+			if ( 'https' !== $scheme || str_ends_with( (string) $parts['host'], '.' ) ) {
 				return self::target_error();
 			}
 
-			return array( 'local' => false );
+			if ( filter_var( $host, FILTER_VALIDATE_IP ) ) {
+				return self::is_public_ip( $host ) ? array( 'local' => false, 'ips' => array() ) : self::target_error();
+			}
+
+			$ips = self::resolve_public_ips( $host );
+			return empty( $ips ) ? self::target_error() : array( 'local' => false, 'ips' => $ips );
 		}
 
 		/**
-		 * Returns whether a host is a public IP or resolves exclusively to public IPs.
-		 *
-		 * Do not reuse Addon DNS results across calls. This check does not bind
-		 * the subsequent WordPress connection to the validated addresses (see
-		 * docs/cloud-addon-boundary.md for the accepted residual risk).
+		 * Resolves the current request's address set, rejecting a mixed or empty answer.
 		 *
 		 * @param string $host Host.
-		 * @return bool
+		 * @return list<string>
 		 */
-		private static function host_resolves_publicly( string $host ): bool {
-			if ( filter_var( $host, FILTER_VALIDATE_IP ) ) {
-				return self::is_public_ip( $host );
-			}
-			if ( 1 !== preg_match( '/^[a-z0-9.-]+$/i', $host ) ) {
-				return false;
+		private static function resolve_public_ips( string $host ): array {
+			// Require a canonical DNS name, not another spelling of a literal IP.
+			if ( ! filter_var( $host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME ) || 1 !== preg_match( '/\.[a-z][a-z0-9-]*$/D', $host ) ) {
+				return array();
 			}
 
 			$ips = array();
@@ -241,17 +333,13 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 				? apply_filters( 'npcink_cloud_addon_resolved_host_ips', $ips, $host )
 				: $ips;
 			$ips      = is_array( $filtered ) ? array_values( array_unique( array_filter( array_map( 'strval', $filtered ) ) ) ) : array();
-			if ( empty( $ips ) ) {
-				return false;
-			}
-
 			foreach ( $ips as $ip ) {
 				if ( ! self::is_public_ip( $ip ) ) {
-					return false;
+					return array();
 				}
 			}
 
-			return true;
+			return $ips;
 		}
 
 		/**

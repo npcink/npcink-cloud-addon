@@ -12,7 +12,7 @@ behavior from accepted constraints or corrected expectations.
 | ID | PRs | Disposition |
 | --- | --- | --- |
 | H1 | #368 | Uninstall purges the Site Knowledge delivery envelope. Disconnect retains recoverable receipts. The cleanup test now seeds a structured lifecycle value. |
-| H2 | #369 | Validate public DNS addresses for each outbound request. Transport address pinning is not implemented; the remaining validation-to-connection window is recorded in the boundary contract. |
+| H2 | #369 | Validate public DNS addresses for each outbound request. At #369, the validation-to-connection window remained. See the [connector boundary](cloud-addon-boundary.md) for the current transport policy. |
 | M1 | #370, #378 | Align Nightly Inspection and retry signatures with PHP. Generate and verify the PHP signature reference instead of maintaining parallel method lists. |
 | M2 | #376 | Index missing top-level documents and add an index coverage guard. |
 | M3 | #371, #380 | Add a native MySQL reconciliation gate and exercise one prepared production query with an equal-timestamp ID boundary. No separate `get_posts()` pagination fallback remains. |
