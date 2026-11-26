@@ -387,9 +387,10 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		 * Saves normalized settings.
 		 *
 		 * @param array<string,mixed> $settings Settings payload.
+		 * @param string|null         $generation Connection attempt for an atomic credential commit.
 		 * @return bool
 		 */
-		public static function write_settings( array $settings ): bool {
+		public static function write_settings( array $settings, ?string $generation = null ): bool {
 			$normalized = self::normalize_settings( $settings );
 			$current_stored = get_option( self::option_name(), array() );
 			$current_stored = is_array( $current_stored ) ? $current_stored : array();
@@ -400,7 +401,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			$current = self::get_settings();
 			$unchanged = $current === $normalized;
 			$legacy_verified = ! empty( $current['verified'] ) && self::SETTINGS_SCHEMA_VERSION > absint( $current_stored['settings_schema_version'] ?? 0 );
-			if ( $unchanged && ! $legacy_verified ) {
+			if ( null === $generation && $unchanged && ! $legacy_verified ) {
 				return true;
 			}
 
@@ -409,12 +410,22 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				return false;
 			}
 
-			$updated = false !== update_option( self::option_name(), $stored, false );
+			$updated = null === $generation
+				? false !== update_option( self::option_name(), $stored, false )
+				: Npcink_Cloud_Authorization_State::commit( $generation, $stored );
 			if ( $updated ) {
 				self::invalidate_settings_cache();
 			}
 
 			return $updated;
+		}
+
+		/** Remembers the endpoint without overwriting any newer connection. */
+		public static function restore_disconnected_base_url( string $base_url ): void {
+			$stored = self::build_stored_option( array( 'base_url' => $base_url ) );
+			if ( ! is_wp_error( $stored ) ) {
+				Npcink_Cloud_Authorization_State::restore_endpoint( $stored );
+			}
 		}
 
 		/**
@@ -487,9 +498,10 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		 *
 		 * @param bool   $verified Whether verification passed.
 		 * @param string $message Verification error message.
+		 * @param string|null $generation Connection attempt for an atomic credential commit.
 		 * @return array<string,mixed>|WP_Error
 		 */
-		public static function mark_verification_result( bool $verified, string $message = '' ) {
+		public static function mark_verification_result( bool $verified, string $message = '', ?string $generation = null ) {
 			$settings = self::get_settings();
 			$settings['verified'] = $verified;
 			$settings['verified_at'] = $verified ? gmdate( 'Y-m-d H:i:s' ) . ' UTC' : '';
@@ -498,7 +510,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				$settings['activation_state'] = 'active';
 				$settings['activation_reason'] = '';
 			}
-			if ( ! self::write_settings( $settings ) ) {
+			if ( ! self::write_settings( $settings, $generation ) ) {
 				return new WP_Error(
 					'cloud_verification_state_storage_failed',
 					__( 'Cloud verification completed, but the verified state could not be stored securely.', 'npcink-cloud-addon' ),

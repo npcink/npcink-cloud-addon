@@ -183,8 +183,19 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				self::redirect_to_page( $return_tab );
 			}
 
-			self::persist_and_verify_settings( $settings, __( 'Saved. The site is connected.', 'npcink-cloud-addon' ) );
-			self::maybe_prompt_for_monitoring_consent( $was_verified );
+			$generation = Npcink_Cloud_Authorization_State::begin();
+			if ( '' !== $generation ) {
+				// Rebuild after reserving the attempt so an omitted key never uses an older snapshot.
+				$settings = Npcink_Cloud_Addon_Settings::build_settings_from_admin_payload( $payload );
+			}
+			if ( '' === $generation || is_wp_error( $settings ) ) {
+				self::set_admin_notice( 'error', __( 'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.', 'npcink-cloud-addon' ) );
+				self::redirect_to_page( $return_tab );
+			}
+			self::persist_and_verify_settings( $settings, __( 'Saved. The site is connected.', 'npcink-cloud-addon' ), $generation );
+			if ( Npcink_Cloud_Authorization_State::is_current( $generation ) ) {
+				self::maybe_prompt_for_monitoring_consent( $was_verified );
+			}
 			self::redirect_to_page( $return_tab );
 		}
 
@@ -235,7 +246,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			}
 
 			if ( 'inactive' === (string) ( $exchange['activation_state'] ?? '' ) ) {
-				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
+				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings, $generation ) ) {
 					self::set_admin_notice(
 						'error',
 						__( 'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.', 'npcink-cloud-addon' )
@@ -552,14 +563,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 *
 		 * @param array<string,mixed> $settings Settings payload.
 		 * @param string              $success_message Success notice.
-		 * @param string|null         $generation Portal authorization generation, absent for manual saves.
+		 * @param string|null         $generation Connection attempt identifier.
 		 * @return void
 		 */
 		private static function persist_and_verify_settings( array $settings, string $success_message, ?string $generation = null ): void {
 			$current = Npcink_Cloud_Addon_Settings::get_settings();
 			$same_connection = self::same_connection_credentials( $current, $settings );
 			if ( ! Npcink_Cloud_Addon_Settings::can_store_settings( $settings )
-				|| ( $same_connection && ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) ) {
+				|| ( $same_connection && ! Npcink_Cloud_Addon_Settings::write_settings( $settings, $generation ) ) ) {
 				self::set_admin_notice(
 					'error',
 					__( 'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.', 'npcink-cloud-addon' )
@@ -578,7 +589,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				$settings['last_verification_error'] = '';
 				$settings['activation_state'] = 'active';
 				$settings['activation_reason'] = '';
-				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
+				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings, $generation ) ) {
 					self::set_admin_notice(
 						'error',
 						__( 'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.', 'npcink-cloud-addon' )
@@ -623,7 +634,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 					$settings['verified'] = false;
 					$settings['verified_at'] = '';
 					$settings['last_verification_error'] = sanitize_text_field( $message );
-					if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings ) ) {
+					if ( ! Npcink_Cloud_Addon_Settings::write_settings( $settings, $generation ) ) {
 						self::set_admin_notice(
 							'error',
 							__( 'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.', 'npcink-cloud-addon' )
@@ -657,7 +668,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				$inactive_settings['last_verification_error'] = '';
 				$inactive_settings['activation_state'] = 'inactive';
 				$inactive_settings['activation_reason'] = 'cloud_site_inactive';
-				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $inactive_settings ) ) {
+				if ( ! Npcink_Cloud_Addon_Settings::write_settings( $inactive_settings, $generation ) ) {
 					self::set_admin_notice( 'error', __( 'The check finished, but the result could not be saved. Try again.', 'npcink-cloud-addon' ) );
 					return;
 				}
@@ -667,7 +678,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 				);
 				return;
 			}
-			$verification = Npcink_Cloud_Addon_Settings::mark_verification_result( false, $message );
+			$verification = Npcink_Cloud_Addon_Settings::mark_verification_result( false, $message, $generation );
 			if ( is_wp_error( $verification ) ) {
 				self::set_admin_notice( 'error', $verification->get_error_message() );
 				return;
@@ -960,11 +971,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$remembered_base_url = (string) ( $settings['base_url'] ?? '' );
 			Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
 			if ( '' !== $remembered_base_url ) {
-				Npcink_Cloud_Addon_Settings::write_settings(
-					array(
-						'base_url' => $remembered_base_url,
-					)
-				);
+				Npcink_Cloud_Addon_Settings::restore_disconnected_base_url( $remembered_base_url );
 			}
 
 			return $remembered_base_url;

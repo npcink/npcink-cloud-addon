@@ -2322,7 +2322,7 @@ maca_assert(
 	&& false !== strpos( $settings_actions, 'function handle_disconnect' )
 	&& false !== strpos( $settings_actions, 'Npcink_Cloud_Addon_Cleanup::delete_all( $settings )' )
 	&& false !== strpos( $settings_actions, '$remembered_base_url' )
-	&& false !== strpos( $settings_actions, "'base_url' => \$remembered_base_url," )
+	&& false !== strpos( $settings_actions, 'restore_disconnected_base_url( $remembered_base_url )' )
 	&& false !== strpos( $settings_page, 'Change account' )
 	&& false !== strpos( $settings_actions, "ACTION_CHANGE_ACCOUNT = 'npcink_cloud_addon_change_account'" )
 	&& false !== strpos( $settings_actions, 'function handle_change_account' )

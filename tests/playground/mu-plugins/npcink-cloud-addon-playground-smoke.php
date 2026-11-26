@@ -143,12 +143,25 @@ function npcink_cloud_addon_playground_smoke_response() {
 		);
 	}
 
+	// Run only on the disposable, initially disconnected smoke site.
+	$generation = Npcink_Cloud_Authorization_State::begin();
+	$connected = '' !== $generation && Npcink_Cloud_Addon_Settings::write_settings(
+		array( 'base_url' => 'https://connection.example.test/', 'site_id' => 'fixture_site', 'key_id' => 'fixture_key', 'secret' => 'fixture_only' ),
+		$generation
+	);
+	$settings = Npcink_Cloud_Addon_Settings::get_settings();
+	Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
+	if ( ! $connected || 'fixture_site' !== $settings['site_id'] || Npcink_Cloud_Authorization_State::is_current( $generation ) ) {
+		return new WP_Error( 'npcink_playground_connection_commit_failed', 'Playground did not commit and clear the fixture connection.', array( 'status' => 500 ) );
+	}
+
 	return rest_ensure_response(
 		array(
 			'plugin_active'                     => true,
 			'public_api_present'                => true,
 			'concrete_client_seam_removed'      => true,
 			'connection_state_safe'             => true,
+			'connection_commit_safe'            => true,
 			'configured'                        => false,
 			'verified_runtime_client_available' => false,
 			'connector_marker_present'          => false,

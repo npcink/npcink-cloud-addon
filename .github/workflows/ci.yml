@@ -250,6 +250,6 @@ jobs:
       - name: Playground activation smoke
         run: composer run smoke:playground
 
-      - name: Site Knowledge MySQL reconciliation smoke
+      - name: Native MySQL reconciliation and connection commit smoke
         timeout-minutes: 5
         run: composer run smoke:site-knowledge-mysql

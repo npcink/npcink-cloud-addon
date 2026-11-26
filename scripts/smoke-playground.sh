@@ -130,6 +130,7 @@ const expected = {
   public_api_present: true,
   concrete_client_seam_removed: true,
   connection_state_safe: true,
+  connection_commit_safe: true,
   configured: false,
   verified_runtime_client_available: false,
   connector_marker_present: false,
