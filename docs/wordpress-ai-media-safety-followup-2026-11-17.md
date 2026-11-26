@@ -1,7 +1,7 @@
 # WordPress AI media acceptance safety follow-up — 2026-11-17
 
 Status: candidate changes verified locally; not deployed or released. The site
-still mounts `/Users/muze/gitee/npcink-cloud-addon`, not this worktree.
+still mounts the local `npcink-cloud-addon` checkout, not this worktree.
 
 ## Change envelope
 
@@ -78,5 +78,5 @@ cannot close it. Before publication, observe the complete PR check rollup and
 perform the repository's advisory review under a separately authorized budget.
 
 Durable local evidence is under
-`/Users/muze/.codex/visualizations/2026/11/16/01a1e391-0938-7f02-809d-d80acab94d19/wordpress-ai-15-integration-evidence-2026-11-17/`.
+a local visualization directory for the 2026-11-17 WordPress AI 1.5 evidence.
 See `SAFETY-FOLLOWUP.md`, the native replay receipt, MCP receipt and gate logs.

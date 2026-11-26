@@ -62,6 +62,7 @@ require __DIR__ . '/behavior-public-api.php';
 require __DIR__ . '/behavior-pr-body-contract.php';
 
 require __DIR__ . '/static-contracts.php';
+require __DIR__ . '/static-repository-guardrails.php';
 require __DIR__ . '/behavior-runtime-endpoint-policy.php';
 require __DIR__ . '/behavior-content-format.php';
 require __DIR__ . '/behavior-article-review.php';

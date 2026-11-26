@@ -3,6 +3,7 @@ node_modules/
 build/
 dist/
 .DS_Store
+._*
 *.log
 wordpress-ai-provider/generated/*
 !wordpress-ai-provider/generated/.gitignore

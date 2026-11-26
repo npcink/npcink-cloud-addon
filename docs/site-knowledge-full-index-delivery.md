@@ -212,6 +212,9 @@ fresh presence 只证明 relational_index；必须独立以真实 backend 执行
 
 ### 运行寿命与内存预算
 
+`npcink_cloud_addon_site_knowledge_maintenance_cursor` 是交付状态信封的兼容存储名，
+不只是游标。断开保留信封中的待恢复回执，卸载删除整个信封；独立的对账游标在两种操作中都清理。
+
 仍是一个既有 option/CAS，没有新队列、锁、表或框架。每次 JSON payload 上限 900,000
 字节，整个 serialized maintenance envelope 上限 4,194,304 字节；包含 full cursor、
 8 个以内 credential scopes、每 scope 最多 500 个 source/dispatch 和 100 个未决意图。

@@ -505,7 +505,7 @@ actions, options, or public APIs are removed.
 
 2026-10-19 admin CSS dual-enqueue fix: settings-page ceiling moves from 2350 to 2375 for symlink-safe `plugin_file_for_asset_url()`, cloud-page-only CSS enqueue (no PARENT_MENU_SLUG match), and skip-enqueue-when-unreadable. Paired with governance-core Admin_Page enqueue narrowed to MENU_SLUG so Cloud no longer loads Core `admin.css?ver=0.3.0`.
 
-2026-10-19 plugins_url worktree 404: settings-page ceiling 2375→2385 for `plugins_dir_slug()` + `asset_url()` (single-arg plugins_url; never pass realpath/__FILE__). Local symlink must stay `npcink-cloud-addon` → `/Users/muze/gitee/npcink-cloud-addon`, not a git worktree folder.
+2026-10-19 plugins_url worktree 404: settings-page ceiling 2375→2385 for `plugins_dir_slug()` + `asset_url()` (single-arg plugins_url; never pass realpath/__FILE__). Local symlink must stay `npcink-cloud-addon` pointing at the addon checkout directory, not a git worktree folder.
 
 2026-10-19 P0 settings declutter: settings-page ceiling → 2450 for portal_url/render_portal_link, summary vs Overview notice split (drops off banner), Connected without synonym health label, dashicons Retry/Portal icon buttons + CSS.
 

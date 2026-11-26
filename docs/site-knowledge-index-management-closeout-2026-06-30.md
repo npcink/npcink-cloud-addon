@@ -84,7 +84,7 @@ Static and behavior gates passed:
 - `rg "/v1/runtime/workflows/runs|wp_insert_post|wp_update_post" --glob '*.php' --glob '!build/**' .`
 
 Local WordPress smoke test also passed on
-`/Users/muze/Local Sites/npcink/app/public` using the Local MySQL socket:
+`$LOCAL_WP_PATH` (the Local WordPress site path) using the Local MySQL socket:
 
 - the `Site Knowledge` panel renders delivery, refresh, start, rebuild, and
   delete controls;

@@ -1,8 +1,7 @@
 # Static analysis for first-party connector code only.
 #
-# Advisory gate: run locally with `composer run stan`. The CI workflow runs the
-# same command advisory-only and must never join required checks. Shrink the
-# baseline over time instead of adding new entries to it.
+# A failing analysis fails the PHPStan CI workflow. Run `composer run stan`
+# locally and shrink the baseline instead of raising its entry/occurrence cap.
 includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
     - phpstan-baseline.neon

@@ -88,7 +88,7 @@ PHPStan 与 WordPress stubs 的依赖 PR #261、#262 在修正 PR body contract 
    - 继续沿用显式 `composer pr:publish` 触发、共享每日限额、冷却和并发锁；不要恢复普通 PR 自动调用的 GitHub OCR。
 
 4. **最后重跑跨仓矩阵并做交接更新**
-   - 等 Toolbox/Cloud 相关候选、依赖 PR 和 OCR 门禁进入稳定干净窗口后，从 `/Users/muze/gitee/npcink-workflow-toolbox` 执行 `composer quality:matrix:run`。
+   - 等 Toolbox/Cloud 相关候选、依赖 PR 和 OCR 门禁进入稳定干净窗口后，从 `npcink-workflow-toolbox` 的本地检出执行 `composer quality:matrix:run`。
    - 记录七仓分支、SHA、工作树状态、Required/Advisory 检查和 M4 是否请求；不要把只读状态快照当成完整矩阵。
    - 根据 Cloud 配额、发布和 OCR 的实际结果，更新本交接文档和相关 closeout，删除已经失效的“当前待办”措辞，但保留历史段落。
 

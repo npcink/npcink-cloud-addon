@@ -63,7 +63,7 @@ in the local environment. This task did not remove them. A fresh ordinary
 editor URL (no fixture query) loaded the source Addon asset and its twelve-rule
 configuration with all three translated action labels; see
 `guidance-live-source.jpg`. CLI reflection independently resolved the connector
-to `/Users/muze/gitee/npcink-cloud-addon`. Thus the earlier candidate caveat
+to the local `npcink-cloud-addon` checkout. Thus the earlier candidate caveat
 describes the fixture phase, not the final ordinary local-page loading state.
 No new real generation failure or recovery was manufactured for this check.
 

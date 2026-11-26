@@ -2,8 +2,9 @@
 
 Navigation for `docs/`. Two conventions keep this directory findable:
 
-- New dated documents (closeouts, retrospectives, session notes) are added to
-  this index under **History** in the same change that adds them.
+- Index every top-level Markdown document in the same change that adds it.
+  Put dated closeouts, retrospectives, and session notes under **History**;
+  living rules and contracts go in their respective sections.
 - The **History** list is archival evidence: it explains why the addon looks
   the way it does, but the **Standards** and **Contracts** entries are the
   living rules. When a dated document states a rule that later changed, the
@@ -39,6 +40,7 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 - `ai-task-runtime-contract-v1.md` — AI task runtime payload contract.
 - `customer-journey-transport-v1.md` — customer-journey event transport.
 - `editor-assist-quality-correlation-v1.md` — editor assist quality seam.
+- [Editor native feedback](editor-native-feedback-v1.md) — local feedback transport contract.
 - `site-knowledge-vector-operations.md` — Site Knowledge vector operations.
 - `site-knowledge-full-index-delivery.md` — full-index delivery flow.
 - `site-knowledge-recommendation-connector-record-v1.md` — recommendation
@@ -53,6 +55,7 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 
 - `local-test-guide.md` — local verification workflows, including the
   `scripts/wp-cli-local.sh` environment resolution order.
+- [Mechanical split playbook](mechanical-split-playbook-2026-10-06.md) — checklist for behavior-preserving code moves.
 - `local-wordpress-acceptance-runbook.md` — Local MySQL/Cloud acceptance.
 - `media-continuation-migration-runbook.md` — media continuation migration.
 - `wordpress-org-release-gate.md` — WordPress.org release gate.
@@ -69,6 +72,23 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 - `decisions/003-media-continuation-handoff-and-addon-boundary.md`
 
 ## History (dated closeouts, retrospectives, handoffs)
+
+- [WordPress AI 1.5 media safety follow-up](wordpress-ai-media-safety-followup-2026-11-17.md)
+- [WordPress AI image editing next-stage plan](wordpress-ai-next-stage-image-editing-plan-2026-11-17.md)
+- [WordPress AI 1.5 connector verification](wordpress-ai-15-connector-verification-2026-11-16.md)
+- [Site Knowledge receipt recovery retrospective](site-knowledge-receipt-recovery-retrospective-2026-11-16.md)
+- [Editor error guidance audit](editor-error-guidance-audit-2026-11-16.md)
+- [Inactive-site connection acceptance](inactive-site-connection-acceptance-2026-11-12.md)
+- [Media source sync retrospective](media-source-sync-retrospective-2026-11-12.md)
+- [Admin focus review](admin-focus-review-2026-11-04.md)
+- [0.4.4 release record](043-release-0.4.4-2026-10-20.md)
+- [Paired release readiness](042-paired-release-readiness-2026-10-17.md)
+- [Production acceptance follow-up](production-acceptance-follow-up-2026-10-17.md)
+- [Refresh status closeout](refresh-status-closeout-2026-10-14.md)
+- [Site Knowledge recovery closeout](site-knowledge-recovery-closeout-2026-10-13.md)
+- [Admin feedback audit](admin-feedback-audit-2026-10-13.md)
+- [Session handoff, October 12](next-session-handoff-2026-10-12.md)
+- [Security and performance audit closeout](security-performance-audit-closeout-2026-10-11.md)
 
 - [Reconciliation 复盘与会话交接 — 2026-10-17](site-knowledge-reconciliation-retrospective-and-handoff-2026-10-17.md) —
   自然运行后仍缺失的证据、游标/容量修复、开发经验和 Git 清理交接；真实恢复与三项独立后续仍开放。

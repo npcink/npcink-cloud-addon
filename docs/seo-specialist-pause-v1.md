@@ -40,3 +40,11 @@ Cross-repo task-id / runtime-key对照, error-code differences, publish order
 旧 `execute_runtime()` 对包含任何专项编辑类型的请求整体拒绝（包括混合及大小写变体）；调用方须重新提交通用类型。当前 connector 路径保留通用类型并移除专项类型。固定界面说明同时覆盖 PHP 和 zh_CN React locale payload；动态 Ability metadata 不改写。
 
 已注册任务投影中的 `seo_headline` 同样属于暂停任务；通用自定义任务投影仍可传输。回归使用通用 article_headline 正向样例和 SEO 别名零调用负向样例，避免依靠旧的 SEO 成功样例证明暂停完整。
+
+The `meta-description` feature is disabled by its stable slug. The remaining
+two exact `gettext_ai` matches only soften the display descriptions for
+permalink suggestions and editorial review; they do not enforce the pause.
+On each WordPress AI version change, compare both source descriptions to
+`filter_ui_description()` and inspect both cards under AI Settings. If a host
+description changes, update the cosmetic match or remove it when the host
+offers a stable description hook. Keep the task-level pause independent.

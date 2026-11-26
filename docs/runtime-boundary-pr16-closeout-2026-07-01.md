@@ -18,8 +18,8 @@ The final scope was intentionally narrow:
 - harden read/runtime endpoint boundaries;
 - keep Pro Cloud Runtime detail read-only and Cloud-owned;
 - update the central quality matrix path from
-  `/Users/muze/gitee/npcink-toolbox` to
-  `/Users/muze/gitee/npcink-workflow-toolbox`;
+  a checkout of the former `npcink-toolbox` repository to
+  a checkout of `npcink-workflow-toolbox`;
 - expand the WordPress AI plugin zh_CN compatibility shim only for fixed admin
   UI strings.
 
@@ -53,7 +53,7 @@ exhausted. The settings page renders runtime feature, quota, batch limit,
 retention, and quota exhaustion only from available Cloud entitlement detail.
 
 Second, Cloud Addon docs and tests now use the central matrix workspace at
-`/Users/muze/gitee/npcink-workflow-toolbox`. The addon keeps its own release
+a checkout of `npcink-workflow-toolbox`. The addon keeps its own release
 gates local, while cross-repo closeout uses the shared matrix from Workflow
 Toolbox.
 
@@ -122,7 +122,7 @@ composer run ai:i18n:audit
 ```
 
 Cross-repo closeout also passed from
-`/Users/muze/gitee/npcink-workflow-toolbox`:
+a checkout of `npcink-workflow-toolbox`:
 
 ```bash
 composer quality:matrix:run
