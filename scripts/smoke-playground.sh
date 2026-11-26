@@ -154,5 +154,5 @@ const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
 if (result.site_knowledge_reconciliation !== true) {
   throw new Error(`Unexpected Site Knowledge result: ${JSON.stringify(result)}`);
 }
-console.log("[ok] Playground verified the real WordPress ordered reconciliation cursor across 51 same-second posts.");
+console.log("[ok] Playground verified the WordPress ordered reconciliation cursor across 51 same-second rows and a newer row.");
 ' "${SITE_KNOWLEDGE_RESULT_JSON}"

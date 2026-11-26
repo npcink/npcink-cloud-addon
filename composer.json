@@ -30,6 +30,7 @@
     "smoke:wp-ai-text-browser": "node scripts/smoke-wordpress-ai-text-browser.mjs",
     "smoke:wp-ai-compatibility": "bash scripts/smoke-wordpress-ai-compatibility.sh",
     "smoke:playground": "bash scripts/smoke-playground.sh",
+    "smoke:site-knowledge-mysql": "bash scripts/smoke-site-knowledge-mysql.sh",
     "eval:wp-ai-generation-reference": [
       "Composer\\Config::disableProcessTimeout",
       "sh scripts/wp-cli-local.sh scripts/eval-wordpress-ai-generation-reference.php"
