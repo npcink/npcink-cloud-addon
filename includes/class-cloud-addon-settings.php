@@ -22,6 +22,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		private const LOCAL_DEFAULT_BASE_URL = 'http://localhost:8010/';
 		private const PRODUCTION_DEFAULT_BASE_URL = 'https://cloud.npc.ink/';
 		private const SETTINGS_SCHEMA_VERSION = 2;
+		private const API_KEY_MAX_LENGTH = 4096;
 
 		/**
 		 * Decrypted settings for the current request, or null until first read.
@@ -373,7 +374,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 				$next['activation_reason'] = sanitize_key( (string) $payload['activation_reason'] );
 			}
 
-			$api_key = array_key_exists( 'api_key', $payload ) ? trim( (string) $payload['api_key'] ) : '';
+			$api_key = array_key_exists( 'api_key', $payload ) ? $payload['api_key'] : '';
 			if ( '' !== $api_key ) {
 				$parsed = self::parse_api_key( $api_key );
 				if ( is_wp_error( $parsed ) ) {
@@ -750,19 +751,11 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		 * Supported format:
 		 * - mak1_{base64url(json)}
 		 *
-		 * @param string $api_key Raw Cloud API Key.
+		 * @param mixed $api_key Raw Cloud API Key.
 		 * @return array<string,string>|WP_Error
 		 */
-		private static function parse_api_key( string $api_key ) {
-			$api_key = trim( $api_key );
-			if ( '' === $api_key ) {
-				return new WP_Error(
-					'invalid_cloud_api_key',
-					__( 'Cloud API Key cannot be empty.', 'npcink-cloud-addon' )
-				);
-			}
-
-			if ( 0 !== strpos( $api_key, 'mak1_' ) ) {
+		private static function parse_api_key( $api_key ) {
+			if ( ! is_string( $api_key ) || strlen( $api_key ) > self::API_KEY_MAX_LENGTH || 1 !== preg_match( '/\Amak1_[A-Za-z0-9_-]+={0,2}\z/', $api_key ) ) {
 				return new WP_Error(
 					'invalid_cloud_api_key',
 					__( 'This recovery code is not valid. Reconnect this site in Npcink Cloud to get a new one.', 'npcink-cloud-addon' )

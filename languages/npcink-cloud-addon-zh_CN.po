@@ -89,28 +89,24 @@ msgstr "设置"
 msgid "Not configured"
 msgstr "未配置"
 
-#: includes/class-cloud-addon-settings.php:510
+#: includes/class-cloud-addon-settings.php:511
 msgid "Cloud verification completed, but the verified state could not be stored securely."
 msgstr "Cloud 验证已完成，但无法安全存储已验证状态。"
 
-#: includes/class-cloud-addon-settings.php:729
+#: includes/class-cloud-addon-settings.php:730
 #: includes/class-cloud-credential-store.php:197
 msgid "Cloud credentials could not be stored or read securely. Reconnect this site after checking the WordPress security salts."
 msgstr "无法安全存储或读取 Cloud 凭据。请检查 WordPress 安全盐后重新连接此站点。"
 
-#: includes/class-cloud-addon-settings.php:761
-msgid "Cloud API Key cannot be empty."
-msgstr "Cloud API 密钥不能为空。"
-
-#: includes/class-cloud-addon-settings.php:776
+#: includes/class-cloud-addon-settings.php:769
 msgid "Cloud API Key could not be decoded."
 msgstr "无法解码 Cloud API 密钥。"
 
-#: includes/class-cloud-addon-settings.php:784
+#: includes/class-cloud-addon-settings.php:777
 msgid "Cloud API Key format is invalid. Use a key issued by Npcink Cloud."
 msgstr "Cloud API 密钥格式无效。请使用 Npcink Cloud 签发的密钥。"
 
-#: includes/class-cloud-addon-settings.php:795
+#: includes/class-cloud-addon-settings.php:788
 msgid "Cloud API Key wrapper is missing required signing data."
 msgstr "Cloud API 密钥封装缺少必需的签名数据。"
 
@@ -1043,20 +1039,20 @@ msgid "Enable Site Knowledge delivery before reading Cloud index usage."
 msgstr "请先开启站点知识库投递，再读取 Cloud 索引用量。"
 
 #: includes/class-cloud-settings-actions.php:153
-#: includes/class-cloud-settings-actions.php:197
-#: includes/class-cloud-settings-actions.php:267
-#: includes/class-cloud-settings-actions.php:282
-#: includes/class-cloud-settings-actions.php:321
-#: includes/class-cloud-settings-actions.php:352
-#: includes/class-cloud-settings-actions.php:387
-#: includes/class-cloud-settings-actions.php:438
-#: includes/class-cloud-settings-actions.php:453
-#: includes/class-cloud-settings-actions.php:467
-#: includes/class-cloud-settings-actions.php:492
+#: includes/class-cloud-settings-actions.php:198
+#: includes/class-cloud-settings-actions.php:268
+#: includes/class-cloud-settings-actions.php:283
+#: includes/class-cloud-settings-actions.php:322
+#: includes/class-cloud-settings-actions.php:353
+#: includes/class-cloud-settings-actions.php:388
+#: includes/class-cloud-settings-actions.php:439
+#: includes/class-cloud-settings-actions.php:454
+#: includes/class-cloud-settings-actions.php:468
+#: includes/class-cloud-settings-actions.php:493
 msgid "You do not have permission to manage Npcink Cloud settings."
 msgstr "你没有管理 Npcink Cloud 设置的权限。"
 
-#: includes/class-cloud-settings-actions.php:587
+#: includes/class-cloud-settings-actions.php:588
 msgid "Unknown entitlement refresh result."
 msgstr "未知的权益刷新结果。"
 
@@ -1105,27 +1101,27 @@ msgstr "未设置"
 msgid "Never"
 msgstr "从未"
 
-#: includes/class-cloud-settings-actions.php:1197
+#: includes/class-cloud-settings-actions.php:1201
 msgid "WordPress AI connector"
 msgstr "WordPress AI 连接器"
 
-#: includes/class-cloud-settings-actions.php:1201
+#: includes/class-cloud-settings-actions.php:1205
 msgid "Enable Site Knowledge"
 msgstr "启用站点知识库"
 
-#: includes/class-cloud-settings-actions.php:1202
+#: includes/class-cloud-settings-actions.php:1206
 msgid "Keep public posts and pages updated automatically so AI can reference them."
 msgstr "自动更新公开文章和页面，供 AI 在生成内容时参考。"
 
-#: includes/class-cloud-settings-actions.php:1205
+#: includes/class-cloud-settings-actions.php:1209
 msgid "Reference site content during generation"
 msgstr "生成时参考站点内容"
 
-#: includes/class-cloud-settings-actions.php:1206
+#: includes/class-cloud-settings-actions.php:1210
 msgid "Use indexed public articles as generation context."
 msgstr "使用已索引的公开文章作为生成上下文。"
 
-#: includes/class-cloud-settings-actions.php:1209
+#: includes/class-cloud-settings-actions.php:1213
 msgid "Send anonymous diagnostics"
 msgstr "发送匿名诊断信息"
 
@@ -1772,7 +1768,7 @@ msgstr "本地附件图像类型不受 Cloud 替代文本生成支持。"
 msgid "Invalid content formatting request."
 msgstr "正文整理请求无效。"
 
-#: includes/class-cloud-settings-actions.php:1211
+#: includes/class-cloud-settings-actions.php:1215
 msgid "Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time."
 msgstr "完整说明：仅含元数据的事件涵盖功能步骤、结果、耗时和机器可读错误码。绝不发送 Prompt、源内容或生成内容、原始 WordPress 用户或文章 ID、邮箱、URL、DOM 数据、凭据或自由文本错误消息。默认关闭；管理员可以随时关闭。"
 
@@ -1947,7 +1943,7 @@ msgstr "知识库更新未能投递。请在概览查看下一步。详情：%s"
 msgid "Media upload descriptors require the direct byte source to be a string."
 msgstr "媒体上传描述符的直接字节源必须是字符串。"
 
-#: includes/class-cloud-settings-actions.php:1198
+#: includes/class-cloud-settings-actions.php:1202
 msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected."
 msgstr "允许 WordPress AI 使用 Npcink Cloud。站点保持连接期间默认启用。"
 
@@ -2081,7 +2077,7 @@ msgstr "已安排知识库恢复更新。全部公开内容投递到 Cloud 后�
 msgid "No pending public content changes were found. No content was sent to Cloud."
 msgstr "未发现待投递的公开内容变更。本次未向 Cloud 发送内容。"
 
-#: includes/class-cloud-customer-journey.php:204
+#: includes/class-cloud-customer-journey.php:228
 msgid "Cloud customer journey response did not include an accepted event count."
 msgstr "Cloud 客户旅程响应未返回已接受事件数量。"
 
@@ -2365,11 +2361,11 @@ msgstr "当前连接"
 msgid "More information"
 msgstr "更多信息"
 
-#: includes/class-cloud-addon-settings.php:306
+#: includes/class-cloud-addon-settings.php:307
 msgid "Connection not finished"
 msgstr "连接还没完成"
 
-#: includes/class-cloud-addon-settings.php:307
+#: includes/class-cloud-addon-settings.php:308
 msgid "Click Reconnect to finish connecting in Npcink Cloud."
 msgstr "点「重新连接」，在 Npcink Cloud 中完成连接。"
 
@@ -2390,12 +2386,12 @@ msgstr "重新检查"
 msgid "Connect this site to Npcink Cloud to use AI features."
 msgstr "把此站点连接到 Npcink Cloud，即可使用 AI 功能。"
 
-#: includes/class-cloud-addon-settings.php:268
+#: includes/class-cloud-addon-settings.php:269
 #: includes/class-cloud-settings-page.php:1355
 msgid "Not connected"
 msgstr "未连接"
 
-#: includes/class-cloud-addon-settings.php:269
+#: includes/class-cloud-addon-settings.php:270
 #: includes/class-cloud-settings-page.php:1278
 #: includes/class-cloud-settings-page.php:1696
 msgid "This site is not connected yet."
@@ -2456,29 +2452,29 @@ msgstr "要更换账号吗？此站点会先断开，然后打开 Npcink Cloud �
 msgid "I understand this site will be disconnected first."
 msgstr "我知道此站点会先断开。"
 
-#: includes/class-cloud-addon-settings.php:281
+#: includes/class-cloud-addon-settings.php:282
 msgid "Site connected"
 msgstr "已连接"
 
-#: includes/class-cloud-addon-settings.php:282
+#: includes/class-cloud-addon-settings.php:283
 msgid "This site is connected to Npcink Cloud."
 msgstr "此站点已连接到 Npcink Cloud。"
 
-#: includes/class-cloud-addon-settings.php:294
+#: includes/class-cloud-addon-settings.php:295
 #: includes/class-cloud-runtime-diagnostics.php:86
 #: includes/class-cloud-settings-page.php:1282
 msgid "This site needs to be turned on in Npcink Cloud"
 msgstr "需要在 Npcink Cloud 中启用此站点"
 
-#: includes/class-cloud-addon-settings.php:295
+#: includes/class-cloud-addon-settings.php:296
 msgid "Open Npcink Cloud, turn this site on, then come back here."
 msgstr "打开 Npcink Cloud 启用此站点，然后回到这里。"
 
-#: includes/class-cloud-addon-settings.php:306
+#: includes/class-cloud-addon-settings.php:307
 msgid "The connection has a problem"
 msgstr "连接出现问题"
 
-#: includes/class-cloud-addon-settings.php:307
+#: includes/class-cloud-addon-settings.php:308
 msgid "Click Check again. If it keeps happening, contact support with the details under More information."
 msgstr "点「重新检查」。如果一直这样，请联系客服并附上「更多信息」里的内容。"
 
@@ -2498,7 +2494,7 @@ msgstr "给客服的信息"
 msgid "Switching accounts disconnects this site first."
 msgstr "换账号会先断开此站点。"
 
-#: includes/class-cloud-settings-actions.php:249
+#: includes/class-cloud-settings-actions.php:250
 #: includes/class-cloud-settings-page.php:1095
 msgid "Connected to Npcink Cloud."
 msgstr "已连接到 Npcink Cloud。"
@@ -2573,18 +2569,18 @@ msgstr "请重新检查"
 msgid "Connects this site to Npcink Cloud to use AI features."
 msgstr "把此站点连接到 Npcink Cloud，使用 AI 功能。"
 
-#: includes/class-cloud-addon-settings.php:331
-#: includes/class-cloud-settings-actions.php:307
-#: includes/class-cloud-settings-actions.php:521
+#: includes/class-cloud-addon-settings.php:332
+#: includes/class-cloud-settings-actions.php:308
+#: includes/class-cloud-settings-actions.php:522
 msgid "The service address must start with https://."
 msgstr "服务地址必须以 https:// 开头。"
 
-#: includes/class-cloud-addon-settings.php:768
+#: includes/class-cloud-addon-settings.php:761
 msgid "This recovery code is not valid. Reconnect this site in Npcink Cloud to get a new one."
 msgstr "恢复码无效。请在 Npcink Cloud 重新连接此站点以获取新的恢复码。"
 
 #: includes/class-cloud-observability-collector.php:404
-#: includes/class-cloud-settings-actions.php:393
+#: includes/class-cloud-settings-actions.php:394
 #: includes/class-cloud-site-knowledge-admin-actions.php:26
 #: includes/class-cloud-site-knowledge-admin-actions.php:117
 #: includes/class-cloud-site-knowledge-admin-actions.php:146
@@ -2601,131 +2597,132 @@ msgstr "请填写服务地址。"
 msgid "Cannot reach Npcink Cloud. Check the service address."
 msgstr "无法连接 Npcink Cloud，请检查服务地址。"
 
-#: includes/class-cloud-settings-actions.php:185
+#: includes/class-cloud-settings-actions.php:186
 msgid "Saved. The site is connected."
 msgstr "已保存，站点已连接。"
 
-#: includes/class-cloud-settings-actions.php:207
+#: includes/class-cloud-settings-actions.php:208
+#: includes/class-cloud-settings-actions.php:781
 msgid "The connection link expired. Click Connect again."
 msgstr "连接链接已过期，请重新点击「连接」。"
 
-#: includes/class-cloud-settings-actions.php:236
-#: includes/class-cloud-settings-actions.php:551
-#: includes/class-cloud-settings-actions.php:567
-#: includes/class-cloud-settings-actions.php:612
+#: includes/class-cloud-settings-actions.php:237
+#: includes/class-cloud-settings-actions.php:552
+#: includes/class-cloud-settings-actions.php:568
+#: includes/class-cloud-settings-actions.php:613
 msgid "The connection could not be saved on this site. Ask your host to check the site security keys, then connect again."
 msgstr "无法在此站点保存连接。请让主机商检查站点安全密钥，然后重新连接。"
 
-#: includes/class-cloud-settings-actions.php:241
-#: includes/class-cloud-settings-actions.php:649
-#: includes/class-cloud-settings-actions.php:924
+#: includes/class-cloud-settings-actions.php:242
+#: includes/class-cloud-settings-actions.php:650
+#: includes/class-cloud-settings-actions.php:928
 msgid "Connected, but this site still needs to be turned on in Npcink Cloud. Turn it on there, then check again here."
 msgstr "已连接，但还需要在 Npcink Cloud 中开启此站点。开启后回到这里重新检查。"
 
-#: includes/class-cloud-settings-actions.php:291
+#: includes/class-cloud-settings-actions.php:292
 msgid "Enter the service address first."
 msgstr "请先填写服务地址。"
 
-#: includes/class-cloud-settings-actions.php:329
+#: includes/class-cloud-settings-actions.php:330
 msgid "Please confirm before disconnecting."
 msgstr "断开前请先确认。"
 
-#: includes/class-cloud-settings-actions.php:337
+#: includes/class-cloud-settings-actions.php:338
 msgid "Disconnected. Your data stays in Npcink Cloud."
 msgstr "已断开，数据仍保留在 Npcink Cloud。"
 
-#: includes/class-cloud-settings-actions.php:360
+#: includes/class-cloud-settings-actions.php:361
 #: includes/class-cloud-settings-page.php:895
 msgid "Please confirm before changing the account."
 msgstr "更换账号前请先确认。"
 
-#: includes/class-cloud-settings-actions.php:374
+#: includes/class-cloud-settings-actions.php:375
 msgid "Disconnected from the previous account. Choose an account in Npcink Cloud."
 msgstr "已断开原账号，请在 Npcink Cloud 中选择账号。"
 
-#: includes/class-cloud-settings-actions.php:400
+#: includes/class-cloud-settings-actions.php:401
 msgid "This setting is not supported."
 msgstr "不支持此设置。"
 
-#: includes/class-cloud-settings-actions.php:416
+#: includes/class-cloud-settings-actions.php:417
 msgid "The setting could not be saved and nothing was changed. Try again."
 msgstr "设置未能保存，未作任何更改，请重试。"
 
 #. translators: %s: entitlement refresh message.
-#: includes/class-cloud-settings-actions.php:586
+#: includes/class-cloud-settings-actions.php:587
 #, php-format
 msgid "Connected, but credits could not be loaded. Check again later. (%s)"
 msgstr "已连接，但暂时无法读取额度，请稍后重新检查。（%s）"
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:620
+#: includes/class-cloud-settings-actions.php:621
 #, php-format
 msgid "The connection could not be checked (%s). Click Check again on this page."
 msgstr "暂时无法完成连接检查（%s）。请在此页点击「重新检查」。"
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:630
+#: includes/class-cloud-settings-actions.php:631
 #, php-format
 msgid "The new account could not be connected, so the current one was kept. (%s)"
 msgstr "新账号未能连接，已保留当前账号。（%s）"
 
-#: includes/class-cloud-settings-actions.php:644
+#: includes/class-cloud-settings-actions.php:645
 msgid "The check finished, but the result could not be saved. Try again."
 msgstr "检查已完成，但结果未能保存，请重试。"
 
 #. translators: %s: request error message.
-#: includes/class-cloud-settings-actions.php:802
+#: includes/class-cloud-settings-actions.php:806
 #, php-format
 msgid "Connection failed (%s). Click Connect again."
 msgstr "连接失败（%s）。请重新点击「连接」。"
 
-#: includes/class-cloud-settings-actions.php:821
-#: includes/class-cloud-settings-actions.php:829
-#: includes/class-cloud-settings-actions.php:887
+#: includes/class-cloud-settings-actions.php:825
+#: includes/class-cloud-settings-actions.php:833
+#: includes/class-cloud-settings-actions.php:891
 msgid "Connection failed. Click Connect again."
 msgstr "连接失败，请重新点击「连接」。"
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:859
+#: includes/class-cloud-settings-actions.php:863
 #, php-format
 msgid "Your account has no free site slots. Turn off another site or upgrade in Npcink Cloud, then connect again. (%s)"
 msgstr "账号的可用站点已满。请在 Npcink Cloud 停用其他站点或升级，然后重新连接。（%s）"
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:865
+#: includes/class-cloud-settings-actions.php:869
 #, php-format
 msgid "Your account has reached its site limit. Remove an unused site in Npcink Cloud, then connect again. (%s)"
 msgstr "账号的站点数已达上限。请在 Npcink Cloud 移除不用的站点，然后重新连接。（%s）"
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:874
+#: includes/class-cloud-settings-actions.php:878
 #, php-format
 msgid "The connection link expired. Click Connect again. (%s)"
 msgstr "连接链接已过期，请重新点击「连接」。（%s）"
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:881
+#: includes/class-cloud-settings-actions.php:885
 #, php-format
 msgid "Connection failed. Connect again, or send this code to support: %s"
 msgstr "连接失败。请重新连接，或把此代码发给客服：%s"
 
 #. translators: %s: liveness error.
-#: includes/class-cloud-settings-actions.php:930
+#: includes/class-cloud-settings-actions.php:934
 #, php-format
 msgid "Could not reach Npcink Cloud: %s"
 msgstr "无法连接 Npcink Cloud：%s"
 
 #. translators: %s: signed verification error.
-#: includes/class-cloud-settings-actions.php:937
+#: includes/class-cloud-settings-actions.php:941
 #, php-format
 msgid "Npcink Cloud did not accept this site: %s"
 msgstr "Npcink Cloud 未接受此站点：%s"
 
-#: includes/class-cloud-settings-actions.php:944
+#: includes/class-cloud-settings-actions.php:948
 msgid "The connection check failed. Try again."
 msgstr "连接检查失败，请重试。"
 
-#: includes/class-cloud-settings-actions.php:1210
+#: includes/class-cloud-settings-actions.php:1214
 msgid "Sends anonymous error reports to help us fix problems. Never includes your content."
 msgstr "发送匿名错误报告，帮助我们修复问题，不含你的内容。"
 
@@ -3148,11 +3145,11 @@ msgstr "排查信息"
 msgid "Anonymous diagnostics delivery"
 msgstr "匿名诊断上传"
 
-#: includes/class-cloud-settings-actions.php:425
+#: includes/class-cloud-settings-actions.php:426
 msgid "Enabled."
 msgstr "已开启。"
 
-#: includes/class-cloud-settings-actions.php:425
+#: includes/class-cloud-settings-actions.php:426
 msgid "Disabled."
 msgstr "已关闭。"
 
@@ -3436,7 +3433,7 @@ msgstr "%d 项内容更新未能投递并已丢弃，请点击“更新知识库
 msgid "%d content updates could not be delivered and were dropped. Turn on Site Knowledge, then click Update knowledge base to resend them."
 msgstr "%d 项内容更新未能投递并已丢弃，请先开启“站点知识库”，再点击“更新知识库”重新发送。"
 
-#: includes/class-cloud-settings-actions.php:503
+#: includes/class-cloud-settings-actions.php:504
 msgid "Connection and account checks passed. AI generation was not tested."
 msgstr "连接与账号访问检查通过，尚未测试 AI 生成。"
 

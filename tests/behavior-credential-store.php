@@ -88,6 +88,20 @@ maca_assert(
 	'Behavior: server-side settings retain the existing public PHP shape after an encrypted round trip.'
 );
 
+$replacement_key = 'mak1_' . rtrim( strtr( base64_encode( wp_json_encode( array( 'site_id' => 'site_replacement', 'key_id' => 'key_replacement', 'secret' => 'fixture_replacement' ) ) ), '+/', '-_' ), '=' );
+$blank_key_settings = Npcink_Cloud_Addon_Settings::build_settings_from_admin_payload( array( 'api_key' => '', 'timeout' => 19 ) );
+$replacement_settings = Npcink_Cloud_Addon_Settings::build_settings_from_admin_payload( array( 'api_key' => $replacement_key ) );
+maca_assert(
+	is_array( $blank_key_settings ) && $roundtrip['key_id'] === $blank_key_settings['key_id'] && 19 === $blank_key_settings['timeout']
+	&& is_array( $replacement_settings ) && 'key_replacement' === $replacement_settings['key_id'] && false === $replacement_settings['verified'],
+	'Behavior: only a blank key preserves the existing connection, and a Cloud-format replacement starts unverified.'
+);
+foreach ( array( ' ' . $replacement_key, $replacement_key . "\n", $replacement_key . '%2B', $replacement_key . '+', $replacement_key . '/', $replacement_key . "\xc3\xa9", 'mak1_' . str_repeat( 'a', 4096 ), array(), null ) as $invalid_key ) {
+	$rejected_key = Npcink_Cloud_Addon_Settings::build_settings_from_admin_payload( array( 'api_key' => $invalid_key, 'timeout' => 19 ) );
+	maca_assert( is_wp_error( $rejected_key ) && 'invalid_cloud_api_key' === $rejected_key->get_error_code(), 'Behavior: malformed recovery input is rejected rather than treated as blank or rewritten.' );
+}
+maca_assert( $stored === get_option( Npcink_Cloud_Addon_Settings::option_name() ), 'Behavior: credential validation leaves stored settings unchanged.' );
+
 $resanitized_stored = Npcink_Cloud_Addon_Settings::sanitize_option_value( $stored );
 maca_assert(
 	$stored['credential_envelope'] === $resanitized_stored['credential_envelope']
