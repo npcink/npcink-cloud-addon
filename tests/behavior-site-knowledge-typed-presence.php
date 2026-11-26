@@ -783,6 +783,16 @@ maca_assert(3===count(typed_scope()['operations'])&&!$cloud->mutations,'Three re
 typed_tick(15);
 maca_assert(array('media:2','post:1')===array_keys($cloud->sources),'Missed notifications are repaired without deleting current attachments or same-ID text.');
 
+$cloud=media_reset();
+$scope_state=typed_state();
+$scope_state['_lifecycle']['scopes']=array();
+for($scope_id=1;$scope_id<=8;$scope_id++){$scope_state['_lifecycle']['scopes']['fixture-scope-'.$scope_id]=array('sources'=>array(),'operations'=>array(),'dispatches'=>array());}
+update_option(Npcink_Cloud_Site_Knowledge_Change_Bridge::MAINTENANCE_OPTION,$scope_state);
+$http_before_scope_cap=count($GLOBALS['maca_http_requests']);
+Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
+$scope_capped_state=typed_state();
+maca_assert(8===count($scope_capped_state['_lifecycle']['scopes'])&&!isset($scope_capped_state['_lifecycle']['scopes'][Npcink_Cloud_Site_Knowledge_Change_Bridge::lifecycle_scope()])&&$http_before_scope_cap===count($GLOBALS['maca_http_requests'])&&'durability_full'===Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['media_reconcile_error'],'Media reconciliation refuses to create a ninth credential scope and does not read or advance a cursor.');
+
 $cloud=media_reset(); maca_add_public_post_fixture(42); typed_image(); $cloud->sources=array('media:501'=>true);
 Npcink_Cloud_Site_Knowledge_Change_Bridge::reconcile_media_sources();
 $unchanged_state=typed_state(); $writes_before=$GLOBALS['wpdb']->writes;

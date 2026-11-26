@@ -2601,6 +2601,10 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Change_Bridge' ) ) {
 			if ( ! self::is_enabled() || ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_col' ) ) { return; }
 			$before = self::delivery_state();
 			$namespace = self::lifecycle_scope();
+			if ( ! isset( $before['_lifecycle']['scopes'][ $namespace ] ) && count( $before['_lifecycle']['scopes'] ?? array() ) >= 8 ) {
+				self::record_media_reconciliation( 'durability_full' );
+				return;
+			}
 			$after = (int) ( $before['_lifecycle']['scopes'][ $namespace ]['media_reconcile_after'] ?? 0 );
 			$page = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::read_media_source_page( $after );
 			if ( is_wp_error( $page ) ) { self::record_media_reconciliation( $page->get_error_code() ); return; }
