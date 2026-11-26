@@ -139,8 +139,8 @@ It returns a `WP_Error` until the addon settings have passed Save and Verify.
 | `get_run_by_idempotency()` | `GET /v1/runs/by-idempotency/{key}` (read only; no execution/replay) |
 | `get_run()` | `GET /v1/runs/{run_id}` |
 | `get_run_result()` | `GET /v1/runs/{run_id}/result` |
-| `get_recent_nightly_inspection_runs()` | `GET /v1/runs/nightly-inspection/recent` |
-| `retry_run()` | `POST /v1/runs/{run_id}/retry` |
+| `get_recent_nightly_inspection_runs(int $limit = 10, string $trace_id = '')` | `GET /v1/runs/nightly-inspection/recent` |
+| `retry_run(string $run_id, array $input, string $trace_id = '', string $idempotency_key = '')` | `POST /v1/runs/{run_id}/retry` (retained contract; currently paused) |
 | `pull_media_artifact()` | `GET /v1/runtime/media/artifacts/{artifact_id}/download` |
 | `acknowledge_media_artifact_delivery()` | `POST /v1/runtime/media/artifacts/{artifact_id}/delivery-ack` |
 | `get_current_entitlement()` | `GET /v1/entitlements/current` |
@@ -215,6 +215,12 @@ contracts for maintained integrations. They must not create local run truth,
 submit scheduled reviews, rebuild Toolbox local snapshots, create Core
 proposals, approve changes, create a local retry queue, or write WordPress
 data.
+
+`retry_run()` requires `$input`. Under the current pause policy, a configured
+client called with a valid run ID returns `WP_Error` with code
+`cloud_feature_paused` and status `409` before signing or sending HTTP. The
+retained retry route does not imply that retry is available. Historical run
+reads are not subject to this pause.
 
 ## Signing
 
