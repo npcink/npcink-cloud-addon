@@ -78,6 +78,13 @@ Use a WordPress site that has no stored `npcink_cloud_addon_settings` option.
 10. Confirm the default page shows verified connection state and a read-only
     entitlement summary.
 
+Complete the callback as the WordPress administrator who started the flow.
+State expires after ten minutes and is consumed only by that administrator.
+Disconnect, account change, and uninstall invalidate previously issued links;
+start a fresh connection instead of reusing an old link. Invalidated state
+records expire through WordPress transients; cleanup does not scan database or
+external object-cache keys. This does not cancel an exchange already in flight.
+
 ## Local Development Smoke
 
 Local WordPress environments may still resolve the default Cloud Base URL to

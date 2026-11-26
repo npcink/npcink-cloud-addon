@@ -561,6 +561,7 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'Plan and credits' => '套餐与额度',
 				'Saved. The site is connected.' => '已保存，站点已连接。',
 				'The connection link expired. Click Connect again.' => '连接链接已过期，请重新点击「连接」。',
+				'The connection link could not be created. Click Connect again.' => '无法创建连接链接，请重新点击「连接」。',
 				'The connection link expired. Click Connect again. (%s)' => '连接链接已过期，请重新点击「连接」。（%s）',
 				'The connection could not be saved on this site. Ask your host to check the site security keys, then connect again.' => '无法在此站点保存连接。请让主机商检查站点安全密钥，然后重新连接。',
 				'Connected, but this site still needs to be turned on in Npcink Cloud. Turn it on there, then check again here.' => '已连接，但还需要在 Npcink Cloud 中开启此站点。开启后回到这里重新检查。',

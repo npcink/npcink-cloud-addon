@@ -35,7 +35,7 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		public const ACTION_MANAGE_SITE_KNOWLEDGE_INDEX = 'npcink_cloud_addon_manage_site_knowledge_index';
 		public const ACTION_RUN_MANUAL_READINESS_TEST = 'npcink_cloud_addon_run_manual_readiness_test';
 		public const ACTION_REFRESH_ENTITLEMENT = 'npcink_cloud_addon_refresh_entitlement';
-		public const AUTH_STATE_TTL_SECONDS = 600;
+		public const AUTH_STATE_TTL_SECONDS = Npcink_Cloud_Authorization_State::TTL_SECONDS;
 
 		/**
 		 * Returns and clears the saved admin notice for the current user.
@@ -203,8 +203,8 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			$raw_code = filter_input( INPUT_GET, 'code', FILTER_UNSAFE_RAW );
 			$state = is_string( $raw_state ) ? sanitize_text_field( wp_unslash( $raw_state ) ) : '';
 			$code  = is_string( $raw_code ) ? $raw_code : '';
-			$auth_state = self::consume_authorization_state( $state );
-			if ( empty( $auth_state ) || '' === $code ) {
+			$auth_state = '' === $code ? array() : Npcink_Cloud_Authorization_State::consume( $state );
+			if ( empty( $auth_state ) ) {
 				self::set_admin_notice( 'error', __( 'The connection link expired. Click Connect again.', 'npcink-cloud-addon' ) );
 				self::redirect_to_page( 'status' );
 			}
@@ -516,7 +516,12 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 * @return void
 		 */
 		private static function redirect_to_cloud_authorization( string $base_url ): void {
-			$authorization_url  = esc_url_raw( self::build_authorization_url_for_base_url( $base_url ) );
+			$url = self::build_authorization_url_for_base_url( $base_url );
+			if ( '' === $url ) {
+				self::set_admin_notice( 'error', __( 'The connection link could not be created. Click Connect again.', 'npcink-cloud-addon' ) );
+				self::redirect_to_page( 'connect' );
+			}
+			$authorization_url  = esc_url_raw( $url );
 			$authorization_host = wp_parse_url( $authorization_url, PHP_URL_HOST );
 			if ( ! is_string( $authorization_host ) || '' === trim( $authorization_host ) ) {
 				self::set_admin_notice( 'error', __( 'The service address must start with https://.', 'npcink-cloud-addon' ) );
@@ -685,7 +690,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 * @return string
 		 */
 		private static function build_authorization_url_for_base_url( string $base_url ): string {
-			$state = self::create_authorization_state( $base_url );
+			$state = Npcink_Cloud_Authorization_State::issue( $base_url, self::$authorization_flow );
+			if ( '' === $state ) {
+				return '';
+			}
 			$return_url = add_query_arg(
 				array(
 					'action' => self::ACTION_COMPLETE_AUTH,
@@ -717,56 +725,6 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 * One-shot marker: the next Overview render uses the first-connection wording.
 		 */
 		public const FIRST_CONNECTION_TRANSIENT = 'npcink_cloud_addon_first_connection';
-
-		/**
-		 * Creates a short-lived local authorization state.
-		 *
-		 * @param string $base_url Cloud base URL.
-		 * @return string
-		 */
-		private static function create_authorization_state( string $base_url ): string {
-			$state = wp_generate_password( 32, false, false );
-			set_transient(
-				self::authorization_state_transient_name( $state ),
-				array(
-					'base_url' => $base_url,
-					'created'  => time(),
-					'flow'     => self::$authorization_flow,
-				),
-				self::AUTH_STATE_TTL_SECONDS
-			);
-
-			return $state;
-		}
-
-		/**
-		 * Consumes a short-lived local authorization state.
-		 *
-		 * @param string $state Authorization state.
-		 * @return array<string,mixed>
-		 */
-		private static function consume_authorization_state( string $state ): array {
-			$state = trim( $state );
-			if ( '' === $state ) {
-				return array();
-			}
-
-			$name = self::authorization_state_transient_name( $state );
-			$value = get_transient( $name );
-			delete_transient( $name );
-
-			return is_array( $value ) ? $value : array();
-		}
-
-		/**
-		 * Returns the transient name for an authorization state.
-		 *
-		 * @param string $state Authorization state.
-		 * @return string
-		 */
-		private static function authorization_state_transient_name( string $state ): string {
-			return 'npcink_cloud_auth_' . hash( 'sha256', $state );
-		}
 
 		/**
 		 * Exchanges a Cloud one-time authorization code for a customer API key.

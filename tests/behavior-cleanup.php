@@ -54,6 +54,9 @@ foreach (
 	$GLOBALS['maca_options'][ $option_name ] = 'owned-state';
 }
 $GLOBALS['maca_options'][ $delivery_state_option ] = $delivery_state;
+$GLOBALS['maca_options']['npcink_cloud_addon_monitoring_prompt_answered'] = true;
+$GLOBALS['maca_options']['npcink_cloud_addon_last_ai_error'] = array( 'code' => 'fixture-error' );
+$GLOBALS['maca_transients']['npcink_cloud_addon_first_connection'] = 1;
 $GLOBALS['maca_transients'][ $entitlement_key ] = array( 'cached' => true );
 $GLOBALS['maca_transients'][ $entitlement_key . '_refresh_failure' ] = array( 'message' => 'failed' );
 $GLOBALS['maca_transients'][ $legacy_entitlement_key ] = array( 'pre_schema' => true );
@@ -73,10 +76,10 @@ foreach (
 Npcink_Cloud_Addon_Cleanup::delete_all( $settings );
 
 maca_assert(
-	array( $delivery_state_option => $delivery_state ) === $GLOBALS['maca_options']
+	array( $delivery_state_option => $delivery_state, 'npcink_cloud_addon_monitoring_prompt_answered' => true ) === $GLOBALS['maca_options']
 	&& array() === $GLOBALS['maca_transients']
 	&& array() === $GLOBALS['maca_scheduled_events'],
-	'Behavior: disconnect retains the Site Knowledge delivery envelope but removes credentials, the reconciliation cursor, caches, buffers, locks, and cron hooks.'
+	'Behavior: disconnect retains the Site Knowledge delivery envelope and answered monitoring prompt, but removes credentials, diagnostics, first-connection state, buffers, locks, and cron hooks.'
 );
 
 maca_reset_test_state();
@@ -84,6 +87,7 @@ maca_seed_settings( true );
 $GLOBALS['maca_options'][ $delivery_state_option ] = $delivery_state;
 $GLOBALS['maca_options'][ $reconciliation_option ] = array( 'modified_gmt' => '2026-11-25 00:00:00', 'post_id' => 42 );
 $GLOBALS['maca_options']['npcink_cloud_addon_monitoring_prompt_answered'] = true;
+$GLOBALS['maca_options']['npcink_cloud_addon_auth_generation'] = str_repeat( 'a', 32 );
 $GLOBALS['maca_options']['npcink_cloud_addon_last_ai_error'] = 'fixture-error';
 $GLOBALS['maca_transients']['npcink_cloud_addon_first_connection'] = true;
 define( 'WP_UNINSTALL_PLUGIN', 'npcink-cloud-addon/npcink-cloud-addon.php' );

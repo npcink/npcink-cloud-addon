@@ -155,7 +155,7 @@ if ( ! function_exists( 'get_bloginfo' ) ) {
 if ( ! function_exists( 'wp_generate_password' ) ) {
 	function wp_generate_password( int $length = 12, bool $special_chars = true, bool $extra_special_chars = false ): string {
 		unset( $special_chars, $extra_special_chars );
-		return str_repeat( 'a', max( 1, $length ) );
+		return substr( bin2hex( random_bytes( max( 1, $length ) ) ), 0, $length );
 	}
 }
 
@@ -333,6 +333,41 @@ maca_assert(
 	&& (string) $top_level_states[0] === (string) $callback_states[0],
 	'Behavior: authorization return URL keeps the matching state and the complete-auth callback action.'
 );
+
+$issued_state = (string) $top_level_states[0];
+$state_key = 'npcink_cloud_auth_' . hash( 'sha256', $issued_state );
+$stored_state = get_transient( $state_key );
+$GLOBALS['maca_current_user_id'] = 2;
+maca_assert(
+	array() === Npcink_Cloud_Authorization_State::consume( $issued_state ) && $stored_state === get_transient( $state_key ),
+	'Behavior: another administrator cannot consume the initiating user\'s state.'
+);
+unset( $GLOBALS['maca_current_user_id'] );
+maca_assert(
+	600 === ( $GLOBALS['maca_transient_expirations'][ $state_key ] ?? null )
+	&& $stored_state === Npcink_Cloud_Authorization_State::consume( $issued_state )
+	&& array() === Npcink_Cloud_Authorization_State::consume( $issued_state ),
+	'Behavior: the initiating administrator can consume the short-lived state only once.'
+);
+
+$legacy_state = wp_generate_password( 32, false, false );
+set_transient( 'npcink_cloud_auth_' . hash( 'sha256', $legacy_state ), array( 'base_url' => 'https://cloud.example.test/' ), 600 );
+maca_assert( array() === Npcink_Cloud_Authorization_State::consume( $legacy_state ), 'Behavior: legacy unbound authorization state is not accepted.' );
+
+$issue_state = static function () use ( $authorization_url_builder, $parse_query_pairs ): string {
+	$url = (string) $authorization_url_builder->invoke( null, 'https://cloud.example.test/' );
+	return (string) ( $parse_query_pairs( (string) wp_parse_url( $url, PHP_URL_QUERY ) )['state'][0] ?? '' );
+};
+$pre_disconnect = $issue_state();
+Npcink_Cloud_Addon_Cleanup::delete_all( array() );
+$after_disconnect = $issue_state();
+maca_assert(
+	'' !== $pre_disconnect && '' !== $after_disconnect
+	&& array() === Npcink_Cloud_Authorization_State::consume( $pre_disconnect )
+	&& 'https://cloud.example.test/' === ( Npcink_Cloud_Authorization_State::consume( $after_disconnect )['base_url'] ?? null ),
+	'Behavior: disconnect invalidates pending links and a fresh authorization still works.'
+);
+maca_reset_test_state();
 
 $authorization_exchange = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'exchange_authorization_code' );
 if ( PHP_VERSION_ID < 80100 ) {

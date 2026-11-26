@@ -9,14 +9,14 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-26T03:25:01+00:00\n"
+"POT-Creation-Date: 2026-11-26T03:38:21+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:986
+#: includes/bootstrap.php:987
 #: includes/class-cloud-settings-page.php:244
 #: includes/class-cloud-settings-page.php:255
 #: includes/class-cloud-settings-page.php:256
@@ -39,74 +39,74 @@ msgstr ""
 msgid "https://cloud.npc.ink/"
 msgstr ""
 
-#: includes/bootstrap.php:154
-#: includes/bootstrap.php:211
-#: includes/bootstrap.php:241
-#: includes/bootstrap.php:335
-#: includes/bootstrap.php:366
-#: includes/bootstrap.php:397
-#: includes/bootstrap.php:428
-#: includes/bootstrap.php:455
-#: includes/bootstrap.php:482
-#: includes/bootstrap.php:505
-#: includes/bootstrap.php:521
-#: includes/bootstrap.php:543
-#: includes/bootstrap.php:630
-#: includes/bootstrap.php:654
-#: includes/bootstrap.php:678
-#: includes/bootstrap.php:686
-#: includes/bootstrap.php:694
-#: includes/bootstrap.php:702
-#: includes/bootstrap.php:710
-#: includes/bootstrap.php:718
-#: includes/bootstrap.php:726
-#: includes/bootstrap.php:742
-#: includes/bootstrap.php:750
+#: includes/bootstrap.php:155
+#: includes/bootstrap.php:212
+#: includes/bootstrap.php:242
+#: includes/bootstrap.php:336
+#: includes/bootstrap.php:367
+#: includes/bootstrap.php:398
+#: includes/bootstrap.php:429
+#: includes/bootstrap.php:456
+#: includes/bootstrap.php:483
+#: includes/bootstrap.php:506
+#: includes/bootstrap.php:522
+#: includes/bootstrap.php:544
+#: includes/bootstrap.php:631
+#: includes/bootstrap.php:655
+#: includes/bootstrap.php:679
+#: includes/bootstrap.php:687
+#: includes/bootstrap.php:695
+#: includes/bootstrap.php:703
+#: includes/bootstrap.php:711
+#: includes/bootstrap.php:719
+#: includes/bootstrap.php:727
+#: includes/bootstrap.php:743
+#: includes/bootstrap.php:751
 #: includes/class-cloud-runtime-client.php:1073
 #: includes/class-cloud-runtime-client.php:1195
 #: includes/class-cloud-site-knowledge-runtime-bridge.php:144
 msgid "Npcink Cloud is not configured."
 msgstr ""
 
-#: includes/bootstrap.php:582
+#: includes/bootstrap.php:583
 msgid "Toolbox runtime payload exceeds the bounded size limit."
 msgstr ""
 
-#: includes/bootstrap.php:596
+#: includes/bootstrap.php:597
 msgid "Toolbox runtime payload contains fields outside its fixed contract."
 msgstr ""
 
-#: includes/bootstrap.php:604
+#: includes/bootstrap.php:605
 msgid "Toolbox runtime limits exceed the fixed connector policy."
 msgstr ""
 
-#: includes/bootstrap.php:626
+#: includes/bootstrap.php:627
 msgid "Toolbox content support requires its fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:650
+#: includes/bootstrap.php:651
 msgid "Toolbox site helpers require their fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:674
+#: includes/bootstrap.php:675
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:987
+#: includes/bootstrap.php:988
 #: includes/class-cloud-settings-page.php:301
 msgid "Connect this site to Npcink Cloud to use AI features."
 msgstr ""
 
-#: includes/bootstrap.php:988
+#: includes/bootstrap.php:989
 #: includes/class-cloud-settings-page.php:315
 msgid "Connect this site"
 msgstr ""
 
-#: includes/bootstrap.php:990
+#: includes/bootstrap.php:991
 msgid "Do not show again"
 msgstr ""
 
-#: includes/bootstrap.php:1016
+#: includes/bootstrap.php:1017
 msgid "Settings"
 msgstr ""
 
@@ -157,7 +157,7 @@ msgstr ""
 
 #: includes/class-cloud-addon-settings.php:323
 #: includes/class-cloud-settings-actions.php:308
-#: includes/class-cloud-settings-actions.php:522
+#: includes/class-cloud-settings-actions.php:527
 msgid "The service address must start with https://."
 msgstr ""
 
@@ -1408,20 +1408,20 @@ msgid "Saved. The site is connected."
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:208
-#: includes/class-cloud-settings-actions.php:781
+#: includes/class-cloud-settings-actions.php:739
 msgid "The connection link expired. Click Connect again."
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:237
-#: includes/class-cloud-settings-actions.php:552
-#: includes/class-cloud-settings-actions.php:568
-#: includes/class-cloud-settings-actions.php:613
+#: includes/class-cloud-settings-actions.php:557
+#: includes/class-cloud-settings-actions.php:573
+#: includes/class-cloud-settings-actions.php:618
 msgid "The connection could not be saved on this site. Ask your host to check the site security keys, then connect again."
 msgstr ""
 
 #: includes/class-cloud-settings-actions.php:242
-#: includes/class-cloud-settings-actions.php:650
-#: includes/class-cloud-settings-actions.php:928
+#: includes/class-cloud-settings-actions.php:655
+#: includes/class-cloud-settings-actions.php:886
 msgid "Connected, but this site still needs to be turned on in Npcink Cloud. Turn it on there, then check again here."
 msgstr ""
 
@@ -1471,117 +1471,121 @@ msgstr ""
 msgid "Connection and account checks passed. AI generation was not tested."
 msgstr ""
 
+#: includes/class-cloud-settings-actions.php:521
+msgid "The connection link could not be created. Click Connect again."
+msgstr ""
+
 #. translators: %s: entitlement refresh message.
-#: includes/class-cloud-settings-actions.php:587
+#: includes/class-cloud-settings-actions.php:592
 #, php-format
 msgid "Connected, but credits could not be loaded. Check again later. (%s)"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:588
+#: includes/class-cloud-settings-actions.php:593
 msgid "Unknown entitlement refresh result."
 msgstr ""
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:621
+#: includes/class-cloud-settings-actions.php:626
 #, php-format
 msgid "The connection could not be checked (%s). Click Check again on this page."
 msgstr ""
 
 #. translators: %s: Cloud connectivity error.
-#: includes/class-cloud-settings-actions.php:631
+#: includes/class-cloud-settings-actions.php:636
 #, php-format
 msgid "The new account could not be connected, so the current one was kept. (%s)"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:645
+#: includes/class-cloud-settings-actions.php:650
 msgid "The check finished, but the result could not be saved. Try again."
 msgstr ""
 
 #. translators: %s: request error message.
-#: includes/class-cloud-settings-actions.php:806
+#: includes/class-cloud-settings-actions.php:764
 #, php-format
 msgid "Connection failed (%s). Click Connect again."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:825
-#: includes/class-cloud-settings-actions.php:833
-#: includes/class-cloud-settings-actions.php:891
+#: includes/class-cloud-settings-actions.php:783
+#: includes/class-cloud-settings-actions.php:791
+#: includes/class-cloud-settings-actions.php:849
 msgid "Connection failed. Click Connect again."
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:863
+#: includes/class-cloud-settings-actions.php:821
 #, php-format
 msgid "Your account has no free site slots. Turn off another site or upgrade in Npcink Cloud, then connect again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:869
+#: includes/class-cloud-settings-actions.php:827
 #, php-format
 msgid "Your account has reached its site limit. Remove an unused site in Npcink Cloud, then connect again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:878
+#: includes/class-cloud-settings-actions.php:836
 #, php-format
 msgid "The connection link expired. Click Connect again. (%s)"
 msgstr ""
 
 #. translators: %s: stable Cloud error code.
-#: includes/class-cloud-settings-actions.php:885
+#: includes/class-cloud-settings-actions.php:843
 #, php-format
 msgid "Connection failed. Connect again, or send this code to support: %s"
 msgstr ""
 
 #. translators: %s: liveness error.
-#: includes/class-cloud-settings-actions.php:934
+#: includes/class-cloud-settings-actions.php:892
 #, php-format
 msgid "Could not reach Npcink Cloud: %s"
 msgstr ""
 
 #. translators: %s: signed verification error.
-#: includes/class-cloud-settings-actions.php:941
+#: includes/class-cloud-settings-actions.php:899
 #, php-format
 msgid "Npcink Cloud did not accept this site: %s"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:948
+#: includes/class-cloud-settings-actions.php:906
 msgid "The connection check failed. Try again."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1201
+#: includes/class-cloud-settings-actions.php:1159
 msgid "WordPress AI connector"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1202
+#: includes/class-cloud-settings-actions.php:1160
 msgid "Allow WordPress AI to use Npcink Cloud. Enabled by default while this site stays connected."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1205
+#: includes/class-cloud-settings-actions.php:1163
 msgid "Enable Site Knowledge"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1206
+#: includes/class-cloud-settings-actions.php:1164
 msgid "Keep public posts and pages updated automatically so AI can reference them."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1209
+#: includes/class-cloud-settings-actions.php:1167
 msgid "Reference site content during generation"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1210
+#: includes/class-cloud-settings-actions.php:1168
 msgid "Use indexed public articles as generation context."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1213
+#: includes/class-cloud-settings-actions.php:1171
 msgid "Send anonymous diagnostics"
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1214
+#: includes/class-cloud-settings-actions.php:1172
 msgid "Sends anonymous error reports to help us fix problems. Never includes your content."
 msgstr ""
 
-#: includes/class-cloud-settings-actions.php:1215
+#: includes/class-cloud-settings-actions.php:1173
 msgid "Full detail: metadata-only events cover feature steps, outcomes, timing, and machine-readable error codes. Never sent: prompts, source or generated content, raw WordPress user or post IDs, emails, URLs, DOM data, credentials, or free-form error messages. Off by default; administrators can turn it off at any time."
 msgstr ""
 
