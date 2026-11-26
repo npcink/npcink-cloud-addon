@@ -195,10 +195,9 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 		/**
 		 * Returns whether a host is a public IP or resolves exclusively to public IPs.
 		 *
-		 * Residual risk (accepted, see docs/cloud-addon-boundary.md): this check
-		 * and the later HTTP dispatch resolve the host independently, so DNS
-		 * rebinding between the two is only mitigated by HTTPS-only transport,
-		 * disabled redirects, and wp_safe_remote_request — not fully closed.
+		 * Do not reuse Addon DNS results across calls. This check does not bind
+		 * the subsequent WordPress connection to the validated addresses (see
+		 * docs/cloud-addon-boundary.md for the accepted residual risk).
 		 *
 		 * @param string $host Host.
 		 * @return bool
@@ -211,27 +210,24 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 				return false;
 			}
 
-			static $resolved_cache = array();
-			if ( ! array_key_exists( $host, $resolved_cache ) ) {
-				$ips = array();
-				if ( function_exists( 'dns_get_record' ) ) {
-					$dns_type = ( defined( 'DNS_A' ) ? DNS_A : 0 ) | ( defined( 'DNS_AAAA' ) ? DNS_AAAA : 0 );
-					$records  = $dns_type > 0 ? @dns_get_record( $host, $dns_type ) : false;
-					if ( is_array( $records ) ) {
-						foreach ( $records as $record ) {
-							$ip = (string) ( $record['ip'] ?? $record['ipv6'] ?? '' );
-							if ( '' !== $ip ) {
-								$ips[] = $ip;
-							}
+			$ips = array();
+			if ( function_exists( 'dns_get_record' ) ) {
+				$dns_type = ( defined( 'DNS_A' ) ? DNS_A : 0 ) | ( defined( 'DNS_AAAA' ) ? DNS_AAAA : 0 );
+				$records  = $dns_type > 0 ? @dns_get_record( $host, $dns_type ) : false;
+				if ( is_array( $records ) ) {
+					foreach ( $records as $record ) {
+						$ip = (string) ( $record['ip'] ?? $record['ipv6'] ?? '' );
+						if ( '' !== $ip ) {
+							$ips[] = $ip;
 						}
 					}
 				}
-				if ( empty( $ips ) && function_exists( 'gethostbynamel' ) ) {
-					$fallback = @gethostbynamel( $host );
-					$ips      = is_array( $fallback ) ? $fallback : array();
-				}
-				$resolved_cache[ $host ] = array_values( array_unique( array_filter( array_map( 'strval', $ips ) ) ) );
 			}
+			if ( empty( $ips ) && function_exists( 'gethostbynamel' ) ) {
+				$fallback = @gethostbynamel( $host );
+				$ips      = is_array( $fallback ) ? $fallback : array();
+			}
+			$ips = array_values( array_unique( array_filter( array_map( 'strval', $ips ) ) ) );
 
 			/**
 			 * Filters resolved Cloud target IPs in explicit local development only.
@@ -242,8 +238,8 @@ if ( ! class_exists( 'Npcink_Cloud_Outbound_Policy' ) ) {
 			 * @param string            $host Normalized hostname.
 			 */
 			$filtered = self::local_requests_allowed()
-				? apply_filters( 'npcink_cloud_addon_resolved_host_ips', $resolved_cache[ $host ], $host )
-				: $resolved_cache[ $host ];
+				? apply_filters( 'npcink_cloud_addon_resolved_host_ips', $ips, $host )
+				: $ips;
 			$ips      = is_array( $filtered ) ? array_values( array_unique( array_filter( array_map( 'strval', $filtered ) ) ) ) : array();
 			if ( empty( $ips ) ) {
 				return false;

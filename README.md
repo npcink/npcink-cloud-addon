@@ -255,10 +255,10 @@ type, and response bodies are capped by request class. Exact loopback targets
 are available only when WordPress explicitly reports a local environment or a
 local-development constant opts in.
 
-Hostname validation is performed before dispatch and WordPress safe HTTP
-validation runs again at dispatch, but the connector does not pin a DNS answer
-to a transport connection. Operators must therefore configure trusted Cloud
-hostnames and DNS; sub-second DNS rebinding remains a documented residual risk.
+The Addon checks hostnames before each outbound request without caching DNS
+results itself. WordPress safe HTTP validation still applies, but the Addon
+does not pin a DNS answer to the transport connection. Operators must use
+trusted Cloud hostnames and DNS; rebinding remains a documented residual risk.
 
 `manual_readiness_test()` reuses the existing `/health/live` plus signed
 `GET /v1/entitlements/current` probe and returns
