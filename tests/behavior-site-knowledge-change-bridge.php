@@ -471,6 +471,48 @@ maca_assert(
 	'Behavior: disabled Site Knowledge delivery consent stops automatic public content buffering.'
 );
 
+$previous_reconcile_wpdb = $GLOBALS['wpdb'] ?? null;
+$reconcile_wpdb = new class() {
+	public string $posts = 'wp_posts';
+	public string $last_error = '';
+	public bool $fail_read = false;
+	private array $params = array();
+
+	public function prepare( string $sql, array $params ): string {
+		$base = 'SELECT ID, post_modified_gmt FROM wp_posts WHERE post_status IN (%s, %s) AND post_type IN (%s, %s, %s)';
+		$tail = ' ORDER BY post_modified_gmt ASC, ID ASC LIMIT %d';
+		$cursor = ' AND (post_modified_gmt > %s OR (post_modified_gmt = %s AND ID > %d))';
+		if ( ! in_array( $sql, array( $base . $tail, $base . $cursor . $tail ), true )
+			|| count( $params ) !== substr_count( $sql, '%s' ) + substr_count( $sql, '%d' )
+			|| array( 'publish', 'inherit', 'post', 'page', 'attachment' ) !== array_slice( $params, 0, 5 )
+			|| 50 !== end( $params )
+			|| ( 9 === count( $params ) && ( $params[5] !== $params[6] || ! is_int( $params[7] ) ) ) ) {
+			throw new RuntimeException( 'Unexpected prepared reconciliation query or parameters.' );
+		}
+		$this->params = $params;
+		return 'prepared_reconciliation';
+	}
+
+	public function get_results( string $query ): array {
+		if ( 'prepared_reconciliation' !== $query ) {
+			throw new RuntimeException( 'Reconciliation must use the prepared query.' );
+		}
+		$this->last_error = $this->fail_read ? 'Fixture read failure' : '';
+		if ( $this->fail_read ) {
+			return array();
+		}
+		$cursor = 9 === count( $this->params ) ? array( $this->params[5], $this->params[7] ) : array( '', 0 );
+		$rows = array_filter( $GLOBALS['maca_posts'], static function ( object $row ) use ( $cursor ): bool {
+			return in_array( $row->post_status, array( 'publish', 'inherit' ), true )
+				&& in_array( $row->post_type, array( 'post', 'page', 'attachment' ), true )
+				&& array( $row->post_modified_gmt, $row->ID ) > $cursor;
+		} );
+		usort( $rows, static fn ( object $a, object $b ): int => array( $a->post_modified_gmt, $a->ID ) <=> array( $b->post_modified_gmt, $b->ID ) );
+		return array_map( static fn ( object $row ): object => (object) array( 'ID' => $row->ID, 'post_modified_gmt' => $row->post_modified_gmt ), array_slice( $rows, 0, 50 ) );
+	}
+};
+$GLOBALS['wpdb'] = $reconcile_wpdb;
+
 maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
 maca_add_public_post_fixture( 710 );
@@ -603,9 +645,9 @@ maca_assert(
 
 maca_reset_site_knowledge_bridge_state();
 maca_seed_settings( true );
-for ( $post_id = 800; $post_id <= 850; $post_id++ ) {
+for ( $post_id = 850; $post_id >= 800; $post_id-- ) {
 	maca_add_public_post_fixture( $post_id );
-	$GLOBALS['maca_posts'][ $post_id ]->post_modified_gmt = sprintf( '2026-07-10 00:00:%02d', $post_id - 800 );
+	$GLOBALS['maca_posts'][ $post_id ]->post_modified_gmt = '2026-07-10 00:00:00';
 }
 Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
 $first_reconcile_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
@@ -614,10 +656,27 @@ Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
 $second_reconcile_buffer = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, array() );
 $reconcile_cursor = get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION, array() );
 maca_assert(
-	50 === count( (array) ( $first_reconcile_buffer['post_ids'] ?? array() ) )
-	&& 51 === count( (array) ( $second_reconcile_buffer['post_ids'] ?? array() ) )
-	&& 850 === absint( $reconcile_cursor['post_id'] ?? 0 ),
-	'Behavior: reconciliation advances a durable ordered cursor across more than one page instead of limiting each run to the newest 50 changes.'
+	range( 800, 849 ) === ( $first_reconcile_buffer['post_ids'] ?? array() )
+	&& range( 800, 850 ) === ( $second_reconcile_buffer['post_ids'] ?? array() )
+	&& array( 'modified_gmt' => '2026-07-10 00:00:00', 'post_id' => 850 ) === $reconcile_cursor,
+	'Behavior: reconciliation advances across 51 same-second rows in ID order using the prepared tuple cursor.'
+);
+
+maca_reset_site_knowledge_bridge_state();
+maca_seed_settings( true );
+maca_add_public_post_fixture( 800 );
+update_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION, $reconcile_cursor, false );
+$reconcile_wpdb->fail_read = true;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$GLOBALS['wpdb'] = null;
+Npcink_Cloud_Site_Knowledge_Change_Bridge::buffer_recent_public_content();
+$GLOBALS['wpdb'] = $reconcile_wpdb;
+$reconcile_wpdb->fail_read = false;
+maca_assert(
+	$reconcile_cursor === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::RECONCILIATION_OPTION )
+	&& false === get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::BUFFER_OPTION, false )
+	&& empty( get_option( Npcink_Cloud_Site_Knowledge_Change_Bridge::STATUS_OPTION, array() )['last_reconciled_at'] ),
+	'Behavior: failed and unavailable DB reads preserve the reconciliation watermark and never claim completion.'
 );
 
 maca_reset_site_knowledge_bridge_state();
@@ -1720,3 +1779,4 @@ foreach ( $GLOBALS['maca_http_requests'] as $request ) {
 	$long_buffer_delivered = array_merge( $long_buffer_delivered, array_column( $body['input']['documents'], 'post_id' ) );
 }
 maca_assert( 25 === count( $long_buffer_delivered ) && 25 === count( array_unique( $long_buffer_delivered ) ) && 0 === Npcink_Cloud_Site_Knowledge_Change_Bridge::health_snapshot()['buffer_count'], 'Full text: splitting normal changes acknowledges exactly the selected documents and retains later batches.' );
+$GLOBALS['wpdb'] = $previous_reconcile_wpdb;
