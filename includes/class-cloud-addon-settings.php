@@ -76,8 +76,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 		}
 
 		/**
-		 * Returns normalized settings, decrypting the credential envelope
-		 * once per request instead of on every read.
+		 * Reads normalized settings without persisting legacy schema upgrades.
+		 * The credential envelope is decrypted once per request.
 		 *
 		 * @return array<string,mixed>
 		 */
@@ -90,18 +90,9 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			$stored = is_array( $stored ) ? $stored : array();
 			$settings = self::settings_from_stored_option( $stored );
 
-			if ( ! empty( $settings['verified'] ) && self::SETTINGS_SCHEMA_VERSION !== absint( $stored['settings_schema_version'] ?? 0 ) ) {
-				// Older releases exposed this switch. Verified sites now use the
-				// connector by default; retain an explicit recovery switch only in
-				// newer stored options.
-				if ( empty( $settings['wordpress_ai_connector_enabled'] ) ) {
-					$settings['wordpress_ai_connector_enabled'] = true;
-				}
-				$next_stored = self::build_stored_option( $settings, $stored['credential_envelope'] ?? null );
-				if ( ! is_wp_error( $next_stored ) ) {
-					$next_stored['settings_schema_version'] = self::SETTINGS_SCHEMA_VERSION;
-					update_option( self::option_name(), $next_stored, false );
-				}
+			if ( ! empty( $settings['verified'] ) && self::SETTINGS_SCHEMA_VERSION > absint( $stored['settings_schema_version'] ?? 0 ) ) {
+				// Preserve the legacy default until an explicit settings save.
+				$settings['wordpress_ai_connector_enabled'] = true;
 			}
 
 			self::$settings_cache = $settings;
@@ -407,11 +398,13 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Settings' ) ) {
 			}
 
 			$current = self::get_settings();
-			if ( $current === $normalized ) {
+			$unchanged = $current === $normalized;
+			$legacy_verified = ! empty( $current['verified'] ) && self::SETTINGS_SCHEMA_VERSION > absint( $current_stored['settings_schema_version'] ?? 0 );
+			if ( $unchanged && ! $legacy_verified ) {
 				return true;
 			}
 
-			$stored = self::build_stored_option( $normalized );
+			$stored = self::build_stored_option( $normalized, $unchanged ? ( $current_stored['credential_envelope'] ?? null ) : null );
 			if ( is_wp_error( $stored ) ) {
 				return false;
 			}
