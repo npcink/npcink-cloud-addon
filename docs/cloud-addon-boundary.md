@@ -221,16 +221,18 @@ Forbidden legacy endpoint:
 
 - `/v1/runtime/workflows/runs`
 
-Outbound target policy residual risk, recorded as accepted: the Addon checks
-public Cloud hostnames on each outbound request and requires every returned IP
-to be globally routable. The Addon does not reuse its own DNS results between
-calls; operating-system and upstream DNS resolver caching still applies.
-The pre-dispatch answer is not pinned to the WordPress transport, so DNS
-rebinding between validation and connection remains possible. Non-loopback
-requests still require HTTPS with certificate verification, use
-`wp_safe_remote_request`, and disable redirects. The base URL is set by
-`manage_options` administrators and must use a trusted hostname and DNS.
-Do not treat pre-dispatch resolution as complete SSRF protection.
+Before each public Cloud hostname request the Addon checks that all returned
+addresses are public. WordPress HTTP dispatch binds cURL to that address set
+without changing the HTTPS hostname, SNI, or certificate identity. Redirects
+remain disabled. There is no Addon DNS cache; resolver-level caches still apply.
+Use the canonical hostname without a trailing dot. Hostname requests require
+direct SSL-enabled cURL (libcurl 7.59 or later); the Addon rejects a selected
+WordPress proxy and does not fall back to streams or implicit cURL environment
+proxies. A host that requires proxied Cloud egress needs a separate supported
+transport policy. Literal IPs and the explicit local loopback exception do not
+use hostname address binding. The base URL remains administrator-controlled
+and must use a trusted endpoint and DNS. Installed PHP code with control of
+WordPress HTTP or cURL hooks is trusted; this is not a general network sandbox.
 
 Media derivative transport must use the named upload, job, signed pull, and
 verified-transfer ACK endpoints,

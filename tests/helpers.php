@@ -398,6 +398,18 @@ if ( ! function_exists( 'add_filter' ) ) {
 	}
 }
 
+if ( ! function_exists( 'remove_action' ) ) {
+	function remove_action( string $hook_name, $callback, int $priority = 10 ): bool {
+		foreach ( $GLOBALS['maca_actions'][ $hook_name ][ $priority ] ?? array() as $index => $entry ) {
+			if ( $entry['callback'] === $callback ) {
+				unset( $GLOBALS['maca_actions'][ $hook_name ][ $priority ][ $index ] );
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
 if ( ! function_exists( 'has_filter' ) ) {
 	function has_filter( string $hook_name ): bool {
 		return ! empty( $GLOBALS['maca_filters'][ $hook_name ] );

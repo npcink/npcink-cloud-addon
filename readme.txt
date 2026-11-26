@@ -90,6 +90,11 @@ Npcink Cloud service information:
 4. Choose `Connect with Npcink Cloud` and authorize this site in the Portal.
 5. If Portal authorization is unavailable, expand advanced recovery and enter the Cloud Base URL and API key, then choose `Save and Verify`.
 
+Cloud hostname connections require a direct HTTPS connection, the PHP cURL
+extension, and libcurl 7.59 or later. Cloud hostname requests do not fall back
+to streams or use a WordPress HTTP proxy. Check this requirement before
+upgrading a site with restricted outbound access.
+
 == Frequently Asked Questions ==
 
 = Does this plugin create Cloud API Keys? =
@@ -190,6 +195,9 @@ Terminal callback delivery is removed and media recognition continuation moves t
 * Restored WordPress AI generation tests on Checks (P0).
 * Remembered the configured Cloud Base URL across local disconnect so reconnect no longer falls back to the default port.
 * Removed duplicate Generating… copy under the generation-test button and tightened failure-state alert CTAs to one-step repair.
+* Hardened connection authorization and credential validation, and made settings reads side-effect-free.
+* Preserved recoverable Site Knowledge receipts on disconnect and improved background reconciliation of public content.
+* Bound public Cloud hostname connections to validated DNS addresses while preserving HTTPS hostname verification. See the installation requirements for cURL and direct outbound access.
 
 = 0.4.3 =
 * Replaced the verified Advanced tab with top-level Checks and Connection; Overview hosts entitlement and Features.

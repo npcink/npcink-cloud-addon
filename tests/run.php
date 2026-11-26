@@ -19,7 +19,7 @@ declare(strict_types=1);
 // - the cleanup custom-option test pins NPCINK_CLOUD_ADDON_OPTION_NAME to a
 //   custom value, which behavior-performance-guards.php already fixes to the
 //   default by loading the plugin file, and constants cannot be redefined;
-// - the outbound DNS refresh test substitutes the PHP resolver functions.
+// - the outbound DNS test substitutes the resolver and cURL functions.
 $approval_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/behavior-wordpress-ai-approval.php' );
 passthru( $approval_command, $approval_status );
 if ( 0 !== $approval_status ) {
@@ -50,7 +50,7 @@ if ( 0 !== $cleanup_custom_option_status ) {
 	exit( $cleanup_custom_option_status );
 }
 
-$outbound_dns_command = escapeshellarg( PHP_BINARY ) . ' -d disable_functions=dns_get_record,gethostbynamel ' . escapeshellarg( __DIR__ . '/behavior-outbound-dns-refresh.php' );
+$outbound_dns_command = escapeshellarg( PHP_BINARY ) . ' -d disable_functions=dns_get_record,gethostbynamel,curl_version,curl_setopt ' . escapeshellarg( __DIR__ . '/behavior-outbound-dns-refresh.php' );
 passthru( $outbound_dns_command, $outbound_dns_status );
 if ( 0 !== $outbound_dns_status ) {
 	exit( $outbound_dns_status );
