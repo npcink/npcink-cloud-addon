@@ -10,37 +10,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/helpers.php';
 
 maca_reset_test_state();
-if ( ! defined( 'NPCINK_CLOUD_ADDON_FILE' ) ) {
-	define( 'NPCINK_CLOUD_ADDON_FILE', MACA_TEST_ROOT . '/npcink-cloud-addon.php' );
-}
-if ( ! function_exists( 'plugin_basename' ) ) {
-	function plugin_basename( string $file ): string {
-		return basename( dirname( $file ) ) . '/' . basename( $file );
-	}
-}
-require_once MACA_TEST_ROOT . '/includes/bootstrap.php';
+require MACA_TEST_ROOT . '/scripts/update-php-api-reference.php';
 maca_seed_settings( true );
-
-$documented_signatures = array();
-foreach ( array( 'get_recent_nightly_inspection_runs', 'retry_run' ) as $client_method ) {
-	$method = new ReflectionMethod( Npcink_Cloud_Runtime_Client::class, $client_method );
-	$parameters = array();
-	foreach ( $method->getParameters() as $parameter ) {
-		$declaration = $parameter->getType() . ' $' . $parameter->getName();
-		if ( $parameter->isDefaultValueAvailable() ) {
-			$declaration .= ' = ' . var_export( $parameter->getDefaultValue(), true );
-		}
-		$parameters[] = $declaration;
-	}
-	$documented_signatures[] = $client_method . '(' . implode( ', ', $parameters ) . ')';
-}
-
-$api_readme = maca_read( MACA_TEST_ROOT . '/README.md' );
-$api_contract = maca_read( MACA_TEST_ROOT . '/docs/cloud-runtime-client-contract.md' );
-foreach ( $documented_signatures as $signature ) {
-	maca_assert( in_array( $signature, preg_split( '/\R/', $api_readme ), true ), 'README matches the runtime client signature: ' . $signature );
-	maca_assert( str_contains( $api_contract, '| `' . $signature . '` |' ), 'Runtime client contract matches the PHP signature: ' . $signature );
-}
 
 $state = npcink_cloud_addon_get_connection_state();
 maca_assert(

@@ -25,11 +25,66 @@ metadata-only plugin monitoring. Observability transport is for Cloud dashboard
 projection, not for approval, audit, workflow, billing, prompt, router, preset,
 or WordPress write truth.
 
-## Constructor
+## Public PHP Facades
 
+Use the bounded functions below for integrations. A global function name does
+not by itself make a WordPress hook or an internal helper part of the public API.
+
+<!-- php-api:facades -->
 ```php
-new Npcink_Cloud_Runtime_Client(array $config = array())
+npcink_cloud_addon_is_configured(): bool
+npcink_cloud_addon_get_connection_state(): array
+npcink_cloud_addon_get_manual_readiness_result(): array
+npcink_cloud_addon_get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '')
+npcink_cloud_addon_pull_media_artifact(string $artifact_id, string $trace_id = '')
+npcink_cloud_addon_acknowledge_media_artifact_delivery(string $artifact_id, array $payload, string $trace_id = '')
+npcink_cloud_addon_dispatch_media_derivative_cloud_request(array $ability_response, array $source_artifact, string $trace_id = '', string $idempotency_key = '', array $watermark_artifact = [], string $processing_purpose = '')
+npcink_cloud_addon_get_media_derivative_run(string $run_id, string $trace_id = '')
+npcink_cloud_addon_get_media_derivative_run_result(string $run_id, string $trace_id = '')
+npcink_cloud_addon_media_derivative_run_id(array $cloud_response): string
+npcink_cloud_addon_public_media_derivative_cloud_projection(array $cloud_response)
+npcink_cloud_addon_media_derivative_artifact_from_cloud_result(array $cloud_result)
+npcink_cloud_addon_build_media_derivative_proposal_payload(array $ability_response, array $cloud_result, array $derivative_artifact)
+npcink_cloud_addon_build_media_derivative_optimization_payload(array $ability_response, array $cloud_result, array $derivative_artifact, array $media_details_input)
+npcink_cloud_addon_receive_media_derivative_artifact(array $artifact, string $trace_id = '')
+npcink_cloud_addon_request_image_context_evidence(array $image_context_evidence_request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_wordpress_ai_connector_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_wordpress_ai_image_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_project_ai_task_contract(string $ability_name)
+npcink_cloud_addon_execute_registered_ai_task_runtime(string $ability_name, array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_image_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_audio_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_site_ops_cloud_analysis_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_media_governance_audit_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_web_search_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_content_format_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_article_review_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_image_source_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_content_support_runtime(array $runtime_payload, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_site_helper_runtime(array $runtime_payload, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_submit_toolbox_nightly_inspection(array $runtime_payload, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_get_toolbox_nightly_inspection_recent_runs(int $limit = 10, string $trace_id = '')
+npcink_cloud_addon_get_toolbox_runtime_run(string $run_id, string $trace_id = '')
+npcink_cloud_addon_get_toolbox_runtime_run_result(string $run_id, string $trace_id = '')
+npcink_cloud_addon_retry_toolbox_nightly_inspection(string $run_id, array $input, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_get_toolbox_runtime_entitlement(string $trace_id = '')
+npcink_cloud_addon_upload_toolbox_site_media_visual_source(array $file, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_send_agent_feedback_event(array $payload, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_get_agent_feedback_summary(int $window_hours = 24, string $trace_id = '')
+npcink_cloud_addon_dispatch_site_knowledge_runtime(array $runtime_payload, string $ability_name = '', string $contract_version = '')
+npcink_cloud_addon_site_knowledge_change_bridge_health(): array
 ```
+<!-- /php-api:facades -->
+
+Deprecated compatibility only (do not use in new integrations):
+
+<!-- php-api:deprecated -->
+```php
+npcink_cloud_addon_get_settings(): array
+```
+<!-- /php-api:deprecated -->
+
+## Internal Client Configuration
 
 If no config is provided, the client loads normalized addon settings.
 
@@ -41,35 +96,48 @@ Required config:
 - `secret`
 - `timeout`
 
-## Methods
+## Internal Client Methods
 
+These signatures are a maintainer reference, not an alternative public API.
+Regenerate the reference blocks with `php scripts/update-php-api-reference.php --write`.
+
+<!-- php-api:transport -->
 ```php
-probe_connectivity(): array
-manual_readiness_test(): array
+__construct(array $config = [])
+acknowledge_media_artifact_delivery(string $artifact_id, array $payload, string $trace_id = '', string $idempotency_key = '')
+create_media_job(array $payload, string $trace_id = '', string $idempotency_key = '')
 execute_runtime(array $payload, string $trace_id = '', string $idempotency_key = '')
-execute_wordpress_ai_connector_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
-execute_wordpress_ai_image_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
-execute_toolbox_image_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+execute_toolbox_article_review_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 execute_toolbox_audio_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+execute_toolbox_content_format_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+execute_toolbox_image_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+execute_toolbox_image_source_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+execute_toolbox_media_governance_audit_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 execute_toolbox_site_ops_cloud_analysis_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 execute_toolbox_web_search_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
-execute_toolbox_image_source_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
-execute_toolbox_article_review_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
-request_image_context_evidence(array $image_context_evidence_request, string $trace_id = '', string $idempotency_key = '')
-upload_media_artifact(array $file, string $trace_id = '', string $idempotency_key = '')
-create_media_job(array $payload, string $trace_id = '', string $idempotency_key = '')
-get_run(string $run_id, string $trace_id = '')
-get_run_result(string $run_id, string $trace_id = '')
-pull_media_artifact(string $artifact_id, string $trace_id = '')
-acknowledge_media_artifact_delivery(string $artifact_id, array $payload, string $trace_id = '', string $idempotency_key = '')
-get_current_entitlement(string $trace_id = '')
-send_observability_events(array $events, string $trace_id = '', string $idempotency_key = '')
-send_agent_feedback_event(array $payload, string $trace_id = '', string $idempotency_key = '')
+execute_wordpress_ai_connector_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+execute_wordpress_ai_image_generation_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 get_agent_feedback_summary(int $window_hours = 24, string $trace_id = '')
-get_observability_summary(int $window_hours = 24, string $trace_id = '')
-send_customer_journey_events(array $events, string $trace_id = '', string $idempotency_key = '')
+get_current_entitlement(string $trace_id = '')
 get_customer_journey_summary(int $window_hours = 24, string $cohort_id = '', string $trace_id = '')
+get_observability_summary(int $window_hours = 24, string $trace_id = '')
+get_recent_nightly_inspection_runs(int $limit = 10, string $trace_id = '')
+get_run(string $run_id, string $trace_id = '')
+get_run_by_idempotency(string $key, string $trace_id = '')
+get_run_result(string $run_id, string $trace_id = '')
+is_configured(): bool
+manual_readiness_test(): array
+probe_connectivity(): array
+pull_media_artifact(string $artifact_id, string $trace_id = '')
+request_image_context_evidence(array $image_context_evidence_request, string $trace_id = '', string $idempotency_key = '')
+retry_run(string $run_id, array $input, string $trace_id = '', string $idempotency_key = '')
+send_agent_feedback_event(array $payload, string $trace_id = '', string $idempotency_key = '')
+send_customer_journey_events(array $events, string $trace_id = '', string $idempotency_key = '')
+send_observability_events(array $events, string $trace_id = '', string $idempotency_key = '')
+upload_media_artifact(array $file, string $trace_id = '', string $idempotency_key = '')
+upload_wordpress_ai_alt_text_source(array $file, string $trace_id = '', string $idempotency_key = '')
 ```
+<!-- /php-api:transport -->
 
 The low-level signed `request()` helper is private implementation detail. It must enforce the endpoint allowlist in this contract and must not be exposed as a generic public Cloud proxy.
 
@@ -131,14 +199,9 @@ WordPress safe HTTP validation and HTTPS certificate verification remain
 mandatory. Trusted Cloud DNS is still required; rebinding between validation
 and connection remains a residual risk.
 
-For Cloud jobs that download artifacts, host code should use the bounded,
-verification-gated facade:
-
-```php
-npcink_cloud_addon_pull_media_artifact(): bounded artifact download facade
-```
-
-It returns a `WP_Error` until the addon settings have passed Save and Verify.
+For Cloud jobs that download artifacts, use the bounded, verification-gated
+`npcink_cloud_addon_pull_media_artifact()` facade listed above. It returns a
+`WP_Error` until the addon settings have passed Save and Verify.
 
 ## Endpoint Mapping
 
@@ -163,8 +226,8 @@ It returns a `WP_Error` until the addon settings have passed Save and Verify.
 | `get_run_by_idempotency()` | `GET /v1/runs/by-idempotency/{key}` (read only; no execution/replay) |
 | `get_run()` | `GET /v1/runs/{run_id}` |
 | `get_run_result()` | `GET /v1/runs/{run_id}/result` |
-| `get_recent_nightly_inspection_runs(int $limit = 10, string $trace_id = '')` | `GET /v1/runs/nightly-inspection/recent` |
-| `retry_run(string $run_id, array $input, string $trace_id = '', string $idempotency_key = '')` | `POST /v1/runs/{run_id}/retry` (retained contract; currently paused) |
+| `get_recent_nightly_inspection_runs()` | `GET /v1/runs/nightly-inspection/recent` |
+| `retry_run()` | `POST /v1/runs/{run_id}/retry` (retained contract; currently paused) |
 | `pull_media_artifact()` | `GET /v1/runtime/media/artifacts/{artifact_id}/download` |
 | `acknowledge_media_artifact_delivery()` | `POST /v1/runtime/media/artifacts/{artifact_id}/delivery-ack` |
 | `get_current_entitlement()` | `GET /v1/entitlements/current` |
