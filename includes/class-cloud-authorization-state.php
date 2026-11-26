@@ -64,12 +64,23 @@ final class Npcink_Cloud_Authorization_State {
 		if ( ! is_array( $value ) || $user_id !== ( $value['user_id'] ?? null ) ) {
 			return array();
 		}
-		$generation = get_option( self::GENERATION_OPTION );
-		if ( ! is_string( $generation ) || '' === $generation || $generation !== ( $value['generation'] ?? null ) ) {
+		$generation = $value['generation'] ?? null;
+		if ( ! is_string( $generation ) || ! self::is_current( $generation ) ) {
 			return array();
 		}
 
 		return delete_transient( $name ) ? $value : array();
+	}
+
+	public static function is_current( string $generation ): bool {
+		if ( '' === $generation ) {
+			return false;
+		}
+		// A different request may have disconnected while Cloud HTTP was in flight.
+		if ( function_exists( 'wp_cache_delete' ) ) {
+			wp_cache_delete( self::GENERATION_OPTION, 'options' );
+		}
+		return $generation === get_option( self::GENERATION_OPTION );
 	}
 
 	private static function transient_name( string $state ): string {

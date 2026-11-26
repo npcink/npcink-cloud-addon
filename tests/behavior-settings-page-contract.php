@@ -367,6 +367,25 @@ maca_assert(
 	&& 'https://cloud.example.test/' === ( Npcink_Cloud_Authorization_State::consume( $after_disconnect )['base_url'] ?? null ),
 	'Behavior: disconnect invalidates pending links and a fresh authorization still works.'
 );
+
+$state_before_probe = Npcink_Cloud_Authorization_State::consume( $issue_state() );
+maca_seed_settings( false );
+$settings_before_probe = Npcink_Cloud_Addon_Settings::get_settings();
+$exchanged_settings = array_replace( $settings_before_probe, array( 'key_id' => 'new_fixture_key', 'secret' => 'new_fixture_secret' ) );
+$GLOBALS['maca_http_response_queue'][] = static function () use ( $settings_before_probe ): WP_Error {
+	Npcink_Cloud_Addon_Cleanup::delete_all( $settings_before_probe );
+	return new WP_Error( 'fixture_unavailable', 'Fixture probe completed after disconnect.' );
+};
+$persist_portal = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'persist_and_verify_settings' );
+if ( PHP_VERSION_ID < 80100 ) {
+	$persist_portal->setAccessible( true );
+}
+$persist_portal->invoke( null, $exchanged_settings, '', $state_before_probe['generation'] );
+maca_assert(
+	! empty( $GLOBALS['maca_http_requests'] ) && ! Npcink_Cloud_Addon_Settings::is_configured()
+	&& false === get_option( Npcink_Cloud_Addon_Settings::option_name() ),
+	'Behavior: a Portal probe that returns after disconnect cannot restore credentials or write verification state.'
+);
 maca_reset_test_state();
 
 $authorization_exchange = new ReflectionMethod( Npcink_Cloud_Settings_Actions::class, 'exchange_authorization_code' );

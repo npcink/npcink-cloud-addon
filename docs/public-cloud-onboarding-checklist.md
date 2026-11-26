@@ -83,7 +83,8 @@ State expires after ten minutes and is consumed only by that administrator.
 Disconnect, account change, and uninstall invalidate previously issued links;
 start a fresh connection instead of reusing an old link. Invalidated state
 records expire through WordPress transients; cleanup does not scan database or
-external object-cache keys. This does not cancel an exchange already in flight.
+external object-cache keys. This does not cancel Cloud HTTP already in flight;
+the Addon rechecks local authorization after the exchange and connectivity probe.
 
 ## Local Development Smoke
 

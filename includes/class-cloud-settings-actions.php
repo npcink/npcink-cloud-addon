@@ -211,6 +211,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			$base_url = (string) ( $auth_state['base_url'] ?? '' );
 			$exchange = self::exchange_authorization_code( $base_url, $code, $state );
+			$generation = (string) ( $auth_state['generation'] ?? '' );
+			if ( ! Npcink_Cloud_Authorization_State::is_current( $generation ) ) {
+				self::redirect_to_page( 'status' );
+			}
 			if ( is_wp_error( $exchange ) ) {
 				self::set_admin_notice( 'error', $exchange->get_error_message() );
 				self::redirect_to_page( 'status' );
@@ -247,7 +251,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			$first_connection = ! $was_verified && 'change_account' !== (string) ( $auth_state['flow'] ?? '' );
 			// First connection: no notice; the Overview top card says it once instead.
-			self::persist_and_verify_settings( $settings, $first_connection ? '' : __( 'Connected to Npcink Cloud.', 'npcink-cloud-addon' ) );
+			self::persist_and_verify_settings( $settings, $first_connection ? '' : __( 'Connected to Npcink Cloud.', 'npcink-cloud-addon' ), $generation );
+			if ( ! Npcink_Cloud_Authorization_State::is_current( $generation ) ) {
+				self::redirect_to_page( 'status' );
+			}
 			if ( $first_connection ) {
 				set_transient( self::FIRST_CONNECTION_TRANSIENT, 1, 10 * MINUTE_IN_SECONDS );
 			}
@@ -545,9 +552,10 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 		 *
 		 * @param array<string,mixed> $settings Settings payload.
 		 * @param string              $success_message Success notice.
+		 * @param string|null         $generation Portal authorization generation, absent for manual saves.
 		 * @return void
 		 */
-		private static function persist_and_verify_settings( array $settings, string $success_message ): void {
+		private static function persist_and_verify_settings( array $settings, string $success_message, ?string $generation = null ): void {
 			$current = Npcink_Cloud_Addon_Settings::get_settings();
 			$same_connection = self::same_connection_credentials( $current, $settings );
 			if ( ! Npcink_Cloud_Addon_Settings::can_store_settings( $settings )
@@ -561,6 +569,9 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 
 			$client = new Npcink_Cloud_Runtime_Client( $settings );
 			$probe = $client->probe_connectivity();
+			if ( null !== $generation && ! Npcink_Cloud_Authorization_State::is_current( $generation ) ) {
+				return;
+			}
 			if ( ! empty( $probe['ok'] ) ) {
 				$settings['verified'] = true;
 				$settings['verified_at'] = gmdate( 'Y-m-d H:i:s' ) . ' UTC';
