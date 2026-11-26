@@ -324,6 +324,14 @@ site helpers, Nightly Inspection submit/read/retry, Site Media visual-source
 uploads, Agent Feedback, and entitlement reads. These functions keep the
 concrete signing client private and fail closed to their fixed contracts.
 
+These PHP helpers are for trusted server-side integrations, not direct browser
+endpoints. Before invoking a helper on behalf of a user, the integration must
+authenticate the request, enforce the capability and object access required
+for that operation, and validate the applicable nonce for a cookie-authenticated
+request. This applies to signed reads as well as execution and uploads. A
+verified site connection or WordPress AI connector approval does not authorize
+an individual WordPress user. See the [caller authorization contract](docs/cloud-runtime-client-contract.md#caller-authorization).
+
 The public PHP settings shape still contains `site_id`, `key_id`, and `secret`
 for server-side signing, but the WordPress option contains only a versioned
 authenticated credential envelope. Its key is derived from the WordPress
