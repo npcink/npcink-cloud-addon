@@ -118,14 +118,14 @@ if ( ! class_exists( 'Npcink_Cloud_Settings_Actions' ) ) {
 			}
 
 			$summary = Npcink_Cloud_Site_Knowledge_Runtime_Bridge::refresh_status_summary();
+			$data = Npcink_Cloud_Settings_Page::get_site_knowledge_usage_projection( $summary );
 			if ( empty( $summary['available'] ) ) {
 				wp_send_json_error(
-					array( 'message' => Npcink_Cloud_Settings_Page::get_site_knowledge_usage_projection( $summary )['label'] ),
+					array( 'message' => $data['label'], 'error_code' => $data['error_code'] ),
 					503
 				);
 			}
 
-			$data = Npcink_Cloud_Settings_Page::get_site_knowledge_usage_projection( $summary );
 			// The waiting count renders server-side, so return the refreshed
 			// label too and let the page update it in place instead of reloading.
 			$coverage = is_array( $summary['article_coverage'] ?? null ) ? $summary['article_coverage'] : array();

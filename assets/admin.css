@@ -131,17 +131,20 @@
 }
 
 .npcink-cloud-monitoring-consent {
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
+	position: static;
+	margin: 16px 0;
 	width: min(640px, calc(100vw - 40px));
 	box-sizing: border-box;
 	max-width: 640px;
 	padding: 0;
 	border: 1px solid var(--npcink-cloud-border, #dcdcde);
 	border-radius: 8px;
-	box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18), 0 0 0 100vmax rgba(0, 0, 0, 0.28);
+	box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+}
+
+.npcink-cloud-monitoring-consent:modal {
+	position: fixed;
+	margin: auto;
 }
 
 .npcink-cloud-monitoring-consent::backdrop {
@@ -158,6 +161,7 @@
 
 .npcink-cloud-monitoring-consent__actions {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 8px;
 	margin-top: 20px;
 }
@@ -938,16 +942,8 @@ button.npcink-cloud-icon-button.button-link:focus {
 	width: 100%;
 }
 
-.npcink-cloud-metric-actions {
-	align-items: center;
-	display: flex;
-	gap: 6px;
-	min-height: 20px;
-	min-width: 64px;
-}
-
-.npcink-cloud-metric-actions[hidden],
 .npcink-cloud-site-knowledge-summary [data-npcink-site-knowledge-status-retry][hidden],
+.npcink-cloud-site-knowledge-summary [data-npcink-site-knowledge-read-diagnostics][hidden],
 .npcink-cloud-site-knowledge-summary__meta[hidden] {
 	display: none;
 }
