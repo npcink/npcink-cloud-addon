@@ -9,14 +9,14 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-27T06:48:25+00:00\n"
+"POT-Creation-Date: 2026-11-27T08:12:41+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: npcink-cloud-addon\n"
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:987
+#: includes/bootstrap.php:986
 #: includes/class-cloud-settings-page.php:244
 #: includes/class-cloud-settings-page.php:255
 #: includes/class-cloud-settings-page.php:256
@@ -93,7 +93,7 @@ msgstr ""
 msgid "Nightly Inspection requires its fixed runtime contract."
 msgstr ""
 
-#: includes/bootstrap.php:988
+#: includes/bootstrap.php:987
 #: includes/class-cloud-settings-page.php:301
 msgid "Connect this site to Npcink Cloud to use AI features."
 msgstr ""

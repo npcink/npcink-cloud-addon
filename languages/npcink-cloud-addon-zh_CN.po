@@ -15,7 +15,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: npcink-cloud-addon.php
-#: includes/bootstrap.php:987
+#: includes/bootstrap.php:986
 #: includes/class-cloud-settings-page.php:244
 #: includes/class-cloud-settings-page.php:255
 #: includes/class-cloud-settings-page.php:256
@@ -2387,7 +2387,7 @@ msgstr "重新连接"
 msgid "Check again"
 msgstr "重新检查"
 
-#: includes/bootstrap.php:988
+#: includes/bootstrap.php:987
 #: includes/class-cloud-settings-page.php:301
 msgid "Connect this site to Npcink Cloud to use AI features."
 msgstr "把此站点连接到 Npcink Cloud，即可使用 AI 功能。"

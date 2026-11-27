@@ -1634,6 +1634,7 @@ button.npcink-cloud-gen-test-dialog__chip:focus {
 	}
 
 	.npcink-cloud-endpoint-advanced__controls input[type="url"] {
+		flex: none;
 		max-width: none;
 		width: 100%;
 	}
