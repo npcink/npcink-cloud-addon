@@ -217,6 +217,12 @@ Allowed Cloud contract endpoints:
 - `GET /v1/observability/plugin-summary`
 - `GET /v1/agent-feedback/summary`
 
+For the opt-in Toolbox Code block pilot, the public
+`npcink_cloud_addon_execute_toolbox_code_preview_runtime()` facade accepts only
+`code`, `language` and `source_sha256` and signs the fixed inline, `no_store`
+preview contract. It owns neither formatting nor editor adoption; there is no
+generic client access, retry, or fallback. Cloud gates runtime availability.
+
 Forbidden legacy endpoint:
 
 - `/v1/runtime/workflows/runs`
