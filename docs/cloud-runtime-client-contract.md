@@ -58,6 +58,7 @@ npcink_cloud_addon_execute_toolbox_site_ops_cloud_analysis_runtime(array $reques
 npcink_cloud_addon_execute_toolbox_media_governance_audit_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_toolbox_web_search_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_toolbox_content_format_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
+npcink_cloud_addon_execute_toolbox_code_preview_runtime(array $input)
 npcink_cloud_addon_execute_toolbox_article_review_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_toolbox_image_source_runtime(array $request, string $trace_id = '', string $idempotency_key = '')
 npcink_cloud_addon_execute_toolbox_content_support_runtime(array $runtime_payload, string $trace_id = '', string $idempotency_key = '')

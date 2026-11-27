@@ -49,6 +49,7 @@ require_once MACA_TEST_ROOT . '/includes/bootstrap.php';
 		'execute_toolbox_media_governance_audit_runtime',
 		'execute_toolbox_web_search_runtime',
 		'execute_toolbox_content_format_runtime',
+		'execute_toolbox_code_preview_runtime',
 		'execute_toolbox_article_review_runtime',
 		'execute_toolbox_image_source_runtime',
 		'execute_toolbox_content_support_runtime',
@@ -78,7 +79,7 @@ require_once MACA_TEST_ROOT . '/includes/bootstrap.php';
 	$known = array_merge( $facades, $deprecated, $internal );
 	$actual = array();
 	foreach ( get_defined_functions()['user'] as $name ) {
-		if ( str_starts_with( $name, $prefix ) && MACA_TEST_ROOT . '/includes/bootstrap.php' === ( new ReflectionFunction( $name ) )->getFileName() ) {
+		if ( str_starts_with( $name, $prefix ) && in_array( ( new ReflectionFunction( $name ) )->getFileName(), array( MACA_TEST_ROOT . '/includes/bootstrap.php', MACA_TEST_ROOT . '/includes/class-cloud-runtime-client-factory.php' ), true ) ) {
 			$actual[] = substr( $name, strlen( $prefix ) );
 		}
 	}
