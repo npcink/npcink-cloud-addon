@@ -115,6 +115,7 @@ jobs:
         # are unchanged between v1.12.13 and v1.13.0.
         uses: alibaba/open-code-review@375f64cd6f67a48a135da83cfcf59c52669a09cb
         with:
+          ocr_version: '1.14.4'
           llm_url: ${{ secrets.OCR_LLM_URL }}
           llm_auth_token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
           llm_model: ${{ vars.OCR_LLM_MODEL }}
