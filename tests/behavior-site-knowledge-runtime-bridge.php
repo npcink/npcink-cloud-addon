@@ -513,7 +513,8 @@ $failed_projection = Npcink_Cloud_Site_Knowledge_Admin_Projection::build( $faile
 maca_assert(
     empty( $failed_status['available'] )
     && 'provider.upstream_unavailable' === $failed_status['error_code']
-    && str_contains( $failed_projection['label'], 'provider.upstream_unavailable' )
+    && 'provider.upstream_unavailable' === $failed_projection['error_code']
+    && ! str_contains( $failed_projection['label'], 'provider.upstream_unavailable' )
     && ! str_contains( wp_json_encode( $failed_projection ), 'secret must never appear' ),
     'Behavior: failed quota reads retain only a bounded diagnostic code, never the remote message or a zero quota.'
 );

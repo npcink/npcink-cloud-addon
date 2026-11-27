@@ -618,6 +618,8 @@ Npcink_Cloud_Settings_Page::render();
 $consent_rendered = (string) ob_get_clean();
 maca_assert(
 	false !== strpos( $consent_rendered, 'role="dialog"' )
+	&& false === strpos( $consent_rendered, 'aria-modal="true"' )
+	&& false !== strpos( $consent_rendered, 'data-npcink-monitoring-decline autofocus' )
 	&& false !== strpos( $consent_rendered, 'Help us improve?' )
 	&& false !== strpos( $consent_rendered, 'Yes, share' )
 	&& false !== strpos( $consent_rendered, 'Not now' ),

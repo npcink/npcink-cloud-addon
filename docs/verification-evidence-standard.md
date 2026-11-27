@@ -71,6 +71,13 @@ The tiers keep the meaning they have in `cloud-addon-complexity-budget.md`:
 "Not applicable — record why" keeps the existing PR-template discipline: the
 reason is written into the PR's verification record, never silently omitted.
 
+For an admin browser fixture, assert the intended state after navigation before
+measuring any control. Similar markup does not prove the connected path. Seed
+disposable settings through the current storage contract and derive cache keys
+from the normalized scope. Record which responses came from WordPress, which
+were intercepted or synthesized, and which real Cloud paths remain untested.
+Keep the source revision, locale, and viewport with the evidence.
+
 Both 0.3.0 Plugin Check regressions — unescaped dynamic exception text
 (introduced by the localized connector failures) and placeholder strings
 without `translators:` comments — landed with every per-PR gate green and

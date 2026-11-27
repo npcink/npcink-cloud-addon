@@ -144,6 +144,71 @@ test('knowledge read failure offers a Chinese retry; retry replaces the whole ol
 	assert.match(result.requests[1].options.body, /action=read/);
 });
 
+test('knowledge usage labels stale numbers and keeps the failure code only in collapsed diagnostics', async () => {
+	const usage = node();
+	usage.dataset.npcinkSiteKnowledgeState = 'stale';
+	const value = node('99 / 100');
+	const staleLabel = node();
+	usage.querySelector = selector => ({
+		'[data-npcink-site-knowledge-usage-value]': value,
+		'[data-npcink-site-knowledge-usage-status]': staleLabel,
+	}[selector] || null);
+	const retry = node();
+	retry.hidden = true;
+	const readStatus = node();
+	const diagnostics = node();
+	diagnostics.open = false;
+	const code = node();
+	diagnostics.querySelector = selector => 'code' === selector ? code : null;
+	const result = run('admin-site-knowledge.js', {
+		'[data-npcink-site-knowledge-usage]': usage,
+		'[data-npcink-site-knowledge-status-retry]': retry,
+		'[data-npcink-site-knowledge-read-status]': readStatus,
+		'[data-npcink-site-knowledge-read-diagnostics]': diagnostics,
+	}, { npcinkCloudSiteKnowledge: { ...config, usageFailedLabel: '显示上次数据' } }, [
+		{ success: false, data: { message: '暂时无法读取。', error_code: 'cloud_runtime_request_failed' } },
+		{ success: true, data: { available: true, state: 'fresh', value_label: '98 / 100' } },
+	]);
+	await settle();
+	assert.equal(value.textContent, '99 / 100');
+	assert.equal(staleLabel.textContent, '显示上次数据');
+	assert.equal(readStatus.textContent, '暂时无法读取。');
+	assert.equal(code.textContent, 'cloud_runtime_request_failed');
+	assert.equal(diagnostics.open, false);
+	assert.equal(diagnostics.hidden, false);
+	assert.equal(retry.hidden, false);
+	retry.listeners.click();
+	assert.equal(retry.disabled, true);
+	await settle();
+	assert.equal(value.textContent, '98 / 100');
+	assert.equal(staleLabel.hidden, true);
+	assert.equal(readStatus.hidden, true);
+	assert.equal(code.textContent, '');
+	assert.equal(diagnostics.hidden, true);
+	assert.equal(retry.hidden, true);
+	assert.equal(result.calls(), 2);
+});
+
+test('monitoring prompt uses native modal where supported and Escape submits only the existing decline action', () => {
+	let declined = 0;
+	let shown = 0;
+	const no = { click() { declined++; } };
+	const dialog = node();
+	dialog.querySelector = selector => '[data-npcink-monitoring-decline]' === selector ? no : null;
+	dialog.removeAttribute = name => assert.equal(name, 'open');
+	const nodes = { '.npcink-cloud-monitoring-consent': dialog };
+	run('admin-permissions.js', nodes, {}, []);
+	assert.equal(dialog.listeners.cancel, undefined, 'without showModal the two server-rendered forms stay available inline');
+	dialog.showModal = () => { shown++; };
+	run('admin-permissions.js', nodes, {}, []);
+	assert.equal(shown, 1);
+	assert.equal(declined, 0);
+	let prevented = false;
+	dialog.listeners.cancel({ preventDefault() { prevented = true; } });
+	assert.equal(prevented, true);
+	assert.equal(declined, 1);
+});
+
 test('usage refresh moves quota warnings, dates and image capacity together, and labels retained data on failure', async () => {
 	const container = node();
 	container.dataset.npcinkEntitlementState = 'stale';

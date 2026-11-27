@@ -481,6 +481,8 @@ if ( ! class_exists( 'Npcink_Cloud_Addon_Localization' ) ) {
 				'You do not have permission to refresh Cloud entitlement.' => '您没有权限刷新 Cloud 权益。',
 				'Update failed' => '更新失败',
 				'Retry' => '重试',
+				'Retry reading usage' => '重试读取用量',
+				'Usage read details' => '用量读取详情',
 				'Available' => '可用',
 				'Free plan' => '免费版',
 				'Pro plan' => '专业版',

@@ -249,6 +249,10 @@ After the administrator answers (accept or decline):
   recorded consent answer so the popup does not return for the same site.
 - Re-prompt only when consent was never recorded, or when a future product
   change explicitly resets that stored answer.
+- The monitoring prompt uses native modal behavior when available. Focus starts
+  on the non-sharing choice; Escape takes the same explicit decline path as
+  `Not now`. Without modal support or JavaScript, both choices remain available
+  inline. A visual backdrop alone is not a modal, and closing must never opt in.
 
 ## Quota and Provider Error Codes (2026-10-21)
 
@@ -269,6 +273,12 @@ history of the earlier mapping pass lives in
 `docs/user-facing-error-surfacing-closeout-2026-10-02.md` (see the 2026-10-21
 addendum).
 
+Site Knowledge usage reads are a narrower case: show one plain-language failure
+and one labeled retry for the existing read, not for delivery or indexing.
+Keep a bounded diagnostic code out of the message, in a failure-only collapsed
+detail. Label retained usage as last available, and hide read recovery and
+diagnostics after success. Do not apply this exception to editor error routing.
+
 ## Self-check Before Handoff
 
 Before asking the user to review an admin UI change:
@@ -280,6 +290,12 @@ Before asking the user to review an admin UI change:
    before handoff.
 4. Prefer restrained UI for ordinary site owners — rare actions must not look
    like the main next step.
+5. For responsive controls, verify the actual screen and connection state below,
+   at, and above the affected breakpoint. When flex switches from row to column,
+   check for a desktop `flex-basis` becoming a control's height. Notices shown on
+   Dashboard or Plugins must remain readable and operable without the Addon
+   settings stylesheet. Check `zh_CN` wrapping and keyboard order on changed
+   controls, not just desktop screenshots.
 
 ## Layout and Copy Rules
 

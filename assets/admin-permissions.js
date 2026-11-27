@@ -45,4 +45,16 @@
 			focusTarget.scrollIntoView( { block: 'center', behavior: 'smooth' } );
 		}
 	}
+
+	var consent = document.querySelector( '.npcink-cloud-monitoring-consent' );
+	var decline = consent && consent.querySelector( '[data-npcink-monitoring-decline]' );
+	if ( decline && typeof consent.showModal === 'function' ) {
+		// Leave the server-rendered prompt inline when native modal support is absent.
+		consent.removeAttribute( 'open' );
+		consent.showModal();
+		consent.addEventListener( 'cancel', function( event ) {
+			event.preventDefault();
+			decline.click();
+		} );
+	}
 }() );

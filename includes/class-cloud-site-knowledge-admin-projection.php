@@ -107,14 +107,12 @@ if ( ! class_exists( 'Npcink_Cloud_Site_Knowledge_Admin_Projection' ) ) {
 			);
 			$initial_label = $labels[ $state ] ?? __( 'Site Knowledge usage could not be read. Check the Cloud connection and this site in Cloud before retrying.', 'npcink-cloud-addon' );
 			$code = (string) ( $summary['error_code'] ?? '' );
-			if ( preg_match( '/^[a-z][a-z0-9_.-]{0,95}$/D', $code ) ) {
-				$initial_label .= ' [' . $code . ']';
-			}
 			$projection = array(
 				'available' => false,
 				'state' => $state,
 				'label' => $initial_label,
 				'value_label' => $initial_label,
+				'error_code' => preg_match( '/^[a-z][a-z0-9_.-]{0,95}$/D', $code ) ? $code : '',
 				'status_label' => '',
 				'tooltip' => '',
 				'percent' => null,

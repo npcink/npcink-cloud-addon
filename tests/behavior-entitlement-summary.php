@@ -209,6 +209,15 @@ $site_knowledge_input = array(
 );
 $site_knowledge_direct = Npcink_Cloud_Site_Knowledge_Admin_Projection::build( $site_knowledge_input );
 $site_knowledge_usage = $site_knowledge_usage_method->invoke( null, $site_knowledge_input );
+$unavailable_usage = $site_knowledge_usage_method->invoke( null, array( 'state' => 'unavailable', 'error_code' => 'provider.quota_exhausted' ) );
+$invalid_usage_error = $site_knowledge_usage_method->invoke( null, array( 'state' => 'unavailable', 'error_code' => '<unsafe>' ) );
+maca_assert(
+	'provider.quota_exhausted' === $unavailable_usage['error_code']
+	&& '' === $invalid_usage_error['error_code']
+	&& false === strpos( $unavailable_usage['label'], 'provider.quota_exhausted' )
+	&& $unavailable_usage['label'] === $unavailable_usage['value_label'],
+	'Behavior: failed usage reads keep their bounded technical code separate from the owner-facing message.'
+);
 $missing_overview_metrics = $overview_metrics_method->invoke(
 	null,
 	array(

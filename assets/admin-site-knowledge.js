@@ -11,9 +11,7 @@
 	const valueLabel = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-usage-value]' ) : null;
 	const statusLabel = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-usage-status]' ) : null;
 	const progress = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-progress]' ) : null;
-	let retry = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-retry]' ) : document.querySelector( '[data-npcink-site-knowledge-status-retry]' );
-	const spinner = usageContainer ? usageContainer.querySelector( '.npcink-cloud-site-knowledge-usage__spinner' ) : null;
-	const actions = usageContainer ? usageContainer.querySelector( '[data-npcink-site-knowledge-actions]' ) : null;
+	let retry = document.querySelector( '[data-npcink-site-knowledge-status-retry]' );
 	const initialWaitingLabel = document.querySelector( '[data-npcink-site-knowledge-waiting]' );
 	const initialState = refreshController.dataset.npcinkSiteKnowledgeState || '';
 	let retainedValueLabel = valueLabel ? valueLabel.textContent : '';
@@ -30,11 +28,24 @@
 		if ( retry ) {
 			retry.disabled = loading;
 		}
-		if ( spinner ) {
-			spinner.classList.toggle( 'is-active', loading );
+	};
+
+	const showReadFailure = ( message, code = '' ) => {
+		const status = document.querySelector( '[data-npcink-site-knowledge-read-status]' );
+		const diagnostics = document.querySelector( '[data-npcink-site-knowledge-read-diagnostics]' );
+		if ( status ) {
+			status.textContent = message;
+			status.hidden = ! message;
 		}
-		if ( actions ) {
-			actions.hidden = ! loading && ( ! retry || retry.hidden );
+		if ( diagnostics ) {
+			diagnostics.querySelector( 'code' ).textContent = code;
+			diagnostics.hidden = ! code;
+			if ( ! code ) {
+				diagnostics.open = false;
+			}
+		}
+		if ( retry ) {
+			retry.hidden = ! message;
 		}
 	};
 
@@ -104,9 +115,6 @@
 		}
 
 		setLoading( true );
-		if ( retry && 'not_refreshed' === initialState ) {
-			retry.hidden = true;
-		}
 
 		const body = new URLSearchParams( {
 			action: config.action,
@@ -128,6 +136,7 @@
 				const errorMessage = payload && payload.data && payload.data.message ? payload.data.message : '';
 				const serverError = new Error( errorMessage || 'site_knowledge_usage_refresh_failed' );
 				serverError.fromServer = true;
+				serverError.code = payload?.data?.error_code || '';
 				throw serverError;
 			}
 
@@ -167,9 +176,7 @@
 				// A valid signed read stays successful if the replaced status
 				// fragment cannot render; the next refresh re-reads the summary.
 			}
-			if ( retry ) {
-				retry.hidden = true;
-			}
+			showReadFailure( '' );
 			updateWaitingLabel( payload.data );
 		} catch ( error ) {
 			// A failed refresh cannot confirm the waiting count; drop the
@@ -179,15 +186,7 @@
 			// error text must fall back to the translated config labels below.
 			const actionableMessage = error && error.fromServer && error.message && 'site_knowledge_usage_refresh_failed' !== error.message ? error.message : '';
 			const fallbackLabel = config.failedLabel || 'Site Knowledge usage is temporarily unavailable.';
-			const readStatus = document.querySelector( '[data-npcink-site-knowledge-read-status]' );
-			const statusRetry = document.querySelector( '[data-npcink-site-knowledge-status-retry]' );
-			if ( readStatus ) {
-				readStatus.textContent = actionableMessage || fallbackLabel;
-				readStatus.hidden = false;
-			}
-			if ( statusRetry ) {
-				statusRetry.hidden = false;
-			}
+			showReadFailure( actionableMessage || fallbackLabel, error?.fromServer ? error.code : '' );
 			// The English literals below are a last-resort fallback for a broken
 			// server injection; normal rendering always uses config labels.
 			if ( valueLabel ) {
@@ -196,13 +195,10 @@
 					: ( actionableMessage || fallbackLabel );
 			}
 			if ( statusLabel ) {
-				statusLabel.textContent = hasRetainedUsage ? ( actionableMessage || config.updateFailedLabel || 'Update failed' ) : '';
+				statusLabel.textContent = hasRetainedUsage ? ( config.usageFailedLabel || 'Usage could not be refreshed. Showing the last available figures.' ) : '';
 				statusLabel.hidden = '' === statusLabel.textContent;
 			}
 			refreshController.dataset.npcinkSiteKnowledgeState = 'unavailable';
-			if ( retry ) {
-				retry.hidden = false;
-			}
 		} finally {
 			setLoading( false );
 		}
