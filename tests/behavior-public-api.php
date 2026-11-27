@@ -105,3 +105,29 @@ maca_assert(
 	&& $request_count === count( $GLOBALS['maca_http_requests'] ),
 	'Behavior: Toolbox facades reject unknown top-level fields, recursive credential fields, and excessive runtime limits before Cloud transport.'
 );
+
+$faq_runtime = array(
+	'ability_name'     => 'npcink-toolbox/ai-content-support',
+	'contract_version' => 'hosted_ai_content_support.v1',
+	'input'            => array( 'messages' => array() ),
+	'timeout_seconds'  => 30,
+	'retry_max'        => 0,
+);
+foreach ( array( 'editor_body_faq_fixture' => 40, 'editor_other_fixture' => 30 ) as $key => $expected_timeout ) {
+	$request_count = count( $GLOBALS['maca_http_requests'] );
+	$GLOBALS['maca_http_response_queue'][] = array(
+		'response' => array( 'code' => 200 ),
+		'body'     => wp_json_encode( array( 'status' => 'ok', 'data' => array( 'status' => 'succeeded' ) ) ),
+	);
+	// A FAQ-like trace alone must not widen another caller's transport budget.
+	$result = npcink_cloud_addon_execute_toolbox_content_support_runtime( $faq_runtime, 'editor_body_faq_trace_fixture', $key );
+	$outbound = $GLOBALS['maca_http_requests'][ $request_count ]['args'] ?? array();
+	maca_assert(
+		'succeeded' === ( $result['data']['status'] ?? null )
+		&& $request_count + 1 === count( $GLOBALS['maca_http_requests'] )
+		&& $expected_timeout === ( $outbound['timeout'] ?? null )
+		&& $faq_runtime === json_decode( (string) ( $outbound['body'] ?? '' ), true )
+		&& ! empty( $outbound['headers']['X-Npcink-Signature'] ),
+		'Behavior: FAQ gets transport-only headroom; other content-support requests and the signed Cloud payload stay unchanged (' . $key . ').'
+	);
+}

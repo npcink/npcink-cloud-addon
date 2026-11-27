@@ -1124,17 +1124,17 @@ if ( ! class_exists( 'Npcink_Cloud_Runtime_Client' ) ) {
 			}
 
 			$timeout = max( 5, absint( $this->config['timeout'] ?? 8 ) );
-			if ( 'POST' === $method && '/v1/runtime/execute' === $path && is_array( $payload ) ) {
-				$requested_timeout = absint( $payload['timeout_seconds'] ?? 0 );
-				if ( $requested_timeout > 0 ) {
-					$timeout_cap = 'npcink-cloud/generate-image' === (string) ( $payload['ability_name'] ?? '' )
-						? Npcink_Cloud_Runtime_Request_Guards::WP_AI_IMAGE_GENERATION_MAX_TIMEOUT_SECONDS
-						: Npcink_Cloud_Runtime_Request_Guards::WP_AI_CONNECTOR_MAX_TIMEOUT_SECONDS;
-					$timeout = max( $timeout, min( $timeout_cap, $requested_timeout ) );
-					if ( in_array( $payload['ability_name'] ?? '', array( 'npcink-toolbox/review-article', 'npcink-cloud/image-context-evidence' ), true ) ) {
-						$timeout = max( $timeout, min( $timeout_cap, $requested_timeout ) + 10 );
-					}
-				}
+			$requested_timeout = 'POST' === $method && '/v1/runtime/execute' === $path ? absint( $payload['timeout_seconds'] ?? 0 ) : 0;
+			if ( $requested_timeout > 0 ) {
+				$ability = $payload['ability_name'] ?? '';
+				$timeout_cap = 'npcink-cloud/generate-image' === (string) $ability
+					? Npcink_Cloud_Runtime_Request_Guards::WP_AI_IMAGE_GENERATION_MAX_TIMEOUT_SECONDS
+					: Npcink_Cloud_Runtime_Request_Guards::WP_AI_CONNECTOR_MAX_TIMEOUT_SECONDS;
+				// FAQ shares the content-support ability; its idempotency namespace scopes the transport margin.
+				$is_editor_faq = 'npcink-toolbox/ai-content-support' === $ability && 'hosted_ai_content_support.v1' === ( $payload['contract_version'] ?? '' )
+					&& 0 === strpos( $idempotency_key, 'editor_body_faq_' );
+				$margin = $is_editor_faq || in_array( $ability, array( 'npcink-toolbox/review-article', 'npcink-cloud/image-context-evidence' ), true ) ? 10 : 0;
+				$timeout = max( $timeout, min( $timeout_cap, $requested_timeout ) + $margin );
 			}
 
 			$args = array(
