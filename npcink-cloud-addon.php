@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Npcink Cloud Addon
  * Description:       Connects this site to Npcink Cloud to use AI features.
- * Version:           0.4.4
+ * Version:           0.4.5
  * Requires at least: 7.0
  * Requires PHP:      8.0
  * Author:            Npcink
@@ -37,7 +37,7 @@ if ( ! defined( 'NPCINK_CLOUD_ADDON_DIR' ) ) {
 }
 
 if ( ! defined( 'NPCINK_CLOUD_ADDON_VERSION' ) ) {
-	define( 'NPCINK_CLOUD_ADDON_VERSION', '0.4.4' );
+	define( 'NPCINK_CLOUD_ADDON_VERSION', '0.4.5' );
 }
 
 if ( ! defined( 'NPCINK_CLOUD_ADDON_OPTION_NAME' ) ) {
