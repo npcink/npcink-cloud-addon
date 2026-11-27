@@ -4,7 +4,7 @@ Tags: npcink, cloud, ai, hosted runtime
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.4
+Stable tag: 0.4.5
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -166,6 +166,9 @@ Data Retention: https://cloud.npc.ink/terms/en/data-retention.html
 
 == Upgrade Notice ==
 
+= 0.4.5 =
+Before upgrading, confirm this host can reach Cloud directly over HTTPS with PHP cURL and libcurl 7.59 or later. Cloud hostname connections cannot use a proxy or streams fallback. Back up the WordPress database and keep the previous plugin ZIP for rollback.
+
 = 0.4.4 =
 Verified admin is Overview, Checks, and Connection after Site Knowledge moved onto Overview. Generation tests and AI request-log TOKEN columns are available when Cloud returns usage. Disconnect keeps the configured Cloud Base URL. No database migration or credential change is required.
 
@@ -188,6 +191,12 @@ Connector internals were restructured with stricter input bounds and fail-fast o
 Terminal callback delivery is removed and media recognition continuation moves to Workflow Toolbox. Re-verify the Cloud connection after upgrading from 0.1.x.
 
 == Changelog ==
+
+= 0.4.5 =
+* Cumulative update from public version 0.4.1: improves Cloud connection setup, WordPress AI integration and usage display, and the Overview, Checks, and Connection screens.
+* Hardened authorization and credential handling; bound public Cloud hostname connections to validated DNS addresses without changing HTTPS hostname verification.
+* Improved Site Knowledge reconciliation and recovery. Disconnect keeps recoverable local delivery receipts; uninstall removes local delivery state.
+* Improved narrow-screen setup, usage recovery and consent prompts. Allowed editor FAQ requests additional transport time to receive a Cloud response without increasing the Cloud execution budget.
 
 = 0.4.4 =
 * Merged Site Knowledge into Overview so verified admin is Overview, Checks, and Connection.

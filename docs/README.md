@@ -96,8 +96,8 @@ Navigation for `docs/`. Two conventions keep this directory findable:
 
 - [Reconciliation 复盘与会话交接 — 2026-10-17](site-knowledge-reconciliation-retrospective-and-handoff-2026-10-17.md) —
   自然运行后仍缺失的证据、游标/容量修复、开发经验和 Git 清理交接；真实恢复与三项独立后续仍开放。
-- [当前状态真相记录（草案）— 2026-10-16](current-state-truth-draft-2026-10-16.md) —
-  当前交接入口：分开记录历史完成证据、本次源码/工作区核对和三项独立后续；不替代 owner 契约。
+- [状态核对与交接草案（历史）— 2026-10-16](current-state-truth-draft-2026-10-16.md) —
+  记录当时的工作区与待办；当前规则见上方 Standards 和 Contracts，11 月审计处置见 [审计收口](cloud-addon-audit-closeout-2026-11-26.md)。
 - [Cloud owner 决策包（草案）— 2026-10-16](cloud-owner-decision-package-draft-2026-10-16.md) —
   历史记录、状态投影和开发配额待决问题，含 owner 回填、执行前置与验收要求；未批准操作。
 - `site-knowledge-quota-recovery-closeout-2026-10-15.md` — recovered public
